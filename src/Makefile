@@ -58,12 +58,12 @@ SRC+=lib/FreeRTOS/Source/croutine.c \
 	lib/FreeRTOS/Source/portable/MemMang/heap_4.c \
 	lib/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c \
 
-SRC+=src/main.c \
-	src/isr.c
+SRC+=core/main.c \
+	core/isr.c
 
 CFLAGS+=-I./
-CFLAGS+=-I./sys_startup/
-CFLAGS+=-I./src
+CFLAGS+=-I./sys_startup
+CFLAGS+=-I./core
 CFLAGS+=-I./lib/CMSIS
 CFLAGS+=-I./lib/CMSIS/Include
 CFLAGS+=-I./lib/CMSIS/Device/ST/STM32F4xx/Include
