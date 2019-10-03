@@ -15,13 +15,13 @@ CFLAGS+=-D USE_STDPERIPH_DRIVER \
 	-D __FPU_PRESENT=1 \
 	#-D __FPU_USED=1
 
-CFLAGS+=-Wl,-T,stm32f427vi_flash.ld
+CFLAGS+=-Wl,-T,./sys_startup/stm32f427vi_flash.ld
 
 LDFLAGS+=-Wl,--start-group -lm -Wl,--end-group
 
 SRC=
 
-SRC+=./system_stm32f4xx.c
+SRC+=./sys_startup/system_stm32f4xx.c
 
 SRC+=lib/CMSIS/DSP_Lib/Source/CommonTables/arm_common_tables.c \
 	lib/CMSIS/DSP_Lib/Source/FastMathFunctions/arm_cos_f32.c \
@@ -62,6 +62,7 @@ SRC+=src/main.c \
 	src/isr.c
 
 CFLAGS+=-I./
+CFLAGS+=-I./sys_startup/
 CFLAGS+=-I./src
 CFLAGS+=-I./lib/CMSIS
 CFLAGS+=-I./lib/CMSIS/Include
@@ -73,8 +74,8 @@ CFLAGS+=-I./lib/FreeRTOS/Source/portable/GCC/ARM_CM4F
 
 OBJS=$(SRC:.c=.o)
 
-STARTUP=./startup_stm32f427.s
-STARTUP_OBJ=startup_stm32f427.s
+STARTUP=./sys_startup/startup_stm32f427.s
+STARTUP_OBJ=./sys_startup/startup_stm32f427.s
 
 all:$(EXECUTABLE)
 
