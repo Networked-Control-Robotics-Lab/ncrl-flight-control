@@ -61,16 +61,20 @@ SRC+=lib/FreeRTOS/Source/croutine.c \
 SRC+=core/main.c \
 	core/isr.c
 
+SRC+=./driver/periph/led.c \
+	./driver/periph/uart.c \
+	./driver/periph/spi.c
+
 CFLAGS+=-I./
 CFLAGS+=-I./sys_startup
 CFLAGS+=-I./core
+CFLAGS+=-I./driver/periph
 CFLAGS+=-I./lib/CMSIS
 CFLAGS+=-I./lib/CMSIS/Include
 CFLAGS+=-I./lib/CMSIS/Device/ST/STM32F4xx/Include
 CFLAGS+=-I./lib/STM32F4xx_StdPeriph_Driver/inc
 CFLAGS+=-I./lib/FreeRTOS/Source/include
 CFLAGS+=-I./lib/FreeRTOS/Source/portable/GCC/ARM_CM4F
-#CFLAGS+=-I./src
 
 OBJS=$(SRC:.c=.o)
 
