@@ -1,5 +1,8 @@
 #include <stm32f4xx.h>
 
+#include "FreeRTOS.h"
+#include "task.h"
+#include "freertos_config.h"
 #include "led.h"
 #include "uart.h"
 #include "spi.h"
@@ -17,6 +20,8 @@ int main(void)
 	while(1) {
 		led_on(LED_R);
 	}
+
+	vTaskStartScheduler();
 
 	return 0;
 }
