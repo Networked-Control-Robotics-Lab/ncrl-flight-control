@@ -47,7 +47,7 @@ uint8_t mpu6500_read_who_am_i()
 
 void mpu6500_reset()
 {
-        mpu6500_write_byte(MPU6500_PWR_MGMT_1, 0x80);
+	mpu6500_write_byte(MPU6500_PWR_MGMT_1, 0x80);
 	delay_ms(100);
 }
 
@@ -61,7 +61,7 @@ void mpu6500_bias_calculate(void)
 
 	int16_t gyro_recalib_threshold = 30;
 
-	recalibrate:
+recalibrate:
 	mpu6500_read_unscaled_data(&accel_unscaled, &gyro_unscaled, &temp_unscaled);
 	gyro_unscaled_last = gyro_unscaled;
 
@@ -86,7 +86,7 @@ void mpu6500_bias_calculate(void)
 		//printf("dx:%d, dy:%d, dz:%d\n\r", gyro_change_x, gyro_change_y, gyro_change_z);
 
 		if(gyro_change_x > gyro_recalib_threshold || gyro_change_y > gyro_recalib_threshold ||
-		   gyro_change_z > gyro_recalib_threshold) {
+		    gyro_change_z > gyro_recalib_threshold) {
 			goto recalibrate;
 		}
 
@@ -108,16 +108,16 @@ int mpu6500_init()
 
 	mpu6500_reset();
 	delay_ms(50);
-        mpu6500_write_byte(MPU6500_GYRO_CONFIG, 0x10); //gyro: 1000Hz
+	mpu6500_write_byte(MPU6500_GYRO_CONFIG, 0x10); //gyro: 1000Hz
 	delay_ms(50);
-        mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x10); //accel range: 8g
+	mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x10); //accel range: 8g
 	delay_ms(50);
 
-        return 0;
+	return 0;
 }
 
 void mpu6500_read_unscaled_data(vector3d_16_t *accel_unscaled_data, vector3d_16_t *gyro_unscaled_data,
-				int16_t *temp_unscaled)
+                                int16_t *temp_unscaled)
 {
 	uint8_t buffer[14];
 
@@ -156,7 +156,7 @@ void mpu6500_read_unscaled_data(vector3d_16_t *accel_unscaled_data, vector3d_16_
 }
 
 void mpu6500_fix_bias(vector3d_16_t *accel_unscaled_data,
-	vector3d_16_t *gyro_unscaled_data)
+                      vector3d_16_t *gyro_unscaled_data)
 {
 	accel_unscaled_data->x -= mpu6500_accel_error_bias.x;
 	accel_unscaled_data->y -= mpu6500_accel_error_bias.y;
@@ -167,7 +167,7 @@ void mpu6500_fix_bias(vector3d_16_t *accel_unscaled_data,
 }
 
 void mpu6500_accel_convert_to_scale(vector3d_16_t *accel_unscaled_data,
-	vector3d_f_t *accel_scaled_data)
+                                    vector3d_f_t *accel_scaled_data)
 {
 	float bias_x = 0.0f;
 	float bias_y = 0.0f;
@@ -183,9 +183,9 @@ void mpu6500_accel_convert_to_scale(vector3d_16_t *accel_unscaled_data,
 }
 
 void mpu6500_gyro_convert_to_scale(vector3d_16_t *gyro_unscaled_data,
-	vector3d_f_t *gyro_scaled_data)
+                                   vector3d_f_t *gyro_scaled_data)
 {
-	 gyro_scaled_data->x = gyro_unscaled_data->x * MPU6500_GYRO_SCALE;
-	 gyro_scaled_data->y = gyro_unscaled_data->y * MPU6500_GYRO_SCALE;
-	 gyro_scaled_data->z = gyro_unscaled_data->z * MPU6500_GYRO_SCALE;
+	gyro_scaled_data->x = gyro_unscaled_data->x * MPU6500_GYRO_SCALE;
+	gyro_scaled_data->y = gyro_unscaled_data->y * MPU6500_GYRO_SCALE;
+	gyro_scaled_data->z = gyro_unscaled_data->z * MPU6500_GYRO_SCALE;
 }

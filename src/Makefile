@@ -104,6 +104,7 @@ $(EXECUTABLE): $(STARTUP_OBJ) $(OBJS)
 clean:
 	rm -rf $(EXECUTABLE)
 	rm -rf $(OBJS)
+	rm -rf *.orig
 
 flash:
 	openocd -f interface/stlink-v2.cfg \
@@ -120,5 +121,8 @@ openocd:
 
 gdbauto:
 	cgdb -d $(GDB) -x ./debug/openocd_gdb.gdb
+
+astyle:
+	astyle -r --exclude=lib --exclude=sys_startup --style=linux --suffix=none --indent=tab=8  *.c *.h
 
 .PHONY:all clean flash openocd gdbauto

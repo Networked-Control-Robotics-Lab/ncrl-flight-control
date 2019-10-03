@@ -45,7 +45,7 @@
 #define MPU6500_I2C_SLV4_DI 0x35
 #define MPU6500_I2C_SLV4_DO 0x40
 
-#define MPU6500A_2g 0.0000610352f 
+#define MPU6500A_2g 0.0000610352f
 #define MPU6500A_4g 0.0001220703f
 #define MPU6500A_8g 0.0002441406f
 #define MPU6500A_16g 0.0004882813f
@@ -60,14 +60,14 @@
 int mpu6500_init();
 
 void mpu6500_read_unscaled_data(vector3d_16_t *accel_unscaled_data, vector3d_16_t *gyro_unscaled_data,
-	int16_t *unscaled_temp);
+                                int16_t *unscaled_temp);
 
 void mpu6500_fix_bias(vector3d_16_t *accel_unscaled_data,
-	vector3d_16_t *gyro_unscaled_data);
+                      vector3d_16_t *gyro_unscaled_data);
 
 void mpu6500_accel_convert_to_scale(vector3d_16_t *accel_unscaled_data,
-	vector3d_f_t *accel_scaled_data);
+                                    vector3d_f_t *accel_scaled_data);
 void mpu6500_gyro_convert_to_scale(vector3d_16_t *gyro_unscaled_data,
-	vector3d_f_t *gyro_scaled_data);
+                                   vector3d_f_t *gyro_scaled_data);
 
 #endif

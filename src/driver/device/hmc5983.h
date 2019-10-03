@@ -34,6 +34,6 @@ int hmc5983_init();
 
 void hmc5983_read_unscaled_data(vector3d_16_t *mag_unscaled_data);
 void hmc5983_mag_convert_to_scale(vector3d_16_t *mag_unscaled_data,
-	vector3d_f_t *mag_scaled_data);
+                                  vector3d_f_t *mag_scaled_data);
 
 #endif

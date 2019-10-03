@@ -47,7 +47,7 @@ int hmc5983_read_identification()
 
 int hmc5983_init()
 {
-	/* Check HMC5983 device is alive or not */		
+	/* Check HMC5983 device is alive or not */
 	if(hmc5983_read_identification() == 1) return 1;
 
 	//HMC5983 configuration A :
@@ -60,27 +60,27 @@ int hmc5983_init()
 	hmc5983_write(HMC5983_CONF_B, 0x00);
 
 	//HMC5983 mode : continuous-measurement mode
-	hmc5983_write(HMC5983_MODE, 0x00);	
+	hmc5983_write(HMC5983_MODE, 0x00);
 
 	return 0;
 }
 
 void hmc5983_read_unscaled_data(vector3d_16_t *mag_unscaled_data)
 {
-        uint8_t buffer[6];
+	uint8_t buffer[6];
 
-        /* Get the new data */
+	/* Get the new data */
 	hmc5983_read(0x03, buffer, 6);
 
-        mag_unscaled_data->x = (buffer[0] << 8) | buffer[1];
-        mag_unscaled_data->y = (buffer[4] << 8) | buffer[5];
-        mag_unscaled_data->z = (buffer[2] << 8) | buffer[3];
+	mag_unscaled_data->x = (buffer[0] << 8) | buffer[1];
+	mag_unscaled_data->y = (buffer[4] << 8) | buffer[5];
+	mag_unscaled_data->z = (buffer[2] << 8) | buffer[3];
 }
 
 void hmc5983_mag_convert_to_scale(vector3d_16_t *mag_unscaled_data,
-	vector3d_f_t *mag_scaled_data)
+                                  vector3d_f_t *mag_scaled_data)
 {
-         mag_scaled_data->x = mag_unscaled_data->x * HMC5893_MAG_SCALE;
-         mag_scaled_data->y = mag_unscaled_data->y * HMC5893_MAG_SCALE;
-         mag_scaled_data->z = mag_unscaled_data->z * HMC5893_MAG_SCALE;
+	mag_scaled_data->x = mag_unscaled_data->x * HMC5893_MAG_SCALE;
+	mag_scaled_data->y = mag_unscaled_data->y * HMC5893_MAG_SCALE;
+	mag_scaled_data->z = mag_unscaled_data->z * HMC5893_MAG_SCALE;
 }
