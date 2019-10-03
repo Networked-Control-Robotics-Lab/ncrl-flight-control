@@ -1,7 +1,12 @@
 #include "stm32f4xx.h"
 #include "led.h"
 
-void led_init()
+/*
+ * led_r: gpio_pin_2
+ * led_g: gpio_pin_0
+ * led_b: gpio_pin_3
+ */
+void led_init(void)
 {
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
 

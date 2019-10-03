@@ -7,6 +7,49 @@
 
 #include "stm32f4xx_conf.h"
 
+/*
+ * <uart1>
+ * usage: log
+ * tx: gpio_pin_a9
+ * rx: gpio_pin_a10
+ */
+void uart1_init(int baudrate)
+{
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
+
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF_USART1);
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_USART1);
+
+	GPIO_InitTypeDef GPIO_InitStruct = {
+		.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_10,
+		.GPIO_Mode = GPIO_Mode_AF,
+		.GPIO_Speed = GPIO_Speed_50MHz,
+		.GPIO_OType = GPIO_OType_PP,
+		.GPIO_PuPd = GPIO_PuPd_UP
+	};
+	GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+	USART_InitTypeDef USART_InitStruct = {
+		.USART_BaudRate = baudrate,
+		.USART_Mode = USART_Mode_Rx | USART_Mode_Tx,
+		.USART_WordLength = USART_WordLength_8b,
+		.USART_StopBits = USART_StopBits_1,
+		.USART_Parity = USART_Parity_No
+	};
+	USART_Init(USART1, &USART_InitStruct);
+
+	USART_Cmd(USART1, ENABLE);
+
+	USART_ClearFlag(USART1, USART_FLAG_TC);
+}
+
+/*
+ * <uart3>
+ * usage: telecommunication
+ * tx: gpio_pin_d8
+ * rx: gpio_pin_d9
+ */
 void uart3_init(int baudrate)
 {
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
@@ -22,7 +65,7 @@ void uart3_init(int baudrate)
 		.GPIO_OType = GPIO_OType_PP,
 		.GPIO_PuPd = GPIO_PuPd_UP
 	};
-	GPIO_Init(GPIOB, &GPIO_InitStruct);
+	GPIO_Init(GPIOD, &GPIO_InitStruct);
 
 	USART_InitTypeDef USART_InitStruct = {
 		.USART_BaudRate = baudrate,
@@ -38,13 +81,120 @@ void uart3_init(int baudrate)
 	USART_ClearFlag(USART3, USART_FLAG_TC);
 }
 
-void uart3_putc(char c)
+/*
+ * <uart4>
+ * usage: s-bus
+ * rx: gpio_pin_c11
+ */
+void uart4_init(int baudrate)
 {
-	USART_SendData(USART3, c);
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART4, ENABLE);
+
+	GPIO_PinAFConfig(GPIOC, GPIO_PinSource11, GPIO_AF_UART4);
+
+	GPIO_InitTypeDef GPIO_InitStruct = {
+		.GPIO_Pin = GPIO_Pin_11,
+		.GPIO_Mode = GPIO_Mode_AF,
+		.GPIO_Speed = GPIO_Speed_50MHz,
+		.GPIO_OType = GPIO_OType_PP,
+		.GPIO_PuPd = GPIO_PuPd_UP
+	};
+	GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+	USART_InitTypeDef USART_InitStruct = {
+		.USART_BaudRate = baudrate,
+		.USART_Mode = USART_Mode_Rx,
+		.USART_WordLength = USART_WordLength_8b,
+		.USART_StopBits = USART_StopBits_1,
+		.USART_Parity = USART_Parity_No
+	};
+	USART_Init(UART4, &USART_InitStruct);
+
+	USART_Cmd(UART4, ENABLE);
+}
+
+/*
+ * <uart6>
+ * usage: cam
+ * tx: gpio_pin_c6
+ * rx: gpio_pin_c7
+ */
+void uart6_init(int baudrate)
+{
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB2Periph_USART6, ENABLE);
+
+	GPIO_PinAFConfig(GPIOC, GPIO_PinSource6, GPIO_AF_USART6);
+	GPIO_PinAFConfig(GPIOC, GPIO_PinSource7, GPIO_AF_USART6);
+
+	GPIO_InitTypeDef GPIO_InitStruct = {
+		.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_6,
+		.GPIO_Mode = GPIO_Mode_AF,
+		.GPIO_Speed = GPIO_Speed_50MHz,
+		.GPIO_OType = GPIO_OType_PP,
+		.GPIO_PuPd = GPIO_PuPd_UP
+	};
+	GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+	USART_InitTypeDef USART_InitStruct = {
+		.USART_BaudRate = baudrate,
+		.USART_Mode = USART_Mode_Rx | USART_Mode_Tx,
+		.USART_WordLength = USART_WordLength_8b,
+		.USART_StopBits = USART_StopBits_1,
+		.USART_Parity = USART_Parity_No
+	};
+	USART_Init(USART6, &USART_InitStruct);
+
+	USART_Cmd(USART6, ENABLE);
+
+	USART_ClearFlag(USART6, USART_FLAG_TC);
+}
+
+/*
+ * <uart7>
+ * usage: telecommunication
+ * tx: gpio_pin_e7
+ * rx: gpio_pin_e8
+ */
+void uart7_init(int baudrate)
+{
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART7, ENABLE);
+
+	GPIO_PinAFConfig(GPIOE, GPIO_PinSource7, GPIO_AF_UART7);
+	GPIO_PinAFConfig(GPIOE, GPIO_PinSource8, GPIO_AF_UART7);
+
+	GPIO_InitTypeDef GPIO_InitStruct = {
+		.GPIO_Pin = GPIO_Pin_7 | GPIO_Pin_8,
+		.GPIO_Mode = GPIO_Mode_AF,
+		.GPIO_Speed = GPIO_Speed_50MHz,
+		.GPIO_OType = GPIO_OType_PP,
+		.GPIO_PuPd = GPIO_PuPd_UP
+	};
+	GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+	USART_InitTypeDef USART_InitStruct = {
+		.USART_BaudRate = baudrate,
+		.USART_Mode = USART_Mode_Rx | USART_Mode_Tx,
+		.USART_WordLength = USART_WordLength_8b,
+		.USART_StopBits = USART_StopBits_1,
+		.USART_Parity = USART_Parity_No
+	};
+	USART_Init(UART7, &USART_InitStruct);
+
+	USART_Cmd(UART7, ENABLE);
+
+	USART_ClearFlag(UART7, USART_FLAG_TC);
+}
+
+void uart_putc(USART_TypeDef *uart, char c)
+{
+	USART_SendData(uart, c);
 	while(USART_GetFlagStatus(USART3, USART_FLAG_TC) == RESET);
 }
 
-uint8_t uart3_getc()
+uint8_t uart_getc(USART_TypeDef *uart, char c)
 {
 	while(USART_GetFlagStatus(USART3, USART_FLAG_RXNE) == SET);
 	return USART_ReceiveData(USART3);

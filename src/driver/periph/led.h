@@ -7,8 +7,8 @@
 #define led_on(led)  GPIO_SetBits(led)
 #define led_off(led)  GPIO_ResetBits(led)
 
-#define LED_R GPIOA, GPIO_Pin_0
-#define LED_G GPIOA, GPIO_Pin_2
+#define LED_R GPIOA, GPIO_Pin_2
+#define LED_G GPIOA, GPIO_Pin_0
 #define LED_B GPIOA, GPIO_Pin_3
 
 

@@ -1,6 +1,12 @@
 #include "stm32f4xx_conf.h"
 
-
+/* <spi1>
+ * usage: mpu6500 (imu)
+ * cs: gpio_pin_a_4
+ * sck: gpio_pin_a_5
+ * miso: gpio_pin_a_6
+ * mosi: gpio_pin_a_7
+ */
 void spi1_init()
 {
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
@@ -10,12 +16,6 @@ void spi1_init()
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource6, GPIO_AF_SPI1);
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_SPI1);
 
-	/* spi1 slave device:
-	 * imu_cs: gpio_pin_a_4
-	 * imu_sck: gpio_pin_a_5
-	 * imu_miso: gpio_pin_a_6
-	 * imu_mosi: gpio_pin_a_7
-	 */
 	GPIO_InitTypeDef GPIO_InitStruct = {
 		.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7,
 		.GPIO_Mode = GPIO_Mode_AF,
