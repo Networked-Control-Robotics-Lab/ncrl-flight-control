@@ -58,17 +58,23 @@ SRC+=lib/FreeRTOS/Source/croutine.c \
 	lib/FreeRTOS/Source/portable/MemMang/heap_4.c \
 	lib/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c \
 
-SRC+=core/main.c \
+SRC+=./core/main.c \
 	core/isr.c
+
+SRC+=./common/delay.c
 
 SRC+=./driver/periph/led.c \
 	./driver/periph/uart.c \
-	./driver/periph/spi.c
+	./driver/periph/spi.c \
+	./driver/device/mpu6500.c \
+	./driver/device/hmc5983.c
 
 CFLAGS+=-I./
 CFLAGS+=-I./sys_startup
 CFLAGS+=-I./core
+CFLAGS+=-I./common
 CFLAGS+=-I./driver/periph
+CFLAGS+=-I./driver/device
 CFLAGS+=-I./lib/CMSIS
 CFLAGS+=-I./lib/CMSIS/Include
 CFLAGS+=-I./lib/CMSIS/Device/ST/STM32F4xx/Include
