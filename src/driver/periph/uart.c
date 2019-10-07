@@ -220,7 +220,7 @@ void uart1_puts(uint8_t *s, int size)
 		.DMA_Channel = DMA_Channel_4,
 		.DMA_DIR = DMA_DIR_MemoryToPeripheral,
 		.DMA_Memory0BaseAddr = (uint32_t)s
-        };
+	};
 	DMA_Init(DMA2_Stream4, &DMA_InitStructure);
 
 	//send data from memory to uart data register

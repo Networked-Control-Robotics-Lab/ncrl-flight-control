@@ -6,19 +6,29 @@
 #include "led.h"
 #include "uart.h"
 #include "spi.h"
+#include "mpu6500.h"
 
 int main(void)
 {
 	led_init();
 	uart1_init(115200);
 	uart3_init(115200); //telem
-	uart4_init(10000); //s-bus
+	uart4_init(10000);  //s-bus
 	uart6_init(115200);
 	uart7_init(115200); //gps
 	spi1_init();
 
+	led_on(LED_R);
+	led_off(LED_G);
+	led_off(LED_B);
+
+	mpu6500_init();
+
+	led_off(LED_R);
+	led_off(LED_G);
+	led_on(LED_B);
+
 	while(1) {
-		led_on(LED_R);
 	}
 
 	vTaskStartScheduler();
