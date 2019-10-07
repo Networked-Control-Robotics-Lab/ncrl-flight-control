@@ -3,6 +3,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "freertos_config.h"
+#include "delay.h"
 #include "led.h"
 #include "uart.h"
 #include "spi.h"
@@ -29,6 +30,15 @@ int main(void)
 	led_on(LED_B);
 
 	while(1) {
+		led_toggle(LED_B);
+		uart_putc(USART3, 'h');
+		uart_putc(USART3, 'e');
+		uart_putc(USART3, 'l');
+		uart_putc(USART3, 'l');
+		uart_putc(USART3, 'o');
+		uart_putc(USART3, '\n');
+		uart_putc(USART3, '\r');
+		delay_ms(25);
 	}
 
 	vTaskStartScheduler();
