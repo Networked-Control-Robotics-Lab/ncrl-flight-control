@@ -191,13 +191,13 @@ void uart7_init(int baudrate)
 void uart_putc(USART_TypeDef *uart, char c)
 {
 	USART_SendData(uart, c);
-	while(USART_GetFlagStatus(USART3, USART_FLAG_TC) == RESET);
+	while(USART_GetFlagStatus(uart, USART_FLAG_TC) == RESET);
 }
 
 uint8_t uart_getc(USART_TypeDef *uart, char c)
 {
-	while(USART_GetFlagStatus(USART3, USART_FLAG_RXNE) == SET);
-	return USART_ReceiveData(USART3);
+	while(USART_GetFlagStatus(uart, USART_FLAG_RXNE) == SET);
+	return USART_ReceiveData(uart);
 }
 
 void uart1_puts(uint8_t *s, int size)
