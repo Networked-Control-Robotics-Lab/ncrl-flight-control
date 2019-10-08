@@ -190,6 +190,7 @@ void uart7_init(int baudrate)
 
 void uart_putc(USART_TypeDef *uart, char c)
 {
+	while(USART_GetFlagStatus(uart, USART_FLAG_TXE) == RESET);
 	USART_SendData(uart, c);
 	while(USART_GetFlagStatus(uart, USART_FLAG_TC) == RESET);
 }
