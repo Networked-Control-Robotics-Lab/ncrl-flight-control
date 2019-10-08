@@ -8,6 +8,7 @@
 #include "led.h"
 #include "uart.h"
 #include "spi.h"
+#include "pwm.h"
 #include "mpu6500.h"
 
 int main(void)
@@ -18,6 +19,8 @@ int main(void)
 	uart4_init(10000);  //s-bus
 	uart6_init(115200);
 	uart7_init(115200); //gps
+	pwm_timer1_init();
+	pwm_timer4_init();
 	spi1_init();
 
 	led_on(LED_R);
