@@ -13,6 +13,7 @@ void uart7_init(int baudrate);
 uint8_t uart_getc(USART_TypeDef *uart);
 void uart_putc(USART_TypeDef *uart, char c);
 
-void uart1_puts(uint8_t *s, int size);
+void uart1_puts(char *s, int size);
+void uart3_puts(char *s, int size);
 
 #endif
