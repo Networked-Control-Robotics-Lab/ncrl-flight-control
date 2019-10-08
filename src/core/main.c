@@ -1,5 +1,6 @@
-#include <stm32f4xx.h>
+#include <string.h>
 
+#include "stm32f4xx.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "freertos_config.h"
@@ -31,14 +32,20 @@ int main(void)
 
 	while(1) {
 		led_toggle(LED_B);
-		uart_putc(USART3, 'h');
-		uart_putc(USART3, 'e');
-		uart_putc(USART3, 'l');
-		uart_putc(USART3, 'l');
-		uart_putc(USART3, 'o');
-		uart_putc(USART3, '\n');
-		uart_putc(USART3, '\r');
-		delay_ms(25);
+
+		char *s = "test\n";
+		uart1_puts((uint8_t *)s, strlen(s));
+
+#if 0
+		uart_putc(USART1, 'h');
+		uart_putc(USART1, 'e');
+		uart_putc(USART1, 'l');
+		uart_putc(USART1, 'l');
+		uart_putc(USART1, 'o');
+		uart_putc(USART1, '\n');
+		uart_putc(USART1, '\r');
+#endif
+		delay_ms(100);
 	}
 
 	vTaskStartScheduler();

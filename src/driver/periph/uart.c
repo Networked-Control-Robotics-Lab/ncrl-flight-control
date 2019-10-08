@@ -16,6 +16,7 @@
 void uart1_init(int baudrate)
 {
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
 
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF_USART1);
@@ -222,7 +223,7 @@ void uart1_puts(uint8_t *s, int size)
 		.DMA_DIR = DMA_DIR_MemoryToPeripheral,
 		.DMA_Memory0BaseAddr = (uint32_t)s
 	};
-	DMA_Init(DMA2_Stream4, &DMA_InitStructure);
+	DMA_Init(DMA2_Stream7, &DMA_InitStructure);
 
 	//send data from memory to uart data register
 	DMA_Cmd(DMA2_Stream7, ENABLE);
