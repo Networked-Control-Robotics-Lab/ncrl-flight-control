@@ -16,7 +16,7 @@
 void uart1_init(int baudrate)
 {
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
-	RCC_APB1PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
 
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF_USART1);
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_USART1);
@@ -123,7 +123,7 @@ void uart4_init(int baudrate)
 void uart6_init(int baudrate)
 {
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
-	RCC_APB1PeriphClockCmd(RCC_APB2Periph_USART6, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART6, ENABLE);
 
 	GPIO_PinAFConfig(GPIOC, GPIO_PinSource6, GPIO_AF_USART6);
 	GPIO_PinAFConfig(GPIOC, GPIO_PinSource7, GPIO_AF_USART6);
