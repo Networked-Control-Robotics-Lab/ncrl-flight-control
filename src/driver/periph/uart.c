@@ -119,8 +119,8 @@ void uart4_init(int baudrate)
 /*
  * <uart6>
  * usage: cam
- * tx: gpio_pin_c6
- * rx: gpio_pin_c7
+ * tx: gpio_pin_c6 (dma2 channel5 stream6)
+ * rx: gpio_pin_c7 (dma2 channel5 stream2)
  */
 void uart6_init(int baudrate)
 {
