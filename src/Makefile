@@ -118,10 +118,10 @@ flash:
 	-c "reset run" -c shutdown
 
 openocd:
-	openocd -s /opt/openocd/share/openocd/scripts/ -f ./debug/openocd.cfg
+	openocd -s /opt/openocd/share/openocd/scripts/ -f ./gdb/openocd.cfg
 
 gdbauto:
-	cgdb -d $(GDB) -x ./debug/openocd_gdb.gdb
+	cgdb -d $(GDB) -x ./gdb/openocd_gdb.gdb
 
 astyle:
 	astyle -r --exclude=lib --exclude=sys_startup --style=linux --suffix=none --indent=tab=8  *.c *.h
