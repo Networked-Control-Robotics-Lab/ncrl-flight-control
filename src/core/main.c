@@ -34,7 +34,7 @@ int main(void)
 		led_toggle(LED_B);
 
 		char *s = "test\n";
-		uart3_puts(s, strlen(s));
+		uart6_puts(s, strlen(s));
 
 #if 0
 		uart_putc(USART1, 'h');

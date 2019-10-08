@@ -125,6 +125,7 @@ void uart4_init(int baudrate)
 void uart6_init(int baudrate)
 {
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART6, ENABLE);
 
 	GPIO_PinAFConfig(GPIOC, GPIO_PinSource6, GPIO_AF_USART6);
@@ -261,4 +262,34 @@ void uart3_puts(char *s, int size)
 	USART_DMACmd(USART3, USART_DMAReq_Tx, ENABLE);
 
 	while(DMA_GetFlagStatus(DMA1_Stream3, DMA_FLAG_TCIF3) == RESET);
+}
+
+void uart6_puts(char *s, int size)
+{
+	//uart6 tx: dma2 channel5 stream6
+	DMA_ClearFlag(DMA2_Stream6, DMA_FLAG_TCIF6);
+
+	DMA_InitTypeDef DMA_InitStructure = {
+		.DMA_BufferSize = (uint32_t)size,
+		.DMA_FIFOMode = DMA_FIFOMode_Disable,
+		.DMA_FIFOThreshold = DMA_FIFOThreshold_Full,
+		.DMA_MemoryBurst = DMA_MemoryBurst_Single,
+		.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte,
+		.DMA_MemoryInc = DMA_MemoryInc_Enable,
+		.DMA_Mode = DMA_Mode_Normal,
+		.DMA_PeripheralBaseAddr = (uint32_t)(&USART6->DR),
+		.DMA_PeripheralBurst = DMA_PeripheralBurst_Single,
+		.DMA_PeripheralInc = DMA_PeripheralInc_Disable,
+		.DMA_Priority = DMA_Priority_Medium,
+		.DMA_Channel = DMA_Channel_5,
+		.DMA_DIR = DMA_DIR_MemoryToPeripheral,
+		.DMA_Memory0BaseAddr = (uint32_t)s
+	};
+	DMA_Init(DMA2_Stream6, &DMA_InitStructure);
+
+	//send data from memory to uart data register
+	DMA_Cmd(DMA2_Stream6, ENABLE);
+	USART_DMACmd(USART6, USART_DMAReq_Tx, ENABLE);
+
+	while(DMA_GetFlagStatus(DMA2_Stream6, DMA_FLAG_TCIF6) == RESET);
 }

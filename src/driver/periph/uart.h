@@ -15,5 +15,6 @@ void uart_putc(USART_TypeDef *uart, char c);
 
 void uart1_puts(char *s, int size);
 void uart3_puts(char *s, int size);
+void uart6_puts(char *s, int size);
 
 #endif
