@@ -36,19 +36,8 @@ int main(void)
 	while(1) {
 		led_toggle(LED_B);
 
-		char *s = "test\n";
-		uart6_puts(s, strlen(s));
-
-#if 0
-		uart_putc(USART1, 'h');
-		uart_putc(USART1, 'e');
-		uart_putc(USART1, 'l');
-		uart_putc(USART1, 'l');
-		uart_putc(USART1, 'o');
-		uart_putc(USART1, '\n');
-		uart_putc(USART1, '\r');
-#endif
-		delay_ms(100);
+		char c = uart_getc(UART4);
+		uart_putc(USART1, c);
 	}
 
 	vTaskStartScheduler();

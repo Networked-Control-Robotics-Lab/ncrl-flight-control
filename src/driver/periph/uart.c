@@ -108,8 +108,8 @@ void uart4_init(int baudrate)
 		.USART_BaudRate = baudrate,
 		.USART_Mode = USART_Mode_Rx,
 		.USART_WordLength = USART_WordLength_8b,
-		.USART_StopBits = USART_StopBits_1,
-		.USART_Parity = USART_Parity_No
+		.USART_StopBits = USART_StopBits_2,
+		.USART_Parity = USART_Parity_Even
 	};
 	USART_Init(UART4, &USART_InitStruct);
 
@@ -198,7 +198,7 @@ void uart_putc(USART_TypeDef *uart, char c)
 	while(USART_GetFlagStatus(uart, USART_FLAG_TC) == RESET);
 }
 
-uint8_t uart_getc(USART_TypeDef *uart, char c)
+char uart_getc(USART_TypeDef *uart)
 {
 	while(USART_GetFlagStatus(uart, USART_FLAG_RXNE) == SET);
 	return USART_ReceiveData(uart);

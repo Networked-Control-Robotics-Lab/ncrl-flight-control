@@ -10,7 +10,7 @@ void uart4_init(int baudrate);
 void uart6_init(int baudrate);
 void uart7_init(int baudrate);
 
-uint8_t uart_getc(USART_TypeDef *uart);
+char uart_getc(USART_TypeDef *uart);
 void uart_putc(USART_TypeDef *uart, char c);
 
 void uart1_puts(char *s, int size);
