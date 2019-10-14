@@ -39,30 +39,8 @@ int main(void)
 	while(1) {
 		led_toggle(LED_B);
 
-		char s[50] = {0};
-
-		sprintf(s, "%d\n\r", c);
-		uart3_puts(s, strlen(s));
-
 		delay_ms(5);
 	}
-
-#if 0
-	while(0) {
-		led_toggle(LED_B);
-
-		volatile char c = uart_getc(UART4);
-		char s[50] = {0};
-
-		if(c == 15) {
-			uart_putc(USART3, '\n');
-			uart_putc(USART3, '\r');
-		}
-
-		sprintf(s, "%d,", c);
-		uart3_puts(s, strlen(s));
-	}
-#endif
 
 	vTaskStartScheduler();
 

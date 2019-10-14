@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <unistd.h>
 #include <stdarg.h>
 #include <ctype.h>
@@ -307,10 +308,33 @@ void uart6_puts(char *s, int size)
 }
 
 uint8_t c;
+int sbus_cnt = 0;
+uint8_t sbus_buffer[25] = {0};
 
 void UART4_IRQHandler()
 {
 	if(USART_GetITStatus(UART4, USART_IT_RXNE) == SET) {
 		c = USART_ReceiveData(UART4);
+		UART4->SR;
+
+		if(c == 15) {
+			sbus_cnt = 0;
+		}
+
+		sbus_buffer[sbus_cnt] = c;
+		sbus_cnt++;
+
+		/* debug message */
+		if(sbus_cnt == 25) {
+			int i;
+			for(i = 0; i < 25; i++) {
+				char s[10] = {0};
+				sprintf(s, "%d,", sbus_buffer[i]);
+				uart3_puts(s, strlen(s));
+			}
+			sbus_cnt = 0;
+			uart_putc(USART3, '\n');
+			uart_putc(USART3, '\r');
+		}
 	}
 }
