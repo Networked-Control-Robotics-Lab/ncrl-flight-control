@@ -12,6 +12,8 @@
 #include "pwm.h"
 #include "mpu6500.h"
 
+extern uint8_t c;
+
 int main(void)
 {
 	led_init();
@@ -37,6 +39,18 @@ int main(void)
 	while(1) {
 		led_toggle(LED_B);
 
+		char s[50] = {0};
+
+		sprintf(s, "%d\n\r", c);
+		uart3_puts(s, strlen(s));
+
+		delay_ms(5);
+	}
+
+#if 0
+	while(0) {
+		led_toggle(LED_B);
+
 		volatile char c = uart_getc(UART4);
 		char s[50] = {0};
 
@@ -48,6 +62,7 @@ int main(void)
 		sprintf(s, "%d,", c);
 		uart3_puts(s, strlen(s));
 	}
+#endif
 
 	vTaskStartScheduler();
 

@@ -6,6 +6,7 @@
 #include <stdbool.h>
 
 #include "stm32f4xx_conf.h"
+#include "isr.h"
 
 /*
  * <uart1>
@@ -115,6 +116,16 @@ void uart4_init(int baudrate)
 	USART_Init(UART4, &USART_InitStruct);
 
 	USART_Cmd(UART4, ENABLE);
+
+	NVIC_InitTypeDef NVIC_InitStruct = {
+		.NVIC_IRQChannel = UART4_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = UART4_PRIORITY,
+		.NVIC_IRQChannelSubPriority = 0,
+		.NVIC_IRQChannelCmd = ENABLE
+	};
+	NVIC_Init(&NVIC_InitStruct);
+
+	USART_ITConfig(UART4, USART_IT_RXNE, ENABLE);
 }
 
 /*
@@ -293,4 +304,13 @@ void uart6_puts(char *s, int size)
 	USART_DMACmd(USART6, USART_DMAReq_Tx, ENABLE);
 
 	while(DMA_GetFlagStatus(DMA2_Stream6, DMA_FLAG_TCIF6) == RESET);
+}
+
+uint8_t c;
+
+void UART4_IRQHandler()
+{
+	if(USART_GetITStatus(UART4, USART_IT_RXNE) == SET) {
+		c = USART_ReceiveData(UART4);
+	}
 }
