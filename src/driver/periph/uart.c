@@ -310,5 +310,14 @@ void uart6_puts(char *s, int size)
 
 void UART4_IRQHandler()
 {
-	sbus_rc_handler();
+	/* using uart4 rxne interrupt to receive and parse
+	   sbus message */
+	uint8_t c;
+
+	if(USART_GetITStatus(UART4, USART_IT_RXNE) == SET) {
+		c = USART_ReceiveData(UART4);
+		UART4->SR;
+
+		sbus_rc_handler(c);
+	}
 }
