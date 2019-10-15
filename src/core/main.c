@@ -11,6 +11,7 @@
 #include "spi.h"
 #include "pwm.h"
 #include "mpu6500.h"
+#include "sbus_receiver.h"
 
 extern uint8_t c;
 
@@ -38,6 +39,10 @@ int main(void)
 
 	while(1) {
 		led_toggle(LED_B);
+
+		radio_t rc;
+		read_rc_info(&rc);
+		debug_print_rc_info(&rc);
 
 		delay_ms(5);
 	}

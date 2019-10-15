@@ -6,7 +6,7 @@ GDB=arm-none-eabi-gdb
 
 CFLAGS=-g -O2 -mlittle-endian -mthumb
 CFLAGS+=-mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard
-CFLAGS+=--specs=nano.specs --specs=nosys.specs -fno-builtin-printf
+CFLAGS+=--specs=nano.specs --specs=nosys.specs -fno-builtin-printf -u _printf_float
 CFLAGS+=-Wall -fno-strict-aliasing
 CFLAGS+=-D USE_STDPERIPH_DRIVER \
 	-D STM32F427xx \
@@ -60,7 +60,8 @@ SRC+=lib/FreeRTOS/Source/croutine.c \
 
 SRC+=./core/main.c
 
-SRC+=./common/delay.c
+SRC+=./common/delay.c \
+	./common/bound.c
 
 SRC+=./driver/periph/led.c \
 	./driver/periph/uart.c \

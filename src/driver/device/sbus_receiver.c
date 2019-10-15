@@ -2,16 +2,19 @@
 #include <string.h>
 
 #include "stm32f4xx_conf.h"
+#include "delay.h"
+#include "bound.h"
 #include "uart.h"
+#include "sbus_receiver.h"
 
 void parse_sbus(uint8_t *raw_buff, uint16_t *rc_val);
 void debug_print_raw_sbus(void);
 void debug_print_rc_val(void);
-
-uint16_t rc_val[15];
+void debug_print_rc_info(radio_t *rc);
 
 uint8_t sbus_buff[25] = {0};
 int sbus_cnt = 0;
+uint16_t rc_val[15];
 
 void sbus_rc_handler(uint8_t byte)
 {
@@ -54,6 +57,38 @@ void parse_sbus(uint8_t *raw_buff, uint16_t *rc_val)
 	//rc_val[15] = ((raw_buff[21] >> 5 | raw_buff[22] << 3) & 0x07ff);
 }
 
+void read_rc_info(radio_t *rc)
+{
+	float throttle_raw = (float)rc_val[2]; //channel 3
+	float roll_raw = (float)rc_val[0]; //channel 1
+	float pitch_raw = (float)rc_val[1]; //channel 2
+	float yaw_raw = (float)rc_val[3]; //channel 4
+	float safety_raw = (float)rc_val[4]; //channel 5
+
+	if(safety_raw > RC_SAFETY_THRESH) {
+		rc->safety = false; //disarmed
+	} else if(safety_raw < RC_SAFETY_THRESH) {
+		rc->safety = true; //armed
+	}
+
+	rc->roll = (float)(roll_raw - RC_ROLL_MIN) / (RC_ROLL_MAX - RC_ROLL_MIN) *
+	           (RC_ROLL_RANGE_MAX - RC_ROLL_RANGE_MIN) + RC_ROLL_RANGE_MIN;
+
+	rc->pitch = (float)(pitch_raw - RC_PITCH_MIN) / (RC_PITCH_MAX - RC_PITCH_MIN) *
+	            (RC_PITCH_RANGE_MAX - RC_PITCH_RANGE_MIN) + RC_PITCH_RANGE_MIN;
+
+	rc->yaw = (float)(yaw_raw - RC_YAW_MIN) / (RC_YAW_MAX - RC_YAW_MIN) *
+	          (RC_YAW_RANGE_MAX - RC_YAW_RANGE_MIN) + RC_YAW_RANGE_MIN;
+
+	rc->throttle = (float)(throttle_raw - RC_THROTTLE_MIN) / (RC_THROTTLE_MAX - RC_THROTTLE_MIN) *
+	               (RC_THROTTLE_RANGE_MAX - RC_THROTTLE_RANGE_MIN);
+
+	bound_float(&rc->roll, RC_ROLL_RANGE_MAX, RC_ROLL_RANGE_MIN);
+	bound_float(&rc->pitch, RC_PITCH_RANGE_MAX, RC_PITCH_RANGE_MIN);
+	bound_float(&rc->yaw, RC_YAW_RANGE_MAX, RC_YAW_RANGE_MIN);
+	bound_float(&rc->throttle, RC_THROTTLE_RANGE_MAX, RC_THROTTLE_RANGE_MIN);
+}
+
 void debug_print_raw_sbus(void)
 {
 	int i;
@@ -71,7 +106,22 @@ void debug_print_rc_val(void)
 {
 	/* debug message */
 	char s[100] = {0};
-	sprintf(s, "ch1:%d, ch2:%d ch3:%d, ch4:%d, ch6:%d\n\r",
-	        rc_val[0], rc_val[1], rc_val[2], rc_val[3], rc_val[5]);
+	sprintf(s, "ch1:%d, ch2:%d ch3:%d, ch4:%d, ch5:%d\n\r",
+	        rc_val[0], rc_val[1], rc_val[2], rc_val[3], rc_val[4]);
 	uart3_puts(s, strlen(s));
 }
+
+void debug_print_rc_info(radio_t *rc)
+{
+	char s[300] = {0};
+
+	if(rc->safety == true) {
+		sprintf(s, "[disarmed] roll:%lf,pitch:%lf,yaw:%lf,throttle:%lf\n\r",
+		        rc->roll, rc->pitch, rc->yaw, rc->throttle);
+	} else {
+		sprintf(s, "[armed] roll:%lf,pitch:%lf,yaw:%lf,throttle:%lf\n\r",
+		        rc->roll, rc->pitch, rc->yaw, rc->throttle);
+	}
+	uart3_puts(s, strlen(s));
+}
+
