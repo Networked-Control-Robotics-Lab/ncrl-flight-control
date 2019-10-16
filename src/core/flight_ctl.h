@@ -3,4 +3,6 @@
 
 void task_flight_ctl(void *param);
 
+void flight_ctl_semaphore_handler(void);
+
 #endif
