@@ -2,6 +2,7 @@
 #define __SBUS_RECEIVER_H__
 
 #include <stdint.h>
+#include <stdbool.h>
 
 /* calibrated rc signal */
 #define RC_THROTTLE_MAX 1680
