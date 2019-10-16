@@ -18,14 +18,15 @@ uint16_t rc_val[15];
 
 void sbus_rc_handler(uint8_t byte)
 {
-	if(byte == 0xf) {
+
+	if(byte == 0x0f) {
 		sbus_cnt = 0;
 	}
 
 	sbus_buff[sbus_cnt] = byte;
 	sbus_cnt++;
 
-	if(sbus_cnt == 25) {
+	if(sbus_cnt == 25 && sbus_buff[0] == 0x0f && sbus_buff[24] == 0x00) {
 		parse_sbus((uint8_t *)sbus_buff, (uint16_t *)rc_val);
 		sbus_cnt = 0;
 
