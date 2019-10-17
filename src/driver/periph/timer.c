@@ -10,9 +10,9 @@ void timer12_init(void)
 {
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM12, ENABLE);
 
-	/* 45MHz / (1125 * 10) = 400Hz */
+	/* 90MHz / (2250 * 10) = 400Hz */
 	TIM_TimeBaseInitTypeDef TimeBaseInitStruct = {
-		.TIM_Period = 1125 - 1,
+		.TIM_Period = 2250 - 1,
 		.TIM_Prescaler = 10 - 1,
 		.TIM_CounterMode = TIM_CounterMode_Up
 	};
