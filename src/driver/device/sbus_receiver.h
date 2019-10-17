@@ -37,6 +37,7 @@ typedef struct {
 
 void sbus_rc_handler(uint8_t byte);
 void read_rc_info(radio_t *rc);
+int rc_safety_check(radio_t *rc);
 void debug_print_rc_info(radio_t *rc);
 
 #endif

@@ -99,6 +99,17 @@ void read_rc_info(radio_t *rc)
 	bound_float(&rc->throttle, RC_THROTTLE_RANGE_MAX, RC_THROTTLE_RANGE_MIN);
 }
 
+int rc_safety_check(radio_t *rc)
+{
+	if(rc->safety == false) return 1;
+	if(rc->throttle > 10.0f) return 1;
+	if(rc->roll > 5.0f || rc->roll < -5.0f) return 1;
+	if(rc->pitch > 5.0f || rc->pitch < -5.0f) return 1;
+	if(rc->yaw > 5.0f || rc->yaw < -5.0f) return 1;
+
+	return 0;
+}
+
 void debug_print_raw_sbus(void)
 {
 	int i;

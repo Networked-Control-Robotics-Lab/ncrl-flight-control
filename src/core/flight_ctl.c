@@ -15,8 +15,19 @@ void flight_ctl_semaphore_handler(void)
 	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }
 
+void rc_safety_protection(void)
+{
+	radio_t rc;
+
+	do {
+		read_rc_info(&rc);
+	} while(rc_safety_check(&rc) == 1);
+}
+
 void task_flight_ctl(void *param)
 {
+	rc_safety_protection();
+
 	while(1) {
 		if(xSemaphoreTake(flight_ctl_semphr, 1) == pdFALSE) {
 			continue;
