@@ -7,6 +7,8 @@
 #include "flight_ctl.h"
 #include "sys_time.h"
 
+extern SemaphoreHandle_t flight_ctl_semphr;
+
 void timer12_init(void)
 {
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM12, ENABLE);
@@ -21,7 +23,7 @@ void timer12_init(void)
 
 	NVIC_InitTypeDef NVIC_InitStruct = {
 		.NVIC_IRQChannel = TIM8_BRK_TIM12_IRQn,
-		.NVIC_IRQChannelPreemptionPriority = configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY + 1,
+		.NVIC_IRQChannelPreemptionPriority = SYS_TIMER_ISR_PRIORITY,
 		.NVIC_IRQChannelCmd = ENABLE
 	};
 	NVIC_Init(&NVIC_InitStruct);
@@ -38,6 +40,6 @@ void TIM8_BRK_TIM12_IRQHandler(void)
 
 		sys_time_update_handler();
 
-		//flight_ctl_semaphore_handler();
+		flight_ctl_semaphore_handler();
 	}
 }

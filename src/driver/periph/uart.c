@@ -121,7 +121,7 @@ void uart4_init(int baudrate)
 
 	NVIC_InitTypeDef NVIC_InitStruct = {
 		.NVIC_IRQChannel = UART4_IRQn,
-		.NVIC_IRQChannelPreemptionPriority = UART4_PRIORITY,
+		.NVIC_IRQChannelPreemptionPriority = SBUS_ISR_PRIORITY,
 		.NVIC_IRQChannelSubPriority = 0,
 		.NVIC_IRQChannelCmd = ENABLE
 	};

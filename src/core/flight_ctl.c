@@ -12,7 +12,7 @@ void flight_ctl_semaphore_handler(void)
 {
 	static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	xSemaphoreGiveFromISR(flight_ctl_semphr, &xHigherPriorityTaskWoken);
-	//portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }
 
 void task_flight_ctl(void *param)
@@ -30,6 +30,6 @@ void task_flight_ctl(void *param)
 
 		blocked_delay_ms(5);
 
-		//taskYIELD();
+		taskYIELD();
 	}
 }

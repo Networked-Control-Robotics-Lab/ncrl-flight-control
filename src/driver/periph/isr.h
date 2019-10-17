@@ -6,7 +6,8 @@
 #include "semphr.h"
 
 /* interrupt routine service priority list  */
-#define UART4_PRIORITY (configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY - 1)
+#define SBUS_ISR_PRIORITY (configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY + 1)
+#define SYS_TIMER_ISR_PRIORITY (configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY + 2)
 
 void NMI_Handler(void);
 void HardFault_Handler(void);
