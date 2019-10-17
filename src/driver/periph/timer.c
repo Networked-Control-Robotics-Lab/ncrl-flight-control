@@ -5,12 +5,13 @@
 #include "timer.h"
 #include "led.h"
 #include "flight_ctl.h"
+#include "sys_time.h"
 
 void timer12_init(void)
 {
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM12, ENABLE);
 
-	/* 90MHz / (2250 * 10) = 400Hz */
+	/* 90MHz / (2250 * 10) = 4000Hz */
 	TIM_TimeBaseInitTypeDef TimeBaseInitStruct = {
 		.TIM_Period = 2250 - 1,
 		.TIM_Prescaler = 10 - 1,
@@ -34,6 +35,8 @@ void TIM8_BRK_TIM12_IRQHandler(void)
 	if(TIM_GetITStatus(TIM12, TIM_IT_Update) == SET) {
 		led_toggle(LED_R);
 		TIM_ClearITPendingBit(TIM12, TIM_IT_Update);
+
+		sys_time_update_handler();
 
 		//flight_ctl_semaphore_handler();
 	}

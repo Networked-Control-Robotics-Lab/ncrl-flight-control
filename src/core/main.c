@@ -15,6 +15,7 @@
 #include "mpu6500.h"
 #include "sbus_receiver.h"
 #include "flight_ctl.h"
+#include "sys_time.h"
 
 extern SemaphoreHandle_t flight_ctl_semphr;
 

@@ -59,7 +59,8 @@ SRC+=lib/FreeRTOS/Source/croutine.c \
 	lib/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c \
 
 SRC+=./core/main.c \
-	./core/flight_ctl.c
+	./core/flight_ctl.c \
+	./core/sys_time.c
 
 SRC+=./common/delay.c \
 	./common/bound.c
