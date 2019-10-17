@@ -60,7 +60,8 @@ SRC+=lib/FreeRTOS/Source/croutine.c \
 
 SRC+=./core/main.c \
 	./core/flight_ctl.c \
-	./core/sys_time.c
+	./core/sys_time.c \
+	./core/lpf.c
 
 SRC+=./common/delay.c \
 	./common/bound.c
