@@ -73,7 +73,8 @@ SRC+=./driver/periph/led.c \
 	./driver/periph/isr.c \
 	./driver/device/mpu6500.c \
 	./driver/device/hmc5983.c \
-	./driver/device/sbus_receiver.c
+	./driver/device/sbus_receiver.c \
+	./driver/device/motor.c
 
 CFLAGS+=-I./
 CFLAGS+=-I./sys_startup

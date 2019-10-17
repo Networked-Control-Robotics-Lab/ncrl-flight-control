@@ -28,7 +28,7 @@ void task_flight_ctl(void *param)
 		read_rc_info(&rc);
 		debug_print_rc_info(&rc);
 
-		delay_ms(5);
+		blocked_delay_ms(5);
 
 		//taskYIELD();
 	}

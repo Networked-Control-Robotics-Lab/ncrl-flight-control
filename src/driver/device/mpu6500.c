@@ -48,7 +48,7 @@ uint8_t mpu6500_read_who_am_i()
 void mpu6500_reset()
 {
 	mpu6500_write_byte(MPU6500_PWR_MGMT_1, 0x80);
-	delay_ms(100);
+	blocked_delay_ms(100);
 }
 
 void mpu6500_bias_calculate(void)
@@ -107,11 +107,11 @@ int mpu6500_init()
 	if(mpu6500_read_who_am_i() != 0x71) return 1;
 
 	mpu6500_reset();
-	delay_ms(50);
+	blocked_delay_ms(50);
 	mpu6500_write_byte(MPU6500_GYRO_CONFIG, 0x10); //gyro: 1000Hz
-	delay_ms(50);
+	blocked_delay_ms(50);
 	mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x10); //accel range: 8g
-	delay_ms(50);
+	blocked_delay_ms(50);
 
 	return 0;
 }
