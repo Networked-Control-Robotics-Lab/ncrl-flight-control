@@ -35,11 +35,9 @@ void timer12_init(void)
 void TIM8_BRK_TIM12_IRQHandler(void)
 {
 	if(TIM_GetITStatus(TIM12, TIM_IT_Update) == SET) {
-		led_toggle(LED_R);
 		TIM_ClearITPendingBit(TIM12, TIM_IT_Update);
 
 		sys_time_update_handler();
-
 		flight_ctl_semaphore_handler();
 	}
 }

@@ -16,6 +16,7 @@
 #include "sbus_receiver.h"
 #include "flight_ctl.h"
 #include "sys_time.h"
+#include "motor.h"
 
 extern SemaphoreHandle_t flight_ctl_semphr;
 
@@ -43,6 +44,7 @@ int main(void)
 	led_off(LED_B);
 
 	mpu6500_init();
+	motor_init();
 
 	led_off(LED_R);
 	led_off(LED_G);

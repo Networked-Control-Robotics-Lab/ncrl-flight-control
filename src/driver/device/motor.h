@@ -14,8 +14,8 @@
 #define MOTOR6 &TIM4->CCR4
 
 void set_motor_pwm_pulse(volatile uint32_t *motor, uint16_t pulse);
-void motor_init();
+void motor_init(void);
 
-void esc_calibrate();
+void esc_calibrate(void);
 
 #endif
