@@ -10,6 +10,8 @@ typedef struct {
 } sys_time_t;
 
 void sys_time_update_handler(void);
+float get_sys_time_ms(void);
+float get_sys_time_s(void);
 void debug_print_sys_tim(void);
 
 #endif

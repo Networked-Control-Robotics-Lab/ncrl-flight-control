@@ -46,7 +46,7 @@ int main(void)
 	led_off(LED_G);
 	led_on(LED_B);
 
-	xTaskCreate(task_flight_ctl, "flight control", 4096, NULL, tskIDLE_PRIORITY + 1, NULL);
+	xTaskCreate(task_flight_ctl, "flight control", 1000, NULL, tskIDLE_PRIORITY + 1, NULL);
 
 	/* start freertos scheduler */
 	vTaskStartScheduler();
