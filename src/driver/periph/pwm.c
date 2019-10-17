@@ -27,7 +27,7 @@ void pwm_timer1_init(void)
 
 	GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-	/* 90,000,000 / (25000 * 18) = 200Hz = 5ms */
+	/* 180MHz / (25000 * 18) = 400Hz = 0.0025s */
 	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStruct = {
 		.TIM_Period = 25000 - 1,
 		.TIM_Prescaler = 18 - 1,
@@ -69,7 +69,7 @@ void pwm_timer4_init(void)
 
 	GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-	/* 45,000,000 / (25000 * 9) = 200Hz = 5ms */
+	/* 90MHz / (25000 * 9) = 400Hz = 0.0025s */
 	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStruct = {
 		.TIM_Period = 25000 - 1,
 		.TIM_Prescaler = 9 - 1,
