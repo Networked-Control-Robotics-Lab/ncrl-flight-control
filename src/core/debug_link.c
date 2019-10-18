@@ -197,10 +197,10 @@ void send_pid_debug(void)
 void task_debug_link(void *param)
 {
 	while(1) {
-		send_imu_message();
+		//send_imu_message();
 		//send_attitude_euler_message();
 		//send_attitude_quaternion_message();
-		//send_attitude_imu_message();
+		send_attitude_imu_message();
 		//send_ekf_message();
 		//send_pid_debug();
 		//send_motor_message();

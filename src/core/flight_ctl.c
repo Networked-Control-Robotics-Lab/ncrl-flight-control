@@ -32,9 +32,10 @@ void flight_ctl_semaphore_handler(void)
 
 void task_flight_ctl(void *param)
 {
-	rc_safety_protection();
-
 	float roll_estimated, pitch_estimated, yaw_estimated;
+
+	rc_safety_protection();
+	ahrs_init();
 
 	while(1) {
 		if(xSemaphoreTake(flight_ctl_semphr, 1) == pdFALSE) {
