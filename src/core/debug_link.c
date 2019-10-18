@@ -3,11 +3,11 @@
 
 #include "stm32f4xx.h"
 #include "uart.h"
-#include "link.h"
+#include "debug_link.h"
 #include "vector.h"
 #include "matrix.h"
 #include "ahrs.h"
-#include "controller.h"
+#include "flight_ctl.h"
 
 extern imu_t imu;
 extern ahrs_t ahrs;
@@ -192,4 +192,18 @@ void send_pid_debug(void)
 
 
 	send_onboard_data(payload, payload_size);
+}
+
+void task_debug_link(void *param)
+{
+	while(1) {
+		send_imu_message();
+		//send_attitude_euler_message();
+		//send_attitude_quaternion_message();
+		//send_attitude_imu_message();
+		//send_ekf_message();
+		//send_pid_debug();
+		//send_motor_message();
+		taskYIELD();
+	}
 }

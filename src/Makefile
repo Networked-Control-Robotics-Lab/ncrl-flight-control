@@ -62,9 +62,8 @@ SRC+=./core/main.c \
 	./core/flight_ctl.c \
 	./core/sys_time.c \
 	./core/lpf.c \
-	./core/link.c \
-	./core/ahrs.c \
-	./core/controller.c
+	./core/debug_link.c \
+	./core/ahrs.c
 
 SRC+=./common/delay.c \
 	./common/bound.c \

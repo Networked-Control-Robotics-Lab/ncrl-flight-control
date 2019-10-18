@@ -14,9 +14,10 @@
 #include "pwm.h"
 #include "mpu6500.h"
 #include "sbus_receiver.h"
-#include "flight_ctl.h"
 #include "sys_time.h"
 #include "motor.h"
+#include "debug_link.h"
+#include "flight_ctl.h"
 
 extern SemaphoreHandle_t flight_ctl_semphr;
 
@@ -50,7 +51,8 @@ int main(void)
 	led_off(LED_G);
 	led_on(LED_B);
 
-	xTaskCreate(task_flight_ctl, "flight control", 4096, NULL, tskIDLE_PRIORITY + 1, NULL);
+	xTaskCreate(task_flight_ctl, "flight control", 4096, NULL, tskIDLE_PRIORITY + 3, NULL);
+	xTaskCreate(task_debug_link, "debug link", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
 
 	/* start freertos scheduler */
 	vTaskStartScheduler();

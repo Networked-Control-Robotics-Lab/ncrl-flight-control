@@ -1,5 +1,5 @@
-#ifndef __LINK__
-#define __LINK__
+#ifndef __DEBUG_LINK__
+#define __DEBUG_LINK__
 
 #include <stdint.h>
 
@@ -18,6 +18,6 @@ typedef struct {
 	int payload_count;
 } package_t;
 
-void telemetry_loop();
+void task_debug_link(void *param);
 
 #endif
