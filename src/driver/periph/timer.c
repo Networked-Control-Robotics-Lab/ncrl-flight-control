@@ -34,10 +34,17 @@ void timer12_init(void)
 
 void TIM8_BRK_TIM12_IRQHandler(void)
 {
+	static int flight_ctl_prescaler = 10;
+
 	if(TIM_GetITStatus(TIM12, TIM_IT_Update) == SET) {
 		TIM_ClearITPendingBit(TIM12, TIM_IT_Update);
 
 		sys_time_update_handler();
-		flight_ctl_semaphore_handler();
+
+		flight_ctl_prescaler--;
+		if(flight_ctl_prescaler == 0) {
+			flight_ctl_semaphore_handler();
+			flight_ctl_prescaler = 10;
+		}
 	}
 }
