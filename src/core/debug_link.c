@@ -4,6 +4,7 @@
 #include "stm32f4xx.h"
 #include "uart.h"
 #include "debug_link.h"
+#include "delay.h"
 #include "vector.h"
 #include "matrix.h"
 #include "ahrs.h"
@@ -172,7 +173,7 @@ void send_pid_debug(void)
 	payload_size += pack_float(&pid_roll.output, payload + payload_size);
 #endif
 
-#if 0
+#if 1
 	payload_size += pack_float(&pid_pitch.error_current, payload + payload_size);
 	payload_size += pack_float(&pid_pitch.error_derivative, payload + payload_size);
 	payload_size += pack_float(&pid_pitch.p_final, payload + payload_size);
@@ -181,7 +182,7 @@ void send_pid_debug(void)
 	payload_size += pack_float(&pid_pitch.output, payload + payload_size);
 #endif
 
-#if 1
+#if 0
 	payload_size += pack_float(&pid_yaw_rate.error_current, payload + payload_size);
 	payload_size += pack_float(&pid_yaw_rate.error_derivative, payload + payload_size);
 	payload_size += pack_float(&pid_yaw_rate.p_final, payload + payload_size);
@@ -197,12 +198,14 @@ void send_pid_debug(void)
 void task_debug_link(void *param)
 {
 	while(1) {
+		blocked_delay_ms(10);
+
 		//send_imu_message();
 		//send_attitude_euler_message();
 		//send_attitude_quaternion_message();
-		send_attitude_imu_message();
+		//send_attitude_imu_message();
 		//send_ekf_message();
-		//send_pid_debug();
+		send_pid_debug();
 		//send_motor_message();
 		taskYIELD();
 	}
