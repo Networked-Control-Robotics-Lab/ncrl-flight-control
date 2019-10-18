@@ -338,6 +338,8 @@ void ahrs_estimate_euler(float *roll, float *pitch, float *yaw)
 	lpf(&imu.raw_accel, &accel_lpf_old, &imu.filtered_accel, 0.07);
 	lpf(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.07);
 
+	return;
+
 #if AHRS_SELECT == AHRS_SELECT_EKF
 	ahrs_ekf_loop();
 #endif

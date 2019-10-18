@@ -9,6 +9,7 @@
 #include "uart.h"
 #include "sbus_receiver.h"
 #include "motor.h"
+#include "ahrs.h"
 #include "flight_ctl.h"
 
 void rc_safety_protection(void);
@@ -20,6 +21,7 @@ pid_control_t pid_pitch;
 pid_control_t pid_yaw_rate;
 
 float motor1, motor2, motor3, motor4;
+radio_t rc;
 
 void flight_ctl_semaphore_handler(void)
 {
@@ -32,6 +34,8 @@ void task_flight_ctl(void *param)
 {
 	rc_safety_protection();
 
+	float roll_estimated, pitch_estimated, yaw_estimated;
+
 	while(1) {
 		if(xSemaphoreTake(flight_ctl_semphr, 1) == pdFALSE) {
 			continue;
@@ -39,9 +43,11 @@ void task_flight_ctl(void *param)
 
 		led_toggle(LED_B);
 
-		radio_t rc;
 		read_rc_info(&rc);
-		debug_print_rc_info(&rc);
+
+		ahrs_estimate_euler(&roll_estimated, &pitch_estimated, &yaw_estimated);
+
+		//debug_print_rc_info(&rc);
 
 		taskYIELD();
 	}
