@@ -142,17 +142,17 @@ void mpu6500_read_unscaled_data(vector3d_16_t *accel_unscaled_data, vector3d_16_
 	mpu6500_chip_deselect();
 
 	//accelerometer
-	accel_unscaled_data->x = ((uint16_t)buffer[0] << 8) | (uint16_t)buffer[1];
-	accel_unscaled_data->y = ((uint16_t)buffer[2] << 8) | (uint16_t)buffer[3];
-	accel_unscaled_data->z = ((uint16_t)buffer[4] << 8) | (uint16_t)buffer[5];
+	accel_unscaled_data->x = +((uint16_t)buffer[0] << 8) | (uint16_t)buffer[1];
+	accel_unscaled_data->y = -((uint16_t)buffer[2] << 8) | (uint16_t)buffer[3];
+	accel_unscaled_data->z = -((uint16_t)buffer[4] << 8) | (uint16_t)buffer[5];
 
 	//temperature
 	*temp_unscaled = (buffer[6] << 8) | buffer[7];
 
 	//gyroscope
 	gyro_unscaled_data->x = -(buffer[8] << 8) | buffer[9];
-	gyro_unscaled_data->y = -(buffer[10] << 8) | buffer[11];
-	gyro_unscaled_data->z = -(buffer[12] << 8) | buffer[13];
+	gyro_unscaled_data->y = +(buffer[10] << 8) | buffer[11];
+	gyro_unscaled_data->z = +(buffer[12] << 8) | buffer[13];
 }
 
 void mpu6500_fix_bias(vector3d_16_t *accel_unscaled_data,
