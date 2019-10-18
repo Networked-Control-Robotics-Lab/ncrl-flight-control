@@ -8,7 +8,7 @@
 /* interrupt routine service priority list  */
 #define SBUS_ISR_PRIORITY (configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY + 1)
 #define SYS_TIMER_ISR_PRIORITY (configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY + 2)
-#define UART4_TX_PRIORITY (configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY + 3)
+#define UART3_TX_ISR_PRIORITY (configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY + 3)
 
 void NMI_Handler(void);
 void HardFault_Handler(void);

@@ -90,17 +90,15 @@ void uart3_init(int baudrate)
 
 	USART_ClearFlag(USART3, USART_FLAG_TC);
 
-#if 0
 	NVIC_InitTypeDef NVIC_InitStruct = {
-		.NVIC_IRQChannel = UART3_IRQn,
+		.NVIC_IRQChannel = USART3_IRQn,
 		.NVIC_IRQChannelPreemptionPriority = UART3_TX_ISR_PRIORITY,
 		.NVIC_IRQChannelSubPriority = 0,
 		.NVIC_IRQChannelCmd = ENABLE
 	};
 	NVIC_Init(&NVIC_InitStruct);
 
-	USART_ITConfig(UART3, USART_IT_TXE, ENABLE);
-#endif
+	USART_ITConfig(USART3, USART_IT_TC, ENABLE);
 }
 
 /*
@@ -263,11 +261,12 @@ void uart1_puts(char *s, int size)
 	USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);
 
 	while(DMA_GetFlagStatus(DMA2_Stream7, DMA_FLAG_TCIF7) == RESET);
-	//xSemaphoreTake(uart3_tx_semphr, portMAX_DELAY);
 }
 
 void uart3_puts(char *s, int size)
 {
+	xSemaphoreTake(uart3_tx_semphr, portMAX_DELAY);
+
 	//uart3 tx: dma1 channel4 stream3
 	DMA_ClearFlag(DMA1_Stream3, DMA_FLAG_TCIF3);
 
@@ -292,8 +291,6 @@ void uart3_puts(char *s, int size)
 	//send data from memory to uart data register
 	DMA_Cmd(DMA1_Stream3, ENABLE);
 	USART_DMACmd(USART3, USART_DMAReq_Tx, ENABLE);
-
-	while(DMA_GetFlagStatus(DMA1_Stream3, DMA_FLAG_TCIF3) == RESET);
 }
 
 void uart6_puts(char *s, int size)

@@ -1,9 +1,12 @@
+#include <string.h>
+
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
 #include "delay.h"
 #include "bound.h"
 #include "led.h"
+#include "uart.h"
 #include "sbus_receiver.h"
 #include "motor.h"
 #include "flight_ctl.h"
@@ -39,8 +42,6 @@ void task_flight_ctl(void *param)
 		radio_t rc;
 		read_rc_info(&rc);
 		debug_print_rc_info(&rc);
-
-		blocked_delay_ms(5);
 
 		taskYIELD();
 	}
