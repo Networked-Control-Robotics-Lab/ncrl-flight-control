@@ -10,6 +10,8 @@
 #include "isr.h"
 #include "sbus_receiver.h"
 
+SemaphoreHandle_t uart3_tx_semphr;
+
 /*
  * <uart1>
  * usage: log
@@ -56,6 +58,9 @@ void uart1_init(int baudrate)
  */
 void uart3_init(int baudrate)
 {
+	uart3_tx_semphr = xSemaphoreCreateBinary();
+	xSemaphoreGive(uart3_tx_semphr);
+
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
@@ -84,6 +89,18 @@ void uart3_init(int baudrate)
 	USART_Cmd(USART3, ENABLE);
 
 	USART_ClearFlag(USART3, USART_FLAG_TC);
+
+#if 0
+	NVIC_InitTypeDef NVIC_InitStruct = {
+		.NVIC_IRQChannel = UART3_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = UART3_TX_ISR_PRIORITY,
+		.NVIC_IRQChannelSubPriority = 0,
+		.NVIC_IRQChannelCmd = ENABLE
+	};
+	NVIC_Init(&NVIC_InitStruct);
+
+	USART_ITConfig(UART3, USART_IT_TXE, ENABLE);
+#endif
 }
 
 /*
@@ -246,6 +263,7 @@ void uart1_puts(char *s, int size)
 	USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);
 
 	while(DMA_GetFlagStatus(DMA2_Stream7, DMA_FLAG_TCIF7) == RESET);
+	//xSemaphoreTake(uart3_tx_semphr, portMAX_DELAY);
 }
 
 void uart3_puts(char *s, int size)
@@ -308,7 +326,18 @@ void uart6_puts(char *s, int size)
 	while(DMA_GetFlagStatus(DMA2_Stream6, DMA_FLAG_TCIF6) == RESET);
 }
 
-void UART4_IRQHandler()
+void USART3_IRQHandler(void)
+{
+	if(USART_GetITStatus(USART3, USART_IT_TC) == SET) {
+		static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+		xSemaphoreGiveFromISR(uart3_tx_semphr, &xHigherPriorityTaskWoken);
+		portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+
+		USART_ClearFlag(USART3, USART_FLAG_TC);
+	}
+}
+
+void UART4_IRQHandler(void)
 {
 	/* using uart4 rxne interrupt to receive and parse
 	   sbus message */
