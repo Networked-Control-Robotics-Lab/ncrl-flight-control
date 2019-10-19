@@ -1,4 +1,5 @@
 #include "geometry_ctl.h"
+#include "madgwick_ahrs.h"
 
 static float32_t Yaw;
 

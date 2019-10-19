@@ -2,6 +2,7 @@
 #define __GEOMETRY_CTL_H__
 
 #include "arm_math.h"
+#include "madgwick_ahrs.h"
 
 #define Kr1 240
 #define Kr2 240
@@ -32,38 +33,6 @@ typedef struct _controller_t {
 	int mode, mode_last;
 	float yaw_command;
 } futaba_t;
-
-typedef struct _Madgwick_t {
-	float Roll, Roll_rad;
-	float Pitch, Pitch_rad;
-	float Yaw, Yaw_rad, Yaw_rad_filtered;
-	float Yaw_filtered, Yaw_original;
-	float beta;
-	float q0, q1, q2, q3;
-	float sampleRate;
-} Madgwick_t;
-
-typedef struct {
-	float Ax, Ay, Az;
-	float Gx, Gy, Gz;
-	float Mx, My, Mz;
-	int16_t Ax_Raw, Ay_Raw, Az_Raw;
-	int16_t Gx_Raw, Gy_Raw, Gz_Raw;
-	int16_t Mx_Raw, My_Raw, Mz_Raw;
-
-	float AMult, GMult, MMult;
-	float magCalibrationX, magCalibrationY, magCalibrationZ;
-	float mx, my, mz;
-	float   magbias[3];
-	float accele_local[3];
-	float gyro_local[3];
-	float filtered_mx, filtered_my, filtered_mz;
-	float   magscale[3];
-	float   mag_avg_rad;
-
-	uint8_t I2C_Addr;
-	uint8_t I2C_Addr_Mag;
-} MPU9250_t;
 
 typedef struct _camera_t {
 	int check;

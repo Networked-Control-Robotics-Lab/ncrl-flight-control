@@ -64,7 +64,8 @@ SRC+=./core/main.c \
 	./core/sys_time.c \
 	./core/lpf.c \
 	./core/debug_link.c \
-	./core/ahrs.c
+	./core/ahrs.c \
+	./core/madgwick_ahrs.c
 
 SRC+=./common/delay.c \
 	./common/bound.c \
