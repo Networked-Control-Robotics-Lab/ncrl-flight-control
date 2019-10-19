@@ -60,6 +60,7 @@ SRC+=lib/FreeRTOS/Source/croutine.c \
 
 SRC+=./core/main.c \
 	./core/flight_ctl.c \
+	./core/geometry_ctl.c \
 	./core/sys_time.c \
 	./core/lpf.c \
 	./core/debug_link.c \
