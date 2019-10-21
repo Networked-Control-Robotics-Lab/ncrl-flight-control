@@ -63,8 +63,8 @@ void convert_to_hat_matrix(float* original_matrix, float* hat_matrix);
 void inverse_hat_matrix(float* original_matrix, float* inverse_matrix);
 
 
-void Geometric_Tracking_Control(MPU9250_t* MPU9250, Madgwick_t* Madgwick, camera_t* camera, float* thrust, float time_period);
+void Geometric_Tracking_Control(MPU9250_t* MPU9250, madgwick_t* Madgwick, camera_t* camera, float* thrust, float time_period);
 
-void Geometric_Tracking_Control_Manual(MPU9250_t* MPU9250, Madgwick_t* Madgwick, camera_t* camera, futaba_t* futaba, float* thrust, float time_period);
+void Geometric_Tracking_Control_Manual(MPU9250_t* MPU9250, madgwick_t* Madgwick, camera_t* camera, futaba_t* futaba, float* thrust, float time_period);
 
 #endif

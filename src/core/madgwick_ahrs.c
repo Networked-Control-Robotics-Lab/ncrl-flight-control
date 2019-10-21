@@ -3,20 +3,20 @@
 
 inline void LPF_float(float *raw, float *filtered, float alpha)
 {
-	*filtered=(1.0f-alpha)*(*filtered)+alpha*((*raw));
+	*filtered = (1.0f - alpha) * (*filtered) + alpha *((*raw));
 }
 
-void Madgwick_Init(Madgwick_t* Madgwick, float sampleRate, float beta)
+void madgwick_init(madgwick_t* madgwick, float sample_rate, float beta)
 {
-	Madgwick->beta = beta;
-	Madgwick->sampleRate = 1 / sampleRate;
-	Madgwick->q0 = 1;
-	Madgwick->q1 = 0;
-	Madgwick->q2 = 0;
-	Madgwick->q3 = 0;
+	madgwick->beta = beta;
+	madgwick->sampleRate = 1 / sample_rate;
+	madgwick->q0 = 1;
+	madgwick->q1 = 0;
+	madgwick->q2 = 0;
+	madgwick->q3 = 0;
 }
 
-void MadgwickcalculateAngles(Madgwick_t* Madgwick)
+void MadgwickcalculateAngles(madgwick_t* Madgwick)
 {
 	Madgwick->Roll_rad = (float) atan2(Madgwick->q0 * Madgwick->q1 + Madgwick->q2 * Madgwick->q3, 0.5f - Madgwick->q1 * Madgwick->q1 - Madgwick->q2 * Madgwick->q2);
 	Madgwick->Pitch_rad = (float) asin(-2.0f * (Madgwick->q1 * Madgwick->q3 - Madgwick->q0 * Madgwick->q2));
@@ -27,7 +27,7 @@ void MadgwickcalculateAngles(Madgwick_t* Madgwick)
 
 //Acceleometer unit : g
 //Gyroscope unit : rad/s
-void Madgwick_IMU_AHRS(Madgwick_t* Madgwick, float ax, float ay, float az, float gx, float gy, float gz)
+void madgwick_imu_ahrs(madgwick_t* Madgwick, float ax, float ay, float az, float gx, float gy, float gz)
 {
 	float q0_dot = 0.5f*(-Madgwick->q1*gx - Madgwick->q2*gy - Madgwick->q3*gz);
 	float q1_dot = 0.5f*(Madgwick->q0*gx + Madgwick->q2*gz - Madgwick->q3*gy);
@@ -85,7 +85,7 @@ void Madgwick_IMU_AHRS(Madgwick_t* Madgwick, float ax, float ay, float az, float
 	MadgwickcalculateAngles(Madgwick);
 }
 
-void Madgwick_MARG_AHRS(Madgwick_t* Madgwick, float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz)
+void Madgwick_MARG_AHRS(madgwick_t* Madgwick, float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz)
 {
 	if ((mx != 0.0f) || (my != 0.0f) || (mz != 0.0f)) {
 		float q0_dot = 0.5f*(-Madgwick->q1*gx - Madgwick->q2*gy - Madgwick->q3*gz);
@@ -168,13 +168,13 @@ void Madgwick_MARG_AHRS(Madgwick_t* Madgwick, float ax, float ay, float az, floa
 		Madgwick->q3 *= q_norm;
 	} else {
 		/* Update IMU algorithm */
-		Madgwick_IMU_AHRS(Madgwick, ax, ay, az, gx, gy, gz);
+		madgwick_imu_ahrs(Madgwick, ax, ay, az, gx, gy, gz);
 	}
 	/* Calculate new angles */
 	MadgwickcalculateAngles(Madgwick);
 }
 
-void heading_Madgwick(Madgwick_t* MadgwickIMU, MPU9250_t *MPU9250)
+void heading_Madgwick(madgwick_t* MadgwickIMU, MPU9250_t *MPU9250)
 {
 	float MagX_rotated=0.0f,MagY_rotated=0.0f;//,MagZ_rotated=0.0f;
 

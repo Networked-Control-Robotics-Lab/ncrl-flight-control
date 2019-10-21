@@ -29,7 +29,7 @@ typedef struct {
 	uint8_t I2C_Addr_Mag;
 } MPU9250_t;
 
-typedef struct _Madgwick_t {
+typedef struct _madgwick_t {
 	float Roll, Roll_rad;
 	float Pitch, Pitch_rad;
 	float Yaw, Yaw_rad, Yaw_rad_filtered;
@@ -37,19 +37,19 @@ typedef struct _Madgwick_t {
 	float beta;
 	float q0, q1, q2, q3;
 	float sampleRate;
-} Madgwick_t;
+} madgwick_t;
 
 // Setting some constant
-void Madgwick_Init(Madgwick_t* Madgwick, float sampleRate, float beta);
+void madgwick_init(madgwick_t* madgwick, float sample_rate, float beta);
 
 //Use quaternion to calculate roll, pitch, yaw
-void MadgwickcalculateAngles(Madgwick_t* Madgwick);
+void MadgwickcalculateAngles(madgwick_t* Madgwick);
 
 //Acceleometer unit : g
 //Gyroscope unit : rad/s
-void Madgwick_IMU_AHRS(Madgwick_t* Madgwick, float ax, float ay, float az, float gx, float gy, float gz);
-void Madgwick_MARG_AHRS(Madgwick_t* Madgwick, float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz);
-void heading_Madgwick(Madgwick_t* MadgwickIMU, MPU9250_t *MPU9250);
+void madgwick_imu_ahrs(madgwick_t* Madgwick, float ax, float ay, float az, float gx, float gy, float gz);
+void Madgwick_MARG_AHRS(madgwick_t* Madgwick, float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz);
+void heading_Madgwick(madgwick_t* MadgwickIMU, MPU9250_t *MPU9250);
 
 #endif
 

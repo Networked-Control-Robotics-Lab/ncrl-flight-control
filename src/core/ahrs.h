@@ -34,15 +34,16 @@ typedef struct {
 	attitude_t attitude;
 } ahrs_t;
 
-void ahrs_init(void);
-void ahrs_estimate_euler(float *roll, float *pitch, float *yaw);
+void imu_read(vector3d_f_t *accel, vector3d_f_t *gyro);
 
+void ahrs_init(vector3d_f_t *init_accel);
+void ahrs_estimate_euler(attitude_t *att_estimated, vector3d_f_t *accel, vector3d_f_t *gyro);
 
 void quat_normalize(float *q);
 
 void euler_to_quat(attitude_t *euler, float *q);
 void quat_to_euler(float *q, attitude_t *euler);
 
-void calc_attitude_use_accel(void);
+void calc_attitude_use_accel(attitude_t *att_estimated, vector3d_f_t *accel);
 
 #endif

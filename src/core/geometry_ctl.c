@@ -114,7 +114,7 @@ void inverse_hat_matrix(float* original_matrix, float* inverse_matrix)
 	inverse_matrix[2] = original_matrix[3];
 }
 
-void Geometric_Tracking_Control(MPU9250_t* MPU9250, Madgwick_t* Madgwick, camera_t* camera, float* thrust, float time_period)
+void Geometric_Tracking_Control(MPU9250_t* MPU9250, madgwick_t* Madgwick, camera_t* camera, float* thrust, float time_period)
 {
 	float32_t M_R[9], M_R_I[9], M_R_des[9], M_R_des_T[9], M_R_dot[9], M_R_des_dot[9], M_R_des_dot2[9];
 	float32_t M_F_des[3], M_F_des_dot[3], M_X_B_des[3], M_X_C_des[3], M_X_C_des_dot[3], M_Y_B_des[3], M_Y_B_des_h[9], M_Z_B_des[3], M_Z_B_des_h[9];
@@ -262,7 +262,7 @@ void Geometric_Tracking_Control(MPU9250_t* MPU9250, Madgwick_t* Madgwick, camera
 	thrust[3] = -Kr3*M_E_R[2] - Kg3*M_E_ang_vel[2] + Km*M_acc_ang_moment[2] - Ki3*M_accum_attitude_error[2];
 }
 
-void Geometric_Tracking_Control_Manual(MPU9250_t* MPU9250, Madgwick_t* Madgwick, camera_t* camera, futaba_t* futaba, float* thrust, float time_period)
+void Geometric_Tracking_Control_Manual(MPU9250_t* MPU9250, madgwick_t* Madgwick, camera_t* camera, futaba_t* futaba, float* thrust, float time_period)
 {
 	float32_t M_R[9], M_R_I[9], M_R_des[9], M_R_des_T[9], M_R_dot[9], M_R_des_dot[9], M_R_des_dot2[9];
 	float32_t M_F_des[3], M_F_des_dot[3], M_X_B_des[3], M_X_C_des[3], M_Y_B_des[3], M_Y_B_des_h[9], M_Z_B_des[3], M_Z_B_des_h[9];

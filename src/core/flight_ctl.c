@@ -8,15 +8,19 @@
 #include "led.h"
 #include "uart.h"
 #include "sbus_receiver.h"
+#include "mpu6500.h"
 #include "motor.h"
+#include "lpf.h"
 #include "ahrs.h"
+#include "madgwick_ahrs.h"
 #include "flight_ctl.h"
-
-extern imu_t imu;
 
 void rc_safety_protection(void);
 
 SemaphoreHandle_t flight_ctl_semphr;
+
+imu_t imu;
+ahrs_t ahrs;
 
 pid_control_t pid_roll;
 pid_control_t pid_pitch;
@@ -53,13 +57,31 @@ void flight_ctl_semaphore_handler(void)
 	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }
 
+void imu_read(vector3d_f_t *accel, vector3d_f_t *gyro)
+{
+	mpu6500_read_unscaled_data(&imu.unscaled_accel, &imu.unscaled_gyro, &imu.unscaled_temp);
+	mpu6500_fix_bias(&imu.unscaled_accel, &imu.unscaled_gyro);
+	mpu6500_accel_convert_to_scale(&imu.unscaled_accel, accel);
+	mpu6500_gyro_convert_to_scale(&imu.unscaled_gyro, gyro);
+}
+
 void task_flight_ctl(void *param)
 {
-	float roll_estimated, pitch_estimated, yaw_estimated;
+	attitude_t att_estimated;
 
 	rc_safety_protection();
-	ahrs_init();
+
+	//initialize lpf
+	vector3d_f_t accel_lpf_old, gyro_lpf_old;
+	imu_read(&imu.raw_accel, &imu.raw_gyro);
+	accel_lpf_old = imu.raw_accel;
+	gyro_lpf_old = imu.raw_gyro;
+
+	ahrs_init(&imu.raw_accel);
 	pid_controller_init();
+
+	madgwick_t madgwick_ahrs_info;
+	madgwick_init(&madgwick_ahrs_info, 400, 0.04);
 
 	while(1) {
 		if(xSemaphoreTake(flight_ctl_semphr, 1) == pdFALSE) {
@@ -68,10 +90,27 @@ void task_flight_ctl(void *param)
 
 		read_rc_info(&rc);
 
-		ahrs_estimate_euler(&roll_estimated, &pitch_estimated, &yaw_estimated);
+		imu_read(&imu.raw_accel, &imu.raw_gyro);
 
-		attitude_pd_control(&pid_roll, roll_estimated, -rc.roll, imu.filtered_gyro.x);
-		attitude_pd_control(&pid_pitch, pitch_estimated, -rc.pitch, imu.filtered_gyro.y);
+		lpf(&imu.raw_accel, &accel_lpf_old, &imu.filtered_accel, 0.07);
+		lpf(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.07);
+
+		ahrs_estimate_euler(&att_estimated, &imu.raw_accel, &imu.raw_gyro);
+		madgwick_imu_ahrs(&madgwick_ahrs_info,
+		                  imu.raw_accel.x, imu.raw_accel.y, imu.raw_accel.z,
+		                  deg_to_rad(imu.raw_gyro.x), deg_to_rad(imu.raw_gyro.y), deg_to_rad(imu.raw_gyro.z));
+
+		//update for debug link task to publish
+		//ahrs.attitude.roll = att_estimated.roll;
+		//ahrs.attitude.pitch = att_estimated.pitch;
+		//ahrs.attitude.yaw = att_estimated.yaw;
+
+		ahrs.attitude.roll = madgwick_ahrs_info.Roll;
+		ahrs.attitude.pitch = madgwick_ahrs_info.Pitch;
+		ahrs.attitude.yaw = madgwick_ahrs_info.Yaw;
+
+		attitude_pd_control(&pid_roll, att_estimated.roll, -rc.roll, imu.filtered_gyro.x);
+		attitude_pd_control(&pid_pitch, att_estimated.pitch, -rc.pitch, imu.filtered_gyro.y);
 		yaw_rate_p_control(&pid_yaw_rate, rc.yaw, imu.filtered_gyro.z);
 
 		if(rc.safety == true) {
