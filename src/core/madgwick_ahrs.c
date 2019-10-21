@@ -34,12 +34,10 @@ void madgwick_imu_ahrs(madgwick_t* Madgwick, float ax, float ay, float az, float
 	float q2_dot = 0.5f*(Madgwick->q0*gy - Madgwick->q1*gz + Madgwick->q3*gx);
 	float q3_dot = 0.5f*(Madgwick->q0*gz + Madgwick->q1*gy - Madgwick->q2*gx);
 
-#if 0
 	float accel_norm = 1 / (sqrt(ax*ax + ay*ay + az*az));
 	ax *= accel_norm;
 	ay *= accel_norm;
 	az *= accel_norm;
-#endif
 
 	float _2q0 = 2.0f*Madgwick->q0;
 	float _2q1 = 2.0f*Madgwick->q1;
