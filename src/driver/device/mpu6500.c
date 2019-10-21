@@ -59,7 +59,7 @@ void mpu6500_bias_calculate(void)
 
 	vector3d_f_t gyro_bias_float = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
 
-	int16_t gyro_recalib_threshold = 100;
+	int16_t gyro_recalib_threshold = 200;
 
 recalibrate:
 	mpu6500_read_unscaled_data(&accel_unscaled, &gyro_unscaled, &temp_unscaled);
@@ -144,9 +144,9 @@ void mpu6500_read_unscaled_data(vector3d_16_t *accel_unscaled_data, vector3d_16_
 	*temp_unscaled = (buffer[6] << 8) | buffer[7];
 
 	//gyroscope
-	gyro_unscaled_data->x = -(buffer[8] << 8) | buffer[9];
-	gyro_unscaled_data->y = +(buffer[10] << 8) | buffer[11];
-	gyro_unscaled_data->z = +(buffer[12] << 8) | buffer[13];
+	gyro_unscaled_data->x = +(buffer[8] << 8) | buffer[9];
+	gyro_unscaled_data->y = -(buffer[10] << 8) | buffer[11];
+	gyro_unscaled_data->z = -(buffer[12] << 8) | buffer[13];
 }
 
 void mpu6500_fix_bias(vector3d_16_t *accel_unscaled_data,

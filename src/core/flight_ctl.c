@@ -81,7 +81,7 @@ void task_flight_ctl(void *param)
 	pid_controller_init();
 
 	madgwick_t madgwick_ahrs_info;
-	madgwick_init(&madgwick_ahrs_info, 400, 0.001);
+	madgwick_init(&madgwick_ahrs_info, 400, 0.04);
 
 	while(1) {
 		if(xSemaphoreTake(flight_ctl_semphr, 1) == pdFALSE) {
@@ -105,14 +105,17 @@ void task_flight_ctl(void *param)
 		                  deg_to_rad(imu.filtered_gyro.z));
 
 		//update for debug link task to publish
-		//ahrs.attitude.roll = att_estimated.roll;
-		//ahrs.attitude.pitch = att_estimated.pitch;
-		//ahrs.attitude.yaw = att_estimated.yaw;
+#if 1
+		ahrs.attitude.roll = att_estimated.roll;
+		ahrs.attitude.pitch = att_estimated.pitch;
+		ahrs.attitude.yaw = att_estimated.yaw;
+#endif
 
+#if 0
 		ahrs.attitude.roll = madgwick_ahrs_info.Roll;
 		ahrs.attitude.pitch = madgwick_ahrs_info.Pitch;
 		ahrs.attitude.yaw = madgwick_ahrs_info.Yaw;
-
+#endif
 		attitude_pd_control(&pid_roll, att_estimated.roll, -rc.roll, imu.filtered_gyro.x);
 		attitude_pd_control(&pid_pitch, att_estimated.pitch, -rc.pitch, imu.filtered_gyro.y);
 		yaw_rate_p_control(&pid_yaw_rate, rc.yaw, imu.filtered_gyro.z);
