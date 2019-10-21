@@ -81,7 +81,7 @@ void task_flight_ctl(void *param)
 	pid_controller_init();
 
 	madgwick_t madgwick_ahrs_info;
-	madgwick_init(&madgwick_ahrs_info, 400, 0.04);
+	madgwick_init(&madgwick_ahrs_info, 400, 0.001);
 
 	while(1) {
 		if(xSemaphoreTake(flight_ctl_semphr, 1) == pdFALSE) {
@@ -92,13 +92,17 @@ void task_flight_ctl(void *param)
 
 		imu_read(&imu.raw_accel, &imu.raw_gyro);
 
-		lpf(&imu.raw_accel, &accel_lpf_old, &imu.filtered_accel, 0.07);
-		lpf(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.07);
+		lpf(&imu.raw_accel, &accel_lpf_old, &imu.filtered_accel, 0.03);
+		lpf(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.03);
 
-		ahrs_estimate_euler(&att_estimated, &imu.raw_accel, &imu.raw_gyro);
+		ahrs_estimate_euler(&att_estimated, &imu.filtered_accel, &imu.filtered_gyro);
 		madgwick_imu_ahrs(&madgwick_ahrs_info,
-		                  imu.raw_accel.x, imu.raw_accel.y, imu.raw_accel.z,
-		                  deg_to_rad(imu.raw_gyro.x), deg_to_rad(imu.raw_gyro.y), deg_to_rad(imu.raw_gyro.z));
+		                  imu.filtered_accel.x,
+		                  imu.filtered_accel.y,
+		                  imu.filtered_accel.z,
+		                  deg_to_rad(imu.filtered_gyro.x),
+		                  deg_to_rad(imu.filtered_gyro.y),
+		                  deg_to_rad(imu.filtered_gyro.z));
 
 		//update for debug link task to publish
 		//ahrs.attitude.roll = att_estimated.roll;

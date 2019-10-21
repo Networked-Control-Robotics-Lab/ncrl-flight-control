@@ -59,17 +59,13 @@ void mpu6500_bias_calculate(void)
 
 	vector3d_f_t gyro_bias_float = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
 
-	int16_t gyro_recalib_threshold = 30;
+	int16_t gyro_recalib_threshold = 100;
 
 recalibrate:
 	mpu6500_read_unscaled_data(&accel_unscaled, &gyro_unscaled, &temp_unscaled);
 	gyro_unscaled_last = gyro_unscaled;
 
 	int count = 10000;
-
-	led_on(LED_R);
-	led_on(LED_G);
-	led_on(LED_B);
 
 	int i;
 	for(i = 1; i < count; i++) {
@@ -93,10 +89,6 @@ recalibrate:
 		gyro_unscaled_last = gyro_unscaled;
 	}
 
-	led_off(LED_R);
-	led_off(LED_G);
-	led_off(LED_B);
-
 	mpu6500_gyro_error_bias.x = (int16_t)gyro_bias_float.x;
 	mpu6500_gyro_error_bias.y = (int16_t)gyro_bias_float.y;
 	mpu6500_gyro_error_bias.z = (int16_t)gyro_bias_float.z;
@@ -104,7 +96,7 @@ recalibrate:
 
 int mpu6500_init()
 {
-	if(mpu6500_read_who_am_i() != 0x71) return 1;
+	while((mpu6500_read_who_am_i() != 0x71));
 
 	mpu6500_reset();
 	blocked_delay_ms(50);
@@ -112,6 +104,8 @@ int mpu6500_init()
 	blocked_delay_ms(50);
 	mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x10); //accel range: 8g
 	blocked_delay_ms(50);
+
+	mpu6500_bias_calculate();
 
 	return 0;
 }
