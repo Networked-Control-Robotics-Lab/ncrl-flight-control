@@ -47,6 +47,8 @@ void pwm_timer1_init(void)
 	TIM_OC4Init(TIM1, &TIM_OCInitStruct);
 
 	TIM_Cmd(TIM1, ENABLE);
+
+	TIM_CtrlPWMOutputs(TIM1, ENABLE);
 }
 
 void pwm_timer4_init(void)

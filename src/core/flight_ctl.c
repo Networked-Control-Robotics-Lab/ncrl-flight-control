@@ -120,12 +120,14 @@ void task_flight_ctl(void *param)
 		attitude_pd_control(&pid_pitch, att_estimated.pitch, -rc.pitch, imu.filtered_gyro.y);
 		yaw_rate_p_control(&pid_yaw_rate, rc.yaw, imu.filtered_gyro.z);
 
-		if(rc.safety == true) {
-			led_on(LED_B);
-			led_off(LED_R);
-		} else {
+		if(rc.safety == false) {
 			led_on(LED_R);
 			led_off(LED_B);
+			motor_control(rc.throttle, pid_roll.output, pid_pitch.output, pid_yaw_rate.output);
+		} else {
+			led_on(LED_B);
+			led_off(LED_R);
+			motor_control(0.0, 0, 0, 0);
 		}
 
 		//debug_print_rc_info(&rc);
