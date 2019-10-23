@@ -38,7 +38,7 @@ void spi1_init()
 		.SPI_CPOL = SPI_CPOL_High,
 		.SPI_CPHA = SPI_CPHA_2Edge,
 		.SPI_NSS = SPI_NSS_Soft,
-		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16,
+		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8,
 		.SPI_FirstBit = SPI_FirstBit_MSB
 	};
 	SPI_Init(SPI1, &SPI_InitStruct);

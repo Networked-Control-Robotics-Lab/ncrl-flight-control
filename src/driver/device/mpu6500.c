@@ -10,8 +10,7 @@
 #define MPU6500_ACCEL_SCALE MPU6500A_8g
 #define MPU6500_GYRO_SCALE MPU6500G_1000dps
 
-vector3d_16_t mpu6500_accel_error_bias = {0.0f, 0.0f, 0.0f};
-vector3d_16_t mpu6500_gyro_error_bias  = {0.0f, 0.0f, 0.0f};
+vector3d_16_t gyro_bias  = {0.0f, 0.0f, 0.0f};
 
 uint8_t mpu6500_read_byte(uint8_t address)
 {
@@ -52,47 +51,45 @@ void mpu6500_reset()
 	blocked_delay_ms(100);
 }
 
-void mpu6500_bias_calculate(void)
+void mpu6500_gyro_bias_calc(void)
 {
-	vector3d_16_t accel_unscaled, gyro_unscaled;
-	vector3d_16_t gyro_unscaled_last;
-	int16_t temp_unscaled;
+	vector3d_16_t accel, gyro;
+	vector3d_16_t gyro_last;
+	int16_t temp;
 
-	vector3d_f_t gyro_bias_float = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
+	vector3d_f_t bias = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
 
-	int16_t gyro_recalib_threshold = 500;
+	int16_t recalib_thresh = 100;
+	int cnt = 1000;
 
 recalibrate:
-	mpu6500_read_unscaled_data(&accel_unscaled, &gyro_unscaled, &temp_unscaled);
-	gyro_unscaled_last = gyro_unscaled;
-
-	int count = 10000;
+	mpu6500_read_unscaled_data(&accel, &gyro, &temp);
+	gyro_last = gyro;
 
 	int i;
-	for(i = 1; i < count; i++) {
-		mpu6500_read_unscaled_data(&accel_unscaled, &gyro_unscaled, &temp_unscaled);
+	for(i = 1; i < cnt; i++) {
+		mpu6500_read_unscaled_data(&accel, &gyro, &temp);
+		blocked_delay_ms(3);
 
-		gyro_bias_float.x += (float)gyro_unscaled.x / (float)count;
-		gyro_bias_float.y += (float)gyro_unscaled.y / (float)count;
-		gyro_bias_float.z += (float)gyro_unscaled.z / (float)count;
+		bias.x += (float)gyro.x / (float)cnt;
+		bias.y += (float)gyro.y / (float)cnt;
+		bias.z += (float)gyro.z / (float)cnt;
 
-		int16_t gyro_change_x = abs(gyro_unscaled.x - gyro_unscaled_last.x);
-		int16_t gyro_change_y = abs(gyro_unscaled.y - gyro_unscaled_last.y);
-		int16_t gyro_change_z = abs(gyro_unscaled.z - gyro_unscaled_last.z);
+		volatile int16_t gyro_dx = abs(gyro.x - gyro_last.x);
+		volatile int16_t gyro_dy = abs(gyro.y - gyro_last.y);
+		volatile int16_t gyro_dz = abs(gyro.z - gyro_last.z);
 
-		//printf("dx:%d, dy:%d, dz:%d\n\r", gyro_change_x, gyro_change_y, gyro_change_z);
-
-		if(gyro_change_x > gyro_recalib_threshold || gyro_change_y > gyro_recalib_threshold ||
-		    gyro_change_z > gyro_recalib_threshold) {
+		if(gyro_dx > recalib_thresh || gyro_dy > recalib_thresh ||
+		    gyro_dz > recalib_thresh) {
 			goto recalibrate;
 		}
 
-		gyro_unscaled_last = gyro_unscaled;
+		gyro_last = gyro;
 	}
 
-	mpu6500_gyro_error_bias.x = (int16_t)gyro_bias_float.x;
-	mpu6500_gyro_error_bias.y = (int16_t)gyro_bias_float.y;
-	mpu6500_gyro_error_bias.z = (int16_t)gyro_bias_float.z;
+	gyro_bias.x = (int16_t)bias.x;
+	gyro_bias.y = (int16_t)bias.y;
+	gyro_bias.z = (int16_t)bias.z;
 }
 
 int mpu6500_init()
@@ -106,7 +103,7 @@ int mpu6500_init()
 	mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x10); //accel range: 8g
 	blocked_delay_ms(50);
 
-	//mpu6500_bias_calculate();
+	mpu6500_gyro_bias_calc();
 
 	return 0;
 }
@@ -142,23 +139,20 @@ void mpu6500_read_unscaled_data(vector3d_16_t *accel_unscaled_data, vector3d_16_
 	accel_unscaled_data->z = -((uint16_t)buffer[4] << 8) | (uint16_t)buffer[5];
 
 	//temperature
-	*temp_unscaled = (buffer[6] << 8) | buffer[7];
+	*temp_unscaled = ((uint16_t)buffer[6] << 8) | (uint16_t)buffer[7];
 
 	//gyroscope
-	gyro_unscaled_data->x = +(buffer[8] << 8) | buffer[9];
-	gyro_unscaled_data->y = -(buffer[10] << 8) | buffer[11];
-	gyro_unscaled_data->z = -(buffer[12] << 8) | buffer[13];
+	gyro_unscaled_data->x = +((uint16_t)buffer[8] << 8) | (uint16_t)buffer[9];
+	gyro_unscaled_data->y = -((uint16_t)buffer[10] << 8) | (uint16_t)buffer[11];
+	gyro_unscaled_data->z = -((uint16_t)buffer[12] << 8) | (uint16_t)buffer[13];
 }
 
 void mpu6500_fix_bias(vector3d_16_t *accel_unscaled_data,
                       vector3d_16_t *gyro_unscaled_data)
 {
-	accel_unscaled_data->x -= mpu6500_accel_error_bias.x;
-	accel_unscaled_data->y -= mpu6500_accel_error_bias.y;
-	accel_unscaled_data->z -= mpu6500_accel_error_bias.z;
-	gyro_unscaled_data->x -= mpu6500_gyro_error_bias.x;
-	gyro_unscaled_data->y -= mpu6500_gyro_error_bias.y;
-	gyro_unscaled_data->z -= mpu6500_gyro_error_bias.z;
+	gyro_unscaled_data->x -= gyro_bias.x;
+	gyro_unscaled_data->y -= gyro_bias.y;
+	gyro_unscaled_data->z -= gyro_bias.z;
 }
 
 void mpu6500_accel_convert_to_scale(vector3d_16_t *accel_unscaled_data,
