@@ -41,6 +41,7 @@ uint8_t mpu6500_read_who_am_i()
 {
 	uint8_t id;
 	id = mpu6500_read_byte(MPU6500_WHO_AM_I);
+	blocked_delay_ms(5);
 
 	return id;
 }
@@ -59,7 +60,7 @@ void mpu6500_bias_calculate(void)
 
 	vector3d_f_t gyro_bias_float = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
 
-	int16_t gyro_recalib_threshold = 200;
+	int16_t gyro_recalib_threshold = 500;
 
 recalibrate:
 	mpu6500_read_unscaled_data(&accel_unscaled, &gyro_unscaled, &temp_unscaled);
@@ -96,7 +97,7 @@ recalibrate:
 
 int mpu6500_init()
 {
-	while((mpu6500_read_who_am_i() != 0x71));
+	while((mpu6500_read_who_am_i() != 0x70));
 
 	mpu6500_reset();
 	blocked_delay_ms(50);
@@ -105,7 +106,7 @@ int mpu6500_init()
 	mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x10); //accel range: 8g
 	blocked_delay_ms(50);
 
-	mpu6500_bias_calculate();
+	//mpu6500_bias_calculate();
 
 	return 0;
 }
