@@ -33,17 +33,17 @@ void pid_controller_init(void)
 {
 	pid_roll.kp = 0.23f;
 	pid_roll.ki = 0.0f;
-	pid_roll.kd = 0.13f;
+	pid_roll.kd = 0.08f;
 	pid_roll.output_min = -35.0f; //[%]
 	pid_roll.output_max = +35.0f;
 
 	pid_pitch.kp = 0.23f;
 	pid_pitch.ki = 0.0f;
-	pid_pitch.kd = 0.13f;
+	pid_pitch.kd = 0.08f;
 	pid_pitch.output_min = -35.0f; //[%]
 	pid_pitch.output_max = +35.0f;
 
-	pid_yaw_rate.kp = 0.9f;
+	pid_yaw_rate.kp = -0.6f;
 	pid_yaw_rate.ki = 0.0f;
 	pid_yaw_rate.kd = 0.0f;
 	pid_yaw_rate.output_min = -35.0f;
@@ -83,6 +83,10 @@ void task_flight_ctl(void *param)
 	madgwick_t madgwick_ahrs_info;
 	madgwick_init(&madgwick_ahrs_info, 400, 0.04);
 
+	led_off(LED_R);
+	led_off(LED_G);
+	led_on(LED_B);
+
 	while(1) {
 		if(xSemaphoreTake(flight_ctl_semphr, 1) == pdFALSE) {
 			continue;
@@ -96,6 +100,8 @@ void task_flight_ctl(void *param)
 		lpf(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.03);
 
 		ahrs_estimate_euler(&att_estimated, &imu.filtered_accel, &imu.filtered_gyro);
+
+#if 0
 		madgwick_imu_ahrs(&madgwick_ahrs_info,
 		                  imu.filtered_accel.x,
 		                  imu.filtered_accel.y,
@@ -103,6 +109,7 @@ void task_flight_ctl(void *param)
 		                  deg_to_rad(imu.filtered_gyro.x),
 		                  deg_to_rad(imu.filtered_gyro.y),
 		                  deg_to_rad(imu.filtered_gyro.z));
+#endif
 
 		//update for debug link task to publish
 #if 1

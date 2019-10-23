@@ -40,16 +40,14 @@ int main(void)
 	pwm_timer4_init();
 	spi1_init();
 
+	blocked_delay_ms(10);
+
 	led_on(LED_R);
 	led_off(LED_G);
 	led_off(LED_B);
 
 	mpu6500_init();
 	motor_init();
-
-	led_off(LED_R);
-	led_off(LED_G);
-	led_on(LED_B);
 
 	xTaskCreate(task_flight_ctl, "flight control", 4096, NULL, tskIDLE_PRIORITY + 3, NULL);
 	xTaskCreate(task_debug_link, "debug link", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
