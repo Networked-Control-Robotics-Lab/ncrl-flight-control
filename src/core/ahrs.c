@@ -74,14 +74,14 @@ void euler_to_quat(attitude_t *euler, float *q)
 	float theta = euler->pitch * 0.5f;
 	float psi = euler->yaw * 0.5f;
 
-	q[0] = arm_cos_f32(phi)*arm_cos_f32(theta)*arm_cos_f32(psi) +
-	       arm_sin_f32(phi)*arm_sin_f32(theta)*arm_sin_f32(psi);
-	q[1] = arm_sin_f32(phi)*arm_cos_f32(theta)*arm_cos_f32(psi) -
-	       arm_cos_f32(phi)*arm_sin_f32(theta)*arm_sin_f32(psi);
-	q[2] = arm_cos_f32(phi)*arm_sin_f32(theta)*arm_cos_f32(psi) +
-	       arm_sin_f32(phi)*arm_cos_f32(theta)*arm_sin_f32(psi);
-	q[3] = arm_cos_f32(phi)*arm_cos_f32(theta)*arm_sin_f32(psi) -
-	       arm_sin_f32(phi)*arm_sin_f32(theta)*arm_cos_f32(psi);
+	q[0] = arm_cos_f32(phi) * arm_cos_f32(theta) * arm_cos_f32(psi) +
+	       arm_sin_f32(phi) * arm_sin_f32(theta) * arm_sin_f32(psi);
+	q[1] = arm_sin_f32(phi) * arm_cos_f32(theta) * arm_cos_f32(psi) -
+	       arm_cos_f32(phi) * arm_sin_f32(theta) * arm_sin_f32(psi);
+	q[2] = arm_cos_f32(phi) * arm_sin_f32(theta) * arm_cos_f32(psi) +
+	       arm_sin_f32(phi) * arm_cos_f32(theta) * arm_sin_f32(psi);
+	q[3] = arm_cos_f32(phi) * arm_cos_f32(theta) * arm_sin_f32(psi) -
+	       arm_sin_f32(phi) * arm_sin_f32(theta) * arm_cos_f32(psi);
 }
 
 void quat_normalize(float *q)
@@ -300,7 +300,7 @@ void ahrs_init(vector3d_f_t *init_accel)
 	ahrs_ekf_init(init_accel);
 }
 
-void ahrs_estimate_euler(attitude_t *att_estimated, vector3d_f_t *accel, vector3d_f_t *gyro)
+void ahrs_estimate(attitude_t *att_euler, float *att_quat,vector3d_f_t *accel, vector3d_f_t *gyro)
 {
 #if AHRS_SELECT == AHRS_SELECT_EKF
 	ahrs_ekf_loop(accel, gyro);
@@ -312,7 +312,12 @@ void ahrs_estimate_euler(attitude_t *att_estimated, vector3d_f_t *accel, vector3
 
 	attitude_t euler;
 	quat_to_euler(&_mat_(x_posteriori)[0], &euler);
-	att_estimated->roll = rad_to_deg(euler.roll);
-	att_estimated->pitch = rad_to_deg(euler.pitch);
-	att_estimated->yaw = 0.0f; //rad_to_deg(euler.yaw);
+	att_euler->roll = rad_to_deg(euler.roll);
+	att_euler->pitch = rad_to_deg(euler.pitch);
+	att_euler->yaw = 0.0f; //rad_to_deg(euler.yaw);
+
+	att_quat[0] = _mat_(x_posteriori)[0];
+	att_quat[1] = _mat_(x_posteriori)[1];
+	att_quat[2] = _mat_(x_posteriori)[2];
+	att_quat[3] = _mat_(x_posteriori)[3];
 }

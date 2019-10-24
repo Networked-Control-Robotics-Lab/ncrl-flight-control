@@ -67,7 +67,7 @@ void imu_read(vector3d_f_t *accel, vector3d_f_t *gyro)
 
 void task_flight_ctl(void *param)
 {
-	attitude_t att_estimated;
+	attitude_t att_euler_est;
 
 	rc_safety_protection();
 
@@ -99,7 +99,7 @@ void task_flight_ctl(void *param)
 		lpf(&imu.raw_accel, &accel_lpf_old, &imu.filtered_accel, 0.03);
 		lpf(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.03);
 
-		ahrs_estimate_euler(&att_estimated, &imu.filtered_accel, &imu.filtered_gyro);
+		ahrs_estimate(&att_euler_est, ahrs.attitude.q, &imu.filtered_accel, &imu.filtered_gyro);
 
 #if 0
 		madgwick_imu_ahrs(&madgwick_ahrs_info,
@@ -113,9 +113,9 @@ void task_flight_ctl(void *param)
 
 		//update for debug link task to publish
 #if 1
-		ahrs.attitude.roll = att_estimated.roll;
-		ahrs.attitude.pitch = att_estimated.pitch;
-		ahrs.attitude.yaw = att_estimated.yaw;
+		ahrs.attitude.roll = att_euler_est.roll;
+		ahrs.attitude.pitch = att_euler_est.pitch;
+		ahrs.attitude.yaw = att_euler_est.yaw;
 #endif
 
 #if 0
@@ -123,8 +123,8 @@ void task_flight_ctl(void *param)
 		ahrs.attitude.pitch = madgwick_ahrs_info.Pitch;
 		ahrs.attitude.yaw = madgwick_ahrs_info.Yaw;
 #endif
-		attitude_pd_control(&pid_roll, att_estimated.roll, -rc.roll, imu.filtered_gyro.x);
-		attitude_pd_control(&pid_pitch, att_estimated.pitch, -rc.pitch, imu.filtered_gyro.y);
+		attitude_pd_control(&pid_roll, att_euler_est.roll, -rc.roll, imu.filtered_gyro.x);
+		attitude_pd_control(&pid_pitch, att_euler_est.pitch, -rc.pitch, imu.filtered_gyro.y);
 		yaw_rate_p_control(&pid_yaw_rate, rc.yaw, imu.filtered_gyro.z);
 
 		if(rc.safety == false) {

@@ -21,7 +21,6 @@ extern float motor1, motor2, motor3, motor4;
 
 extern float _mat_(P)[4 * 4];
 extern float _mat_(K)[4 * 4];
-extern float _mat_(x_posteriori)[4 * 1];
 
 int pack_float(float *data_float, uint8_t *byte_to_sent)
 {
@@ -100,10 +99,10 @@ void send_attitude_quaternion_message(void)
 
 	payload[2] = MESSAGE_ID_ATTITUDE_QUAT;
 
-	payload_size += pack_float(&_mat_(x_posteriori)[0], payload + payload_size);
-	payload_size += pack_float(&_mat_(x_posteriori)[1], payload + payload_size);
-	payload_size += pack_float(&_mat_(x_posteriori)[2], payload + payload_size);
-	payload_size += pack_float(&_mat_(x_posteriori)[3], payload + payload_size);
+	payload_size += pack_float(&ahrs.attitude.q[0], payload + payload_size);
+	payload_size += pack_float(&ahrs.attitude.q[1], payload + payload_size);
+	payload_size += pack_float(&ahrs.attitude.q[2], payload + payload_size);
+	payload_size += pack_float(&ahrs.attitude.q[3], payload + payload_size);
 
 	send_onboard_data(payload, payload_size);
 }
@@ -202,8 +201,8 @@ void task_debug_link(void *param)
 
 		//send_imu_message();
 		//send_attitude_euler_message();
-		//send_attitude_quaternion_message();
-		send_attitude_imu_message();
+		send_attitude_quaternion_message();
+		//send_attitude_imu_message();
 		//send_ekf_message();
 		//send_pid_debug();
 		//send_motor_message();
