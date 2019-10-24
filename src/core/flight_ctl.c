@@ -100,7 +100,7 @@ void task_flight_ctl(void *param)
 
 		ahrs_estimate(&att_euler_est, ahrs.q, imu.filtered_accel, imu.filtered_gyro);
 
-#if 1
+#if 0
 		madgwick_imu_ahrs(&madgwick_ahrs_info,
 		                  imu.filtered_accel.x,
 		                  imu.filtered_accel.y,
