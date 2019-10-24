@@ -59,7 +59,7 @@ void mpu6500_gyro_bias_calc(void)
 
 	vector3d_f_t bias = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
 
-	int16_t recalib_thresh = 100;
+	int16_t recalib_thresh = 550;
 	int cnt = 1000;
 
 recalibrate:
@@ -158,13 +158,17 @@ void mpu6500_fix_bias(vector3d_16_t *accel_unscaled_data,
 void mpu6500_accel_convert_to_scale(vector3d_16_t *accel_unscaled_data,
                                     vector3d_f_t *accel_scaled_data)
 {
+	float gx_max = 4115, gx_min = -4514;
+	float gy_max = 4601, gy_min = -4095;
+	float gz_max = 4964, gz_min = -4516;
+
 	float bias_x = 0.0f;
-	float bias_y = 0.0f;
+	float bias_y = 300.0f;
 	float bias_z = 0.0f;
 
-	float rescale_x = 1.0f;
-	float rescale_y = 1.0f;
-	float rescale_z = 1.0f;
+	float rescale_x = (gx_max - gx_min) / 8192.0f;
+	float rescale_y = (gy_max - gy_min) / 8192.0f;
+	float rescale_z = (gz_max - gz_min) / 8192.0f;
 
 	accel_scaled_data->x = ((float)accel_unscaled_data->x - bias_x) * rescale_x * MPU6500_ACCEL_SCALE;
 	accel_scaled_data->y = ((float)accel_unscaled_data->y - bias_y) * rescale_y * MPU6500_ACCEL_SCALE;
