@@ -148,18 +148,18 @@ void ahr_ekf_state_predict(vector3d_f_t accel, vector3d_f_t gyro)
 	float half_q1_dt = 0.5f * _mat_(x_priori)[1] * dt;
 	float half_q2_dt = 0.5f * _mat_(x_priori)[2] * dt;
 	float half_q3_dt = 0.5f * _mat_(x_priori)[3] * dt;
-	_mat_(f)[0]=-half_q1_dt;
-	_mat_(f)[1]=-half_q2_dt;
-	_mat_(f)[2]=-half_q3_dt;
-	_mat_(f)[3]=+half_q0_dt;
-	_mat_(f)[4]=-half_q3_dt;
-	_mat_(f)[5]=+half_q2_dt;
-	_mat_(f)[6]=+half_q3_dt;
-	_mat_(f)[7]=+half_q0_dt;
-	_mat_(f)[8]=-half_q1_dt;
-	_mat_(f)[9]=-half_q2_dt;
-	_mat_(f)[10]=+half_q1_dt;
-	_mat_(f)[11]=+half_q0_dt;
+	_mat_(f)[0] = -half_q1_dt;
+	_mat_(f)[1] = -half_q2_dt;
+	_mat_(f)[2] = -half_q3_dt;
+	_mat_(f)[3] = +half_q0_dt;
+	_mat_(f)[4] = -half_q3_dt;
+	_mat_(f)[5] = +half_q2_dt;
+	_mat_(f)[6] = +half_q3_dt;
+	_mat_(f)[7] = +half_q0_dt;
+	_mat_(f)[8] = -half_q1_dt;
+	_mat_(f)[9] = -half_q2_dt;
+	_mat_(f)[10] = +half_q1_dt;
+	_mat_(f)[11] = +half_q0_dt;
 
 	_mat_(w)[0] = deg_to_rad(gyro.x);
 	_mat_(w)[1] = deg_to_rad(gyro.y);
@@ -175,22 +175,22 @@ void ahr_ekf_state_predict(vector3d_f_t accel, vector3d_f_t gyro)
 	float wy = _mat_(w)[1];
 	float wz = _mat_(w)[2];
 
-	_mat_(F)[0]=0.0;
-	_mat_(F)[1]=-0.5*wx;
-	_mat_(F)[2]=-0.5*wy;
-	_mat_(F)[3]=-0.5*wz;
-	_mat_(F)[4]=0.5*wx;
-	_mat_(F)[5]=0.0;
-	_mat_(F)[6]=0.5*wz;
-	_mat_(F)[7]=-0.5*wy;
-	_mat_(F)[8]=0.5*wy;
-	_mat_(F)[9]=-0.5*wz;
-	_mat_(F)[10]=0.0;
-	_mat_(F)[11]=0.5*wx;
-	_mat_(F)[12]=0.5*wz;
-	_mat_(F)[13]=0.5*wy;
-	_mat_(F)[14]=-0.5*wx;
-	_mat_(F)[15]=0.0;
+	_mat_(F)[0] = 0.0;
+	_mat_(F)[1] = -0.5 * wx;
+	_mat_(F)[2] = -0.5 * wy;
+	_mat_(F)[3] = -0.5 * wz;
+	_mat_(F)[4] = 0.5 * wx;
+	_mat_(F)[5] = 0.0;
+	_mat_(F)[6] = 0.5 * wz;
+	_mat_(F)[7] = -0.5 * wy;
+	_mat_(F)[8] = 0.5 * wy;
+	_mat_(F)[9] = -0.5 * wz;
+	_mat_(F)[10] = 0.0;
+	_mat_(F)[11] = 0.5 * wx;
+	_mat_(F)[12] = 0.5 * wz;
+	_mat_(F)[13] = 0.5 * wy;
+	_mat_(F)[14] = -0.5 * wx;
+	_mat_(F)[15] = 0.0;
 
 	MAT_TRANS(&F, &Ft);                     //calculate F'
 	MAT_MULT(&F, &P, &FP);                  //calculate F*P
