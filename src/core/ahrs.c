@@ -61,14 +61,14 @@ void ahrs_ekf_init(vector3d_f_t *init_accel)
 	_mat_(Q)[0] = _mat_(Q)[5] = _mat_(Q)[10] = _mat_(Q)[15] = 0.1f;
 	_mat_(R)[0] = _mat_(R)[5] = _mat_(R)[10] = _mat_(R)[15] = 0.001;
 
-	attitude_t att_init;
+	euler_t att_init;
 	calc_attitude_use_accel(&att_init, init_accel);
 	att_init.yaw = 0.0f;
 	euler_to_quat(&att_init, &_mat_(x_priori)[0]);
 }
 
 //in: euler angle [radian], out: quaternion
-void euler_to_quat(attitude_t *euler, float *q)
+void euler_to_quat(euler_t *euler, float *q)
 {
 	float phi = euler->roll * 0.5f;
 	float theta = euler->pitch * 0.5f;
@@ -96,7 +96,7 @@ void quat_normalize(float *q)
 }
 
 //in: quaterion, out: euler angle [radian]
-void quat_to_euler(float *q, attitude_t *euler)
+void quat_to_euler(float *q, euler_t *euler)
 {
 	euler->roll = atan2(2.0*(q[0]*q[1] + q[2]*q[3]), 1.0-2.0*(q[1]*q[1] + q[2]*q[2]));
 	euler->pitch = asin(2.0*(q[0]*q[2] - q[3]*q[1]));
@@ -136,7 +136,7 @@ void convert_gravity_to_quat(vector3d_f_t *a, float *q)
 	quat_normalize(q);
 }
 
-void calc_attitude_use_accel(attitude_t *att_estimated, vector3d_f_t *accel)
+void calc_attitude_use_accel(euler_t *att_estimated, vector3d_f_t *accel)
 {
 	att_estimated->roll = rad_to_deg(atan2(accel->x, accel->z));
 	att_estimated->pitch = rad_to_deg(atan2(-accel->y, accel->z));
@@ -300,7 +300,7 @@ void ahrs_init(vector3d_f_t *init_accel)
 	ahrs_ekf_init(init_accel);
 }
 
-void ahrs_estimate(attitude_t *att_euler, float *att_quat,vector3d_f_t *accel, vector3d_f_t *gyro)
+void ahrs_estimate(euler_t *att_euler, float *att_quat,vector3d_f_t *accel, vector3d_f_t *gyro)
 {
 #if AHRS_SELECT == AHRS_SELECT_EKF
 	ahrs_ekf_loop(accel, gyro);
@@ -310,7 +310,7 @@ void ahrs_estimate(attitude_t *att_euler, float *att_quat,vector3d_f_t *accel, v
 	ahrs_complementary_filter_loop(accel, gyro);
 #endif
 
-	attitude_t euler;
+	euler_t euler;
 	quat_to_euler(&_mat_(x_posteriori)[0], &euler);
 	att_euler->roll = rad_to_deg(euler.roll);
 	att_euler->pitch = rad_to_deg(euler.pitch);

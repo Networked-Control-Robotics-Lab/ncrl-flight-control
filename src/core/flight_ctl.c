@@ -67,7 +67,7 @@ void imu_read(vector3d_f_t *accel, vector3d_f_t *gyro)
 
 void task_flight_ctl(void *param)
 {
-	attitude_t att_euler_est;
+	euler_t att_euler_est;
 
 	rc_safety_protection();
 
@@ -99,7 +99,7 @@ void task_flight_ctl(void *param)
 		lpf(&imu.raw_accel, &accel_lpf_old, &imu.filtered_accel, 0.03);
 		lpf(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.03);
 
-		ahrs_estimate(&att_euler_est, ahrs.attitude.q, &imu.filtered_accel, &imu.filtered_gyro);
+		ahrs_estimate(&att_euler_est, ahrs.q, &imu.filtered_accel, &imu.filtered_gyro);
 
 #if 0
 		madgwick_imu_ahrs(&madgwick_ahrs_info,

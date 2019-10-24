@@ -34,10 +34,10 @@ int pack_vector3d(vector3d_f_t *data_vector3d, uint8_t *byte_to_sent)
 	return sizeof(vector3d_f_t);
 }
 
-int pack_attitude(attitude_t *data_attitude, uint8_t *byte_to_sent)
+int pack_attitude(euler_t *data_attitude, uint8_t *byte_to_sent)
 {
-	memcpy(byte_to_sent, (uint8_t *)data_attitude, sizeof(attitude_t));
-	return sizeof(attitude_t);
+	memcpy(byte_to_sent, (uint8_t *)data_attitude, sizeof(euler_t));
+	return sizeof(euler_t);
 }
 
 static uint8_t generate_checksum_byte(uint8_t *payload, int payload_count)
@@ -99,10 +99,10 @@ void send_attitude_quaternion_message(void)
 
 	payload[2] = MESSAGE_ID_ATTITUDE_QUAT;
 
-	payload_size += pack_float(&ahrs.attitude.q[0], payload + payload_size);
-	payload_size += pack_float(&ahrs.attitude.q[1], payload + payload_size);
-	payload_size += pack_float(&ahrs.attitude.q[2], payload + payload_size);
-	payload_size += pack_float(&ahrs.attitude.q[3], payload + payload_size);
+	payload_size += pack_float(&ahrs.q[0], payload + payload_size);
+	payload_size += pack_float(&ahrs.q[1], payload + payload_size);
+	payload_size += pack_float(&ahrs.q[2], payload + payload_size);
+	payload_size += pack_float(&ahrs.q[3], payload + payload_size);
 
 	send_onboard_data(payload, payload_size);
 }
@@ -201,8 +201,8 @@ void task_debug_link(void *param)
 
 		//send_imu_message();
 		//send_attitude_euler_message();
-		send_attitude_quaternion_message();
-		//send_attitude_imu_message();
+		//send_attitude_quaternion_message();
+		send_attitude_imu_message();
 		//send_ekf_message();
 		//send_pid_debug();
 		//send_motor_message();
