@@ -142,7 +142,7 @@ void calc_attitude_use_accel(euler_t *att_estimated, vector3d_f_t *accel)
 	att_estimated->pitch = rad_to_deg(atan2(-accel->y, accel->z));
 }
 
-void ahr_ekf_state_predict(vector3d_f_t *accel, vector3d_f_t *gyro)
+void ahr_ekf_state_predict(vector3d_f_t accel, vector3d_f_t gyro)
 {
 	float half_q0_dt = 0.5f * _mat_(x_priori)[0] * dt;
 	float half_q1_dt = 0.5f * _mat_(x_priori)[1] * dt;
@@ -161,9 +161,9 @@ void ahr_ekf_state_predict(vector3d_f_t *accel, vector3d_f_t *gyro)
 	_mat_(f)[10]=+half_q1_dt;
 	_mat_(f)[11]=+half_q0_dt;
 
-	_mat_(w)[0] = deg_to_rad(gyro->x);
-	_mat_(w)[1] = deg_to_rad(gyro->y);
-	_mat_(w)[2] = deg_to_rad(gyro->z);
+	_mat_(w)[0] = deg_to_rad(gyro.x);
+	_mat_(w)[1] = deg_to_rad(gyro.y);
+	_mat_(w)[2] = deg_to_rad(gyro.z);
 
 	MAT_MULT(&f, &w, &dx); //calculate dx = f * w
 	MAT_ADD(&x_priori, &dx, &x_priori);  //calculate x = x + dx
@@ -201,11 +201,11 @@ void ahr_ekf_state_predict(vector3d_f_t *accel, vector3d_f_t *gyro)
 	MAT_ADD(&P, &FP_PFt_Q, &P);             //calculate P = P + dt * (F*P + P*F + Q)
 }
 
-void ahr_ekf_state_update(vector3d_f_t *accel, vector3d_f_t *gyro)
+void ahr_ekf_state_update(vector3d_f_t accel, vector3d_f_t gyro)
 {
 	/* convert gravity vector to quaternion */
-	vector3d_normalize(accel); //normalize acceleromter
-	convert_gravity_to_quat(accel, &_mat_(y)[0]);
+	vector3d_normalize(&accel); //normalize acceleromter
+	convert_gravity_to_quat(&accel, &_mat_(y)[0]);
 
 	/* calculate residual */
 	_mat_(resid)[0] = _mat_(y)[0] - _mat_(x_priori)[0];
@@ -239,36 +239,36 @@ void ahr_ekf_state_update(vector3d_f_t *accel, vector3d_f_t *gyro)
 	_mat_(P)[15] *= (1.0f - _mat_(K)[15]);
 }
 
-void ahrs_ekf_loop(vector3d_f_t *accel, vector3d_f_t *gyro)
+void ahrs_ekf_estimate(vector3d_f_t accel, vector3d_f_t gyro)
 {
 	ahr_ekf_state_predict(accel, gyro);
 	ahr_ekf_state_update(accel, gyro);
 }
 
-void ahrs_complementary_filter_loop(vector3d_f_t *accel, vector3d_f_t *gyro)
+void ahrs_complementary_filter_estimate(vector3d_f_t accel, vector3d_f_t gyro)
 {
 	/* construct system transition function f */
 	float half_q0_dt = 0.5f * _mat_(x_priori)[0] * dt;
 	float half_q1_dt = 0.5f * _mat_(x_priori)[1] * dt;
 	float half_q2_dt = 0.5f * _mat_(x_priori)[2] * dt;
 	float half_q3_dt = 0.5f * _mat_(x_priori)[3] * dt;
-	_mat_(f)[0]=-half_q1_dt;
-	_mat_(f)[1]=-half_q2_dt;
-	_mat_(f)[2]=-half_q3_dt;
-	_mat_(f)[3]=+half_q0_dt;
-	_mat_(f)[4]=-half_q3_dt;
-	_mat_(f)[5]=+half_q2_dt;
-	_mat_(f)[6]=+half_q3_dt;
-	_mat_(f)[7]=+half_q0_dt;
-	_mat_(f)[8]=-half_q1_dt;
-	_mat_(f)[9]=-half_q2_dt;
-	_mat_(f)[10]=+half_q1_dt;
-	_mat_(f)[11]=+half_q0_dt;
+	_mat_(f)[0] = -half_q1_dt;
+	_mat_(f)[1] = -half_q2_dt;
+	_mat_(f)[2] = -half_q3_dt;
+	_mat_(f)[3] = +half_q0_dt;
+	_mat_(f)[4] = -half_q3_dt;
+	_mat_(f)[5] = +half_q2_dt;
+	_mat_(f)[6] = +half_q3_dt;
+	_mat_(f)[7] = +half_q0_dt;
+	_mat_(f)[8] = -half_q1_dt;
+	_mat_(f)[9] = -half_q2_dt;
+	_mat_(f)[10] = +half_q1_dt;
+	_mat_(f)[11] = +half_q0_dt;
 
 	/* angular rate from rate gyro */
-	_mat_(w)[0] = deg_to_rad(gyro->x);
-	_mat_(w)[1] = deg_to_rad(gyro->y);
-	_mat_(w)[2] = deg_to_rad(gyro->z);
+	_mat_(w)[0] = deg_to_rad(gyro.x);
+	_mat_(w)[1] = deg_to_rad(gyro.y);
+	_mat_(w)[2] = deg_to_rad(gyro.z);
 
 	/* rate gyro integration */
 	MAT_MULT(&f, &w, &dx); //calculate dx = f * w
@@ -277,8 +277,8 @@ void ahrs_complementary_filter_loop(vector3d_f_t *accel, vector3d_f_t *gyro)
 
 	/* convert gravity vector to quaternion */
 	float q_gravity[4] = {0};
-	vector3d_normalize(accel); //normalize acceleromter
-	convert_gravity_to_quat(accel, q_gravity);
+	vector3d_normalize(&accel); //normalize acceleromter
+	convert_gravity_to_quat(&accel, q_gravity);
 
 	/* sensors fusion */
 	float a = 0.001f;
@@ -300,14 +300,14 @@ void ahrs_init(vector3d_f_t *init_accel)
 	ahrs_ekf_init(init_accel);
 }
 
-void ahrs_estimate(euler_t *att_euler, float *att_quat,vector3d_f_t *accel, vector3d_f_t *gyro)
+void ahrs_estimate(euler_t *att_euler, float *att_quat, vector3d_f_t accel, vector3d_f_t gyro)
 {
 #if AHRS_SELECT == AHRS_SELECT_EKF
-	ahrs_ekf_loop(accel, gyro);
+	ahrs_ekf_estimate(accel, gyro);
 #endif
 
 #if AHRS_SELECT == AHRS_SELECT_CF
-	ahrs_complementary_filter_loop(accel, gyro);
+	ahrs_complementary_filter_estimate(accel, gyro);
 #endif
 
 	euler_t euler;
