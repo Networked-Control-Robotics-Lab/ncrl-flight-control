@@ -163,7 +163,7 @@ void mpu6500_accel_convert_to_scale(vector3d_16_t *accel_unscaled_data,
 	float gz_max = 4964, gz_min = -4516;
 
 	float bias_x = 0.0f;
-	float bias_y = 300.0f;
+	float bias_y = 150.0f;
 	float bias_z = 0.0f;
 
 	float rescale_x = (gx_max - gx_min) / 8192.0f;
