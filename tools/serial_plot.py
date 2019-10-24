@@ -64,15 +64,15 @@ class serial_plotter_class:
     def set_figure(self, message_id):
         if(message_id == 0):
         	plt.subplot(411)
-        	plt.ylabel('accel [m/s^2]')
-        	plt.ylim([-50.0, 50.0])
+        	plt.ylabel('accel [g]')
+        	plt.ylim([-4.4, 4.5])
         	self.create_curve('x (raw)', 'red')		
         	self.create_curve('y (raw)', 'blue')		
         	self.create_curve('z (raw)', 'green')		
         	self.show_subplot()
 
                 plt.subplot(412)
-        	plt.ylabel('accel [m/s^2]')
+        	plt.ylabel('accel [g]')
         	plt.ylim([-1.0, 2.0])
         	self.create_curve('x (moving average)', 'red')		
         	self.create_curve('y (moving average)', 'blue')		
@@ -112,7 +112,7 @@ class serial_plotter_class:
         	self.show_subplot()
 
                 plt.subplot(312)
-        	plt.ylabel('accel [m/s^2]')
+        	plt.ylabel('accel [g]')
         	plt.ylim([-1.0, 2.0])
         	self.create_curve('x (moving average)', 'red')
         	self.create_curve('y (moving average)', 'blue')

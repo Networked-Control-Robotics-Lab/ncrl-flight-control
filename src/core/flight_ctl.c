@@ -72,10 +72,9 @@ void task_flight_ctl(void *param)
 	rc_safety_protection();
 
 	//initialize lpf
-	vector3d_f_t accel_lpf_old, gyro_lpf_old;
 	imu_read(&imu.raw_accel, &imu.raw_gyro);
-	accel_lpf_old = imu.raw_accel;
-	gyro_lpf_old = imu.raw_gyro;
+	imu.filtered_accel = imu.raw_accel;
+	imu.filtered_gyro = imu.raw_gyro;
 
 	ahrs_init(&imu.raw_accel);
 	pid_controller_init();
@@ -96,12 +95,12 @@ void task_flight_ctl(void *param)
 
 		imu_read(&imu.raw_accel, &imu.raw_gyro);
 
-		lpf(&imu.raw_accel, &accel_lpf_old, &imu.filtered_accel, 0.03);
-		lpf(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.03);
+		lpf(&imu.raw_accel, &imu.filtered_accel, 0.03);
+		lpf(&imu.raw_gyro, &imu.filtered_gyro, 0.03);
 
 		ahrs_estimate(&att_euler_est, ahrs.q, imu.filtered_accel, imu.filtered_gyro);
 
-#if 0
+#if 1
 		madgwick_imu_ahrs(&madgwick_ahrs_info,
 		                  imu.filtered_accel.x,
 		                  imu.filtered_accel.y,
@@ -109,6 +108,15 @@ void task_flight_ctl(void *param)
 		                  deg_to_rad(imu.filtered_gyro.x),
 		                  deg_to_rad(imu.filtered_gyro.y),
 		                  deg_to_rad(imu.filtered_gyro.z));
+
+		ahrs.attitude.roll = madgwick_ahrs_info.Roll;
+		ahrs.attitude.pitch = madgwick_ahrs_info.Pitch;
+		ahrs.attitude.yaw = madgwick_ahrs_info.Yaw;
+
+		ahrs.q[0] = madgwick_ahrs_info.q0;
+		ahrs.q[1] = madgwick_ahrs_info.q1;
+		ahrs.q[2] = madgwick_ahrs_info.q2;
+		ahrs.q[3] = madgwick_ahrs_info.q3;
 #endif
 
 		//update for debug link task to publish
@@ -118,11 +126,6 @@ void task_flight_ctl(void *param)
 		ahrs.attitude.yaw = att_euler_est.yaw;
 #endif
 
-#if 0
-		ahrs.attitude.roll = madgwick_ahrs_info.Roll;
-		ahrs.attitude.pitch = madgwick_ahrs_info.Pitch;
-		ahrs.attitude.yaw = madgwick_ahrs_info.Yaw;
-#endif
 		attitude_pd_control(&pid_roll, att_euler_est.roll, -rc.roll, imu.filtered_gyro.x);
 		attitude_pd_control(&pid_pitch, att_euler_est.pitch, -rc.pitch, imu.filtered_gyro.y);
 		yaw_rate_p_control(&pid_yaw_rate, rc.yaw, imu.filtered_gyro.z);
