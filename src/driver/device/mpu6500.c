@@ -62,7 +62,7 @@ void mpu6500_gyro_bias_calc(void)
 	int16_t recalib_thresh = 550;
 	int cnt = 1000;
 
-recalibrate:
+	recalibrate:
 	mpu6500_read_unscaled_data(&accel, &gyro, &temp);
 	gyro_last = gyro;
 
@@ -95,13 +95,15 @@ recalibrate:
 int mpu6500_init()
 {
 	while((mpu6500_read_who_am_i() != 0x70));
+	blocked_delay_ms(100);
 
 	mpu6500_reset();
-	blocked_delay_ms(50);
+	blocked_delay_ms(100);
+
 	mpu6500_write_byte(MPU6500_GYRO_CONFIG, 0x10); //gyro: 1000Hz
-	blocked_delay_ms(50);
+	blocked_delay_ms(100);
 	mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x10); //accel range: 8g
-	blocked_delay_ms(50);
+	blocked_delay_ms(100);
 
 	mpu6500_gyro_bias_calc();
 
