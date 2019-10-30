@@ -162,7 +162,7 @@ void send_pid_debug(void)
 
 	payload[2] = MESSAGE_ID_PID_DEBUG;
 
-#if 0
+#if 1
 	//roll pd control
 	payload_size += pack_float(&pid_roll.error_current, payload + payload_size);
 	payload_size += pack_float(&pid_roll.error_derivative, payload + payload_size);
@@ -172,7 +172,7 @@ void send_pid_debug(void)
 	payload_size += pack_float(&pid_roll.output, payload + payload_size);
 #endif
 
-#if 1
+#if 0
 	payload_size += pack_float(&pid_pitch.error_current, payload + payload_size);
 	payload_size += pack_float(&pid_pitch.error_derivative, payload + payload_size);
 	payload_size += pack_float(&pid_pitch.p_final, payload + payload_size);
@@ -201,8 +201,8 @@ void task_debug_link(void *param)
 
 		//send_imu_message();
 		//send_attitude_euler_message();
-		send_attitude_quaternion_message();
-		//send_attitude_imu_message();
+		//send_attitude_quaternion_message();
+		send_attitude_imu_message();
 		//send_ekf_message();
 		//send_pid_debug();
 		//send_motor_message();

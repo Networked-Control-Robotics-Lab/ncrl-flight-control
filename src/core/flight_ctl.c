@@ -31,19 +31,15 @@ radio_t rc;
 
 void pid_controller_init(void)
 {
-	pid_roll.kp = 0.23f;
-	pid_roll.ki = 0.0f;
-	pid_roll.kd = 0.08f;
-	pid_roll.output_min = -35.0f; //[%]
-	pid_roll.output_max = +35.0f;
+	pid_roll.kp = 0.26f; //0.24
+	pid_roll.ki = 0.001f;
+	pid_roll.kd = 0.1f;  //0.09
 
-	pid_pitch.kp = 0.23f;
-	pid_pitch.ki = 0.0f;
-	pid_pitch.kd = 0.08f;
-	pid_pitch.output_min = -35.0f; //[%]
-	pid_pitch.output_max = +35.0f;
+	pid_pitch.kp = 0.26f;
+	pid_pitch.ki = 0.001f;
+	pid_pitch.kd = 0.1f;
 
-	pid_yaw_rate.kp = -0.6f;
+	pid_yaw_rate.kp = 1.0f;
 	pid_yaw_rate.ki = 0.0f;
 	pid_yaw_rate.kd = 0.0f;
 	pid_yaw_rate.output_min = -35.0f;
@@ -80,7 +76,7 @@ void task_flight_ctl(void *param)
 	pid_controller_init();
 
 	madgwick_t madgwick_ahrs_info;
-	madgwick_init(&madgwick_ahrs_info, 400, 0.04);
+	madgwick_init(&madgwick_ahrs_info, 400, 0.3);
 
 	led_off(LED_R);
 	led_off(LED_G);
@@ -95,10 +91,15 @@ void task_flight_ctl(void *param)
 
 		imu_read(&imu.raw_accel, &imu.raw_gyro);
 
-		lpf(&imu.raw_accel, &imu.filtered_accel, 0.03);
-		lpf(&imu.raw_gyro, &imu.filtered_gyro, 0.03);
+		lpf(&imu.raw_accel, &imu.filtered_accel, 0.07);
+		lpf(&imu.raw_gyro, &imu.filtered_gyro, 0.07);
 
+#if 1
 		ahrs_estimate(&att_euler_est, ahrs.q, imu.filtered_accel, imu.filtered_gyro);
+		ahrs.attitude.roll = att_euler_est.roll;
+		ahrs.attitude.pitch = att_euler_est.pitch;
+		ahrs.attitude.yaw = att_euler_est.yaw;
+#endif
 
 #if 0
 		madgwick_imu_ahrs(&madgwick_ahrs_info,
@@ -109,8 +110,8 @@ void task_flight_ctl(void *param)
 		                  deg_to_rad(imu.filtered_gyro.y),
 		                  deg_to_rad(imu.filtered_gyro.z));
 
-		ahrs.attitude.roll = madgwick_ahrs_info.Roll;
-		ahrs.attitude.pitch = madgwick_ahrs_info.Pitch;
+		ahrs.attitude.roll = att_euler_est.roll = madgwick_ahrs_info.Roll;
+		ahrs.attitude.pitch = att_euler_est.pitch = madgwick_ahrs_info.Pitch;
 		ahrs.attitude.yaw = madgwick_ahrs_info.Yaw;
 
 		ahrs.q[0] = madgwick_ahrs_info.q0;
@@ -118,17 +119,9 @@ void task_flight_ctl(void *param)
 		ahrs.q[2] = madgwick_ahrs_info.q2;
 		ahrs.q[3] = madgwick_ahrs_info.q3;
 #endif
-
-		//update for debug link task to publish
-#if 1
-		ahrs.attitude.roll = att_euler_est.roll;
-		ahrs.attitude.pitch = att_euler_est.pitch;
-		ahrs.attitude.yaw = att_euler_est.yaw;
-#endif
-
 		attitude_pd_control(&pid_roll, att_euler_est.roll, -rc.roll, imu.filtered_gyro.x);
 		attitude_pd_control(&pid_pitch, att_euler_est.pitch, -rc.pitch, imu.filtered_gyro.y);
-		yaw_rate_p_control(&pid_yaw_rate, rc.yaw, imu.filtered_gyro.z);
+		yaw_rate_p_control(&pid_yaw_rate, -rc.yaw, imu.filtered_gyro.z);
 
 		if(rc.safety == false) {
 			led_on(LED_R);
@@ -160,23 +153,23 @@ void attitude_pd_control(pid_control_t *pid, float ahrs_attitude,
 {
 	//error = reference (setpoint) - measurement
 	pid->error_current = setpoint_attitude - ahrs_attitude;
-
+	pid->error_integral += (pid->error_current * pid->ki * 0.0025);
 	pid->error_derivative = -angular_velocity; //error_derivative = 0 (setpoint) - measurement_derivative
 
+	bound_float(&pid->error_integral, 10.0f, -10.0f);
+
 	pid->p_final = pid->kp * pid->error_current;
+	pid->i_final = pid->error_integral;
 	pid->d_final = pid->kd * pid->error_derivative;
 
-	pid->output = pid->p_final + pid->d_final;
-
-	if(pid->output > pid->output_max) pid->output = pid->output_max;
-	if(pid->output < pid->output_min) pid->output = pid->output_min;
+	pid->output = pid->p_final + pid->i_final + pid->d_final;
 }
 
 void yaw_rate_p_control(pid_control_t *pid, float setpoint_yaw_rate, float angular_velocity)
 {
 	pid->error_current = setpoint_yaw_rate - angular_velocity;
 
-	pid->p_final = pid->kp * pid->error_current;
+	pid->p_final = pid->kp * -pid->error_current;
 	pid->output = pid->p_final;
 
 	bound_float(&pid->output, pid->output_max, pid->output_min);
