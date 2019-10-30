@@ -31,12 +31,12 @@ radio_t rc;
 
 void pid_controller_init(void)
 {
-	pid_roll.kp = 0.26f; //0.24
-	pid_roll.ki = 0.025f;
-	pid_roll.kd = 0.1f;  //0.09
+	pid_roll.kp = 0.26f;
+	pid_roll.ki = 0.1f;
+	pid_roll.kd = 0.1f;
 
 	pid_pitch.kp = 0.26f;
-	pid_pitch.ki = 0.025f;
+	pid_pitch.ki = 0.1f;
 	pid_pitch.kd = 0.1f;
 
 	pid_yaw_rate.kp = 1.0f;
