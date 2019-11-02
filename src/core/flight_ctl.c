@@ -87,12 +87,7 @@ void task_flight_ctl(void *param)
 	int execute = FLIGHT_CTL_PRESCALER_RELOAD;
 
 	while(1) {
-		if(xSemaphoreTake(flight_ctl_semphr, 1) == pdFALSE) {
-			continue;
-		}
-
-		read_rc_info(&rc);
-		//debug_print_rc_info(&rc);
+		if(xSemaphoreTake(flight_ctl_semphr, 1) == pdFALSE) continue;
 
 		imu_read(&imu.raw_accel, &imu.raw_gyro);
 		lpf(&imu.raw_accel, &imu.filtered_accel, 0.07);
@@ -103,6 +98,7 @@ void task_flight_ctl(void *param)
 		execute = FLIGHT_CTL_PRESCALER_RELOAD;
 
 		read_rc_info(&rc);
+		//debug_print_rc_info(&rc);
 
 #if 1
 		ahrs_estimate(&att_euler_est, ahrs.q, imu.filtered_accel, imu.filtered_gyro);
