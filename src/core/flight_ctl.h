@@ -17,8 +17,8 @@ typedef struct {
 	float output_min;
 } pid_control_t;
 
-void attitude_pd_control(pid_control_t *pid, float ahrs_attitude,
-                         float setpoint_attitude, float angular_velocity);
+void attitude_pid_control(pid_control_t *pid, float ahrs_attitude,
+                          float setpoint_attitude, float angular_velocity);
 void yaw_rate_p_control(pid_control_t *pid, float setpoint_yaw_rate,
                         float angular_velocity);
 

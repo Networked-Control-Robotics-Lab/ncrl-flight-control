@@ -15,6 +15,8 @@
 #include "madgwick_ahrs.h"
 #include "flight_ctl.h"
 
+#define FLIGHT_CTL_PRESCALER_RELOAD 10
+
 void rc_safety_protection(void);
 
 SemaphoreHandle_t flight_ctl_semphr;
@@ -31,15 +33,15 @@ radio_t rc;
 
 void pid_controller_init(void)
 {
-	pid_roll.kp = 0.26f;
-	pid_roll.ki = 0.1f;
+	pid_roll.kp = 0.25f;
+	pid_roll.ki = 0.0f;
 	pid_roll.kd = 0.1f;
 
-	pid_pitch.kp = 0.26f;
-	pid_pitch.ki = 0.1f;
+	pid_pitch.kp = 0.25f;
+	pid_pitch.ki = 0.0f;
 	pid_pitch.kd = 0.1f;
 
-	pid_yaw_rate.kp = 1.0f;
+	pid_yaw_rate.kp = 1.3f;
 	pid_yaw_rate.ki = 0.0f;
 	pid_yaw_rate.kd = 0.0f;
 	pid_yaw_rate.output_min = -35.0f;
@@ -82,17 +84,25 @@ void task_flight_ctl(void *param)
 	led_off(LED_G);
 	led_on(LED_B);
 
+	int execute = FLIGHT_CTL_PRESCALER_RELOAD;
+
 	while(1) {
 		if(xSemaphoreTake(flight_ctl_semphr, 1) == pdFALSE) {
 			continue;
 		}
 
 		read_rc_info(&rc);
+		//debug_print_rc_info(&rc);
 
 		imu_read(&imu.raw_accel, &imu.raw_gyro);
-
 		lpf(&imu.raw_accel, &imu.filtered_accel, 0.07);
 		lpf(&imu.raw_gyro, &imu.filtered_gyro, 0.07);
+
+		/* flight controller executing rate: 400Hz  */
+		while(execute-- > 0) taskYIELD();
+		execute = FLIGHT_CTL_PRESCALER_RELOAD;
+
+		read_rc_info(&rc);
 
 #if 1
 		ahrs_estimate(&att_euler_est, ahrs.q, imu.filtered_accel, imu.filtered_gyro);
@@ -119,8 +129,8 @@ void task_flight_ctl(void *param)
 		ahrs.q[2] = madgwick_ahrs_info.q2;
 		ahrs.q[3] = madgwick_ahrs_info.q3;
 #endif
-		attitude_pd_control(&pid_roll, att_euler_est.roll, -rc.roll, imu.filtered_gyro.x);
-		attitude_pd_control(&pid_pitch, att_euler_est.pitch, -rc.pitch, imu.filtered_gyro.y);
+		attitude_pid_control(&pid_roll, att_euler_est.roll, -rc.roll, imu.filtered_gyro.x);
+		attitude_pid_control(&pid_pitch, att_euler_est.pitch, -rc.pitch, imu.filtered_gyro.y);
 		yaw_rate_p_control(&pid_yaw_rate, -rc.yaw, imu.filtered_gyro.z);
 
 		if(rc.safety == false) {
@@ -132,8 +142,6 @@ void task_flight_ctl(void *param)
 			led_off(LED_R);
 			motor_control(0.0, 0, 0, 0);
 		}
-
-		//debug_print_rc_info(&rc);
 
 		taskYIELD();
 	}
@@ -148,8 +156,8 @@ void rc_safety_protection(void)
 	} while(rc_safety_check(&rc) == 1);
 }
 
-void attitude_pd_control(pid_control_t *pid, float ahrs_attitude,
-                         float setpoint_attitude, float angular_velocity)
+void attitude_pid_control(pid_control_t *pid, float ahrs_attitude,
+                          float setpoint_attitude, float angular_velocity)
 {
 	//error = reference (setpoint) - measurement
 	pid->error_current = setpoint_attitude - ahrs_attitude;
