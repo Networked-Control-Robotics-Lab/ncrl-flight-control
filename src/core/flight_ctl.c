@@ -7,6 +7,7 @@
 #include "bound.h"
 #include "led.h"
 #include "uart.h"
+#include "pwm.h"
 #include "sbus_receiver.h"
 #include "mpu6500.h"
 #include "motor.h"
@@ -88,6 +89,8 @@ void task_flight_ctl(void *param)
 
 	while(1) {
 		if(xSemaphoreTake(flight_ctl_semphr, 1) == pdFALSE) continue;
+
+		gpio_toggle(MOTOR7_FREQ_TEST);
 
 		imu_read(&imu.raw_accel, &imu.raw_gyro);
 		lpf(&imu.raw_accel, &imu.filtered_accel, 0.07);

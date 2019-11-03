@@ -18,7 +18,7 @@ void pwm_timer1_init(void)
 	GPIO_PinAFConfig(GPIOE, GPIO_PinSource14, GPIO_AF_TIM1);
 
 	GPIO_InitTypeDef GPIO_InitStruct = {
-		.GPIO_Pin =  GPIO_Pin_13 | GPIO_Pin_14,
+		.GPIO_Pin =  GPIO_Pin_11 | GPIO_Pin_13 | GPIO_Pin_14,
 		.GPIO_Mode = GPIO_Mode_AF,
 		.GPIO_Speed = GPIO_Speed_100MHz,
 		.GPIO_OType = GPIO_OType_PP,
