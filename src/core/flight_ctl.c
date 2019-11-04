@@ -34,12 +34,12 @@ radio_t rc;
 
 void pid_controller_init(void)
 {
-	pid_roll.kp = 0.25f;
-	pid_roll.ki = 0.0f;
+	pid_roll.kp = 0.32f;
+	pid_roll.ki = 0.01f;
 	pid_roll.kd = 0.1f;
 
-	pid_pitch.kp = 0.25f;
-	pid_pitch.ki = 0.0f;
+	pid_pitch.kp = 0.32f;
+	pid_pitch.ki = 0.01f;
 	pid_pitch.kd = 0.1f;
 
 	pid_yaw_rate.kp = 1.3f;
@@ -88,17 +88,20 @@ void task_flight_ctl(void *param)
 	int execute = FLIGHT_CTL_PRESCALER_RELOAD;
 
 	while(1) {
-		if(xSemaphoreTake(flight_ctl_semphr, 1) == pdFALSE) continue;
+		while(xSemaphoreTake(flight_ctl_semphr, 1) == pdFALSE);
 
-		gpio_toggle(MOTOR7_FREQ_TEST);
+		//gpio_toggle(MOTOR7_FREQ_TEST);
 
 		imu_read(&imu.raw_accel, &imu.raw_gyro);
-		lpf(&imu.raw_accel, &imu.filtered_accel, 0.07);
-		lpf(&imu.raw_gyro, &imu.filtered_gyro, 0.07);
+		lpf(&imu.raw_accel, &imu.filtered_accel, 0.03);
+		lpf(&imu.raw_gyro, &imu.filtered_gyro, 0.03);
 
 		/* flight controller executing rate: 400Hz  */
-		while(execute-- > 0) taskYIELD();
-		execute = FLIGHT_CTL_PRESCALER_RELOAD;
+		if((execute--) > 0) {
+			continue;
+		} else {
+			execute = FLIGHT_CTL_PRESCALER_RELOAD;
+		}
 
 		read_rc_info(&rc);
 		//debug_print_rc_info(&rc);
