@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+#define OS_TICK 40000
+#define freertos_task_delay(ms) vTaskDelay(OS_TICK / 1000 * ms)
+
 void blocked_delay_ms(uint32_t ms);
 
 #endif

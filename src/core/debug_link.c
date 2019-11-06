@@ -10,6 +10,8 @@
 #include "ahrs.h"
 #include "flight_ctl.h"
 
+#include "led.h"
+
 extern imu_t imu;
 extern ahrs_t ahrs;
 
@@ -176,6 +178,9 @@ void task_debug_link(void *param)
 {
 	debug_msg_t payload;
 
+	float update_rate = 50;
+	float delay_time_ms = (1.0f / update_rate) * 1000.0f;
+
 	while(1) {
 		send_imu_message(&payload);
 		//send_attitude_euler_message(&payload);
@@ -185,6 +190,6 @@ void task_debug_link(void *param)
 		//send_pid_debug(&payload);
 		//send_motor_message(&payload);
 		send_onboard_data(payload.s, payload.len);
-		vTaskDelay(1000);
+		freertos_task_delay(delay_time_ms);
 	}
 }
