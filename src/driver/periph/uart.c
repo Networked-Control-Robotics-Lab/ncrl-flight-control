@@ -326,11 +326,11 @@ void uart6_puts(char *s, int size)
 void USART3_IRQHandler(void)
 {
 	if(USART_GetITStatus(USART3, USART_IT_TC) == SET) {
+		USART_ClearFlag(USART3, USART_FLAG_TC);
+
 		static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 		xSemaphoreGiveFromISR(uart3_tx_semphr, &xHigherPriorityTaskWoken);
 		portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
-
-		USART_ClearFlag(USART3, USART_FLAG_TC);
 	}
 }
 

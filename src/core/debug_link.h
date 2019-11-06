@@ -3,6 +3,11 @@
 
 #include <stdint.h>
 
+typedef struct {
+	uint8_t s[200];
+	int len;
+} debug_msg_t;
+
 enum {
 	MESSAGE_ID_IMU = 0,
 	MESSAGE_ID_ATTITUDE_EULER = 1,
