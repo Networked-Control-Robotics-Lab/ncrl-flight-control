@@ -205,7 +205,7 @@ class serial_plotter_class:
                 continue
             _message_id, =  struct.unpack("c", ser.read(1))
             message_id = ord(_message_id)
-            print('[%s]received message, id:%d' %(datetime.now().strftime('%H:%M:%S'), message_id))
+            #print('[%s]received message, id:%d' %(datetime.now().strftime('%H:%M:%S'), message_id))
 
             #receive payload and calculate checksum
             for i in range(0, payload_count):
@@ -239,7 +239,7 @@ class serial_plotter_class:
                 binary_data = ''.join([buffer[i * 4], buffer[i * 4 + 1], buffer[i * 4 + 2], buffer[i * 4 + 3]])
                 float_data = np.asarray(struct.unpack("f", binary_data))
                 self.serial_data[i].add(float_data)
-                print("received: %f" %(float_data))
+                #print("received: %f" %(float_data))
             #print("-----------------------------");
             return 'success'
 
