@@ -62,7 +62,7 @@ void mpu6500_gyro_bias_calc(void)
 	int16_t recalib_thresh = 550;
 	int cnt = 1000;
 
-recalibrate:
+	recalibrate:
 	mpu6500_read_unscaled_data(&accel, &gyro, &temp);
 	gyro_last = gyro;
 
@@ -100,11 +100,11 @@ int mpu6500_init()
 	mpu6500_reset();
 	blocked_delay_ms(100);
 
-	mpu6500_write_byte(MPU6500_GYRO_CONFIG, 0x10); //gyro: 1000Hz
+	mpu6500_write_byte(MPU6500_GYRO_CONFIG, 0x10); //gyro sensing range: +-1000dps
 	blocked_delay_ms(100);
-	mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x10); //accel range: 8g
+	mpu6500_write_byte(MPU6500_ACCEL_CONFIG2, 0x08); //accel update rate: 4KHz, disable internel lpf
 	blocked_delay_ms(100);
-	mpu6500_write_byte(0x1d, 0x08);
+	mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x10); //accel sensing range: +-8g
 	blocked_delay_ms(100);
 
 	mpu6500_gyro_bias_calc();
@@ -138,17 +138,17 @@ void mpu6500_read_unscaled_data(vector3d_16_t *accel_unscaled_data, vector3d_16_
 	mpu6500_chip_deselect();
 
 	//accelerometer
-	accel_unscaled_data->x = +((uint16_t)buffer[0] << 8) | (uint16_t)buffer[1];
-	accel_unscaled_data->y = -((uint16_t)buffer[2] << 8) | (uint16_t)buffer[3];
-	accel_unscaled_data->z = -((uint16_t)buffer[4] << 8) | (uint16_t)buffer[5];
+	accel_unscaled_data->x = +((int16_t)buffer[0] << 8) | (int16_t)buffer[1];
+	accel_unscaled_data->y = -((int16_t)buffer[2] << 8) | (int16_t)buffer[3];
+	accel_unscaled_data->z = -((int16_t)buffer[4] << 8) | (int16_t)buffer[5];
 
 	//temperature
-	*temp_unscaled = ((uint16_t)buffer[6] << 8) | (uint16_t)buffer[7];
+	*temp_unscaled = ((int16_t)buffer[6] << 8) | (int16_t)buffer[7];
 
 	//gyroscope
-	gyro_unscaled_data->x = +((uint16_t)buffer[8] << 8) | (uint16_t)buffer[9];
-	gyro_unscaled_data->y = -((uint16_t)buffer[10] << 8) | (uint16_t)buffer[11];
-	gyro_unscaled_data->z = -((uint16_t)buffer[12] << 8) | (uint16_t)buffer[13];
+	gyro_unscaled_data->x = +((int16_t)buffer[8] << 8) | (int16_t)buffer[9];
+	gyro_unscaled_data->y = -((int16_t)buffer[10] << 8) | (int16_t)buffer[11];
+	gyro_unscaled_data->z = -((int16_t)buffer[12] << 8) | (int16_t)buffer[13];
 }
 
 void mpu6500_fix_bias(vector3d_16_t *accel_unscaled_data,
