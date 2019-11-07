@@ -1,5 +1,5 @@
 #include <stdlib.h>
-
+#include <stdbool.h>
 #include "stm32f4xx_conf.h"
 #include "delay.h"
 #include "uart.h"
@@ -7,12 +7,13 @@
 #include "mpu6500.h"
 #include "vector.h"
 #include "lpf.h"
-#include "ahrs.h"
+#include "imu.h"
 
 #define MPU6500_ACCEL_SCALE MPU6500A_16g
 #define MPU6500_GYRO_SCALE MPU6500G_2000dps
 
 vector3d_16_t gyro_bias  = {0.0f, 0.0f, 0.0f};
+bool mpu6500_init_finished = false;
 
 imu_t *mpu6500;
 
@@ -21,10 +22,8 @@ uint8_t mpu6500_read_byte(uint8_t address)
 	uint8_t read;
 
 	mpu6500_chip_select();
-
 	spi_read_write(SPI1, address | 0x80);
 	read = spi_read_write(SPI1, 0xff);
-
 	mpu6500_chip_deselect();
 
 	return read;
@@ -33,19 +32,15 @@ uint8_t mpu6500_read_byte(uint8_t address)
 void mpu6500_write_byte(uint8_t address, uint8_t data)
 {
 	mpu6500_chip_select();
-
 	spi_read_write(SPI1, address);
 	spi_read_write(SPI1, data);
-
 	mpu6500_chip_deselect();
 }
 
 uint8_t mpu6500_read_who_am_i()
 {
-	uint8_t id;
-	id = mpu6500_read_byte(MPU6500_WHO_AM_I);
+	uint8_t id = mpu6500_read_byte(MPU6500_WHO_AM_I);
 	blocked_delay_ms(5);
-
 	return id;
 }
 
@@ -55,51 +50,25 @@ void mpu6500_reset()
 	blocked_delay_ms(200);
 }
 
-void mpu6500_gyro_bias_calc(void)
+#define GYRO_CALIB_SAMPLE_CNT 1000;
+void mpu6500_gyro_bias_calc(vector3d_16_t *gyro)
 {
-#if 0
-	vector3d_16_t accel, gyro;
-	vector3d_16_t gyro_last;
-	int16_t temp;
+	static int gyro_sample_cnt = GYRO_CALIB_SAMPLE_CNT;
 
-	vector3d_f_t bias = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
-
-	int16_t recalib_thresh = 550;
-	int cnt = 1000;
-
-recalibrate:
-	mpu6500_read_unscaled_data(&accel, &gyro, &temp);
-	gyro_last = gyro;
-
-	int i;
-	for(i = 1; i < cnt; i++) {
-		mpu6500_read_unscaled_data(&accel, &gyro, &temp);
-		blocked_delay_ms(3);
-
-		bias.x += (float)gyro.x / (float)cnt;
-		bias.y += (float)gyro.y / (float)cnt;
-		bias.z += (float)gyro.z / (float)cnt;
-
-		volatile int16_t gyro_dx = abs(gyro.x - gyro_last.x);
-		volatile int16_t gyro_dy = abs(gyro.y - gyro_last.y);
-		volatile int16_t gyro_dz = abs(gyro.z - gyro_last.z);
-
-		if(gyro_dx > recalib_thresh || gyro_dy > recalib_thresh ||
-		    gyro_dz > recalib_thresh) {
-			goto recalibrate;
-		}
-
-		gyro_last = gyro;
+	if(gyro_sample_cnt == 0) {
+		gyro_sample_cnt--;
+		if(gyro_sample_cnt == 0) mpu6500_init_finished = true;
 	}
 
-	gyro_bias.x = (int16_t)bias.x;
-	gyro_bias.y = (int16_t)bias.y;
-	gyro_bias.z = (int16_t)bias.z;
-#endif
+	gyro_bias.x += (float)gyro->x / (float)GYRO_CALIB_SAMPLE_CNT;
+	gyro_bias.y += (float)gyro->y / (float)GYRO_CALIB_SAMPLE_CNT;
+	gyro_bias.z += (float)gyro->z / (float)GYRO_CALIB_SAMPLE_CNT;
 }
 
-int mpu6500_init(void)
+void mpu6500_init(imu_t *imu)
 {
+	mpu6500 = imu;
+
 	while((mpu6500_read_who_am_i() != 0x70));
 	blocked_delay_ms(100);
 
@@ -114,9 +83,7 @@ int mpu6500_init(void)
 	mpu6500_write_byte(MPU6500_INT_ENABLE, 0x01); //enable data ready interrupt
 	blocked_delay_ms(100);
 
-	mpu6500_gyro_bias_calc();
-
-	return 0;
+	while(mpu6500_init_finished == false);
 }
 
 void mpu6500_int_handler(void)
@@ -150,6 +117,12 @@ void mpu6500_int_handler(void)
 	mpu6500->gyro_unscaled.x = +((int16_t)buffer[8] << 8) | (int16_t)buffer[9];
 	mpu6500->gyro_unscaled.y = -((int16_t)buffer[10] << 8) | (int16_t)buffer[11];
 	mpu6500->gyro_unscaled.z = -((int16_t)buffer[12] << 8) | (int16_t)buffer[13];
+
+	if(mpu6500_init_finished == false) {
+		mpu6500_gyro_bias_calc(&mpu6500->accel_unscaled);
+	} else {
+		return;
+	}
 
 	/* bias cancelling */
 	mpu6500_fix_bias(&mpu6500->accel_unscaled, &mpu6500->gyro_unscaled);

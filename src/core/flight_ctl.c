@@ -12,6 +12,7 @@
 #include "mpu6500.h"
 #include "motor.h"
 #include "lpf.h"
+#include "imu.h"
 #include "ahrs.h"
 #include "madgwick_ahrs.h"
 #include "flight_ctl.h"
@@ -60,17 +61,19 @@ void task_flight_ctl(void *param)
 {
 	euler_t att_euler_est;
 
-	rc_safety_protection();
+	mpu6500_init(&imu);
 
-	//ahrs_init(&imu.accel_raw); //XXX
-	pid_controller_init();
-
+	ahrs_init(&imu.accel_raw);
 	madgwick_t madgwick_ahrs_info;
 	madgwick_init(&madgwick_ahrs_info, 400, 0.3);
+
+	pid_controller_init();
 
 	led_off(LED_R);
 	led_off(LED_G);
 	led_on(LED_B);
+
+	rc_safety_protection();
 
 	while(1) {
 		while(xSemaphoreTake(flight_ctl_semphr, 9) == pdFALSE);

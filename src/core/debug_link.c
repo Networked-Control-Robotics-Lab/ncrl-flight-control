@@ -7,6 +7,7 @@
 #include "delay.h"
 #include "vector.h"
 #include "matrix.h"
+#include "imu.h"
 #include "ahrs.h"
 #include "flight_ctl.h"
 

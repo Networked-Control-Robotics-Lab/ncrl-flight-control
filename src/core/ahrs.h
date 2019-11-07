@@ -10,21 +10,6 @@
 #define rad_to_deg(radian) (radian * 57.2957795056)
 
 typedef struct {
-	vector3d_16_t accel_unscaled;
-	vector3d_16_t gyro_unscaled;
-	int16_t temp_unscaled;
-
-	vector3d_f_t accel_raw;
-	vector3d_f_t gyro_raw;
-	vector3d_f_t mag_raw;
-	float temp;
-
-	vector3d_f_t accel_lpf;
-	vector3d_f_t gyro_lpf;
-	vector3d_f_t mag_lpf;
-} imu_t;
-
-typedef struct {
 	float roll;
 	float pitch;
 	float yaw;

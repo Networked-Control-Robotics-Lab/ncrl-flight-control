@@ -4,6 +4,7 @@
 #include "stm32f4xx_conf.h"
 #include "spi.h"
 #include "vector.h"
+#include "imu.h"
 
 #define mpu6500_chip_select() GPIO_ResetBits(GPIOA, GPIO_Pin_4)
 #define mpu6500_chip_deselect() GPIO_SetBits(GPIOA, GPIO_Pin_4)
@@ -58,15 +59,11 @@
 
 #define MPU6500T_85degC 0.00294f
 
-int mpu6500_init();
+void mpu6500_init(imu_t *imu);
 void mpu6500_int_handler(void);
 
-void mpu6500_fix_bias(vector3d_16_t *accel_unscaled_data,
-                      vector3d_16_t *gyro_unscaled_data);
-
-void mpu6500_accel_convert_to_scale(vector3d_16_t *accel_unscaled_data,
-                                    vector3d_f_t *accel_scaled_data);
-void mpu6500_gyro_convert_to_scale(vector3d_16_t *gyro_unscaled_data,
-                                   vector3d_f_t *gyro_scaled_data);
+void mpu6500_fix_bias(vector3d_16_t *accel_unscaled, vector3d_16_t *gyro_unscaled);
+void mpu6500_accel_convert_to_scale(vector3d_16_t *accel_unscaled, vector3d_f_t *accel_scaled);
+void mpu6500_gyro_convert_to_scale(vector3d_16_t *gyro_unscaled, vector3d_f_t *gyro_scaled);
 
 #endif
