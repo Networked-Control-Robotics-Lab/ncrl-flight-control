@@ -7,8 +7,8 @@
 #include "mpu6500.h"
 #include "vector.h"
 
-#define MPU6500_ACCEL_SCALE MPU6500A_8g
-#define MPU6500_GYRO_SCALE MPU6500G_1000dps
+#define MPU6500_ACCEL_SCALE MPU6500A_16g
+#define MPU6500_GYRO_SCALE MPU6500G_2000dps
 
 vector3d_16_t gyro_bias  = {0.0f, 0.0f, 0.0f};
 
@@ -100,11 +100,11 @@ int mpu6500_init()
 	mpu6500_reset();
 	blocked_delay_ms(100);
 
-	mpu6500_write_byte(MPU6500_GYRO_CONFIG, 0x10); //gyro sensing range: +-1000dps
+	mpu6500_write_byte(MPU6500_GYRO_CONFIG, 0x18); //gyro sensing range: +-2000dps
 	blocked_delay_ms(100);
 	mpu6500_write_byte(MPU6500_ACCEL_CONFIG2, 0x08); //accel update rate: 4KHz, disable internel lpf
 	blocked_delay_ms(100);
-	mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x10); //accel sensing range: +-8g
+	mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x18); //accel sensing range: +-16g
 	blocked_delay_ms(100);
 
 	mpu6500_gyro_bias_calc();
