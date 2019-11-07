@@ -7,6 +7,8 @@
 #include "flight_ctl.h"
 #include "sys_time.h"
 
+#define FLIGHT_CTL_PRESCALER_RELOAD 10
+
 extern SemaphoreHandle_t flight_ctl_semphr;
 
 void timer12_init(void)
@@ -34,10 +36,15 @@ void timer12_init(void)
 
 void TIM8_BRK_TIM12_IRQHandler(void)
 {
+	static int flight_ctl_cnt = FLIGHT_CTL_PRESCALER_RELOAD;
 	if(TIM_GetITStatus(TIM12, TIM_IT_Update) == SET) {
 		TIM_ClearITPendingBit(TIM12, TIM_IT_Update);
 
 		sys_time_update_handler();
-		flight_ctl_semaphore_handler();
+
+		if((flight_ctl_cnt--) == 0) {
+			flight_ctl_cnt = FLIGHT_CTL_PRESCALER_RELOAD;
+			flight_ctl_semaphore_handler();
+		}
 	}
 }

@@ -85,8 +85,6 @@ void task_flight_ctl(void *param)
 	led_off(LED_G);
 	led_on(LED_B);
 
-	int execute = FLIGHT_CTL_PRESCALER_RELOAD;
-
 	while(1) {
 		while(xSemaphoreTake(flight_ctl_semphr, 9) == pdFALSE);
 
@@ -95,13 +93,6 @@ void task_flight_ctl(void *param)
 		imu_read(&imu.raw_accel, &imu.raw_gyro);
 		lpf(&imu.raw_accel, &imu.filtered_accel, 0.03);
 		lpf(&imu.raw_gyro, &imu.filtered_gyro, 0.03);
-
-		/* flight controller executing rate: 400Hz  */
-		if((execute--) > 0) {
-			continue;
-		} else {
-			execute = FLIGHT_CTL_PRESCALER_RELOAD;
-		}
 
 		read_rc_info(&rc);
 		//debug_print_rc_info(&rc);
