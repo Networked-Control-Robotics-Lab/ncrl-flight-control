@@ -3,6 +3,7 @@
 #include "exti.h"
 #include "isr.h"
 #include "led.h"
+#include "mpu6500.h"
 
 void exti10_init(void)
 {
@@ -39,6 +40,7 @@ void EXTI15_10_IRQHandler(void)
 {
 	if(EXTI_GetITStatus(EXTI_Line10) == SET) {
 		led_toggle(LED_G);
+		mpu6500_int_handler();
 		EXTI_ClearITPendingBit(EXTI_Line10);
 	}
 }

@@ -59,9 +59,7 @@
 #define MPU6500T_85degC 0.00294f
 
 int mpu6500_init();
-
-void mpu6500_read_unscaled_data(vector3d_16_t *accel_unscaled_data, vector3d_16_t *gyro_unscaled_data,
-                                int16_t *unscaled_temp);
+void mpu6500_int_handler(void);
 
 void mpu6500_fix_bias(vector3d_16_t *accel_unscaled_data,
                       vector3d_16_t *gyro_unscaled_data);

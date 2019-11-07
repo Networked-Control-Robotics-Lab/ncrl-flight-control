@@ -56,26 +56,13 @@ void flight_ctl_semaphore_handler(void)
 	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }
 
-void imu_read(vector3d_f_t *accel, vector3d_f_t *gyro)
-{
-	mpu6500_read_unscaled_data(&imu.unscaled_accel, &imu.unscaled_gyro, &imu.unscaled_temp);
-	mpu6500_fix_bias(&imu.unscaled_accel, &imu.unscaled_gyro);
-	mpu6500_accel_convert_to_scale(&imu.unscaled_accel, accel);
-	mpu6500_gyro_convert_to_scale(&imu.unscaled_gyro, gyro);
-}
-
 void task_flight_ctl(void *param)
 {
 	euler_t att_euler_est;
 
 	rc_safety_protection();
 
-	//initialize lpf
-	imu_read(&imu.raw_accel, &imu.raw_gyro);
-	imu.filtered_accel = imu.raw_accel;
-	imu.filtered_gyro = imu.raw_gyro;
-
-	ahrs_init(&imu.raw_accel);
+	//ahrs_init(&imu.accel_raw); //XXX
 	pid_controller_init();
 
 	madgwick_t madgwick_ahrs_info;
@@ -90,15 +77,11 @@ void task_flight_ctl(void *param)
 
 		//gpio_toggle(MOTOR7_FREQ_TEST);
 
-		imu_read(&imu.raw_accel, &imu.raw_gyro);
-		lpf(&imu.raw_accel, &imu.filtered_accel, 0.03);
-		lpf(&imu.raw_gyro, &imu.filtered_gyro, 0.03);
-
 		read_rc_info(&rc);
 		//debug_print_rc_info(&rc);
 
 #if 1
-		ahrs_estimate(&att_euler_est, ahrs.q, imu.filtered_accel, imu.filtered_gyro);
+		ahrs_estimate(&att_euler_est, ahrs.q, imu.accel_lpf, imu.gyro_lpf);
 		ahrs.attitude.roll = att_euler_est.roll;
 		ahrs.attitude.pitch = att_euler_est.pitch;
 		ahrs.attitude.yaw = att_euler_est.yaw;
@@ -106,12 +89,12 @@ void task_flight_ctl(void *param)
 
 #if 0
 		madgwick_imu_ahrs(&madgwick_ahrs_info,
-		                  imu.filtered_accel.x,
-		                  imu.filtered_accel.y,
-		                  imu.filtered_accel.z,
-		                  deg_to_rad(imu.filtered_gyro.x),
-		                  deg_to_rad(imu.filtered_gyro.y),
-		                  deg_to_rad(imu.filtered_gyro.z));
+		                  imu.accel_lpf.x,
+		                  imu.accel_lpf.y,
+		                  imu.accel_lpf.z,
+		                  deg_to_rad(imu.gyro_lpf.x),
+		                  deg_to_rad(imu.gyro_lpf.y),
+		                  deg_to_rad(imu.gyro_lpf.z));
 
 		ahrs.attitude.roll = att_euler_est.roll = madgwick_ahrs_info.Roll;
 		ahrs.attitude.pitch = att_euler_est.pitch = madgwick_ahrs_info.Pitch;
@@ -122,9 +105,9 @@ void task_flight_ctl(void *param)
 		ahrs.q[2] = madgwick_ahrs_info.q2;
 		ahrs.q[3] = madgwick_ahrs_info.q3;
 #endif
-		attitude_pid_control(&pid_roll, att_euler_est.roll, -rc.roll, imu.filtered_gyro.x);
-		attitude_pid_control(&pid_pitch, att_euler_est.pitch, -rc.pitch, imu.filtered_gyro.y);
-		yaw_rate_p_control(&pid_yaw_rate, -rc.yaw, imu.filtered_gyro.z);
+		attitude_pid_control(&pid_roll, att_euler_est.roll, -rc.roll, imu.gyro_lpf.x);
+		attitude_pid_control(&pid_pitch, att_euler_est.pitch, -rc.pitch, imu.gyro_lpf.y);
+		yaw_rate_p_control(&pid_yaw_rate, -rc.yaw, imu.gyro_lpf.z);
 
 		if(rc.safety == false) {
 			led_on(LED_R);

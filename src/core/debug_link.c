@@ -74,10 +74,10 @@ void send_imu_message(debug_msg_t *payload)
 
 	payload->s[2] = MESSAGE_ID_IMU;
 
-	payload->len += pack_vector3d(&imu.raw_accel, payload->s + payload->len);
-	payload->len += pack_vector3d(&imu.filtered_accel, payload->s + payload->len);
-	payload->len += pack_vector3d(&imu.raw_gyro, payload->s + payload->len);
-	payload->len += pack_vector3d(&imu.filtered_gyro, payload->s + payload->len);
+	payload->len += pack_vector3d(&imu.accel_raw, payload->s + payload->len);
+	payload->len += pack_vector3d(&imu.accel_lpf, payload->s + payload->len);
+	payload->len += pack_vector3d(&imu.gyro_raw, payload->s + payload->len);
+	payload->len += pack_vector3d(&imu.gyro_lpf, payload->s + payload->len);
 }
 
 void send_attitude_euler_message(debug_msg_t *payload)
@@ -108,8 +108,8 @@ void send_attitude_imu_message(debug_msg_t *payload)
 	payload->s[2] = MESSAGE_ID_ATTITUDE_IMU;
 
 	payload->len += pack_attitude(&ahrs.attitude, payload->s + payload->len);
-	payload->len += pack_vector3d(&imu.filtered_accel, payload->s + payload->len);
-	payload->len += pack_vector3d(&imu.filtered_gyro, payload->s + payload->len);
+	payload->len += pack_vector3d(&imu.accel_lpf, payload->s + payload->len);
+	payload->len += pack_vector3d(&imu.gyro_lpf, payload->s + payload->len);
 }
 
 void send_ekf_message(debug_msg_t *payload)
