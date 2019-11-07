@@ -47,6 +47,8 @@ SRC+=./lib/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_i2c.c \
 	./lib/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_gpio.c \
 	./lib/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_dma.c \
 	./lib/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_pwr.c \
+	./lib/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_exti.c \
+	./lib/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_syscfg.c \
 	./lib/STM32F4xx_StdPeriph_Driver/src/misc.c
 
 SRC+=lib/FreeRTOS/Source/croutine.c \
@@ -78,10 +80,11 @@ SRC+=./driver/periph/led.c \
 	./driver/periph/pwm.c \
 	./driver/periph/timer.c \
 	./driver/periph/isr.c \
+	./driver/periph/exti.c \
 	./driver/device/mpu6500.c \
 	./driver/device/hmc5983.c \
 	./driver/device/sbus_receiver.c \
-	./driver/device/motor.c
+	./driver/device/motor.c \
 
 CFLAGS+=-I./
 CFLAGS+=-I./sys_startup

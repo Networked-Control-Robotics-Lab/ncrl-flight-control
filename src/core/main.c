@@ -12,6 +12,7 @@
 #include "spi.h"
 #include "timer.h"
 #include "pwm.h"
+#include "exti.h"
 #include "mpu6500.h"
 #include "sbus_receiver.h"
 #include "sys_time.h"
@@ -35,10 +36,11 @@ int main(void)
 	uart4_init(100000); //s-bus
 	uart6_init(115200);
 	uart7_init(115200); //gps
-	timer12_init();
-	pwm_timer1_init();
-	pwm_timer4_init();
-	spi1_init();
+	timer12_init(); //system timer and flight controller timer
+	pwm_timer1_init(); //motor
+	pwm_timer4_init(); //motor
+	exti10_init(); //imu ext interrupt
+	spi1_init(); //imu
 
 	blocked_delay_ms(10);
 
