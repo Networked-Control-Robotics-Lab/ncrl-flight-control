@@ -62,7 +62,7 @@ void mpu6500_gyro_bias_calc(void)
 	int16_t recalib_thresh = 550;
 	int cnt = 1000;
 
-	recalibrate:
+recalibrate:
 	mpu6500_read_unscaled_data(&accel, &gyro, &temp);
 	gyro_last = gyro;
 
@@ -105,6 +105,8 @@ int mpu6500_init()
 	mpu6500_write_byte(MPU6500_ACCEL_CONFIG2, 0x08); //accel update rate: 4KHz, disable internel lpf
 	blocked_delay_ms(100);
 	mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x18); //accel sensing range: +-16g
+	blocked_delay_ms(100);
+	mpu6500_write_byte(MPU6500_INT_ENABLE, 0x01);
 	blocked_delay_ms(100);
 
 	mpu6500_gyro_bias_calc();

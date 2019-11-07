@@ -13,11 +13,10 @@ void exti10_init(void)
 		.GPIO_Mode = GPIO_Mode_IN,
 		.GPIO_OType = GPIO_OType_PP,
 		.GPIO_Pin = GPIO_Pin_10,
-		.GPIO_PuPd = GPIO_PuPd_UP,
-		.GPIO_Speed = GPIO_Speed_100MHz
+		.GPIO_PuPd = GPIO_PuPd_DOWN,
 	};
 	GPIO_Init(GPIOD, &GPIO_InitStruct);
-    
+
 	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOD, EXTI_PinSource10);
 	EXTI_InitTypeDef EXTI_InitStruct = {
 		.EXTI_Line = EXTI_Line10,
@@ -27,7 +26,7 @@ void exti10_init(void)
 	};
 	EXTI_Init(&EXTI_InitStruct);
 
-	NVIC_InitTypeDef NVIC_InitStruct = { 
+	NVIC_InitTypeDef NVIC_InitStruct = {
 		.NVIC_IRQChannel = EXTI15_10_IRQn,
 		.NVIC_IRQChannelPreemptionPriority = IMU_EXTI_ISR_PRIORITY,
 		.NVIC_IRQChannelSubPriority = 0,
@@ -39,7 +38,7 @@ void exti10_init(void)
 void EXTI15_10_IRQHandler(void)
 {
 	if(EXTI_GetITStatus(EXTI_Line10) == SET) {
-		led_on(LED_G);
+		led_toggle(LED_G);
 		EXTI_ClearITPendingBit(EXTI_Line10);
 	}
 }

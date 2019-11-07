@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-
 #include "stm32f4xx.h"
 #include "FreeRTOS.h"
 #include "task.h"
