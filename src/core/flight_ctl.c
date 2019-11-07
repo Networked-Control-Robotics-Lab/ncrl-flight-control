@@ -88,7 +88,7 @@ void task_flight_ctl(void *param)
 	int execute = FLIGHT_CTL_PRESCALER_RELOAD;
 
 	while(1) {
-		while(xSemaphoreTake(flight_ctl_semphr, 1) == pdFALSE);
+		while(xSemaphoreTake(flight_ctl_semphr, 9) == pdFALSE);
 
 		//gpio_toggle(MOTOR7_FREQ_TEST);
 
