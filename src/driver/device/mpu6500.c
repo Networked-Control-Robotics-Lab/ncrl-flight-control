@@ -12,9 +12,13 @@
 #define MPU6500_ACCEL_SCALE MPU6500A_16g
 #define MPU6500_GYRO_SCALE MPU6500G_2000dps
 
-vector3d_16_t gyro_bias  = {0.0f, 0.0f, 0.0f};
-bool mpu6500_init_finished = false;
+#define GYRO_CALIB_SAMPLE_CNT 1000;
 
+vector3d_16_t gyro_bias  = {0.0f, 0.0f, 0.0f};
+
+int gyro_sample_cnt = GYRO_CALIB_SAMPLE_CNT;
+
+volatile bool mpu6500_init_finished = false;
 imu_t *mpu6500;
 
 uint8_t mpu6500_read_byte(uint8_t address)
@@ -50,14 +54,11 @@ void mpu6500_reset()
 	blocked_delay_ms(200);
 }
 
-#define GYRO_CALIB_SAMPLE_CNT 1000;
 void mpu6500_gyro_bias_calc(vector3d_16_t *gyro)
 {
-	static int gyro_sample_cnt = GYRO_CALIB_SAMPLE_CNT;
-
+	gyro_sample_cnt--;
 	if(gyro_sample_cnt == 0) {
-		gyro_sample_cnt--;
-		if(gyro_sample_cnt == 0) mpu6500_init_finished = true;
+		mpu6500_init_finished = true;
 	}
 
 	gyro_bias.x += (float)gyro->x / (float)GYRO_CALIB_SAMPLE_CNT;
@@ -120,7 +121,6 @@ void mpu6500_int_handler(void)
 
 	if(mpu6500_init_finished == false) {
 		mpu6500_gyro_bias_calc(&mpu6500->accel_unscaled);
-	} else {
 		return;
 	}
 

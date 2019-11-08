@@ -23,7 +23,7 @@ void exti10_init(void)
 		.EXTI_Line = EXTI_Line10,
 		.EXTI_LineCmd = ENABLE,
 		.EXTI_Mode = EXTI_Mode_Interrupt,
-		.EXTI_Trigger = EXTI_Trigger_Rising_Falling,
+		.EXTI_Trigger = EXTI_Trigger_Rising,
 	};
 	EXTI_Init(&EXTI_InitStruct);
 
@@ -39,7 +39,6 @@ void exti10_init(void)
 void EXTI15_10_IRQHandler(void)
 {
 	if(EXTI_GetITStatus(EXTI_Line10) == SET) {
-		led_toggle(LED_G);
 		mpu6500_int_handler();
 		EXTI_ClearITPendingBit(EXTI_Line10);
 	}
