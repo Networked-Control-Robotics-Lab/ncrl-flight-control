@@ -3,6 +3,6 @@
 
 #include "vector.h"
 
-void lpf(vector3d_f_t *new, vector3d_f_t *filtered, float a);
+void lpf(float new, float *filtered, float a);
 
 #endif

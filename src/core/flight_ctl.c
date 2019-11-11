@@ -62,7 +62,7 @@ void task_flight_ctl(void *param)
 	euler_t att_euler_est;
 
 	mpu6500_init(&imu);
-        motor_init();
+	motor_init();
 
 	ahrs_init(&imu.accel_raw);
 	madgwick_t madgwick_ahrs_info;

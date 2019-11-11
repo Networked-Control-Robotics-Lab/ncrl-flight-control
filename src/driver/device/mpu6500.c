@@ -84,7 +84,7 @@ void mpu6500_init(imu_t *imu)
 	mpu6500_write_byte(MPU6500_INT_ENABLE, 0x01); //enable data ready interrupt
 	blocked_delay_ms(100);
 
-	while(mpu6500_init_finished == false);
+	//while(mpu6500_init_finished == false);
 }
 
 void mpu6500_int_handler(void)
@@ -118,12 +118,12 @@ void mpu6500_int_handler(void)
 	mpu6500->gyro_unscaled.x = +((int16_t)buffer[8] << 8) | (int16_t)buffer[9];
 	mpu6500->gyro_unscaled.y = -((int16_t)buffer[10] << 8) | (int16_t)buffer[11];
 	mpu6500->gyro_unscaled.z = -((int16_t)buffer[12] << 8) | (int16_t)buffer[13];
-
-	if(mpu6500_init_finished == false) {
-		mpu6500_gyro_bias_calc(&mpu6500->accel_unscaled);
-		return;
-	}
-
+	/*
+		if(mpu6500_init_finished == false) {
+			mpu6500_gyro_bias_calc(&mpu6500->accel_unscaled);
+			return;
+		}
+	*/
 	/* bias cancelling */
 	mpu6500_fix_bias(&mpu6500->accel_unscaled, &mpu6500->gyro_unscaled);
 
@@ -132,8 +132,12 @@ void mpu6500_int_handler(void)
 	mpu6500_gyro_convert_to_scale(&mpu6500->gyro_unscaled, &mpu6500->gyro_raw);
 
 	/* low pass filtering */
-	lpf(&mpu6500->accel_raw, &mpu6500->accel_lpf, 0.03);
-	lpf(&mpu6500->gyro_raw, &mpu6500->gyro_lpf, 0.03);
+	lpf(mpu6500->accel_raw.x, &(mpu6500->accel_lpf.x), 0.01);
+	lpf(mpu6500->accel_raw.y, &(mpu6500->accel_lpf.y), 0.01);
+	lpf(mpu6500->accel_raw.z, &(mpu6500->accel_lpf.z), 0.01);
+	lpf(mpu6500->gyro_raw.x, &(mpu6500->gyro_lpf.x), 0.01);
+	lpf(mpu6500->gyro_raw.y, &(mpu6500->gyro_lpf.y), 0.01);
+	lpf(mpu6500->gyro_raw.z, &(mpu6500->gyro_lpf.z), 0.01);
 }
 
 void mpu6500_fix_bias(vector3d_16_t *accel_unscaled, vector3d_16_t *gyro_unscaled)

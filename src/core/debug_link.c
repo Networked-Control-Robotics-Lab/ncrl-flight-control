@@ -8,6 +8,7 @@
 #include "vector.h"
 #include "matrix.h"
 #include "imu.h"
+#include "sbus_receiver.h"
 #include "ahrs.h"
 #include "flight_ctl.h"
 
@@ -24,6 +25,8 @@ extern float motor1, motor2, motor3, motor4;
 
 extern float _mat_(P)[4 * 4];
 extern float _mat_(K)[4 * 4];
+
+radio_t rc;
 
 int pack_float(float *data_float, uint8_t *byte_to_sent)
 {
@@ -183,14 +186,16 @@ void task_debug_link(void *param)
 	float delay_time_ms = (1.0f / update_rate) * 1000.0f;
 
 	while(1) {
-		send_imu_message(&payload);
-		//send_attitude_euler_message(&payload);
-		//send_attitude_quaternion_message(&payload);
-		//send_attitude_imu_message(&payload);
-		//send_ekf_message(&payload);
-		//send_pid_debug(&payload);
-		//send_motor_message(&payload);
-		send_onboard_data(payload.s, payload.len);
+		if(rc.safety == false) {
+			send_imu_message(&payload);
+			//send_attitude_euler_message(&payload);
+			//send_attitude_quaternion_message(&payload);
+			//send_attitude_imu_message(&payload);
+			//send_ekf_message(&payload);
+			//send_pid_debug(&payload);
+			//send_motor_message(&payload);
+			send_onboard_data(payload.s, payload.len);
+		}
 		freertos_task_delay(delay_time_ms);
 	}
 }
