@@ -40,9 +40,8 @@ int main(void)
 	pwm_timer4_init(); //motor
 	exti10_init(); //imu ext interrupt
 	spi1_init(); //imu
-	motor_init();
 
-	blocked_delay_ms(10);
+	blocked_delay_ms(1000);
 
 	xTaskCreate(task_flight_ctl, "flight control", 4096, NULL, tskIDLE_PRIORITY + 3, NULL);
 	xTaskCreate(task_debug_link, "debug link", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
