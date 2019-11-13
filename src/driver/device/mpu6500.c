@@ -108,7 +108,6 @@ void mpu6500_int_handler(void)
 	buffer[11] = spi_read_write(SPI1, 0xff);
 	buffer[12] = spi_read_write(SPI1, 0xff);
 	buffer[13] = spi_read_write(SPI1, 0xff);
-	mpu6500_chip_deselect();
 
 	/* composite sensor data */
 	mpu6500->accel_unscaled.x = +((int16_t)buffer[0] << 8) | (int16_t)buffer[1];
@@ -138,6 +137,8 @@ void mpu6500_int_handler(void)
 	lpf(mpu6500->gyro_raw.x, &(mpu6500->gyro_lpf.x), 0.01);
 	lpf(mpu6500->gyro_raw.y, &(mpu6500->gyro_lpf.y), 0.01);
 	lpf(mpu6500->gyro_raw.z, &(mpu6500->gyro_lpf.z), 0.01);
+
+	mpu6500_chip_deselect();
 }
 
 void mpu6500_fix_bias(vector3d_16_t *accel_unscaled, vector3d_16_t *gyro_unscaled)
@@ -157,9 +158,9 @@ void mpu6500_accel_convert_to_scale(vector3d_16_t *accel_unscaled, vector3d_f_t 
 	float bias_y = 150.0f;
 	float bias_z = 0.0f;
 
-	float rescale_x = (gx_max - gx_min) / 8192.0f;
-	float rescale_y = (gy_max - gy_min) / 8192.0f;
-	float rescale_z = (gz_max - gz_min) / 8192.0f;
+	float rescale_x = 1.0f; //(gx_max - gx_min) / 8192.0f;
+	float rescale_y = 1.0f; //(gy_max - gy_min) / 8192.0f;
+	float rescale_z = 1.0f; //(gz_max - gz_min) / 8192.0f;
 
 	accel_scaled->x = ((float)accel_unscaled->x - bias_x) * rescale_x * MPU6500_ACCEL_SCALE;
 	accel_scaled->y = ((float)accel_unscaled->y - bias_y) * rescale_y * MPU6500_ACCEL_SCALE;
