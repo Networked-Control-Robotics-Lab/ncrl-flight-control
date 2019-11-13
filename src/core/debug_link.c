@@ -184,6 +184,15 @@ void send_accel_calib_message(void)
 	uart3_puts(s, strlen(s));
 }
 
+void send_accel_bias_calib_message(void)
+{
+	char s[100] = {0.0};
+	int bias_x = imu.accel_unscaled.x;
+	int bias_y = imu.accel_unscaled.y;
+	int bias_z = imu.accel_unscaled.z - 2048; //2048 for +-16g configuration
+	sprintf(s, "x:%d, y:%d, z:%d\n\r", bias_x, bias_y, bias_z);
+	uart3_puts(s, strlen(s));
+}
 
 void task_debug_link(void *param)
 {
@@ -201,6 +210,7 @@ void task_debug_link(void *param)
 		//send_pid_debug(&payload);
 		//send_motor_message(&payload);
 		//send_accel_calib_message();
+		//send_accel_bias_calib_message();
 		send_onboard_data(payload.s, payload.len);
 		freertos_task_delay(delay_time_ms);
 	}

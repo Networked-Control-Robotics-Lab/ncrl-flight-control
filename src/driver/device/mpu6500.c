@@ -154,9 +154,9 @@ void mpu6500_accel_convert_to_scale(vector3d_16_t *accel_unscaled, vector3d_f_t 
 	float gy_max = +2079, gy_min = -2043;
 	float gz_max = +2558, gz_min = -2048;
 
-	float bias_x = (gx_max - gx_min) - 4096.0f;
-	float bias_y = (gy_max - gy_min) - 4096.0f;
-	float bias_z = (gz_max - gz_min) - 4096.0f;
+	float bias_x = 60;
+	float bias_y = 30;
+	float bias_z = 480;
 
 	float rescale_x = 4096.0f / (gx_max - gx_min);
 	float rescale_y = 4096.0f / (gy_max - gy_min);
