@@ -186,16 +186,14 @@ void task_debug_link(void *param)
 	float delay_time_ms = (1.0f / update_rate) * 1000.0f;
 
 	while(1) {
-		if(rc.safety == false) {
-			send_imu_message(&payload);
-			//send_attitude_euler_message(&payload);
-			//send_attitude_quaternion_message(&payload);
-			//send_attitude_imu_message(&payload);
-			//send_ekf_message(&payload);
-			//send_pid_debug(&payload);
-			//send_motor_message(&payload);
-			send_onboard_data(payload.s, payload.len);
-		}
+		//send_imu_message(&payload);
+		//send_attitude_euler_message(&payload);
+		//send_attitude_quaternion_message(&payload);
+		send_attitude_imu_message(&payload);
+		//send_ekf_message(&payload);
+		//send_pid_debug(&payload);
+		//send_motor_message(&payload);
+		send_onboard_data(payload.s, payload.len);
 		freertos_task_delay(delay_time_ms);
 	}
 }
