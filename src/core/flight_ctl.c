@@ -35,15 +35,15 @@ radio_t rc;
 
 void pid_controller_init(void)
 {
-	pid_roll.kp = 0.32f;
-	pid_roll.ki = 0.01f;
-	pid_roll.kd = 0.1f;
+	pid_roll.kp = 0.0f;
+	pid_roll.ki = 0.0f;
+	pid_roll.kd = 0.0f;
 
-	pid_pitch.kp = 0.32f;
-	pid_pitch.ki = 0.01f;
-	pid_pitch.kd = 0.1f;
+	pid_pitch.kp = 0.0f;
+	pid_pitch.ki = 0.0f;
+	pid_pitch.kd = 0.0f;
 
-	pid_yaw_rate.kp = 1.3f;
+	pid_yaw_rate.kp = 0.0f;
 	pid_yaw_rate.ki = 0.0f;
 	pid_yaw_rate.kd = 0.0f;
 	pid_yaw_rate.output_min = -35.0f;
@@ -64,7 +64,7 @@ void task_flight_ctl(void *param)
 	mpu6500_init(&imu);
 	motor_init();
 
-	ahrs_init(&imu.accel_raw);
+	ahrs_init(imu.accel_raw);
 	madgwick_t madgwick_ahrs_info;
 	madgwick_init(&madgwick_ahrs_info, 400, 0.3);
 
