@@ -1,5 +1,5 @@
 #include <math.h>
-
+#include <stdio.h>
 #include "arm_math.h"
 #include "led.h"
 #include "mpu6500.h"
@@ -8,6 +8,7 @@
 #include "lpf.h"
 #include "uart.h"
 #include "matrix.h"
+#include "delay.h"
 
 #define AHRS_SELECT AHRS_SELECT_CF
 
@@ -36,7 +37,7 @@ MAT_ALLOC(dt_4x4, 4, 4) = {dt, 0, 0,0,
                            0, 0, 0, dt
                           };
 
-void ahrs_ekf_init(vector3d_f_t *init_accel)
+void ahrs_ekf_init(vector3d_f_t init_accel)
 {
 	//initialize matrices
 	MAT_INIT(x_priori, 4, 1);
@@ -61,10 +62,11 @@ void ahrs_ekf_init(vector3d_f_t *init_accel)
 	_mat_(Q)[0] = _mat_(Q)[5] = _mat_(Q)[10] = _mat_(Q)[15] = 0.1f;
 	_mat_(R)[0] = _mat_(R)[5] = _mat_(R)[10] = _mat_(R)[15] = 0.001;
 
-	euler_t att_init;
-	calc_attitude_use_accel(&att_init, init_accel);
-	att_init.yaw = 0.0f;
+	euler_t att_init = {0.0f, 0.0f, 0.0f};
+	vector3d_normalize(&init_accel);
+	calc_attitude_use_accel(&att_init, &init_accel);
 	euler_to_quat(&att_init, &_mat_(x_priori)[0]);
+	quat_normalize(&_mat_(x_priori)[0]);
 }
 
 //in: euler angle [radian], out: quaternion
@@ -138,8 +140,8 @@ void convert_gravity_to_quat(vector3d_f_t *a, float *q)
 
 void calc_attitude_use_accel(euler_t *att_estimated, vector3d_f_t *accel)
 {
-	att_estimated->roll = rad_to_deg(atan2(accel->x, accel->z));
-	att_estimated->pitch = rad_to_deg(atan2(-accel->y, accel->z));
+	att_estimated->roll = asin(accel->x);
+	att_estimated->pitch = atan2(-accel->y, accel->z);
 }
 
 void ahr_ekf_state_predict(vector3d_f_t accel, vector3d_f_t gyro)
@@ -281,7 +283,7 @@ void ahrs_complementary_filter_estimate(vector3d_f_t accel, vector3d_f_t gyro)
 	convert_gravity_to_quat(&accel, q_gravity);
 
 	/* sensors fusion */
-	float a = 0.00001f;
+	float a = 0.0001f;
 	_mat_(x_posteriori)[0] = (_mat_(x_priori)[0] * a) + (q_gravity[0]* (1.0 - a));
 	_mat_(x_posteriori)[1] = (_mat_(x_priori)[1] * a) + (q_gravity[1]* (1.0 - a));
 	_mat_(x_posteriori)[2] = (_mat_(x_priori)[2] * a) + (q_gravity[2]* (1.0 - a));
@@ -295,7 +297,7 @@ void ahrs_complementary_filter_estimate(vector3d_f_t accel, vector3d_f_t gyro)
 	_mat_(x_priori)[3] = _mat_(x_posteriori)[3];
 }
 
-void ahrs_init(vector3d_f_t *init_accel)
+void ahrs_init(vector3d_f_t init_accel)
 {
 	ahrs_ekf_init(init_accel);
 }
