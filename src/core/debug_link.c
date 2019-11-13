@@ -1,6 +1,6 @@
+#include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-
 #include "stm32f4xx.h"
 #include "uart.h"
 #include "debug_link.h"
@@ -11,7 +11,6 @@
 #include "sbus_receiver.h"
 #include "ahrs.h"
 #include "flight_ctl.h"
-
 #include "led.h"
 
 extern imu_t imu;
@@ -178,6 +177,14 @@ void send_pid_debug(debug_msg_t *payload)
 #endif
 }
 
+void send_accel_calib_message(void)
+{
+	char s[100] = {0.0};
+	sprintf(s, "x:%d, y:%d, z:%d\n\r", imu.accel_unscaled.x, imu.accel_unscaled.y, imu.accel_unscaled.z);
+	uart3_puts(s, strlen(s));
+}
+
+
 void task_debug_link(void *param)
 {
 	debug_msg_t payload;
@@ -193,6 +200,7 @@ void task_debug_link(void *param)
 		//send_ekf_message(&payload);
 		//send_pid_debug(&payload);
 		//send_motor_message(&payload);
+		//send_accel_calib_message();
 		send_onboard_data(payload.s, payload.len);
 		freertos_task_delay(delay_time_ms);
 	}

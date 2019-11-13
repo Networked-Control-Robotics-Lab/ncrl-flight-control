@@ -150,17 +150,17 @@ void mpu6500_fix_bias(vector3d_16_t *accel_unscaled, vector3d_16_t *gyro_unscale
 
 void mpu6500_accel_convert_to_scale(vector3d_16_t *accel_unscaled, vector3d_f_t *accel_scaled)
 {
-	float gx_max = 4115, gx_min = -4514;
-	float gy_max = 4601, gy_min = -4095;
-	float gz_max = 4964, gz_min = -4516;
+	float gx_max = +2111, gx_min = -2020;
+	float gy_max = +2079, gy_min = -2043;
+	float gz_max = +2558, gz_min = -2048;
 
-	float bias_x = 0.0f;
-	float bias_y = 150.0f;
-	float bias_z = 0.0f;
+	float bias_x = (gx_max - gx_min) - 4096.0f;
+	float bias_y = (gy_max - gy_min) - 4096.0f;
+	float bias_z = (gz_max - gz_min) - 4096.0f;
 
-	float rescale_x = 1.0f; //(gx_max - gx_min) / 8192.0f;
-	float rescale_y = 1.0f; //(gy_max - gy_min) / 8192.0f;
-	float rescale_z = 1.0f; //(gz_max - gz_min) / 8192.0f;
+	float rescale_x = 4096.0f / (gx_max - gx_min);
+	float rescale_y = 4096.0f / (gy_max - gy_min);
+	float rescale_z = 4096.0f / (gz_max - gz_min);
 
 	accel_scaled->x = ((float)accel_unscaled->x - bias_x) * rescale_x * MPU6500_ACCEL_SCALE;
 	accel_scaled->y = ((float)accel_unscaled->y - bias_y) * rescale_y * MPU6500_ACCEL_SCALE;

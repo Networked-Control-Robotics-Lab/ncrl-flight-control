@@ -283,7 +283,7 @@ void ahrs_complementary_filter_estimate(vector3d_f_t accel, vector3d_f_t gyro)
 	convert_gravity_to_quat(&accel, q_gravity);
 
 	/* sensors fusion */
-	float a = 0.0001f;
+	float a = 0.1f;
 	_mat_(x_posteriori)[0] = (_mat_(x_priori)[0] * a) + (q_gravity[0]* (1.0 - a));
 	_mat_(x_posteriori)[1] = (_mat_(x_priori)[1] * a) + (q_gravity[1]* (1.0 - a));
 	_mat_(x_posteriori)[2] = (_mat_(x_priori)[2] * a) + (q_gravity[2]* (1.0 - a));
