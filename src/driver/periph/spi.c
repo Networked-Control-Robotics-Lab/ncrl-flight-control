@@ -38,7 +38,7 @@ void spi1_init()
 		.SPI_CPOL = SPI_CPOL_High,
 		.SPI_CPHA = SPI_CPHA_2Edge,
 		.SPI_NSS = SPI_NSS_Soft,
-		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2,
+		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_4,
 		.SPI_FirstBit = SPI_FirstBit_MSB,
 		.SPI_CRCPolynomial = 7
 	};
@@ -49,8 +49,8 @@ void spi1_init()
 
 uint8_t spi_read_write(SPI_TypeDef *spi_channel, uint8_t data)
 {
-	SPI_I2S_SendData(spi_channel, data);
 	while(SPI_I2S_GetFlagStatus(spi_channel, SPI_FLAG_TXE) == RESET);
+	SPI_I2S_SendData(spi_channel, data);
 	while(SPI_I2S_GetFlagStatus(spi_channel, SPI_FLAG_RXNE) == RESET);
 	return SPI_I2S_ReceiveData(spi_channel);
 }

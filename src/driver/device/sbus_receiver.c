@@ -26,7 +26,7 @@ void sbus_rc_handler(uint8_t byte)
 
 	/* use reception interval time to deteminate
 	   whether it is a new s-bus frame */
-	if((curr_time_ms - last_time_ms) > 3.0f) {
+	if((curr_time_ms - last_time_ms) > 2.0f) {
 		sbus_cnt = 0;
 	}
 
