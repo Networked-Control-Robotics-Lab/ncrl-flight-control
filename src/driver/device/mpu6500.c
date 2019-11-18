@@ -131,12 +131,12 @@ void mpu6500_int_handler(void)
 	mpu6500_gyro_convert_to_scale(&mpu6500->gyro_unscaled, &mpu6500->gyro_raw);
 
 	/* low pass filtering */
-	lpf(mpu6500->accel_raw.x, &(mpu6500->accel_lpf.x), 0.01);
-	lpf(mpu6500->accel_raw.y, &(mpu6500->accel_lpf.y), 0.01);
-	lpf(mpu6500->accel_raw.z, &(mpu6500->accel_lpf.z), 0.01);
-	lpf(mpu6500->gyro_raw.x, &(mpu6500->gyro_lpf.x), 0.01);
-	lpf(mpu6500->gyro_raw.y, &(mpu6500->gyro_lpf.y), 0.01);
-	lpf(mpu6500->gyro_raw.z, &(mpu6500->gyro_lpf.z), 0.01);
+	lpf(mpu6500->accel_raw.x, &(mpu6500->accel_lpf.x), 0.03);
+	lpf(mpu6500->accel_raw.y, &(mpu6500->accel_lpf.y), 0.03);
+	lpf(mpu6500->accel_raw.z, &(mpu6500->accel_lpf.z), 0.03);
+	lpf(mpu6500->gyro_raw.x, &(mpu6500->gyro_lpf.x), 0.03);
+	lpf(mpu6500->gyro_raw.y, &(mpu6500->gyro_lpf.y), 0.03);
+	lpf(mpu6500->gyro_raw.z, &(mpu6500->gyro_lpf.z), 0.03);
 
 	mpu6500_chip_deselect();
 }
