@@ -144,7 +144,7 @@ void calc_attitude_use_accel(euler_t *att_estimated, vector3d_f_t *accel)
 	att_estimated->pitch = atan2(-accel->y, accel->z);
 }
 
-void ahr_ekf_state_predict(vector3d_f_t accel, vector3d_f_t gyro)
+void ahrs_ekf_state_predict(vector3d_f_t accel, vector3d_f_t gyro)
 {
 	float half_q0_dt = 0.5f * _mat_(x_priori)[0] * dt;
 	float half_q1_dt = 0.5f * _mat_(x_priori)[1] * dt;
@@ -203,7 +203,7 @@ void ahr_ekf_state_predict(vector3d_f_t accel, vector3d_f_t gyro)
 	MAT_ADD(&P, &FP_PFt_Q, &P);             //calculate P = P + dt * (F*P + P*F + Q)
 }
 
-void ahr_ekf_state_update(vector3d_f_t accel, vector3d_f_t gyro)
+void ahrs_ekf_state_update(vector3d_f_t accel, vector3d_f_t gyro)
 {
 	/* convert gravity vector to quaternion */
 	vector3d_normalize(&accel); //normalize acceleromter
@@ -243,8 +243,8 @@ void ahr_ekf_state_update(vector3d_f_t accel, vector3d_f_t gyro)
 
 void ahrs_ekf_estimate(vector3d_f_t accel, vector3d_f_t gyro)
 {
-	ahr_ekf_state_predict(accel, gyro);
-	ahr_ekf_state_update(accel, gyro);
+	ahrs_ekf_state_predict(accel, gyro);
+	ahrs_ekf_state_update(accel, gyro);
 }
 
 void ahrs_complementary_filter_estimate(vector3d_f_t accel, vector3d_f_t gyro)
