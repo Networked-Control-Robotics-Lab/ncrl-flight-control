@@ -163,6 +163,37 @@ void yaw_rate_p_control(pid_control_t *pid, float setpoint_yaw_rate, float angul
 	bound_float(&pid->output, pid->output_max, pid->output_min);
 }
 
+void altitude_control(float alt, float alt_set, float alt_vel,
+                      pid_control_t *alt_vel_pid, pid_control_t *alt_pid)
+{
+	/* altitude control (control output becomes setpoint of velocity controller) */
+	alt_pid->error_current = alt_set - alt;
+	alt_pid->p_final = alt_pid->kp * alt_pid->error_current;
+	//alt_pid->error_integral += (alt_pid->error_current * alt_pid->ki * 0.0025);
+	bound_float(&alt_pid->output, alt_pid->output_max, alt_pid->output_min);
+
+	/* altitude velocity control (control output effects throttle value) */
+	float alt_vel_set = 0.0f;
+	alt_vel_pid->error_current = alt_vel_set - alt_vel;
+	alt_vel_pid->p_final = alt_vel_pid->kp * alt_vel_pid->error_current;
+	bound_float(&alt_pid->output, alt_pid->output_max, alt_pid->output_min);
+}
+
+
+void position_2d_control(float pos, float vel, float pos_set,
+                         pid_control_t *vel_pid, pid_control_t *pos_pid)
+{
+	pos_pid->error_current = pos_set - pos;
+	pos_pid->p_final = pos_pid->kp * pos_pid->error_current;
+	//pos_pid->error_integral += (pos_pid->error_current * pos_pid->ki * 0.0025);
+	bound_float(&pos_pid->output, pos_pid->output_max, pos_pid->output_min);
+
+	float vel_set = 0.0f;
+	vel_pid->error_current = vel_set - vel;
+	vel_pid->p_final = vel_pid->kp * vel_pid->error_current;
+	bound_float(&vel_pid->output, vel_pid->output_max, vel_pid->output_min);
+}
+
 void motor_control(volatile float throttle_percentage, float roll_ctrl_precentage,
                    float pitch_ctrl_precentage, float yaw_ctrl_precentage)
 {
