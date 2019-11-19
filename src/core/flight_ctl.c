@@ -29,12 +29,19 @@ ahrs_t ahrs;
 pid_control_t pid_roll;
 pid_control_t pid_pitch;
 pid_control_t pid_yaw_rate;
+pid_control_t pid_pos_x;
+pid_control_t pid_pos_y;
+pid_control_t pid_vel_x;
+pid_control_t pid_vel_y;
+pid_control_t pid_alt;
+pid_control_t pid_alt_vel;
 
 float motor1, motor2, motor3, motor4;
 radio_t rc;
 
 void pid_controller_init(void)
 {
+	/* attitude controllers */
 	pid_roll.kp = 0.27f;
 	pid_roll.ki = 0.0f;
 	pid_roll.kd = 0.06f;
@@ -48,6 +55,43 @@ void pid_controller_init(void)
 	pid_yaw_rate.kd = 0.0f;
 	pid_yaw_rate.output_min = -35.0f;
 	pid_yaw_rate.output_max = 35.0f;
+
+	/* positon and velocity controllers */
+	pid_pos_x.kp = 0.0f;
+	pid_pos_x.ki = 0.0f;
+	pid_pos_x.kd = 0.0f;
+	//pid_pos_x.output_min = ;
+	//pid_pos_x.output_max = ;
+
+	pid_pos_y.kp = 0.0f;;
+	pid_pos_y.ki = 0.0f;
+	pid_pos_y.kd = 0.0f;
+	//pid_pos_y.output_min = ;
+	//pid_pos_y.output_max = ;
+
+	pid_vel_x.kp = 0.0f;
+	pid_vel_x.ki = 0.0f;
+	pid_vel_x.kd = 0.0f;
+	pid_vel_x.output_min = -15;
+	pid_vel_x.output_max = +15;
+
+	pid_vel_y.kp = 0.0f;
+	pid_vel_y.ki = 0.0f;
+	pid_vel_y.kd = 0.0f;
+	pid_vel_y.output_min = -15;
+	pid_vel_y.output_max = +15;
+
+	pid_alt.kp = 0.0f;
+	pid_alt.ki = 0.0f;
+	pid_alt.kd = 0.0f;
+	//pid_alt.output_min = ;
+	//pid_alt.output_max = ;
+
+	pid_alt_vel.kp = 0.0f;
+	pid_alt_vel.ki = 0.0f;
+	pid_alt_vel.kd = 0.0f;
+	pid_alt_vel.output_min = -35;
+	pid_alt_vel.output_max = +35;
 }
 
 void flight_ctl_semaphore_handler(void)
@@ -109,9 +153,23 @@ void task_flight_ctl(void *param)
 		ahrs.q[2] = madgwick_ahrs_info.q2;
 		ahrs.q[3] = madgwick_ahrs_info.q3;
 #endif
+		/* attitude control */
 		attitude_pid_control(&pid_roll, att_euler_est.roll, -rc.roll, imu.gyro_lpf.x);
 		attitude_pid_control(&pid_pitch, att_euler_est.pitch, -rc.pitch, imu.gyro_lpf.y);
 		yaw_rate_p_control(&pid_yaw_rate, -rc.yaw, imu.gyro_lpf.z);
+
+		/* altitude control */
+		float altitude = 0.0f;
+		float altitude_setpoint = 0.0f;
+		float altitude_vel = 0.0f;
+		altitude_control(altitude, altitude_setpoint, altitude_vel, &pid_alt_vel, &pid_alt);
+
+		/* position control */
+		float pos_x = 0.0f, pos_y = 0.0f;
+		float vel_x = 0.0f, vel_y = 0.0f;
+		float pos_x_set = 0.0f, pos_y_set = 0.0f;
+		position_2d_control(pos_x, pos_x_set, vel_x, &pid_vel_x, &pid_pos_x);
+		position_2d_control(pos_y, pos_y_set, vel_y, &pid_vel_y, &pid_pos_y);
 
 		if(rc.safety == false) {
 			led_on(LED_R);

@@ -21,6 +21,10 @@ void attitude_pid_control(pid_control_t *pid, float ahrs_attitude,
                           float setpoint_attitude, float angular_velocity);
 void yaw_rate_p_control(pid_control_t *pid, float setpoint_yaw_rate,
                         float angular_velocity);
+void altitude_control(float alt, float alt_set, float alt_vel,
+                      pid_control_t *alt_vel_pid, pid_control_t *alt_pid);
+void position_2d_control(float pos, float vel, float pos_set,
+                         pid_control_t *vel_pid, pid_control_t *pos_pid);
 
 void motor_control(volatile float throttle_percentage, float roll_ctrl_precentage,
                    float pitch_ctrl_precentage, float yaw_ctrl_precentage);
