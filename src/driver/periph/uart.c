@@ -186,8 +186,8 @@ void uart6_init(int baudrate)
 /*
  * <uart7>
  * usage: telecommunication
- * tx: gpio_pin_e7
- * rx: gpio_pin_e8
+ * tx: gpio_pin_e8
+ * rx: gpio_pin_e7
  */
 void uart7_init(int baudrate)
 {
