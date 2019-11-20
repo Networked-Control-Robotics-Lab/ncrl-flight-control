@@ -85,6 +85,7 @@ SRC+=./driver/periph/led.c \
 	./driver/device/hmc5983.c \
 	./driver/device/sbus_receiver.c \
 	./driver/device/motor.c \
+	./driver/device/optitrack.c
 
 CFLAGS+=-I./
 CFLAGS+=-I./sys_startup

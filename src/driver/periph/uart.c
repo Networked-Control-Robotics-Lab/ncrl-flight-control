@@ -9,6 +9,7 @@
 #include "stm32f4xx_conf.h"
 #include "isr.h"
 #include "sbus_receiver.h"
+#include "optitrack.h"
 
 SemaphoreHandle_t uart3_tx_semphr;
 
@@ -214,10 +215,19 @@ void uart7_init(int baudrate)
 		.USART_Parity = USART_Parity_No
 	};
 	USART_Init(UART7, &USART_InitStruct);
-
 	USART_Cmd(UART7, ENABLE);
 
 	USART_ClearFlag(UART7, USART_FLAG_TC);
+
+	USART_ITConfig(UART7, USART_IT_RXNE, ENABLE);
+
+	NVIC_InitTypeDef NVIC_InitStruct = {
+		.NVIC_IRQChannel = UART7_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = GPS_OPTITRACK_UART_ISR,
+		.NVIC_IRQChannelSubPriority = 0,
+		.NVIC_IRQChannelCmd = ENABLE
+	};
+	NVIC_Init(&NVIC_InitStruct);
 }
 
 void uart_putc(USART_TypeDef *uart, char c)
@@ -231,6 +241,14 @@ char uart_getc(USART_TypeDef *uart)
 {
 	while(USART_GetFlagStatus(uart, USART_FLAG_RXNE) == RESET);
 	return USART_ReceiveData(uart);
+}
+
+void usart_puts(USART_TypeDef *uart, char *s, int size)
+{
+	int i;
+	for(i = 0; i < size; i++) {
+		uart_putc(uart, s[i]);
+	}
 }
 
 void uart1_puts(char *s, int size)
@@ -345,5 +363,16 @@ void UART4_IRQHandler(void)
 		UART4->SR;
 
 		sbus_rc_handler(c);
+	}
+}
+
+void UART7_IRQHandler(void)
+{
+	uint8_t c;
+	if(USART_GetITStatus(UART7, USART_IT_RXNE) == SET) {
+		c = USART_ReceiveData(UART7);
+		UART7->SR;
+
+		optitrack_handler(c);
 	}
 }
