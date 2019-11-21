@@ -5,4 +5,19 @@
 
 void optitrack_handler(uint8_t c);
 
+typedef struct {
+	/* position */
+	float pos_x; //[cm]
+	float pos_y;
+	float pos_z;
+
+	/* orientation (quaternion) */
+	float quat_x;
+	float quat_y;
+	float quat_z;
+	float quat_w;
+} optitrack_t ;
+
+void optitrack_serial_decoder(uint8_t *buf);
+
 #endif

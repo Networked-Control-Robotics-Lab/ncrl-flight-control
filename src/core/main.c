@@ -34,7 +34,7 @@ int main(void)
 	uart3_init(115200); //telem
 	uart4_init(100000); //s-bus
 	uart6_init(115200);
-	uart7_init(57600); //gps
+	uart7_init(115200); //gps or optitrack
 	timer12_init(); //system timer and flight controller timer
 	pwm_timer1_init(); //motor
 	pwm_timer4_init(); //motor

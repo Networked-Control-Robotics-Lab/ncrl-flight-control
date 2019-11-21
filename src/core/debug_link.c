@@ -211,7 +211,7 @@ void task_debug_link(void *param)
 		//send_motor_message(&payload);
 		//send_accel_calib_message();
 		//send_accel_bias_calib_message();
-		send_onboard_data(payload.s, payload.len);
+		//send_onboard_data(payload.s, payload.len);
 		freertos_task_delay(delay_time_ms);
 	}
 }
