@@ -6,7 +6,7 @@
 #include "led.h"
 #include "optitrack.h"
 
-#define OPTITRACK_SERIAL_MSG_SIZE 31
+#define OPTITRACK_SERIAL_MSG_SIZE 32
 
 volatile int optitrack_buf_pos = 0;
 uint8_t optitrack_buf[OPTITRACK_SERIAL_MSG_SIZE] = {0};
@@ -61,18 +61,19 @@ static uint8_t generate_optitrack_checksum_byte(uint8_t *payload, int payload_co
 int optitrack_serial_decoder(uint8_t *buf)
 {
 	uint8_t recv_checksum = buf[1];
-	memcpy(&optitrack.pos_x, &buf[2], sizeof(float));
-	memcpy(&optitrack.pos_y, &buf[6], sizeof(float));
-	memcpy(&optitrack.pos_z, &buf[10], sizeof(float));
-	memcpy(&optitrack.quat_x, &buf[14], sizeof(float));
-	memcpy(&optitrack.quat_z, &buf[18], sizeof(float));
-	memcpy(&optitrack.quat_y, &buf[22], sizeof(float));
-	memcpy(&optitrack.quat_w, &buf[26], sizeof(float));
-
-	uint8_t checksum = generate_optitrack_checksum_byte(&buf[2], OPTITRACK_SERIAL_MSG_SIZE - 3);
+	uint8_t checksum = generate_optitrack_checksum_byte(&buf[3], OPTITRACK_SERIAL_MSG_SIZE - 4);
 	if(checksum != recv_checksum) {
-		return 1;
+		return 1; //error detected
 	}
+
+	optitrack.mav_id = buf[2];
+	memcpy(&optitrack.pos_x, &buf[3], sizeof(float));
+	memcpy(&optitrack.pos_y, &buf[7], sizeof(float));
+	memcpy(&optitrack.pos_z, &buf[11], sizeof(float));
+	memcpy(&optitrack.quat_x, &buf[15], sizeof(float));
+	memcpy(&optitrack.quat_z, &buf[19], sizeof(float));
+	memcpy(&optitrack.quat_y, &buf[23], sizeof(float));
+	memcpy(&optitrack.quat_w, &buf[27], sizeof(float));
 
 	return 0;
 }
