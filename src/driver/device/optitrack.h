@@ -18,6 +18,6 @@ typedef struct {
 	float quat_w;
 } optitrack_t ;
 
-void optitrack_serial_decoder(uint8_t *buf);
+int optitrack_serial_decoder(uint8_t *buf);
 
 #endif

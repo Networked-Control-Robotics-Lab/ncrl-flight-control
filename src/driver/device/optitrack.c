@@ -3,36 +3,46 @@
 #include <string.h>
 #include "stm32f4xx_conf.h"
 #include "uart.h"
+#include "led.h"
 #include "optitrack.h"
 
-#define OPTITRACK_SERIAL_MSG_SIZE 30
+#define OPTITRACK_SERIAL_MSG_SIZE 31
 
-uint8_t optitrack_msg_buf[OPTITRACK_SERIAL_MSG_SIZE] = {0};
-volatile int received_cnt = 0;
+volatile int optitrack_buf_pos = 0;
+uint8_t optitrack_buf[OPTITRACK_SERIAL_MSG_SIZE] = {0};
 
 optitrack_t optitrack;
 
-void optitrack_handler(uint8_t c)
+void optitrack_buf_push(uint8_t c)
 {
-#if 0   /* debug print */
-	uart_putc(USART3, c);
-	return;
-#endif
-	if(received_cnt >= OPTITRACK_SERIAL_MSG_SIZE) {
-		received_cnt = 0;
-	}
-
-	optitrack_msg_buf[received_cnt] = c;
-	received_cnt++;
-
-	/* parse the message if next start byte is received */
-	if(c == '@') { //XXX:replace decode condition with a message end byte test?
-		if(optitrack_msg_buf[0] == '@' && received_cnt == OPTITRACK_SERIAL_MSG_SIZE) {
-			//optitrack_serial_decoder(&optitrack_msg_buf[0]);
+	if(optitrack_buf_pos >= OPTITRACK_SERIAL_MSG_SIZE) {
+		/* drop the oldest data and shift the rest to left */
+		int i;
+		for(i = 1; i < OPTITRACK_SERIAL_MSG_SIZE; i++) {
+			optitrack_buf[i - 1] = optitrack_buf[i];
 		}
 
-		optitrack_msg_buf[0] = '@';
-		received_cnt = 1;
+		/* save new byte to the last array element */
+		optitrack_buf[OPTITRACK_SERIAL_MSG_SIZE - 1] = c;
+		optitrack_buf_pos = OPTITRACK_SERIAL_MSG_SIZE;
+	} else {
+		/* append new byte if the array boundary is not yet reached */
+		optitrack_buf[optitrack_buf_pos] = c;
+		optitrack_buf_pos++;
+	}
+}
+
+void optitrack_handler(uint8_t c)
+{
+	optitrack_buf_push(c);
+	if(c == '+' && optitrack_buf[0] == '@') {
+		/* decode optitrack message */
+		led_on(LED_G);
+#if 1
+		if(optitrack_serial_decoder(optitrack_buf) == 0) {
+			optitrack_buf_pos = 0; //reset position pointer
+		}
+#endif
 	}
 }
 
@@ -48,10 +58,9 @@ static uint8_t generate_optitrack_checksum_byte(uint8_t *payload, int payload_co
 	return result;
 }
 
-void optitrack_serial_decoder(uint8_t *buf)
+int optitrack_serial_decoder(uint8_t *buf)
 {
 	uint8_t recv_checksum = buf[1];
-#if 1
 	memcpy(&optitrack.pos_x, &buf[2], sizeof(float));
 	memcpy(&optitrack.pos_y, &buf[6], sizeof(float));
 	memcpy(&optitrack.pos_z, &buf[10], sizeof(float));
@@ -62,7 +71,8 @@ void optitrack_serial_decoder(uint8_t *buf)
 
 	uint8_t checksum = generate_optitrack_checksum_byte(&buf[2], OPTITRACK_SERIAL_MSG_SIZE - 2);
 	if(checksum != recv_checksum) {
-		/* TODO */
+		return 1;
 	}
-#endif
+
+	return 0;
 }
