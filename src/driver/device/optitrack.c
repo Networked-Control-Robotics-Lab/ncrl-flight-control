@@ -69,7 +69,7 @@ int optitrack_serial_decoder(uint8_t *buf)
 	memcpy(&optitrack.quat_y, &buf[22], sizeof(float));
 	memcpy(&optitrack.quat_w, &buf[26], sizeof(float));
 
-	uint8_t checksum = generate_optitrack_checksum_byte(&buf[2], OPTITRACK_SERIAL_MSG_SIZE - 2);
+	uint8_t checksum = generate_optitrack_checksum_byte(&buf[2], OPTITRACK_SERIAL_MSG_SIZE - 3);
 	if(checksum != recv_checksum) {
 		return 1;
 	}
