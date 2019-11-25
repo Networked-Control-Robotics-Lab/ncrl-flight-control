@@ -94,7 +94,7 @@ class serial_plotter_class:
         	self.create_curve('y (moving average)', 'blue')		
         	self.create_curve('z (moving average)', 'green')		
         	self.show_subplot()
-        elif message_id == 1:
+        elif (message_id == 1):
                 plt.subplot(111)
         	plt.ylabel('gyro [deg/s]')
         	plt.ylim([-450, 450])
@@ -102,7 +102,7 @@ class serial_plotter_class:
         	self.create_curve('pitch', 'blue')		
         	self.create_curve('yaw', 'green')		
         	self.show_subplot()
-        elif message_id == 2:          
+        elif (message_id == 2):
                 plt.subplot(311)
         	plt.ylabel('attitude [deg]')
         	plt.ylim([-450, 450])
@@ -126,7 +126,7 @@ class serial_plotter_class:
         	self.create_curve('y (moving average)', 'blue')
         	self.create_curve('z (moving average)', 'green')
         	self.show_subplot()
-        elif message_id == 3:
+        elif (message_id == 3):
          	plt.subplot(211)
         	plt.ylabel('Var(P)')
         	plt.ylim([-5, 5])
@@ -143,7 +143,7 @@ class serial_plotter_class:
         	self.create_curve('K[2][2]', 'green')
         	self.create_curve('K[3][3]', 'orange')
         	self.show_subplot()
-        elif message_id == 4:
+        elif (message_id == 4 || message_id == 8):
          	plt.subplot(111)
         	plt.ylabel('Attitude (quaternion)')
         	plt.ylim([-5, 5])
@@ -152,7 +152,7 @@ class serial_plotter_class:
         	self.create_curve('q2', 'green')
         	self.create_curve('q3', 'orange')
         	self.show_subplot()
-        elif message_id == 5:
+        elif (message_id == 5):
          	plt.subplot(111)
         	plt.ylabel('pid controller debug')
         	plt.ylim([-50, 50])
@@ -163,7 +163,7 @@ class serial_plotter_class:
                 self.create_curve('d term', 'blue')
         	self.create_curve('pid final', 'purple')
         	self.show_subplot()
-        elif message_id == 6:
+        elif (message_id == 6):
          	plt.subplot(111)
         	plt.ylabel('motor [thrust %]')
         	plt.ylim([-20, 120])
@@ -172,7 +172,14 @@ class serial_plotter_class:
         	self.create_curve('m3', 'yellow')
         	self.create_curve('m4', 'purple')
         	self.show_subplot()
-
+        elif (message_id == 7):
+         	plt.subplot(111)
+        	plt.ylabel('position [cm]')
+        	plt.ylim([-200, 200])
+        	self.create_curve('x', 'red')
+                self.create_curve('y', 'orange')
+        	self.create_curve('z', 'yellow')
+        	self.show_subplot()
 
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \

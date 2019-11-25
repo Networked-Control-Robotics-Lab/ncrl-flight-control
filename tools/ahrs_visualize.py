@@ -145,7 +145,7 @@ def serial_receive():
             continue
         _message_id, =  struct.unpack("c", ser.read(1))
         message_id = ord(_message_id)
-        if message_id != 4:
+        if message_id != 4 || message_id != 8:
             continue
         print('[%s]received message, id:%d' %(datetime.now().strftime('%H:%M:%S'), message_id))
 

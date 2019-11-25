@@ -12,9 +12,12 @@
 #include "ahrs.h"
 #include "flight_ctl.h"
 #include "led.h"
+#include "optitrack.h"
 
 extern imu_t imu;
 extern ahrs_t ahrs;
+
+extern optitrack_t optitrack;
 
 extern pid_control_t pid_roll;
 extern pid_control_t pid_pitch;
@@ -177,6 +180,29 @@ void send_pid_debug(debug_msg_t *payload)
 #endif
 }
 
+void send_optitrack_position_message(debug_msg_t *payload)
+{
+	payload->len = 3; //reserve for header message
+
+	payload->s[2] = MESSAGE_ID_OPTITRACK_POSITION;
+
+	payload->len += pack_float(&optitrack.pos_x, payload->s + payload->len);
+	payload->len += pack_float(&optitrack.pos_y, payload->s + payload->len);
+	payload->len += pack_float(&optitrack.pos_z, payload->s + payload->len);
+}
+
+void send_optitrack_quaternion_message(debug_msg_t *payload)
+{
+	payload->len = 3; //reserve for header message
+
+	payload->s[2] = MESSAGE_ID_OPTITRACK_QUATERNION;
+
+	payload->len += pack_float(&optitrack.quat_w, payload->s + payload->len);
+	payload->len += pack_float(&optitrack.quat_x, payload->s + payload->len);
+	payload->len += pack_float(&optitrack.quat_y, payload->s + payload->len);
+	payload->len += pack_float(&optitrack.quat_z, payload->s + payload->len);
+}
+
 void send_accel_calib_message(void)
 {
 	char s[100] = {0.0};
@@ -209,9 +235,11 @@ void task_debug_link(void *param)
 		//send_ekf_message(&payload);
 		//send_pid_debug(&payload);
 		//send_motor_message(&payload);
+		//send_optitrack_position_message(&payload);
+		//send_optitrack_quaternion_message(&payload);
 		//send_accel_calib_message();
 		//send_accel_bias_calib_message();
-		//send_onboard_data(payload.s, payload.len);
+		send_onboard_data(payload.s, payload.len);
 		freertos_task_delay(delay_time_ms);
 	}
 }
