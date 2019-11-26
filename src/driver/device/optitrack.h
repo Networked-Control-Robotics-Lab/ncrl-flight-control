@@ -26,6 +26,7 @@ typedef struct {
 
 	float time_now;
 	float time_last;
+	float recv_freq;
 } optitrack_t ;
 
 int optitrack_serial_decoder(uint8_t *buf);

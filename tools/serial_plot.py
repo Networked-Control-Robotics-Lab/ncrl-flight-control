@@ -182,11 +182,17 @@ class serial_plotter_class:
         	self.show_subplot()
         elif (message_id == 9):
          	plt.subplot(111)
-        	plt.ylabel('position [cm]')
+        	plt.ylabel('velocity [cm/s]')
         	plt.ylim([-200, 200])
         	self.create_curve('vx', 'red')
                 self.create_curve('vy', 'orange')
         	self.create_curve('vz', 'yellow')
+        	self.show_subplot()
+        elif (message_id == 10):
+         	plt.subplot(111)
+        	plt.ylabel('value')
+        	plt.ylim([-200, 200])
+        	self.create_curve('float variable', 'red')
         	self.show_subplot()
 
     def show_graph(self):
@@ -220,7 +226,7 @@ class serial_plotter_class:
                 continue
             _message_id, =  struct.unpack("c", ser.read(1))
             message_id = ord(_message_id)
-            #print('[%s]received message, id:%d' %(datetime.now().strftime('%H:%M:%S'), message_id))
+            print('[%s]received message, id:%d' %(datetime.now().strftime('%H:%M:%S'), message_id))
 
             #receive payload and calculate checksum
             for i in range(0, payload_count):
@@ -254,7 +260,7 @@ class serial_plotter_class:
                 binary_data = ''.join([buffer[i * 4], buffer[i * 4 + 1], buffer[i * 4 + 2], buffer[i * 4 + 3]])
                 float_data = np.asarray(struct.unpack("f", binary_data))
                 self.serial_data[i].add(float_data)
-                #print("received: %f" %(float_data))
+                print("received: %f" %(float_data))
             #print("-----------------------------");
             return 'success'
 

@@ -68,10 +68,17 @@ static uint8_t generate_optitrack_checksum_byte(uint8_t *payload, int payload_co
 
 void optitrack_numerical_vel_calc(void)
 {
-	float dt = (optitrack.time_now = optitrack.time_last) * 0.001;
+#if 0
+	float dt = (optitrack.time_now - optitrack.time_last) * 0.001;
+#endif
+
+#if 1
+	float dt = 1.0f / 50.0f; //fixed dt
+#endif
 	optitrack.vel_x = (optitrack.pos_x - pos_last.x) / dt;
 	optitrack.vel_y = (optitrack.pos_y - pos_last.y) / dt;
 	optitrack.vel_z = (optitrack.pos_z - pos_last.z) / dt;
+	optitrack.recv_freq = 1.0f / dt;
 }
 
 int optitrack_serial_decoder(uint8_t *buf)
@@ -82,6 +89,8 @@ int optitrack_serial_decoder(uint8_t *buf)
 	if(checksum != recv_checksum || optitrack.id != recv_id) {
 		return 1; //error detected
 	}
+
+	optitrack.time_now = get_sys_time_ms();
 
 	memcpy(&optitrack.pos_x, &buf[3], sizeof(float));
 	memcpy(&optitrack.pos_y, &buf[7], sizeof(float));
@@ -96,15 +105,18 @@ int optitrack_serial_decoder(uint8_t *buf)
 		pos_last.x = optitrack.pos_x;
 		pos_last.y = optitrack.pos_y;
 		pos_last.z = optitrack.pos_z;
+		optitrack.vel_x = 0.0f;
+		optitrack.vel_y = 0.0f;
+		optitrack.vel_z = 0.0f;
 		vel_init_ready = true;
 		return 0;
 	}
 
-	optitrack.time_now = get_sys_time_ms();
 	optitrack_numerical_vel_calc();
 	pos_last.x = optitrack.pos_x; //save for next iteration
 	pos_last.y = optitrack.pos_y;
 	pos_last.z = optitrack.pos_z;
+	optitrack.time_last = optitrack.time_now;
 
 	return 0;
 }

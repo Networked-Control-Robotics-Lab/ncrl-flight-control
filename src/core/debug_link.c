@@ -214,6 +214,15 @@ void send_optitrack_velocity_message(debug_msg_t *payload)
 	payload->len += pack_float(&optitrack.vel_z, payload->s + payload->len);
 }
 
+void send_optitrack_general_float_message(float val, debug_msg_t *payload)
+{
+	payload->len = 3; //reserve for header message
+
+	payload->s[2] = MESSAGE_ID_GENERAL_FLOAT;
+
+	payload->len += pack_float(&val, payload->s + payload->len);
+}
+
 void send_accel_calib_message(void)
 {
 	char s[100] = {0.0};
@@ -248,7 +257,8 @@ void task_debug_link(void *param)
 		//send_motor_message(&payload);
 		//send_optitrack_position_message(&payload);
 		//send_optitrack_quaternion_message(&payload);
-		send_optitrack_velocity_message(&payload);
+		//send_optitrack_velocity_message(&payload);
+		send_optitrack_general_float_message(optitrack.recv_freq, &payload);
 		//send_accel_calib_message();
 		//send_accel_bias_calib_message();
 		send_onboard_data(payload.s, payload.len);
