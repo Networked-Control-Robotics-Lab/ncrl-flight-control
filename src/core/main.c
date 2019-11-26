@@ -14,6 +14,7 @@
 #include "exti.h"
 #include "mpu6500.h"
 #include "sbus_receiver.h"
+#include "optitrack.h"
 #include "sys_time.h"
 #include "motor.h"
 #include "debug_link.h"
@@ -27,6 +28,8 @@ int main(void)
 
 	/* freertos initialization */
 	flight_ctl_semphr = xSemaphoreCreateBinary();
+
+	optitrack_init(0); //setup tracker id for this MAV
 
 	/* driver initialization */
 	led_init();

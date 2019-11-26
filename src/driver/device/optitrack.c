@@ -13,6 +13,11 @@ uint8_t optitrack_buf[OPTITRACK_SERIAL_MSG_SIZE] = {0};
 
 optitrack_t optitrack;
 
+void optitrack_init(int id)
+{
+	optitrack.id = id;
+}
+
 void optitrack_buf_push(uint8_t c)
 {
 	if(optitrack_buf_pos >= OPTITRACK_SERIAL_MSG_SIZE) {
@@ -37,12 +42,10 @@ void optitrack_handler(uint8_t c)
 	optitrack_buf_push(c);
 	if(c == '+' && optitrack_buf[0] == '@') {
 		/* decode optitrack message */
-		led_on(LED_G);
-#if 1
 		if(optitrack_serial_decoder(optitrack_buf) == 0) {
+			led_on(LED_G);
 			optitrack_buf_pos = 0; //reset position pointer
 		}
-#endif
 	}
 }
 
@@ -62,11 +65,11 @@ int optitrack_serial_decoder(uint8_t *buf)
 {
 	uint8_t recv_checksum = buf[1];
 	uint8_t checksum = generate_optitrack_checksum_byte(&buf[3], OPTITRACK_SERIAL_MSG_SIZE - 4);
-	if(checksum != recv_checksum) {
+	int recv_id = buf[2];
+	if(checksum != recv_checksum || optitrack.id != recv_id) {
 		return 1; //error detected
 	}
 
-	optitrack.mav_id = buf[2];
 	memcpy(&optitrack.pos_x, &buf[3], sizeof(float));
 	memcpy(&optitrack.pos_y, &buf[7], sizeof(float));
 	memcpy(&optitrack.pos_z, &buf[11], sizeof(float));

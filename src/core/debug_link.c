@@ -231,12 +231,12 @@ void task_debug_link(void *param)
 		//send_imu_message(&payload);
 		//send_attitude_euler_message(&payload);
 		//send_attitude_quaternion_message(&payload);
-		send_attitude_imu_message(&payload);
+		//send_attitude_imu_message(&payload);
 		//send_ekf_message(&payload);
 		//send_pid_debug(&payload);
 		//send_motor_message(&payload);
 		//send_optitrack_position_message(&payload);
-		//send_optitrack_quaternion_message(&payload);
+		send_optitrack_quaternion_message(&payload);
 		//send_accel_calib_message();
 		//send_accel_bias_calib_message();
 		send_onboard_data(payload.s, payload.len);

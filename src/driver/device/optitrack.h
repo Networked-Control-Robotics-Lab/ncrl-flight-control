@@ -6,7 +6,7 @@
 void optitrack_handler(uint8_t c);
 
 typedef struct {
-	uint8_t mav_id;
+	uint8_t id;
 
 	/* position [cm] */
 	float pos_x;

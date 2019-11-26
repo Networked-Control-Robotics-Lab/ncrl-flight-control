@@ -9,7 +9,7 @@ from collections import deque
 from datetime import datetime
 
 ser = serial.Serial(
-    port='/dev/ttyUSB0',\
+    port='/dev/ttyUSB1',\
     baudrate=115200,\
     parity=serial.PARITY_NONE,\
     stopbits=serial.STOPBITS_ONE,\
@@ -143,7 +143,7 @@ class serial_plotter_class:
         	self.create_curve('K[2][2]', 'green')
         	self.create_curve('K[3][3]', 'orange')
         	self.show_subplot()
-        elif (message_id == 4 || message_id == 8):
+        elif (message_id == 4 or message_id == 8):
          	plt.subplot(111)
         	plt.ylabel('Attitude (quaternion)')
         	plt.ylim([-5, 5])
