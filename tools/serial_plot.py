@@ -180,6 +180,14 @@ class serial_plotter_class:
                 self.create_curve('y', 'orange')
         	self.create_curve('z', 'yellow')
         	self.show_subplot()
+        elif (message_id == 9):
+         	plt.subplot(111)
+        	plt.ylabel('position [cm]')
+        	plt.ylim([-200, 200])
+        	self.create_curve('vx', 'red')
+                self.create_curve('vy', 'orange')
+        	self.create_curve('vz', 'yellow')
+        	self.show_subplot()
 
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \

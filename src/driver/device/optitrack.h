@@ -13,11 +13,19 @@ typedef struct {
 	float pos_y;
 	float pos_z;
 
+	/* velocity (numerical onboard calcuation) */
+	float vel_x;
+	float vel_y;
+	float vel_z;
+
 	/* orientation (quaternion) */
 	float quat_x;
 	float quat_y;
 	float quat_z;
 	float quat_w;
+
+	float time_now;
+	float time_last;
 } optitrack_t ;
 
 int optitrack_serial_decoder(uint8_t *buf);

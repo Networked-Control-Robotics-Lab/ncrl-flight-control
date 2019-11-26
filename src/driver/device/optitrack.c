@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
 #include "stm32f4xx_conf.h"
 #include "uart.h"
 #include "led.h"
 #include "optitrack.h"
+#include "vector.h"
+#include "sys_time.h"
 
 #define OPTITRACK_SERIAL_MSG_SIZE 32
 
@@ -12,6 +15,8 @@ volatile int optitrack_buf_pos = 0;
 uint8_t optitrack_buf[OPTITRACK_SERIAL_MSG_SIZE] = {0};
 
 optitrack_t optitrack;
+vector3d_f_t pos_last;
+bool vel_init_ready = false;
 
 void optitrack_init(int id)
 {
@@ -61,6 +66,14 @@ static uint8_t generate_optitrack_checksum_byte(uint8_t *payload, int payload_co
 	return result;
 }
 
+void optitrack_numerical_vel_calc(void)
+{
+	float dt = (optitrack.time_now = optitrack.time_last) * 0.001;
+	optitrack.vel_x = (optitrack.pos_x - pos_last.x) / dt;
+	optitrack.vel_y = (optitrack.pos_y - pos_last.y) / dt;
+	optitrack.vel_z = (optitrack.pos_z - pos_last.z) / dt;
+}
+
 int optitrack_serial_decoder(uint8_t *buf)
 {
 	uint8_t recv_checksum = buf[1];
@@ -77,6 +90,21 @@ int optitrack_serial_decoder(uint8_t *buf)
 	memcpy(&optitrack.quat_z, &buf[19], sizeof(float));
 	memcpy(&optitrack.quat_y, &buf[23], sizeof(float));
 	memcpy(&optitrack.quat_w, &buf[27], sizeof(float));
+
+	if(vel_init_ready == false) {
+		optitrack.time_last = get_sys_time_ms();
+		pos_last.x = optitrack.pos_x;
+		pos_last.y = optitrack.pos_y;
+		pos_last.z = optitrack.pos_z;
+		vel_init_ready = true;
+		return 0;
+	}
+
+	optitrack.time_now = get_sys_time_ms();
+	optitrack_numerical_vel_calc();
+	pos_last.x = optitrack.pos_x; //save for next iteration
+	pos_last.y = optitrack.pos_y;
+	pos_last.z = optitrack.pos_z;
 
 	return 0;
 }
