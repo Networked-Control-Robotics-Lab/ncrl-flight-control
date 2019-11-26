@@ -209,9 +209,12 @@ void send_optitrack_velocity_message(debug_msg_t *payload)
 
 	payload->s[2] = MESSAGE_ID_OPTITRACK_VELOCITY;
 
-	payload->len += pack_float(&optitrack.vel_x, payload->s + payload->len);
-	payload->len += pack_float(&optitrack.vel_y, payload->s + payload->len);
-	payload->len += pack_float(&optitrack.vel_z, payload->s + payload->len);
+	payload->len += pack_float(&optitrack.vel_raw_x, payload->s + payload->len);
+	payload->len += pack_float(&optitrack.vel_raw_y, payload->s + payload->len);
+	payload->len += pack_float(&optitrack.vel_raw_z, payload->s + payload->len);
+	payload->len += pack_float(&optitrack.vel_lpf_x, payload->s + payload->len);
+	payload->len += pack_float(&optitrack.vel_lpf_y, payload->s + payload->len);
+	payload->len += pack_float(&optitrack.vel_lpf_z, payload->s + payload->len);
 }
 
 void send_optitrack_general_float_message(float val, debug_msg_t *payload)
@@ -255,10 +258,10 @@ void task_debug_link(void *param)
 		//send_ekf_message(&payload);
 		//send_pid_debug(&payload);
 		//send_motor_message(&payload);
-		//send_optitrack_position_message(&payload);
+		send_optitrack_position_message(&payload);
 		//send_optitrack_quaternion_message(&payload);
 		//send_optitrack_velocity_message(&payload);
-		send_optitrack_general_float_message(optitrack.recv_freq, &payload);
+		//send_optitrack_general_float_message(optitrack.recv_freq, &payload);
 		//send_accel_calib_message();
 		//send_accel_bias_calib_message();
 		send_onboard_data(payload.s, payload.len);

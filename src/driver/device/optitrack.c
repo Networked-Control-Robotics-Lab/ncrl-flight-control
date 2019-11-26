@@ -8,6 +8,7 @@
 #include "optitrack.h"
 #include "vector.h"
 #include "sys_time.h"
+#include "lpf.h"
 
 #define OPTITRACK_SERIAL_MSG_SIZE 32
 
@@ -75,10 +76,14 @@ void optitrack_numerical_vel_calc(void)
 #if 1
 	float dt = 1.0f / 50.0f; //fixed dt
 #endif
-	optitrack.vel_x = (optitrack.pos_x - pos_last.x) / dt;
-	optitrack.vel_y = (optitrack.pos_y - pos_last.y) / dt;
-	optitrack.vel_z = (optitrack.pos_z - pos_last.z) / dt;
+	optitrack.vel_raw_x = (optitrack.pos_x - pos_last.x) / dt;
+	optitrack.vel_raw_y = (optitrack.pos_y - pos_last.y) / dt;
+	optitrack.vel_raw_z = (optitrack.pos_z - pos_last.z) / dt;
 	optitrack.recv_freq = 1.0f / dt;
+
+	lpf(optitrack.vel_raw_x, &(optitrack.vel_lpf_x), 0.01);
+	lpf(optitrack.vel_raw_y, &(optitrack.vel_lpf_y), 0.01);
+	lpf(optitrack.vel_raw_z, &(optitrack.vel_lpf_z), 0.01);
 }
 
 int optitrack_serial_decoder(uint8_t *buf)
@@ -105,9 +110,9 @@ int optitrack_serial_decoder(uint8_t *buf)
 		pos_last.x = optitrack.pos_x;
 		pos_last.y = optitrack.pos_y;
 		pos_last.z = optitrack.pos_z;
-		optitrack.vel_x = 0.0f;
-		optitrack.vel_y = 0.0f;
-		optitrack.vel_z = 0.0f;
+		optitrack.vel_raw_x = 0.0f;
+		optitrack.vel_raw_y = 0.0f;
+		optitrack.vel_raw_z = 0.0f;
 		vel_init_ready = true;
 		return 0;
 	}

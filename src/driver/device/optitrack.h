@@ -14,9 +14,12 @@ typedef struct {
 	float pos_z;
 
 	/* velocity (numerical onboard calcuation) */
-	float vel_x;
-	float vel_y;
-	float vel_z;
+	float vel_raw_x;
+	float vel_raw_y;
+	float vel_raw_z;
+	float vel_lpf_x;
+	float vel_lpf_y;
+	float vel_lpf_z;
 
 	/* orientation (quaternion) */
 	float quat_x;
