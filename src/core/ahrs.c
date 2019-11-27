@@ -144,6 +144,14 @@ void calc_attitude_use_accel(euler_t *att_estimated, vector3d_f_t *accel)
 	att_estimated->pitch = atan2(-accel->y, accel->z);
 }
 
+void update_euler_heading_from_optitrack(float q0, float q1, float q2, float q3, float *heading)
+{
+	float q[4] = {q0, q1, q2, q3};
+	euler_t att_euler;
+	quat_to_euler(q, &att_euler);
+	*heading = rad_to_deg(att_euler.yaw);
+}
+
 void ahrs_ekf_state_predict(vector3d_f_t accel, vector3d_f_t gyro)
 {
 	float half_q0_dt = 0.5f * _mat_(x_priori)[0] * dt;

@@ -11,6 +11,7 @@
 #include "sbus_receiver.h"
 #include "mpu6500.h"
 #include "motor.h"
+#include "optitrack.h"
 #include "lpf.h"
 #include "imu.h"
 #include "ahrs.h"
@@ -20,6 +21,8 @@
 #define FLIGHT_CTL_PRESCALER_RELOAD 10
 
 void rc_safety_protection(void);
+
+extern optitrack_t optitrack;
 
 SemaphoreHandle_t flight_ctl_semphr;
 
@@ -132,7 +135,6 @@ void task_flight_ctl(void *param)
 		ahrs_estimate(&att_euler_est, ahrs.q, imu.accel_lpf, imu.gyro_lpf);
 		ahrs.attitude.roll = att_euler_est.roll;
 		ahrs.attitude.pitch = att_euler_est.pitch;
-		ahrs.attitude.yaw = att_euler_est.yaw;
 #endif
 
 #if 0
@@ -146,13 +148,16 @@ void task_flight_ctl(void *param)
 
 		ahrs.attitude.roll = att_euler_est.roll = madgwick_ahrs_info.Roll;
 		ahrs.attitude.pitch = att_euler_est.pitch = madgwick_ahrs_info.Pitch;
-		ahrs.attitude.yaw = madgwick_ahrs_info.Yaw;
 
 		ahrs.q[0] = madgwick_ahrs_info.q0;
 		ahrs.q[1] = madgwick_ahrs_info.q1;
 		ahrs.q[2] = madgwick_ahrs_info.q2;
 		ahrs.q[3] = madgwick_ahrs_info.q3;
 #endif
+
+		update_euler_heading_from_optitrack(optitrack.quat_w, optitrack.quat_x, optitrack.quat_y,
+		                                    optitrack.quat_z, &(ahrs.attitude.yaw));
+
 		/* attitude control */
 		attitude_pid_control(&pid_roll, att_euler_est.roll, -rc.roll, imu.gyro_lpf.x);
 		attitude_pid_control(&pid_pitch, att_euler_est.pitch, -rc.pitch, imu.gyro_lpf.y);

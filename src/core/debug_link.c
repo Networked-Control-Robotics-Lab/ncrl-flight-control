@@ -252,13 +252,13 @@ void task_debug_link(void *param)
 
 	while(1) {
 		//send_imu_message(&payload);
-		//send_attitude_euler_message(&payload);
+		send_attitude_euler_message(&payload);
 		//send_attitude_quaternion_message(&payload);
 		//send_attitude_imu_message(&payload);
 		//send_ekf_message(&payload);
 		//send_pid_debug(&payload);
 		//send_motor_message(&payload);
-		send_optitrack_position_message(&payload);
+		//send_optitrack_position_message(&payload);
 		//send_optitrack_quaternion_message(&payload);
 		//send_optitrack_velocity_message(&payload);
 		//send_optitrack_general_float_message(optitrack.recv_freq, &payload);
