@@ -22,6 +22,7 @@ extern optitrack_t optitrack;
 extern pid_control_t pid_roll;
 extern pid_control_t pid_pitch;
 extern pid_control_t pid_yaw_rate;
+extern pid_control_t pid_yaw;
 
 extern float motor1, motor2, motor3, motor4;
 
@@ -217,7 +218,7 @@ void send_optitrack_velocity_message(debug_msg_t *payload)
 	payload->len += pack_float(&optitrack.vel_lpf_z, payload->s + payload->len);
 }
 
-void send_optitrack_general_float_message(float val, debug_msg_t *payload)
+void send_general_float_message(float val, debug_msg_t *payload)
 {
 	payload->len = 3; //reserve for header message
 

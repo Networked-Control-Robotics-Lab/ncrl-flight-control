@@ -32,6 +32,7 @@ ahrs_t ahrs;
 pid_control_t pid_roll;
 pid_control_t pid_pitch;
 pid_control_t pid_yaw_rate;
+pid_control_t pid_yaw;
 pid_control_t pid_pos_x;
 pid_control_t pid_pos_y;
 pid_control_t pid_vel_x;
@@ -58,6 +59,13 @@ void pid_controller_init(void)
 	pid_yaw_rate.kd = 0.0f;
 	pid_yaw_rate.output_min = -35.0f;
 	pid_yaw_rate.output_max = 35.0f;
+
+	pid_yaw.kp = 0.27f;
+	pid_yaw.ki = 0.0f;
+	pid_yaw.kd = -0.1f;
+	pid_yaw.setpoint = 0.0f;
+	pid_yaw.output_min = -35.0f;
+	pid_yaw.output_max = 35.0f;
 
 	/* positon and velocity controllers */
 	pid_pos_x.kp = 0.0f;
@@ -129,7 +137,6 @@ void task_flight_ctl(void *param)
 		//gpio_toggle(MOTOR7_FREQ_TEST);
 
 		read_rc_info(&rc);
-		//debug_print_rc_info(&rc);
 
 #if 1
 		ahrs_estimate(&att_euler_est, ahrs.q, imu.accel_lpf, imu.gyro_lpf);
@@ -161,6 +168,7 @@ void task_flight_ctl(void *param)
 		attitude_pid_control(&pid_roll, att_euler_est.roll, -rc.roll, imu.gyro_lpf.x);
 		attitude_pid_control(&pid_pitch, att_euler_est.pitch, -rc.pitch, imu.gyro_lpf.y);
 		yaw_rate_p_control(&pid_yaw_rate, -rc.yaw, imu.gyro_lpf.z);
+		yaw_pd_control(&pid_yaw, rc.yaw, ahrs.attitude.yaw, imu.gyro_lpf.z, 0.0025);
 
 		/* altitude control */
 		float altitude = 0.0f;
@@ -178,7 +186,8 @@ void task_flight_ctl(void *param)
 		if(rc.safety == false) {
 			led_on(LED_R);
 			led_off(LED_B);
-			motor_control(rc.throttle, pid_roll.output, pid_pitch.output, pid_yaw_rate.output);
+			//motor_control(rc.throttle, pid_roll.output, pid_pitch.output, pid_yaw_rate.output);
+			motor_control(rc.throttle, pid_roll.output, pid_pitch.output, pid_yaw.output);
 		} else {
 			led_on(LED_B);
 			led_off(LED_R);
@@ -222,6 +231,25 @@ void yaw_rate_p_control(pid_control_t *pid, float setpoint_yaw_rate, float angul
 	pid->p_final = pid->kp * -pid->error_current;
 	pid->output = pid->p_final;
 
+	bound_float(&pid->output, pid->output_max, pid->output_min);
+}
+
+void yaw_pd_control(pid_control_t *pid, float rc_yaw, float ahrs_yaw, float yaw_rate, float loop_dt)
+{
+	if(rc_yaw > +5.0f || rc_yaw < -5.0f) {
+		pid->setpoint += rc_yaw * loop_dt;
+		if(pid->setpoint > +180.0f) {
+			pid->setpoint -= 360.0f;
+		} else if(pid->setpoint < -180.0f) {
+			pid->setpoint += 360.0f;
+		}
+	}
+
+	pid->error_current = pid->setpoint - ahrs_yaw;
+	pid->error_derivative = -yaw_rate;
+	pid->p_final = pid->kp * pid->error_current;
+	pid->d_final = pid->kd * pid->error_derivative;
+	pid->output = pid->p_final + pid->d_final;
 	bound_float(&pid->output, pid->output_max, pid->output_min);
 }
 

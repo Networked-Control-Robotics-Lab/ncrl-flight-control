@@ -8,6 +8,7 @@ typedef struct {
 	float p_final;
 	float i_final;
 	float d_final;
+	float setpoint;
 	float error_current;
 	float error_last;
 	float error_integral;
@@ -21,6 +22,7 @@ void attitude_pid_control(pid_control_t *pid, float ahrs_attitude,
                           float setpoint_attitude, float angular_velocity);
 void yaw_rate_p_control(pid_control_t *pid, float setpoint_yaw_rate,
                         float angular_velocity);
+void yaw_pd_control(pid_control_t *pid, float rc_yaw, float ahrs_yaw, float yaw_rate, float loop_dt);
 void altitude_control(float alt, float alt_set, float alt_vel,
                       pid_control_t *alt_vel_pid, pid_control_t *alt_pid);
 void position_2d_control(float pos, float vel, float pos_set,
