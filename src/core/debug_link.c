@@ -197,10 +197,10 @@ void send_optitrack_quaternion_message(debug_msg_t *payload)
 
 	payload->s[2] = MESSAGE_ID_OPTITRACK_QUATERNION;
 
-	payload->len += pack_float(&optitrack.quat_w, payload->s + payload->len);
-	payload->len += pack_float(&optitrack.quat_x, payload->s + payload->len);
-	payload->len += pack_float(&optitrack.quat_y, payload->s + payload->len);
-	payload->len += pack_float(&optitrack.quat_z, payload->s + payload->len);
+	payload->len += pack_float(&optitrack.q[0], payload->s + payload->len);
+	payload->len += pack_float(&optitrack.q[1], payload->s + payload->len);
+	payload->len += pack_float(&optitrack.q[2], payload->s + payload->len);
+	payload->len += pack_float(&optitrack.q[3], payload->s + payload->len);
 }
 
 void send_optitrack_velocity_message(debug_msg_t *payload)

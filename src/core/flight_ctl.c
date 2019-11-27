@@ -155,8 +155,7 @@ void task_flight_ctl(void *param)
 		ahrs.q[3] = madgwick_ahrs_info.q3;
 #endif
 
-		update_euler_heading_from_optitrack(optitrack.quat_w, optitrack.quat_x, optitrack.quat_y,
-		                                    optitrack.quat_z, &(ahrs.attitude.yaw));
+		update_euler_heading_from_optitrack(&optitrack.q[0], &(ahrs.attitude.yaw));
 
 		/* attitude control */
 		attitude_pid_control(&pid_roll, att_euler_est.roll, -rc.roll, imu.gyro_lpf.x);

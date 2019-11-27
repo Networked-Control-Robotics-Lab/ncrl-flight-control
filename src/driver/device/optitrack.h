@@ -22,10 +22,7 @@ typedef struct {
 	float vel_lpf_z;
 
 	/* orientation (quaternion) */
-	float quat_x;
-	float quat_y;
-	float quat_z;
-	float quat_w;
+	float q[4];
 
 	float time_now;
 	float time_last;
