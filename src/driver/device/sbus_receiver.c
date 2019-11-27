@@ -127,9 +127,10 @@ void debug_print_rc_val(void)
 {
 	/* debug message */
 	char s[100] = {0};
-	sprintf(s, "ch1:%d, ch2:%d ch3:%d, ch4:%d, ch5:%d\n\r",
-	        rc_val[0], rc_val[1], rc_val[2], rc_val[3], rc_val[4]);
+	sprintf(s, "ch1:%d, ch2:%d ch3:%d, ch4:%d, ch5:%d, ch6:%d\n\r",
+	        rc_val[0], rc_val[1], rc_val[2], rc_val[3], rc_val[4], rc_val[5]);
 	uart3_puts(s, strlen(s));
+	blocked_delay_ms(100);
 }
 
 void debug_print_rc_info(radio_t *rc)
@@ -144,5 +145,5 @@ void debug_print_rc_info(radio_t *rc)
 		        rc->roll, rc->pitch, rc->yaw, rc->throttle);
 	}
 	uart3_puts(s, strlen(s));
+	blocked_delay_ms(100);
 }
-
