@@ -97,10 +97,15 @@ int optitrack_serial_decoder(uint8_t *buf)
 
 	optitrack.time_now = get_sys_time_ms();
 
-	memcpy(&optitrack.pos_x, &buf[3], sizeof(float));
-	memcpy(&optitrack.pos_y, &buf[7], sizeof(float));
-	memcpy(&optitrack.pos_z, &buf[11], sizeof(float));
-	memcpy(&optitrack.quat_x, &buf[15], sizeof(float));
+	float ned_pos_x, ned_pos_y, ned_pos_z;
+
+	memcpy(&ned_pos_x, &buf[3], sizeof(float)); //in ned coordinate system
+	memcpy(&ned_pos_y, &buf[7], sizeof(float));
+	memcpy(&ned_pos_z, &buf[11], sizeof(float));
+	optitrack.pos_x = ned_pos_x;
+	optitrack.pos_y = ned_pos_y;
+	optitrack.pos_z = -ned_pos_z;
+	memcpy(&optitrack.quat_x, &buf[15], sizeof(float)); //in ned coordinate system
 	memcpy(&optitrack.quat_y, &buf[19], sizeof(float));
 	memcpy(&optitrack.quat_z, &buf[23], sizeof(float));
 	memcpy(&optitrack.quat_w, &buf[27], sizeof(float));
