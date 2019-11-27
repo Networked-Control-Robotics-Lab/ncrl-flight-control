@@ -36,9 +36,6 @@ void sbus_rc_handler(uint8_t byte)
 	if((sbus_cnt == 25) && (sbus_buff[0] == 0x0f) && (sbus_buff[24] == 0x00)) {
 		parse_sbus((uint8_t *)sbus_buff, (uint16_t *)rc_val);
 		sbus_cnt = 0;
-
-		//debug_print_raw_sbus();
-		//debug_print_rc_val();
 	}
 
 	last_time_ms = curr_time_ms;
@@ -74,6 +71,7 @@ void read_rc_info(radio_t *rc)
 	float pitch_raw = (float)rc_val[1]; //channel 2
 	float yaw_raw = (float)rc_val[3]; //channel 4
 	float safety_raw = (float)rc_val[4]; //channel 5
+	float flight_mode_raw = (float)rc_val[5]; //channel 6
 
 	if(safety_raw > RC_SAFETY_THRESH) {
 		rc->safety = false; //disarmed
@@ -93,6 +91,19 @@ void read_rc_info(radio_t *rc)
 	rc->throttle = (float)(throttle_raw - RC_THROTTLE_MIN) / (RC_THROTTLE_MAX - RC_THROTTLE_MIN) *
 	               (RC_THROTTLE_RANGE_MAX - RC_THROTTLE_RANGE_MIN);
 
+	/* flight mode */
+	float flight_mode_up_thresh = (RC_FLIGHT_MODE_MAX + RC_FLIGHT_MODE_MID) / 2.0f;
+	float floght_mode_low_thresh = (RC_FLIGHT_MODE_MID + RC_FLIGHT_MODE_MIN) / 2.0f;
+	if(flight_mode_raw < floght_mode_low_thresh) {
+		rc->flight_mode = FLIGHT_MODE_MANUAL;
+	} else if (flight_mode_raw < flight_mode_up_thresh && flight_mode_raw > floght_mode_low_thresh) {
+		rc->flight_mode = FLIGHT_MODE_HALTING;
+	} else if (flight_mode_raw > flight_mode_up_thresh) {
+		rc->flight_mode = FLIGHT_MODE_NAVIGATION;
+	} else {
+		rc->flight_mode = FLIGHT_MODE_MANUAL;
+	}
+
 	bound_float(&rc->roll, RC_ROLL_RANGE_MAX, RC_ROLL_RANGE_MIN);
 	bound_float(&rc->pitch, RC_PITCH_RANGE_MAX, RC_PITCH_RANGE_MIN);
 	bound_float(&rc->yaw, RC_YAW_RANGE_MAX, RC_YAW_RANGE_MIN);
@@ -102,6 +113,7 @@ void read_rc_info(radio_t *rc)
 int rc_safety_check(radio_t *rc)
 {
 	if(rc->safety == false) return 1;
+	if(rc->flight_mode != FLIGHT_MODE_MANUAL) return 1;
 	if(rc->throttle > 10.0f) return 1;
 	if(rc->roll > 5.0f || rc->roll < -5.0f) return 1;
 	if(rc->pitch > 5.0f || rc->pitch < -5.0f) return 1;
@@ -136,13 +148,25 @@ void debug_print_rc_val(void)
 void debug_print_rc_info(radio_t *rc)
 {
 	char s[300] = {0};
+	char *manual_mode_s = "[manual mode]";
+	char *halting_mode_s = "[halting mode]";
+	char *navigation_mode_s = "[navigation mode]";
+	char *flight_mode_s = 0;
+
+	if(rc->flight_mode == FLIGHT_MODE_MANUAL) {
+		flight_mode_s = manual_mode_s;
+	} else if(rc->flight_mode == FLIGHT_MODE_HALTING) {
+		flight_mode_s = halting_mode_s;
+	} else if(rc->flight_mode == FLIGHT_MODE_NAVIGATION) {
+		flight_mode_s = navigation_mode_s;
+	}
 
 	if(rc->safety == true) {
-		sprintf(s, "[disarmed] roll:%lf,pitch:%lf,yaw:%lf,throttle:%lf\n\r",
-		        rc->roll, rc->pitch, rc->yaw, rc->throttle);
+		sprintf(s, "[disarmed]%s roll:%lf,pitch:%lf,yaw:%lf,throttle:%lf\n\r",
+		        flight_mode_s, rc->roll, rc->pitch, rc->yaw, rc->throttle);
 	} else {
-		sprintf(s, "[armed] roll:%lf,pitch:%lf,yaw:%lf,throttle:%lf\n\r",
-		        rc->roll, rc->pitch, rc->yaw, rc->throttle);
+		sprintf(s, "[armed]%s roll:%lf,pitch:%lf,yaw:%lf,throttle:%lf\n\r",
+		        flight_mode_s, rc->roll, rc->pitch, rc->yaw, rc->throttle);
 	}
 	uart3_puts(s, strlen(s));
 	blocked_delay_ms(100);
