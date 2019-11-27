@@ -74,16 +74,16 @@ void optitrack_numerical_vel_calc(void)
 #endif
 
 #if 1
-	float dt = 1.0f / 50.0f; //fixed dt
+	float dt = 1.0f / 30.0f; //fixed dt
 #endif
 	optitrack.vel_raw_x = (optitrack.pos_x - pos_last.x) / dt;
 	optitrack.vel_raw_y = (optitrack.pos_y - pos_last.y) / dt;
 	optitrack.vel_raw_z = (optitrack.pos_z - pos_last.z) / dt;
 	optitrack.recv_freq = 1.0f / dt;
 
-	lpf(optitrack.vel_raw_x, &(optitrack.vel_lpf_x), 0.01);
-	lpf(optitrack.vel_raw_y, &(optitrack.vel_lpf_y), 0.01);
-	lpf(optitrack.vel_raw_z, &(optitrack.vel_lpf_z), 0.01);
+	lpf(optitrack.vel_raw_x, &(optitrack.vel_lpf_x), 0.3);
+	lpf(optitrack.vel_raw_y, &(optitrack.vel_lpf_y), 0.3);
+	lpf(optitrack.vel_raw_z, &(optitrack.vel_lpf_z), 0.3);
 }
 
 int optitrack_serial_decoder(uint8_t *buf)
@@ -101,8 +101,8 @@ int optitrack_serial_decoder(uint8_t *buf)
 	memcpy(&optitrack.pos_y, &buf[7], sizeof(float));
 	memcpy(&optitrack.pos_z, &buf[11], sizeof(float));
 	memcpy(&optitrack.quat_x, &buf[15], sizeof(float));
-	memcpy(&optitrack.quat_z, &buf[19], sizeof(float));
-	memcpy(&optitrack.quat_y, &buf[23], sizeof(float));
+	memcpy(&optitrack.quat_y, &buf[19], sizeof(float));
+	memcpy(&optitrack.quat_z, &buf[23], sizeof(float));
 	memcpy(&optitrack.quat_w, &buf[27], sizeof(float));
 
 	if(vel_init_ready == false) {
@@ -117,11 +117,15 @@ int optitrack_serial_decoder(uint8_t *buf)
 		return 0;
 	}
 
-	optitrack_numerical_vel_calc();
-	pos_last.x = optitrack.pos_x; //save for next iteration
-	pos_last.y = optitrack.pos_y;
-	pos_last.z = optitrack.pos_z;
-	optitrack.time_last = optitrack.time_now;
+	static int vel_calc_counter = 0;
+	if((vel_calc_counter++) == 1) {
+		optitrack_numerical_vel_calc();
+		pos_last.x = optitrack.pos_x; //save for next iteration
+		pos_last.y = optitrack.pos_y;
+		pos_last.z = optitrack.pos_z;
+		optitrack.time_last = optitrack.time_now;
+		vel_calc_counter = 0;
+	}
 
 	return 0;
 }
