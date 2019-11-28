@@ -191,6 +191,7 @@ void task_flight_ctl(void *param)
 		} else {
 			led_on(LED_B);
 			led_off(LED_R);
+			set_yaw_pd_setpoint(&pid_yaw, ahrs.attitude.yaw);
 			motor_control(0.0, 0, 0, 0);
 		}
 
@@ -234,6 +235,11 @@ void yaw_rate_p_control(pid_control_t *pid, float setpoint_yaw_rate, float angul
 	bound_float(&pid->output, pid->output_max, pid->output_min);
 }
 
+void set_yaw_pd_setpoint(pid_control_t *pid, float new_setpoint)
+{
+	pid->setpoint = new_setpoint;
+}
+
 void yaw_pd_control(pid_control_t *pid, float rc_yaw, float ahrs_yaw, float yaw_rate, float loop_dt)
 {
 	if(rc_yaw > +5.0f || rc_yaw < -5.0f) {
@@ -268,7 +274,6 @@ void altitude_control(float alt, float alt_set, float alt_vel,
 	alt_vel_pid->p_final = alt_vel_pid->kp * alt_vel_pid->error_current;
 	bound_float(&alt_pid->output, alt_pid->output_max, alt_pid->output_min);
 }
-
 
 void position_2d_control(float pos, float vel, float pos_set,
                          pid_control_t *vel_pid, pid_control_t *pos_pid)
