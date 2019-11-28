@@ -235,7 +235,19 @@ void rc_safety_protection(void)
 {
 	radio_t rc;
 
+	float time_last = 0.0f;
+	float time_current = 0.0f;
+
+	led_off(LED_R);
+	led_off(LED_G);
+	led_off(LED_B);
+
 	do {
+		time_current = get_sys_time_ms();
+		if(time_current - time_last > 100.0f) {
+			led_toggle(LED_R);
+			time_last = time_current;
+		}
 		read_rc_info(&rc);
 	} while(rc_safety_check(&rc) == 1);
 }
