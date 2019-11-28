@@ -29,6 +29,7 @@ void set_yaw_pd_setpoint(pid_control_t *pid, float new_setpoint);
 void yaw_pd_control(pid_control_t *pid, float rc_yaw, float ahrs_yaw, float yaw_rate, float loop_dt);
 void reset_altitude_control_integral(pid_control_t *alt_pid);
 void altitude_control(float alt, float alt_vel, pid_control_t *alt_vel_pid, pid_control_t *alt_pid);
+void angle_control_cmd_i2b_frame_tramsform(float yaw, float u_i_x, float u_i_y, float *u_b_x, float *u_b_y);
 void position_2d_control(float pos, float vel, float pos_set,
                          pid_control_t *vel_pid, pid_control_t *pos_pid);
 

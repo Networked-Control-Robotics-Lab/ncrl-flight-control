@@ -1,5 +1,5 @@
 #include <string.h>
-
+#include "arm_math.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
@@ -198,9 +198,15 @@ void task_flight_ctl(void *param)
 		position_2d_control(optitrack.pos_x, optitrack.vel_lpf_x, pos_x_set, &pid_vel_x, &pid_pos_x);
 		position_2d_control(optitrack.pos_y, optitrack.vel_lpf_y, pos_y_set, &pid_vel_y, &pid_pos_y);
 
-		if(rc.flight_mode == FLIGHT_MODE_HALTING) {
-			rc.roll -= pid_vel_x.output;
-			rc.pitch -= pid_vel_y.output;
+		//the output command from position_2d_control() have to be converted to body frame
+		float nav_ctl_roll_command; //body frame x direction control
+		float nav_ctl_pitch_command; //body frame y direction control
+		angle_control_cmd_i2b_frame_tramsform(ahrs.attitude.yaw, pid_vel_x.output, pid_vel_y.output,
+		                                      &nav_ctl_roll_command, &nav_ctl_pitch_command);
+
+		if(pid_vel_x.enable == true && pid_vel_y.enable == true) {
+			rc.roll -= nav_ctl_roll_command;
+			rc.pitch -= nav_ctl_pitch_command;
 		}
 
 		/* attitude control */
@@ -312,6 +318,13 @@ void altitude_control(float alt, float alt_vel, pid_control_t *alt_vel_pid, pid_
 	alt_vel_pid->p_final = alt_vel_pid->kp * alt_vel_pid->error_current;
 	alt_vel_pid->output = alt_vel_pid->p_final;
 	bound_float(&alt_vel_pid->output, alt_vel_pid->output_max, alt_vel_pid->output_min);
+}
+
+/* tramsform orientation control command from global (inertial) frame to body frame */
+void angle_control_cmd_i2b_frame_tramsform(float yaw, float u_i_x, float u_i_y, float *u_b_x, float *u_b_y)
+{
+	*u_b_x = (arm_cos_f32(yaw) * u_i_x) - (arm_sin_f32(yaw) * u_i_y);
+	*u_b_y = (arm_sin_f32(yaw) * u_i_x) + (arm_cos_f32(yaw) * u_i_y);
 }
 
 void position_2d_control(float pos, float vel, float pos_set,
