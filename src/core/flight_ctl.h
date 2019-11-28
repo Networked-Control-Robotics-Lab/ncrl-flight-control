@@ -29,7 +29,7 @@ void altitude_control(float alt, float alt_set, float alt_vel,
 void position_2d_control(float pos, float vel, float pos_set,
                          pid_control_t *vel_pid, pid_control_t *pos_pid);
 
-void motor_control(volatile float throttle_percentage, float roll_ctrl_precentage,
+void motor_control(volatile float throttle_percentage, float throttle_ctrl_precentage, float roll_ctrl_precentage,
                    float pitch_ctrl_precentage, float yaw_ctrl_precentage);
 
 void task_flight_ctl(void *param);
