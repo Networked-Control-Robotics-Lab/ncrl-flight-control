@@ -30,6 +30,6 @@ typedef struct {
 int optitrack_serial_decoder(uint8_t *buf);
 void optitrack_handler(uint8_t c);
 void optitrack_init(int id);
-bool optitrack_available_check(void);
+bool optitrack_available(void);
 
 #endif

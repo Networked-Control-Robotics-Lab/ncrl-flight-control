@@ -204,7 +204,7 @@ void task_flight_ctl(void *param)
 		angle_control_cmd_i2b_frame_tramsform(ahrs.attitude.yaw, pid_vel_x.output, pid_vel_y.output,
 		                                      &nav_ctl_roll_command, &nav_ctl_pitch_command);
 
-		if(pid_vel_x.enable == true && pid_vel_y.enable == true && optitrack_available_check() == true) {
+		if(pid_vel_x.enable == true && pid_vel_y.enable == true && optitrack_available() == true) {
 			rc.roll -= nav_ctl_roll_command;
 			rc.pitch -= nav_ctl_pitch_command;
 		}
@@ -217,7 +217,7 @@ void task_flight_ctl(void *param)
 
 		/* disable control output if sensor not available */
 		float yaw_ctrl_output = pid_yaw.output;
-		if(optitrack_available_check() == false) {
+		if(optitrack_available() == false) {
 			yaw_ctrl_output = pid_yaw_rate.output;
 			pid_alt_vel.output = 0.0f;
 		}
