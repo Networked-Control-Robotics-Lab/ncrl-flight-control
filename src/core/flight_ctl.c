@@ -77,17 +77,17 @@ void pid_controller_init(void)
 	pid_pos_y.ki = 0.0f;
 	pid_pos_y.kd = 0.0f;
 
-	pid_vel_x.kp = 0.0f;
+	pid_vel_x.kp = 0.0f; //0.015f;
 	pid_vel_x.ki = 0.0f;
 	pid_vel_x.kd = 0.0f;
-	pid_vel_x.output_min = -10;
-	pid_vel_x.output_max = +10;
+	pid_vel_x.output_min = -10.0f;
+	pid_vel_x.output_max = +10.0f;
 
-	pid_vel_y.kp = 0.0f;
+	pid_vel_y.kp = 0.0f; //0.015f;
 	pid_vel_y.ki = 0.0f;
 	pid_vel_y.kd = 0.0f;
-	pid_vel_y.output_min = -10;
-	pid_vel_y.output_max = +10;
+	pid_vel_y.output_min = -10.0f;
+	pid_vel_y.output_max = +10.0f;
 
 	pid_alt.kp = 0.9f;
 	pid_alt.ki = 0.008f;
@@ -160,7 +160,7 @@ void task_flight_ctl(void *param)
 		update_euler_heading_from_optitrack(&optitrack.q[0], &(ahrs.attitude.yaw));
 
 		/* altitude control */
-		float altitude_setpoint = 200.0f; //[cm]
+		float altitude_setpoint = 150.0f; //[cm]
 		altitude_control(optitrack.pos_z, altitude_setpoint, optitrack.vel_lpf_z, &pid_alt_vel, &pid_alt);
 
 		/* position control (in ned configuration) */
@@ -274,7 +274,6 @@ void altitude_control(float alt, float alt_set, float alt_vel,
 	alt_pid->error_integral += (alt_pid->error_current * alt_pid->ki * 0.0025);
 	alt_pid->i_final = alt_pid->error_integral;
 	alt_pid->output = alt_pid->p_final + alt_pid->i_final;
-	//bound_float(&alt_pid->output, alt_pid->output_max, alt_pid->output_min);
 
 	/* altitude velocity control (control output effects throttle value) */
 	float alt_vel_set = alt_pid->output;
@@ -287,14 +286,17 @@ void altitude_control(float alt, float alt_set, float alt_vel,
 void position_2d_control(float pos, float vel, float pos_set,
                          pid_control_t *vel_pid, pid_control_t *pos_pid)
 {
+#if 0
 	pos_pid->error_current = pos_set - pos;
 	pos_pid->p_final = pos_pid->kp * pos_pid->error_current;
 	//pos_pid->error_integral += (pos_pid->error_current * pos_pid->ki * 0.0025);
-	bound_float(&pos_pid->output, pos_pid->output_max, pos_pid->output_min);
+	//bound_float(&pos_pid->output, pos_pid->output_max, pos_pid->output_min);
+#endif
 
 	float vel_set = 0.0f;
 	vel_pid->error_current = vel_set - vel;
 	vel_pid->p_final = vel_pid->kp * vel_pid->error_current;
+	vel_pid->output = vel_pid->p_final;
 	bound_float(&vel_pid->output, vel_pid->output_max, vel_pid->output_min);
 }
 
