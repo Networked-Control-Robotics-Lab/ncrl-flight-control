@@ -72,26 +72,22 @@ void pid_controller_init(void)
 	pid_pos_x.kp = 0.0f;
 	pid_pos_x.ki = 0.0f;
 	pid_pos_x.kd = 0.0f;
-	//pid_pos_x.output_min = ;
-	//pid_pos_x.output_max = ;
 
 	pid_pos_y.kp = 0.0f;;
 	pid_pos_y.ki = 0.0f;
 	pid_pos_y.kd = 0.0f;
-	//pid_pos_y.output_min = ;
-	//pid_pos_y.output_max = ;
 
 	pid_vel_x.kp = 0.0f;
 	pid_vel_x.ki = 0.0f;
 	pid_vel_x.kd = 0.0f;
-	pid_vel_x.output_min = -15;
-	pid_vel_x.output_max = +15;
+	pid_vel_x.output_min = -10;
+	pid_vel_x.output_max = +10;
 
 	pid_vel_y.kp = 0.0f;
 	pid_vel_y.ki = 0.0f;
 	pid_vel_y.kd = 0.0f;
-	pid_vel_y.output_min = -15;
-	pid_vel_y.output_max = +15;
+	pid_vel_y.output_min = -10;
+	pid_vel_y.output_max = +10;
 
 	pid_alt.kp = 0.9f;
 	pid_alt.ki = 0.008f;
@@ -163,25 +159,28 @@ void task_flight_ctl(void *param)
 
 		update_euler_heading_from_optitrack(&optitrack.q[0], &(ahrs.attitude.yaw));
 
+		/* altitude control */
+		float altitude_setpoint = 200.0f; //[cm]
+		altitude_control(optitrack.pos_z, altitude_setpoint, optitrack.vel_lpf_z, &pid_alt_vel, &pid_alt);
+
+		/* position control (in ned configuration) */
+		float pos_x_set = 0.0f, pos_y_set = 0.0f;
+		position_2d_control(optitrack.pos_x, optitrack.vel_lpf_x, pos_x_set, &pid_vel_x, &pid_pos_x);
+		position_2d_control(optitrack.pos_y, optitrack.vel_lpf_y, pos_y_set, &pid_vel_y, &pid_pos_y);
+
+		if(rc.flight_mode == FLIGHT_MODE_MANUAL) {
+			pid_alt_vel.output = 0.0f;
+			reset_altitude_control_integral(&pid_alt);
+		} else if(rc.flight_mode == FLIGHT_MODE_HALTING) {
+			rc.roll -= pid_vel_x.output;
+			rc.pitch -= pid_vel_y.output;
+		}
+
 		/* attitude control */
 		attitude_pid_control(&pid_roll, att_euler_est.roll, -rc.roll, imu.gyro_lpf.x);
 		attitude_pid_control(&pid_pitch, att_euler_est.pitch, -rc.pitch, imu.gyro_lpf.y);
 		yaw_rate_p_control(&pid_yaw_rate, -rc.yaw, imu.gyro_lpf.z);
 		yaw_pd_control(&pid_yaw, rc.yaw, ahrs.attitude.yaw, imu.gyro_lpf.z, 0.0025);
-
-		/* altitude control */
-		float altitude_setpoint = 200.0f;
-		altitude_control(optitrack.pos_z, altitude_setpoint, optitrack.vel_lpf_z, &pid_alt_vel, &pid_alt);
-		if(rc.flight_mode == FLIGHT_MODE_MANUAL) {
-			pid_alt_vel.output = 0.0f;
-		}
-
-		/* position control */
-		float pos_x = 0.0f, pos_y = 0.0f;
-		float vel_x = 0.0f, vel_y = 0.0f;
-		float pos_x_set = 0.0f, pos_y_set = 0.0f;
-		position_2d_control(pos_x, pos_x_set, vel_x, &pid_vel_x, &pid_pos_x);
-		position_2d_control(pos_y, pos_y_set, vel_y, &pid_vel_y, &pid_pos_y);
 
 		if(rc.safety == false) {
 			led_on(LED_R);
@@ -192,7 +191,6 @@ void task_flight_ctl(void *param)
 			led_on(LED_B);
 			led_off(LED_R);
 			set_yaw_pd_setpoint(&pid_yaw, ahrs.attitude.yaw);
-			reset_altitude_control_integral(&pid_alt);
 			motor_control(0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 		}
 

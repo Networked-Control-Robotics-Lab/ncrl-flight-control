@@ -23,6 +23,8 @@ extern pid_control_t pid_roll;
 extern pid_control_t pid_pitch;
 extern pid_control_t pid_yaw_rate;
 extern pid_control_t pid_yaw;
+extern pid_control_t pid_alt;
+extern pid_control_t pid_alt_vel;
 
 extern float motor1, motor2, motor3, motor4;
 
@@ -253,7 +255,7 @@ void task_debug_link(void *param)
 
 	while(1) {
 		//send_imu_message(&payload);
-		send_attitude_euler_message(&payload);
+		//send_attitude_euler_message(&payload);
 		//send_attitude_quaternion_message(&payload);
 		//send_attitude_imu_message(&payload);
 		//send_ekf_message(&payload);
@@ -262,7 +264,8 @@ void task_debug_link(void *param)
 		//send_optitrack_position_message(&payload);
 		//send_optitrack_quaternion_message(&payload);
 		//send_optitrack_velocity_message(&payload);
-		//send_optitrack_general_float_message(optitrack.recv_freq, &payload);
+		//send_general_float_message(optitrack.recv_freq, &payload);
+		send_general_float_message(pid_alt.error_integral, &payload);
 		//send_accel_calib_message();
 		//send_accel_bias_calib_message();
 		send_onboard_data(payload.s, payload.len);
