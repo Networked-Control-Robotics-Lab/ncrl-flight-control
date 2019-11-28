@@ -69,17 +69,13 @@ static uint8_t generate_optitrack_checksum_byte(uint8_t *payload, int payload_co
 
 void optitrack_numerical_vel_calc(void)
 {
-#if 0
-	float dt = (optitrack.time_now - optitrack.time_last) * 0.001;
-#endif
-
-#if 1
-	float dt = 1.0f / 30.0f; //fixed dt
-#endif
+	const float dt = 1.0f / 30.0f; //fixed dt (30Hz)
 	optitrack.vel_raw_x = (optitrack.pos_x - pos_last.x) / dt;
 	optitrack.vel_raw_y = (optitrack.pos_y - pos_last.y) / dt;
 	optitrack.vel_raw_z = (optitrack.pos_z - pos_last.z) / dt;
-	optitrack.recv_freq = 1.0f / dt;
+
+	float received_period = (optitrack.time_now - optitrack.time_last) * 0.001;
+	optitrack.recv_freq = 1.0f / received_period;
 
 	lpf(optitrack.vel_raw_x, &(optitrack.vel_lpf_x), 0.3);
 	lpf(optitrack.vel_raw_y, &(optitrack.vel_lpf_y), 0.3);

@@ -17,6 +17,7 @@
 #include "ahrs.h"
 #include "madgwick_ahrs.h"
 #include "flight_ctl.h"
+#include "sys_time.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 10
 
@@ -98,11 +99,11 @@ void pid_controller_init(void)
 	//pid_alt.output_min = ;
 	//pid_alt.output_max = ;
 
-	pid_alt_vel.kp = 0.0f;
+	pid_alt_vel.kp = 0.1f;
 	pid_alt_vel.ki = 0.0f;
 	pid_alt_vel.kd = 0.0f;
-	pid_alt_vel.output_min = -35;
-	pid_alt_vel.output_max = +35;
+	pid_alt_vel.output_min = -40;
+	pid_alt_vel.output_max = +40;
 }
 
 void flight_ctl_semaphore_handler(void)
@@ -173,8 +174,10 @@ void task_flight_ctl(void *param)
 		/* altitude control */
 		float altitude = 0.0f;
 		float altitude_setpoint = 0.0f;
-		float altitude_vel = 0.0f;
-		altitude_control(altitude, altitude_setpoint, altitude_vel, &pid_alt_vel, &pid_alt);
+		altitude_control(altitude, altitude_setpoint, optitrack.vel_lpf_z, &pid_alt_vel, &pid_alt);
+		if(rc.flight_mode == FLIGHT_MODE_MANUAL) {
+			pid_alt_vel.output = 0.0f;
+		}
 
 		/* position control */
 		float pos_x = 0.0f, pos_y = 0.0f;
@@ -187,12 +190,12 @@ void task_flight_ctl(void *param)
 			led_on(LED_R);
 			led_off(LED_B);
 			//motor_control(rc.throttle, pid_roll.output, pid_pitch.output, pid_yaw_rate.output);
-			motor_control(rc.throttle, pid_roll.output, pid_pitch.output, pid_yaw.output);
+			motor_control(rc.throttle, pid_alt_vel.output, pid_roll.output, pid_pitch.output, pid_yaw.output);
 		} else {
 			led_on(LED_B);
 			led_off(LED_R);
 			set_yaw_pd_setpoint(&pid_yaw, ahrs.attitude.yaw);
-			motor_control(0.0, 0, 0, 0);
+			motor_control(0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 		}
 
 		taskYIELD();
@@ -242,8 +245,10 @@ void set_yaw_pd_setpoint(pid_control_t *pid, float new_setpoint)
 
 void yaw_pd_control(pid_control_t *pid, float rc_yaw, float ahrs_yaw, float yaw_rate, float loop_dt)
 {
+	/* changing setpoint if yaw joystick exceed the +-5 degree zone */
 	if(rc_yaw > +5.0f || rc_yaw < -5.0f) {
 		pid->setpoint += rc_yaw * loop_dt;
+		/* signal bounding */
 		if(pid->setpoint > +180.0f) {
 			pid->setpoint -= 360.0f;
 		} else if(pid->setpoint < -180.0f) {
@@ -262,17 +267,19 @@ void yaw_pd_control(pid_control_t *pid, float rc_yaw, float ahrs_yaw, float yaw_
 void altitude_control(float alt, float alt_set, float alt_vel,
                       pid_control_t *alt_vel_pid, pid_control_t *alt_pid)
 {
+#if 0
 	/* altitude control (control output becomes setpoint of velocity controller) */
 	alt_pid->error_current = alt_set - alt;
 	alt_pid->p_final = alt_pid->kp * alt_pid->error_current;
 	//alt_pid->error_integral += (alt_pid->error_current * alt_pid->ki * 0.0025);
 	bound_float(&alt_pid->output, alt_pid->output_max, alt_pid->output_min);
-
+#endif
 	/* altitude velocity control (control output effects throttle value) */
 	float alt_vel_set = 0.0f;
 	alt_vel_pid->error_current = alt_vel_set - alt_vel;
 	alt_vel_pid->p_final = alt_vel_pid->kp * alt_vel_pid->error_current;
-	bound_float(&alt_pid->output, alt_pid->output_max, alt_pid->output_min);
+	alt_vel_pid->output = alt_vel_pid->p_final;
+	bound_float(&alt_vel_pid->output, alt_vel_pid->output_max, alt_vel_pid->output_min);
 }
 
 void position_2d_control(float pos, float vel, float pos_set,
@@ -289,7 +296,7 @@ void position_2d_control(float pos, float vel, float pos_set,
 	bound_float(&vel_pid->output, vel_pid->output_max, vel_pid->output_min);
 }
 
-void motor_control(volatile float throttle_percentage, float roll_ctrl_precentage,
+void motor_control(volatile float throttle_percentage, float throttle_ctrl_precentage, float roll_ctrl_precentage,
                    float pitch_ctrl_precentage, float yaw_ctrl_precentage)
 {
 	float percentage_to_pwm = 0.01 * (MOTOR_PULSE_MAX - MOTOR_PULSE_MIN);
@@ -299,6 +306,7 @@ void motor_control(volatile float throttle_percentage, float roll_ctrl_precentag
 	float roll_pwm = roll_ctrl_precentage * (float)percentage_to_pwm;
 	float pitch_pwm = pitch_ctrl_precentage * (float)percentage_to_pwm;
 	float yaw_pwm = yaw_ctrl_precentage * (float)percentage_to_pwm;
+	float throttle_ctrl_pwm = throttle_ctrl_precentage * (float)percentage_to_pwm;
 
 	float m1_pwm, m2_pwm, m3_pwm, m4_pwm;
 
@@ -307,10 +315,10 @@ void motor_control(volatile float throttle_percentage, float roll_ctrl_precentag
 	         x
 	    m3       m4
 	   (cw)    (ccw) */
-	m1_pwm = power_basis + roll_pwm + pitch_pwm - yaw_pwm;
-	m2_pwm = power_basis - roll_pwm + pitch_pwm + yaw_pwm;
-	m3_pwm = power_basis - roll_pwm - pitch_pwm - yaw_pwm;
-	m4_pwm = power_basis + roll_pwm - pitch_pwm + yaw_pwm;
+	m1_pwm = power_basis + throttle_ctrl_pwm + roll_pwm + pitch_pwm - yaw_pwm;
+	m2_pwm = power_basis + throttle_ctrl_pwm - roll_pwm + pitch_pwm + yaw_pwm;
+	m3_pwm = power_basis + throttle_ctrl_pwm - roll_pwm - pitch_pwm - yaw_pwm;
+	m4_pwm = power_basis + throttle_ctrl_pwm + roll_pwm - pitch_pwm + yaw_pwm;
 	bound_float(&m1_pwm, MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
 	bound_float(&m2_pwm, MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
 	bound_float(&m3_pwm, MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);

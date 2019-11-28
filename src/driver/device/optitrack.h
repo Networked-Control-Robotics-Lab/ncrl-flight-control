@@ -3,8 +3,6 @@
 
 #include <stdint.h>
 
-void optitrack_handler(uint8_t c);
-
 typedef struct {
 	uint8_t id;
 
@@ -30,5 +28,7 @@ typedef struct {
 } optitrack_t ;
 
 int optitrack_serial_decoder(uint8_t *buf);
+void optitrack_handler(uint8_t c);
+void optitrack_init(int id);
 
 #endif
