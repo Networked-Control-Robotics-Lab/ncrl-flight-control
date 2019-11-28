@@ -204,7 +204,7 @@ void task_flight_ctl(void *param)
 		angle_control_cmd_i2b_frame_tramsform(ahrs.attitude.yaw, pid_vel_x.output, pid_vel_y.output,
 		                                      &nav_ctl_roll_command, &nav_ctl_pitch_command);
 
-		if(pid_vel_x.enable == true && pid_vel_y.enable == true) {
+		if(pid_vel_x.enable == true && pid_vel_y.enable == true && optitrack_available_check() == true) {
 			rc.roll -= nav_ctl_roll_command;
 			rc.pitch -= nav_ctl_pitch_command;
 		}
@@ -215,11 +215,17 @@ void task_flight_ctl(void *param)
 		yaw_rate_p_control(&pid_yaw_rate, -rc.yaw, imu.gyro_lpf.z);
 		yaw_pd_control(&pid_yaw, rc.yaw, ahrs.attitude.yaw, imu.gyro_lpf.z, 0.0025);
 
+		/* disable control output if sensor not available */
+		float yaw_ctrl_output = pid_yaw.output;
+		if(optitrack_available_check() == false) {
+			yaw_ctrl_output = pid_yaw_rate.output;
+			pid_alt_vel.output = 0.0f;
+		}
+
 		if(rc.safety == false) {
 			led_on(LED_R);
 			led_off(LED_B);
-			//motor_control(rc.throttle, pid_roll.output, pid_pitch.output, pid_yaw_rate.output);
-			motor_control(rc.throttle, pid_alt_vel.output, pid_roll.output, pid_pitch.output, pid_yaw.output);
+			motor_control(rc.throttle, pid_alt_vel.output, pid_roll.output, pid_pitch.output, yaw_ctrl_output);
 		} else {
 			led_on(LED_B);
 			led_off(LED_R);

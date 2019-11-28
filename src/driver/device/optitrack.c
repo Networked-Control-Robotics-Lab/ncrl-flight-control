@@ -12,6 +12,8 @@
 
 #define OPTITRACK_SERIAL_MSG_SIZE 32
 
+bool optitrack_available = false;
+
 volatile int optitrack_buf_pos = 0;
 uint8_t optitrack_buf[OPTITRACK_SERIAL_MSG_SIZE] = {0};
 
@@ -22,6 +24,16 @@ bool vel_init_ready = false;
 void optitrack_init(int id)
 {
 	optitrack.id = id;
+}
+
+bool optitrack_available_check(void)
+{
+	//timeout if no data available more than 300ms
+	float current_time = get_sys_time_ms();
+	if((current_time - optitrack.time_now) > 300 || optitrack_available == false) {
+		return false;
+	}
+	return true;
 }
 
 void optitrack_buf_push(uint8_t c)
