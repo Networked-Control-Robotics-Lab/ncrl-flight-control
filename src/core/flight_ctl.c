@@ -93,11 +93,9 @@ void pid_controller_init(void)
 	pid_vel_y.output_min = -15;
 	pid_vel_y.output_max = +15;
 
-	pid_alt.kp = 0.0f;
+	pid_alt.kp = 1.0f;
 	pid_alt.ki = 0.0f;
 	pid_alt.kd = 0.0f;
-	//pid_alt.output_min = ;
-	//pid_alt.output_max = ;
 
 	pid_alt_vel.kp = 0.1f;
 	pid_alt_vel.ki = 0.0f;
@@ -172,9 +170,8 @@ void task_flight_ctl(void *param)
 		yaw_pd_control(&pid_yaw, rc.yaw, ahrs.attitude.yaw, imu.gyro_lpf.z, 0.0025);
 
 		/* altitude control */
-		float altitude = 0.0f;
-		float altitude_setpoint = 0.0f;
-		altitude_control(altitude, altitude_setpoint, optitrack.vel_lpf_z, &pid_alt_vel, &pid_alt);
+		float altitude_setpoint = 200.0f;
+		altitude_control(optitrack.pos_z, altitude_setpoint, optitrack.vel_lpf_z, &pid_alt_vel, &pid_alt);
 		if(rc.flight_mode == FLIGHT_MODE_MANUAL) {
 			pid_alt_vel.output = 0.0f;
 		}
@@ -267,15 +264,15 @@ void yaw_pd_control(pid_control_t *pid, float rc_yaw, float ahrs_yaw, float yaw_
 void altitude_control(float alt, float alt_set, float alt_vel,
                       pid_control_t *alt_vel_pid, pid_control_t *alt_pid)
 {
-#if 0
 	/* altitude control (control output becomes setpoint of velocity controller) */
 	alt_pid->error_current = alt_set - alt;
 	alt_pid->p_final = alt_pid->kp * alt_pid->error_current;
 	//alt_pid->error_integral += (alt_pid->error_current * alt_pid->ki * 0.0025);
-	bound_float(&alt_pid->output, alt_pid->output_max, alt_pid->output_min);
-#endif
+	alt_pid->output = alt_pid->p_final;
+	//bound_float(&alt_pid->output, alt_pid->output_max, alt_pid->output_min);
+
 	/* altitude velocity control (control output effects throttle value) */
-	float alt_vel_set = 0.0f;
+	float alt_vel_set = alt_pid->output;
 	alt_vel_pid->error_current = alt_vel_set - alt_vel;
 	alt_vel_pid->p_final = alt_vel_pid->kp * alt_vel_pid->error_current;
 	alt_vel_pid->output = alt_vel_pid->p_final;
