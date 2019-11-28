@@ -93,15 +93,15 @@ void pid_controller_init(void)
 	pid_vel_y.output_min = -15;
 	pid_vel_y.output_max = +15;
 
-	pid_alt.kp = 1.0f;
-	pid_alt.ki = 0.0f;
+	pid_alt.kp = 0.9f;
+	pid_alt.ki = 0.008f;
 	pid_alt.kd = 0.0f;
 
 	pid_alt_vel.kp = 0.1f;
 	pid_alt_vel.ki = 0.0f;
 	pid_alt_vel.kd = 0.0f;
-	pid_alt_vel.output_min = -40;
-	pid_alt_vel.output_max = +40;
+	pid_alt_vel.output_min = -60;
+	pid_alt_vel.output_max = +60;
 }
 
 void flight_ctl_semaphore_handler(void)
@@ -192,6 +192,7 @@ void task_flight_ctl(void *param)
 			led_on(LED_B);
 			led_off(LED_R);
 			set_yaw_pd_setpoint(&pid_yaw, ahrs.attitude.yaw);
+			reset_altitude_control_integral(&pid_alt);
 			motor_control(0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 		}
 
@@ -261,14 +262,20 @@ void yaw_pd_control(pid_control_t *pid, float rc_yaw, float ahrs_yaw, float yaw_
 	bound_float(&pid->output, pid->output_max, pid->output_min);
 }
 
+void reset_altitude_control_integral(pid_control_t *alt_pid)
+{
+	alt_pid->error_integral = 0.0f;
+}
+
 void altitude_control(float alt, float alt_set, float alt_vel,
                       pid_control_t *alt_vel_pid, pid_control_t *alt_pid)
 {
 	/* altitude control (control output becomes setpoint of velocity controller) */
 	alt_pid->error_current = alt_set - alt;
 	alt_pid->p_final = alt_pid->kp * alt_pid->error_current;
-	//alt_pid->error_integral += (alt_pid->error_current * alt_pid->ki * 0.0025);
-	alt_pid->output = alt_pid->p_final;
+	alt_pid->error_integral += (alt_pid->error_current * alt_pid->ki * 0.0025);
+	alt_pid->i_final = alt_pid->error_integral;
+	alt_pid->output = alt_pid->p_final + alt_pid->i_final;
 	//bound_float(&alt_pid->output, alt_pid->output_max, alt_pid->output_min);
 
 	/* altitude velocity control (control output effects throttle value) */

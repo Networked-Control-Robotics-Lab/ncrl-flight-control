@@ -24,6 +24,7 @@ void yaw_rate_p_control(pid_control_t *pid, float setpoint_yaw_rate,
                         float angular_velocity);
 void set_yaw_pd_setpoint(pid_control_t *pid, float new_setpoint);
 void yaw_pd_control(pid_control_t *pid, float rc_yaw, float ahrs_yaw, float yaw_rate, float loop_dt);
+void reset_altitude_control_integral(pid_control_t *alt_pid);
 void altitude_control(float alt, float alt_set, float alt_vel,
                       pid_control_t *alt_vel_pid, pid_control_t *alt_pid);
 void position_2d_control(float pos, float vel, float pos_set,
