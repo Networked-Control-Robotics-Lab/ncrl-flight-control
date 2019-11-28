@@ -107,6 +107,37 @@ void flight_ctl_semaphore_handler(void)
 	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }
 
+void rc_mode_change_handler(radio_t *rc)
+{
+	static int flight_mode_last = FLIGHT_MODE_MANUAL;
+
+	//if switching mode from manual mode to halting
+	if(rc->flight_mode == FLIGHT_MODE_HALTING && flight_mode_last == FLIGHT_MODE_MANUAL) {
+		pid_alt.enable =
+		        pid_alt_vel.enable = true;
+		pid_alt.setpoint = optitrack.pos_z;
+	}
+
+	//if switching mode from manual mode to navigation
+	if(rc->flight_mode == FLIGHT_MODE_HALTING && flight_mode_last == FLIGHT_MODE_MANUAL) {
+		pid_alt.enable =true;
+		pid_alt_vel.enable = true;
+		pid_alt.setpoint = optitrack.pos_z;
+	}
+
+	//if switching mode from halting to naviation
+	if(rc->flight_mode == FLIGHT_MODE_HALTING && flight_mode_last == FLIGHT_MODE_MANUAL) {
+	}
+
+	//if current mode if maunal
+	if(rc->flight_mode == FLIGHT_MODE_MANUAL) {
+		pid_alt_vel.enable = false;
+		reset_altitude_control_integral(&pid_alt);
+	}
+
+	flight_mode_last = rc->flight_mode;
+}
+
 void task_flight_ctl(void *param)
 {
 	euler_t att_euler_est;
@@ -132,7 +163,7 @@ void task_flight_ctl(void *param)
 		//gpio_toggle(MOTOR7_FREQ_TEST);
 
 		read_rc_info(&rc);
-
+		rc_mode_change_handler(&rc);
 #if 1
 		ahrs_estimate(&att_euler_est, ahrs.q, imu.accel_lpf, imu.gyro_lpf);
 		ahrs.attitude.roll = att_euler_est.roll;
@@ -160,18 +191,14 @@ void task_flight_ctl(void *param)
 		update_euler_heading_from_optitrack(&optitrack.q[0], &(ahrs.attitude.yaw));
 
 		/* altitude control */
-		float altitude_setpoint = 150.0f; //[cm]
-		altitude_control(optitrack.pos_z, altitude_setpoint, optitrack.vel_lpf_z, &pid_alt_vel, &pid_alt);
+		altitude_control(optitrack.pos_z, optitrack.vel_lpf_z, &pid_alt_vel, &pid_alt);
 
 		/* position control (in ned configuration) */
 		float pos_x_set = 0.0f, pos_y_set = 0.0f;
 		position_2d_control(optitrack.pos_x, optitrack.vel_lpf_x, pos_x_set, &pid_vel_x, &pid_pos_x);
 		position_2d_control(optitrack.pos_y, optitrack.vel_lpf_y, pos_y_set, &pid_vel_y, &pid_pos_y);
 
-		if(rc.flight_mode == FLIGHT_MODE_MANUAL) {
-			pid_alt_vel.output = 0.0f;
-			reset_altitude_control_integral(&pid_alt);
-		} else if(rc.flight_mode == FLIGHT_MODE_HALTING) {
+		if(rc.flight_mode == FLIGHT_MODE_HALTING) {
 			rc.roll -= pid_vel_x.output;
 			rc.pitch -= pid_vel_y.output;
 		}
@@ -265,11 +292,15 @@ void reset_altitude_control_integral(pid_control_t *alt_pid)
 	alt_pid->error_integral = 0.0f;
 }
 
-void altitude_control(float alt, float alt_set, float alt_vel,
-                      pid_control_t *alt_vel_pid, pid_control_t *alt_pid)
+void altitude_control(float alt, float alt_vel, pid_control_t *alt_vel_pid, pid_control_t *alt_pid)
 {
+	if(alt_vel_pid->enable == false) {
+		alt_vel_pid->output = 0.0f;
+		return;
+	}
+
 	/* altitude control (control output becomes setpoint of velocity controller) */
-	alt_pid->error_current = alt_set - alt;
+	alt_pid->error_current = alt_pid->setpoint - alt;
 	alt_pid->p_final = alt_pid->kp * alt_pid->error_current;
 	alt_pid->error_integral += (alt_pid->error_current * alt_pid->ki * 0.0025);
 	alt_pid->i_final = alt_pid->error_integral;
