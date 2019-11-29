@@ -27,7 +27,12 @@ extern pid_control_t pid_alt;
 extern pid_control_t pid_alt_vel;
 extern pid_control_t pid_vel_x;
 extern pid_control_t pid_vel_y;
+extern pid_control_t pid_pos_x;
+extern pid_control_t pid_pos_y;
 extern float motor1, motor2, motor3, motor4;
+
+extern float nav_ctl_roll_command;
+extern float nav_ctl_pitch_command;
 
 extern float _mat_(P)[4 * 4];
 extern float _mat_(K)[4 * 4];
@@ -266,7 +271,7 @@ void task_debug_link(void *param)
 		//send_optitrack_quaternion_message(&payload);
 		//send_optitrack_velocity_message(&payload);
 		//send_general_float_message(optitrack.recv_freq, &payload);
-		send_general_float_message(pid_vel_x.output, &payload);
+		send_general_float_message(nav_ctl_roll_command, &payload);
 		//send_accel_calib_message();
 		//send_accel_bias_calib_message();
 		send_onboard_data(payload.s, payload.len);

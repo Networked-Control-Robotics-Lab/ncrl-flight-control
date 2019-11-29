@@ -41,6 +41,10 @@ pid_control_t pid_vel_y;
 pid_control_t pid_alt;
 pid_control_t pid_alt_vel;
 
+//the output command from position_2d_control() have to be converted to body frame
+float nav_ctl_roll_command; //body frame x direction control
+float nav_ctl_pitch_command; //body frame y direction control
+
 float motor1, motor2, motor3, motor4;
 radio_t rc;
 
@@ -69,26 +73,30 @@ void pid_controller_init(void)
 	pid_yaw.output_max = 35.0f;
 
 	/* positon and velocity controllers */
-	pid_pos_x.kp = 0.0f;
+	pid_pos_x.kp = 0.0f;//0.5f;
 	pid_pos_x.ki = 0.0f;
 	pid_pos_x.kd = 0.0f;
+	pid_pos_x.output_min = -25.0f;
+	pid_pos_x.output_max = +25.0f;
 
-	pid_pos_y.kp = 0.0f;;
+	pid_pos_y.kp = 0.0f;//0.5f;
 	pid_pos_y.ki = 0.0f;
 	pid_pos_y.kd = 0.0f;
-
-	pid_vel_x.kp = 0.0f; //0.015f;
+	pid_pos_y.output_min = -25.0f;
+	pid_pos_y.output_max = +25.0f;
+#if 0
+	pid_vel_x.kp = 0.0f;
 	pid_vel_x.ki = 0.0f;
 	pid_vel_x.kd = 0.0f;
 	pid_vel_x.output_min = -10.0f;
 	pid_vel_x.output_max = +10.0f;
 
-	pid_vel_y.kp = 0.0f; //0.015f;
+	pid_vel_y.kp = 0.0f;
 	pid_vel_y.ki = 0.0f;
 	pid_vel_y.kd = 0.0f;
 	pid_vel_y.output_min = -10.0f;
 	pid_vel_y.output_max = +10.0f;
-
+#endif
 	pid_alt.kp = 0.9f;
 	pid_alt.ki = 0.008f;
 	pid_alt.kd = 0.0f;
@@ -197,22 +205,18 @@ void task_flight_ctl(void *param)
 		float pos_x_set = 0.0f, pos_y_set = 0.0f;
 		position_2d_control(optitrack.pos_x, optitrack.vel_lpf_x, pos_x_set, &pid_vel_x, &pid_pos_x);
 		position_2d_control(optitrack.pos_y, optitrack.vel_lpf_y, pos_y_set, &pid_vel_y, &pid_pos_y);
-
-		//the output command from position_2d_control() have to be converted to body frame
-		float nav_ctl_roll_command; //body frame x direction control
-		float nav_ctl_pitch_command; //body frame y direction control
-		angle_control_cmd_i2b_frame_tramsform(ahrs.attitude.yaw, pid_vel_x.output, pid_vel_y.output,
-		                                      &nav_ctl_roll_command, &nav_ctl_pitch_command);
+		angle_control_cmd_i2b_frame_tramsform(ahrs.attitude.yaw, pid_pos_x.output, pid_pos_y.output,
+		                                      &nav_ctl_pitch_command, &nav_ctl_roll_command);
 
 		if(pid_vel_x.enable == true && pid_vel_y.enable == true && optitrack_available() == true) {
-			rc.roll -= nav_ctl_roll_command;
-			rc.pitch -= nav_ctl_pitch_command;
+			rc.roll -= nav_ctl_roll_command; //y directional control
+			rc.pitch -= nav_ctl_pitch_command; //x directional control
 		}
 
 		/* attitude control */
 		attitude_pid_control(&pid_roll, att_euler_est.roll, -rc.roll, imu.gyro_lpf.x);
 		attitude_pid_control(&pid_pitch, att_euler_est.pitch, -rc.pitch, imu.gyro_lpf.y);
-		yaw_rate_p_control(&pid_yaw_rate, -rc.yaw, imu.gyro_lpf.z);
+		yaw_rate_p_control(&pid_yaw_rate, -rc.yaw, imu.gyro_lpf.z); //used if magnetometer/optitrack not performed
 		yaw_pd_control(&pid_yaw, rc.yaw, ahrs.attitude.yaw, imu.gyro_lpf.z, 0.0025);
 
 		/* disable control output if sensor not available */
@@ -264,24 +268,19 @@ void attitude_pid_control(pid_control_t *pid, float ahrs_attitude,
 	//error = reference (setpoint) - measurement
 	pid->error_current = setpoint_attitude - ahrs_attitude;
 	pid->error_integral += (pid->error_current * pid->ki * 0.0025);
-	pid->error_derivative = -angular_velocity; //error_derivative = 0 (setpoint) - measurement_derivative
-
 	bound_float(&pid->error_integral, 10.0f, -10.0f);
-
+	pid->error_derivative = -angular_velocity; //error_derivative = 0 (setpoint) - measurement_derivative
 	pid->p_final = pid->kp * pid->error_current;
 	pid->i_final = pid->error_integral;
 	pid->d_final = pid->kd * pid->error_derivative;
-
 	pid->output = pid->p_final + pid->i_final + pid->d_final;
 }
 
 void yaw_rate_p_control(pid_control_t *pid, float setpoint_yaw_rate, float angular_velocity)
 {
 	pid->error_current = setpoint_yaw_rate - angular_velocity;
-
 	pid->p_final = pid->kp * -pid->error_current;
 	pid->output = pid->p_final;
-
 	bound_float(&pid->output, pid->output_max, pid->output_min);
 }
 
@@ -325,8 +324,8 @@ void altitude_control(float alt, float alt_vel, pid_control_t *alt_vel_pid, pid_
 
 	/* altitude control (control output becomes setpoint of velocity controller) */
 	alt_pid->error_current = alt_pid->setpoint - alt;
-	alt_pid->p_final = alt_pid->kp * alt_pid->error_current;
 	alt_pid->error_integral += (alt_pid->error_current * alt_pid->ki * 0.0025);
+	alt_pid->p_final = alt_pid->kp * alt_pid->error_current;
 	alt_pid->i_final = alt_pid->error_integral;
 	alt_pid->output = alt_pid->p_final + alt_pid->i_final;
 
@@ -341,25 +340,34 @@ void altitude_control(float alt, float alt_vel, pid_control_t *alt_vel_pid, pid_
 /* tramsform orientation control command from global (inertial) frame to body frame */
 void angle_control_cmd_i2b_frame_tramsform(float yaw, float u_i_x, float u_i_y, float *u_b_x, float *u_b_y)
 {
-	*u_b_x = (arm_cos_f32(yaw) * u_i_x) - (arm_sin_f32(yaw) * u_i_y);
-	*u_b_y = (arm_sin_f32(yaw) * u_i_x) + (arm_cos_f32(yaw) * u_i_y);
+	float yaw_rad = deg_to_rad(yaw);
+	*u_b_x = (arm_cos_f32(yaw_rad) * u_i_x) - (arm_sin_f32(yaw_rad) * u_i_y);
+	*u_b_y = (arm_sin_f32(yaw_rad) * u_i_x) + (arm_cos_f32(yaw_rad) * u_i_y);
 }
 
 void position_2d_control(float pos, float vel, float pos_set,
                          pid_control_t *vel_pid, pid_control_t *pos_pid)
 {
-#if 0
+#if 1   /* position pid control (p: position, d: velocity) */
+	float vel_set = 0.0f;
 	pos_pid->error_current = pos_set - pos;
 	pos_pid->p_final = pos_pid->kp * pos_pid->error_current;
-	//pos_pid->error_integral += (pos_pid->error_current * pos_pid->ki * 0.0025);
-	//bound_float(&pos_pid->output, pos_pid->output_max, pos_pid->output_min);
+	pos_pid->error_integral += (pos_pid->error_current * pos_pid->ki * 0.0025);
+	pos_pid->i_final = pos_pid->error_integral;
+	pos_pid->error_derivative = vel_set - vel;
+	pos_pid->d_final = pos_pid->kd * pos_pid->error_derivative;
+	pos_pid->output = pos_pid->p_final + pos_pid->i_final + pos_pid->d_final;
+	bound_float(&pos_pid->output, pos_pid->output_max, pos_pid->output_min);
 #endif
 
+#if 0   /* position velocity cascading control */
+	//velocity control
 	float vel_set = 0.0f;
 	vel_pid->error_current = vel_set - vel;
 	vel_pid->p_final = vel_pid->kp * vel_pid->error_current;
 	vel_pid->output = vel_pid->p_final;
 	bound_float(&vel_pid->output, vel_pid->output_max, vel_pid->output_min);
+#endif
 }
 
 void motor_control(volatile float throttle_percentage, float throttle_ctrl_precentage, float roll_ctrl_precentage,
