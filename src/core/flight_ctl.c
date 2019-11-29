@@ -51,13 +51,13 @@ radio_t rc;
 void pid_controller_init(void)
 {
 	/* attitude controllers */
-	pid_roll.kp = 0.27f;
+	pid_roll.kp = 0.3f;
 	pid_roll.ki = 0.0f;
-	pid_roll.kd = 0.06f;
+	pid_roll.kd = 0.09f;
 
-	pid_pitch.kp = 0.27f;
+	pid_pitch.kp = 0.3f;
 	pid_pitch.ki = 0.0f;
-	pid_pitch.kd = 0.06f;
+	pid_pitch.kd = 0.09f;
 
 	pid_yaw_rate.kp = 0.3f;
 	pid_yaw_rate.ki = 0.0f;
@@ -65,9 +65,9 @@ void pid_controller_init(void)
 	pid_yaw_rate.output_min = -35.0f;
 	pid_yaw_rate.output_max = 35.0f;
 
-	pid_yaw.kp = 0.27f;
+	pid_yaw.kp = 0.3f;
 	pid_yaw.ki = 0.0f;
-	pid_yaw.kd = -0.1f;
+	pid_yaw.kd = -0.15f;
 	pid_yaw.setpoint = 0.0f;
 	pid_yaw.output_min = -35.0f;
 	pid_yaw.output_max = 35.0f;
@@ -97,15 +97,15 @@ void pid_controller_init(void)
 	pid_vel_y.output_min = -10.0f;
 	pid_vel_y.output_max = +10.0f;
 #endif
-	pid_alt.kp = 0.9f;
-	pid_alt.ki = 0.008f;
+	pid_alt.kp = 0.2f;
+	pid_alt.ki = 0.01f;
 	pid_alt.kd = 0.0f;
 
-	pid_alt_vel.kp = 0.1f;
+	pid_alt_vel.kp = 0.11f;
 	pid_alt_vel.ki = 0.0f;
 	pid_alt_vel.kd = 0.0f;
-	pid_alt_vel.output_min = -60;
-	pid_alt_vel.output_max = +60;
+	pid_alt_vel.output_min = -100.0f;
+	pid_alt_vel.output_max = +100.0f;
 }
 
 void flight_ctl_semaphore_handler(void)
