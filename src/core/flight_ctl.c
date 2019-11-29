@@ -97,11 +97,11 @@ void pid_controller_init(void)
 	pid_vel_y.output_min = -10.0f;
 	pid_vel_y.output_max = +10.0f;
 #endif
-	pid_alt.kp = 0.2f;
+	pid_alt.kp = 0.25f;
 	pid_alt.ki = 0.01f;
 	pid_alt.kd = 0.0f;
 
-	pid_alt_vel.kp = 0.11f;
+	pid_alt_vel.kp = 0.1f;
 	pid_alt_vel.ki = 0.0f;
 	pid_alt_vel.kd = 0.0f;
 	pid_alt_vel.output_min = -100.0f;
