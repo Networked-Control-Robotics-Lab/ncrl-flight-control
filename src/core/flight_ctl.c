@@ -115,29 +115,30 @@ void rc_mode_change_handler(radio_t *rc)
 {
 	static int flight_mode_last = FLIGHT_MODE_MANUAL;
 
-	//if switching mode from manual mode to halting
-	if(rc->flight_mode == FLIGHT_MODE_HALTING && flight_mode_last == FLIGHT_MODE_MANUAL) {
-		pid_alt.enable =
-		        pid_alt_vel.enable = true;
-		pid_alt.setpoint = optitrack.pos_z;
-	}
-
-	//if switching mode from manual mode to navigation
-	if(rc->flight_mode == FLIGHT_MODE_HALTING && flight_mode_last == FLIGHT_MODE_MANUAL) {
-		pid_alt.enable =true;
+	//if mode switched to hovering
+	if(rc->flight_mode == FLIGHT_MODE_HALTING && flight_mode_last != FLIGHT_MODE_HALTING) {
+		pid_alt.enable = true;
 		pid_alt_vel.enable = true;
 		pid_alt.setpoint = optitrack.pos_z;
 		pid_vel_x.enable = true;
 		pid_vel_y.enable = true;
+		pid_pos_x.setpoint = optitrack.pos_x;
+		pid_pos_y.setpoint = optitrack.pos_y;
+		reset_position_2d_control_integral(&pid_pos_x);
+		reset_position_2d_control_integral(&pid_pos_y);
 	}
 
-	//if switching mode from halting to naviation
-	if(rc->flight_mode == FLIGHT_MODE_HALTING && flight_mode_last == FLIGHT_MODE_MANUAL) {
-		pid_alt.enable =true;
+	//if mode switched to navigation
+	if(rc->flight_mode == FLIGHT_MODE_NAVIGATION && flight_mode_last != FLIGHT_MODE_NAVIGATION) {
+		pid_alt.enable = true;
 		pid_alt_vel.enable = true;
 		pid_alt.setpoint = optitrack.pos_z;
 		pid_vel_x.enable = true;
 		pid_vel_y.enable = true;
+		pid_pos_x.setpoint = 0.0f; //XXX: currently we feed origin as navigation waypoint
+		pid_pos_y.setpoint = 0.0f;
+		reset_position_2d_control_integral(&pid_pos_x);
+		reset_position_2d_control_integral(&pid_pos_y);
 	}
 
 	//if current mode if maunal
@@ -209,9 +210,8 @@ void task_flight_ctl(void *param)
 		altitude_control(optitrack.pos_z, optitrack.vel_lpf_z, &pid_alt_vel, &pid_alt);
 
 		/* position control (in ned configuration) */
-		float pos_x_set = 0.0f, pos_y_set = 0.0f;
-		position_2d_control(optitrack.pos_x, optitrack.vel_lpf_x, pos_x_set, &pid_vel_x, &pid_pos_x);
-		position_2d_control(optitrack.pos_y, optitrack.vel_lpf_y, pos_y_set, &pid_vel_y, &pid_pos_y);
+		position_2d_control(optitrack.pos_x, optitrack.vel_lpf_x, &pid_vel_x, &pid_pos_x);
+		position_2d_control(optitrack.pos_y, optitrack.vel_lpf_y, &pid_vel_y, &pid_pos_y);
 		angle_control_cmd_i2b_frame_tramsform(ahrs.attitude.yaw, pid_vel_x.output, pid_vel_y.output,
 		                                      &nav_ctl_pitch_command, &nav_ctl_roll_command);
 
@@ -359,10 +359,9 @@ void reset_position_2d_control_integral(pid_control_t *pos_pid)
 	pos_pid->error_integral = 0.0f;
 }
 
-void position_2d_control(float pos, float vel, float pos_set,
-                         pid_control_t *vel_pid, pid_control_t *pos_pid)
+void position_2d_control(float pos, float vel, pid_control_t *vel_pid, pid_control_t *pos_pid)
 {
-	pos_pid->error_current = pos_set - pos;
+	pos_pid->error_current = pos_pid->setpoint - pos;
 	pos_pid->p_final = pos_pid->kp * pos_pid->error_current;
 	pos_pid->error_integral += (pos_pid->error_current * pos_pid->ki * 0.0025);
 	bound_float(&pos_pid->error_integral, 50.0f, -50.0f);
