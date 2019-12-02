@@ -73,13 +73,13 @@ void pid_controller_init(void)
 	pid_yaw.output_max = 35.0f;
 
 	/* positon and velocity controllers */
-	pid_pos_x.kp = 0.35f;
+	pid_pos_x.kp = 0.4f;
 	pid_pos_x.ki = 0.2f;
-	pid_pos_x.kd = 0.00f;
+	pid_pos_x.kd = 0.0f;
 
-	pid_pos_y.kp = 0.35f;
+	pid_pos_y.kp = 0.4f;
 	pid_pos_y.ki = 0.2f;
-	pid_pos_y.kd = 0.00f;
+	pid_pos_y.kd = 0.0f;
 
 	pid_vel_x.kp = 0.035f;
 	pid_vel_x.ki = 0.0f;
@@ -364,9 +364,11 @@ void position_2d_control(float pos, float vel, pid_control_t *vel_pid, pid_contr
 	pos_pid->error_current = pos_pid->setpoint - pos;
 	pos_pid->p_final = pos_pid->kp * pos_pid->error_current;
 	pos_pid->error_integral += (pos_pid->error_current * pos_pid->ki * 0.0025);
+	pos_pid->error_derivative = -vel;
+	pos_pid->d_final = pos_pid->kd * pos_pid->error_derivative;
 	bound_float(&pos_pid->error_integral, 50.0f, -50.0f);
 	pos_pid->i_final = pos_pid->error_integral;
-	pos_pid->output = pos_pid->p_final + pos_pid->i_final;
+	pos_pid->output = pos_pid->p_final + pos_pid->i_final + pos_pid->d_final;
 
 	float vel_set = pos_pid->output;
 	vel_pid->error_current = vel_set - vel;
