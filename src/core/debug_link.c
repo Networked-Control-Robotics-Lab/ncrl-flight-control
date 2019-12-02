@@ -263,7 +263,7 @@ void task_debug_link(void *param)
 		//send_imu_message(&payload);
 		//send_attitude_euler_message(&payload);
 		//send_attitude_quaternion_message(&payload);
-		send_attitude_imu_message(&payload);
+		//end_attitude_imu_message(&payload);
 		//send_ekf_message(&payload);
 		//send_pid_debug(&payload);
 		//send_motor_message(&payload);
@@ -271,7 +271,7 @@ void task_debug_link(void *param)
 		//send_optitrack_quaternion_message(&payload);
 		//send_optitrack_velocity_message(&payload);
 		//send_general_float_message(optitrack.recv_freq, &payload);
-		//send_general_float_message(nav_ctl_roll_command, &payload);
+		send_general_float_message(pid_pos_x.error_current, &payload);
 		//send_accel_calib_message();
 		//send_accel_bias_calib_message();
 		send_onboard_data(payload.s, payload.len);
