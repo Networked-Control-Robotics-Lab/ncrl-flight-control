@@ -32,7 +32,6 @@ void altitude_control(float alt, float alt_vel, pid_control_t *alt_vel_pid, pid_
 void angle_control_cmd_i2b_frame_tramsform(float yaw, float u_i_x, float u_i_y, float *u_b_x, float *u_b_y);
 void reset_position_2d_control_integral(pid_control_t *pos_pid);
 void position_2d_control(float current_pos, float current_vel, pid_control_t *pos_pid);
-void velocity_2d_control(float vel, pid_control_t *vel_pid);
 void motor_control(volatile float throttle_percentage, float throttle_ctrl_precentage, float roll_ctrl_precentage,
                    float pitch_ctrl_precentage, float yaw_ctrl_precentage);
 

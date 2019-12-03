@@ -36,8 +36,6 @@ pid_control_t pid_yaw_rate;
 pid_control_t pid_yaw;
 pid_control_t pid_pos_x;
 pid_control_t pid_pos_y;
-pid_control_t pid_vel_x;
-pid_control_t pid_vel_y;
 pid_control_t pid_alt;
 pid_control_t pid_alt_vel;
 
@@ -73,29 +71,17 @@ void pid_controller_init(void)
 	pid_yaw.output_max = 35.0f;
 
 	/* positon and velocity controllers */
-	pid_pos_x.kp = 0.04f;
-	pid_pos_x.ki = 0.0f; // 0.0001f;
-	pid_pos_x.kd = 0.06f;
+	pid_pos_x.kp = 0.03f;
+	pid_pos_x.ki = 0.0f; //0.0001f;
+	pid_pos_x.kd = 0.035f;
 	pid_pos_x.output_min = -15.0f;
 	pid_pos_x.output_max = +15.0f;
 
-	pid_pos_y.kp = 0.04f;
+	pid_pos_y.kp = 0.03f;
 	pid_pos_y.ki = 0.0f; //0.0001f;
-	pid_pos_y.kd = 0.06f;
+	pid_pos_y.kd = 0.035f;
 	pid_pos_y.output_min = -15.0f;
 	pid_pos_y.output_max = +15.0f;
-
-	pid_vel_x.kp = 0.0f;
-	pid_vel_x.ki = 0.0f;
-	pid_vel_x.kd = 0.0f;
-	pid_vel_x.output_min = -15.0f;
-	pid_vel_x.output_max = +15.0f;
-
-	pid_vel_y.kp = 0.035f;
-	pid_vel_y.ki = 0.0f;
-	pid_vel_y.kd = 0.0f;
-	pid_vel_y.output_min = -15.0f;
-	pid_vel_y.output_max = +15.0f;
 
 	pid_alt.kp = 0.3f;
 	pid_alt.ki = 0.08f;
@@ -124,8 +110,8 @@ void rc_mode_change_handler(radio_t *rc)
 		pid_alt.enable = true;
 		pid_alt_vel.enable = true;
 		pid_alt.setpoint = optitrack.pos_z;
-		pid_vel_x.enable = true;
-		pid_vel_y.enable = true;
+		pid_pos_x.enable = true;
+		pid_pos_y.enable = true;
 		pid_pos_x.setpoint = optitrack.pos_x;
 		pid_pos_y.setpoint = optitrack.pos_y;
 		reset_position_2d_control_integral(&pid_pos_x);
@@ -137,8 +123,8 @@ void rc_mode_change_handler(radio_t *rc)
 		pid_alt.enable = true;
 		pid_alt_vel.enable = true;
 		pid_alt.setpoint = optitrack.pos_z;
-		pid_vel_x.enable = true;
-		pid_vel_y.enable = true;
+		pid_pos_x.enable = true;
+		pid_pos_y.enable = true;
 		pid_pos_x.setpoint = 0.0f; //XXX: currently we feed origin as navigation waypoint
 		pid_pos_y.setpoint = 0.0f;
 		reset_position_2d_control_integral(&pid_pos_x);
@@ -148,8 +134,8 @@ void rc_mode_change_handler(radio_t *rc)
 	//if current mode if maunal
 	if(rc->flight_mode == FLIGHT_MODE_MANUAL) {
 		pid_alt_vel.enable = false;
-		pid_vel_x.enable = false;
-		pid_vel_y.enable = false;
+		pid_pos_x.enable = false;
+		pid_pos_y.enable = false;
 		reset_altitude_control_integral(&pid_alt);
 		pid_pos_x.setpoint = optitrack.pos_x;
 		pid_pos_y.setpoint = optitrack.pos_y;
@@ -223,7 +209,7 @@ void task_flight_ctl(void *param)
 
 		float final_roll_cmd = -rc.roll;
 		float final_pitch_cmd = -rc.pitch;
-		if(pid_vel_x.enable == true && pid_vel_y.enable == true && optitrack_available() == true) {
+		if(pid_pos_x.enable == true && pid_pos_y.enable == true && optitrack_available() == true) {
 			final_roll_cmd -= nav_ctl_roll_command; //y directional control
 			final_pitch_cmd -= nav_ctl_pitch_command; //x directional control
 		}
@@ -376,15 +362,6 @@ void position_2d_control(float current_pos, float current_vel, pid_control_t *po
 	pos_pid->i_final = pos_pid->error_integral;
 	pos_pid->output = pos_pid->p_final + pos_pid->i_final + pos_pid->d_final;
 	bound_float(&pos_pid->output, pos_pid->output_max, pos_pid->output_min);
-}
-
-void velocity_2d_control(float vel, pid_control_t *vel_pid)
-{
-	float vel_set = 0.0f;
-	vel_pid->error_current = vel_set - vel;
-	vel_pid->p_final = vel_pid->kp * vel_pid->error_current;
-	vel_pid->output = vel_pid->p_final;
-	bound_float(&vel_pid->output, vel_pid->output_max, vel_pid->output_min);
 }
 
 void motor_control(volatile float throttle_percentage, float throttle_ctrl_precentage, float roll_ctrl_precentage,
