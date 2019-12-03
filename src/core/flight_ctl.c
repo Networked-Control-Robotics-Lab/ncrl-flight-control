@@ -51,11 +51,11 @@ void pid_controller_init(void)
 	/* attitude controllers */
 	pid_roll.kp = 0.3f;
 	pid_roll.ki = 0.0f;
-	pid_roll.kd = 0.09f;
+	pid_roll.kd = 0.05f;
 
 	pid_pitch.kp = 0.3f;
 	pid_pitch.ki = 0.0f;
-	pid_pitch.kd = 0.09f;
+	pid_pitch.kd = 0.05f;
 
 	pid_yaw_rate.kp = 0.3f;
 	pid_yaw_rate.ki = 0.0f;
@@ -71,23 +71,23 @@ void pid_controller_init(void)
 	pid_yaw.output_max = 35.0f;
 
 	/* positon and velocity controllers */
-	pid_pos_x.kp = 0.03f;
-	pid_pos_x.ki = 0.0f; //0.0001f;
-	pid_pos_x.kd = 0.035f;
+	pid_pos_x.kp = 0.04f;
+	pid_pos_x.ki = 0.001f;
+	pid_pos_x.kd = 0.054f;
 	pid_pos_x.output_min = -15.0f;
 	pid_pos_x.output_max = +15.0f;
 
-	pid_pos_y.kp = 0.03f;
-	pid_pos_y.ki = 0.0f; //0.0001f;
-	pid_pos_y.kd = 0.035f;
+	pid_pos_y.kp = 0.04f;
+	pid_pos_y.ki = 0.001f;
+	pid_pos_y.kd = 0.054f;
 	pid_pos_y.output_min = -15.0f;
 	pid_pos_y.output_max = +15.0f;
 
 	pid_alt.kp = 0.3f;
-	pid_alt.ki = 0.08f;
+	pid_alt.ki = 0.09f;
 	pid_alt.kd = 0.0f;
 
-	pid_alt_vel.kp = 0.1f;
+	pid_alt_vel.kp = 0.08f;
 	pid_alt_vel.ki = 0.0f;
 	pid_alt_vel.kd = 0.0f;
 	pid_alt_vel.output_min = -100.0f;
