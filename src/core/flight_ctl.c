@@ -73,16 +73,20 @@ void pid_controller_init(void)
 	pid_yaw.output_max = 35.0f;
 
 	/* positon and velocity controllers */
-	pid_pos_x.kp = 0.4f;
-	pid_pos_x.ki = 0.2f;
-	pid_pos_x.kd = 0.0f;
+	pid_pos_x.kp = 0.03f;
+	pid_pos_x.ki = 0.0f;
+	pid_pos_x.kd = 0.04f;
+	pid_pos_x.output_min = -15.0f;
+	pid_pos_x.output_max = +15.0f;
 
-	pid_pos_y.kp = 0.4f;
-	pid_pos_y.ki = 0.2f;
-	pid_pos_y.kd = 0.0f;
+	pid_pos_y.kp = 0.03f;
+	pid_pos_y.ki = 0.01f;
+	pid_pos_y.kd = 0.04f;
+	pid_pos_y.output_min = -15.0f;
+	pid_pos_y.output_max = +15.0f;
 
 	pid_vel_x.kp = 0.035f;
-	pid_vel_x.ki = 0.0f;
+	pid_vel_x.ki = 0.008f;
 	pid_vel_x.kd = 0.0f;
 	pid_vel_x.output_min = -15.0f;
 	pid_vel_x.output_max = +15.0f;
@@ -93,8 +97,8 @@ void pid_controller_init(void)
 	pid_vel_y.output_min = -15.0f;
 	pid_vel_y.output_max = +15.0f;
 
-	pid_alt.kp = 0.25f;
-	pid_alt.ki = 0.01f;
+	pid_alt.kp = 0.3f;
+	pid_alt.ki = 0.08f;
 	pid_alt.kd = 0.0f;
 
 	pid_alt_vel.kp = 0.1f;
@@ -210,9 +214,9 @@ void task_flight_ctl(void *param)
 		altitude_control(optitrack.pos_z, optitrack.vel_lpf_z, &pid_alt_vel, &pid_alt);
 
 		/* position control (in ned configuration) */
-		position_2d_control(optitrack.pos_x, optitrack.vel_lpf_x, &pid_vel_x, &pid_pos_x);
-		position_2d_control(optitrack.pos_y, optitrack.vel_lpf_y, &pid_vel_y, &pid_pos_y);
-		angle_control_cmd_i2b_frame_tramsform(ahrs.attitude.yaw, pid_vel_x.output, pid_vel_y.output,
+		position_2d_control(optitrack.pos_x, optitrack.vel_lpf_x, &pid_pos_x);
+		position_2d_control(optitrack.pos_y, optitrack.vel_lpf_y, &pid_pos_y);
+		angle_control_cmd_i2b_frame_tramsform(ahrs.attitude.yaw, pid_pos_x.output, pid_pos_y.output,
 		                                      &nav_ctl_pitch_command, &nav_ctl_roll_command);
 
 		float final_roll_cmd = -rc.roll;
@@ -359,18 +363,22 @@ void reset_position_2d_control_integral(pid_control_t *pos_pid)
 	pos_pid->error_integral = 0.0f;
 }
 
-void position_2d_control(float pos, float vel, pid_control_t *vel_pid, pid_control_t *pos_pid)
+void position_2d_control(float current_pos, float current_vel, pid_control_t *pos_pid)
 {
-	pos_pid->error_current = pos_pid->setpoint - pos;
+	pos_pid->error_current = pos_pid->setpoint - current_pos;
 	pos_pid->p_final = pos_pid->kp * pos_pid->error_current;
 	pos_pid->error_integral += (pos_pid->error_current * pos_pid->ki * 0.0025);
-	pos_pid->error_derivative = -vel;
+	pos_pid->error_derivative = -current_vel;
 	pos_pid->d_final = pos_pid->kd * pos_pid->error_derivative;
-	bound_float(&pos_pid->error_integral, 50.0f, -50.0f);
+	bound_float(&pos_pid->error_integral, pos_pid->output_max, pos_pid->output_min);
 	pos_pid->i_final = pos_pid->error_integral;
 	pos_pid->output = pos_pid->p_final + pos_pid->i_final + pos_pid->d_final;
+	bound_float(&pos_pid->output, pos_pid->output_max, pos_pid->output_min);
+}
 
-	float vel_set = pos_pid->output;
+void velocity_2d_control(float vel, pid_control_t *vel_pid)
+{
+	float vel_set = 0.0f;
 	vel_pid->error_current = vel_set - vel;
 	vel_pid->p_final = vel_pid->kp * vel_pid->error_current;
 	vel_pid->output = vel_pid->p_final;
