@@ -73,20 +73,20 @@ void pid_controller_init(void)
 	pid_yaw.output_max = 35.0f;
 
 	/* positon and velocity controllers */
-	pid_pos_x.kp = 0.03f;
-	pid_pos_x.ki = 0.0f;
-	pid_pos_x.kd = 0.04f;
+	pid_pos_x.kp = 0.04f;
+	pid_pos_x.ki = 0.0f; // 0.0001f;
+	pid_pos_x.kd = 0.06f;
 	pid_pos_x.output_min = -15.0f;
 	pid_pos_x.output_max = +15.0f;
 
-	pid_pos_y.kp = 0.03f;
-	pid_pos_y.ki = 0.01f;
-	pid_pos_y.kd = 0.04f;
+	pid_pos_y.kp = 0.04f;
+	pid_pos_y.ki = 0.0f; //0.0001f;
+	pid_pos_y.kd = 0.06f;
 	pid_pos_y.output_min = -15.0f;
 	pid_pos_y.output_max = +15.0f;
 
-	pid_vel_x.kp = 0.035f;
-	pid_vel_x.ki = 0.008f;
+	pid_vel_x.kp = 0.0f;
+	pid_vel_x.ki = 0.0f;
 	pid_vel_x.kd = 0.0f;
 	pid_vel_x.output_min = -15.0f;
 	pid_vel_x.output_max = +15.0f;
@@ -151,6 +151,8 @@ void rc_mode_change_handler(radio_t *rc)
 		pid_vel_x.enable = false;
 		pid_vel_y.enable = false;
 		reset_altitude_control_integral(&pid_alt);
+		pid_pos_x.setpoint = optitrack.pos_x;
+		pid_pos_y.setpoint = optitrack.pos_y;
 		reset_position_2d_control_integral(&pid_pos_x);
 		reset_position_2d_control_integral(&pid_pos_y);
 	}
