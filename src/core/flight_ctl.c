@@ -155,7 +155,7 @@ void task_flight_ctl(void *param)
 
 	ahrs_init(imu.accel_raw);
 	madgwick_t madgwick_ahrs_info;
-	madgwick_init(&madgwick_ahrs_info, 400, 0.95);
+	madgwick_init(&madgwick_ahrs_info, 400, 0.4);
 
 	pid_controller_init();
 
