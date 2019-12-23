@@ -1,4 +1,5 @@
 #include "arm_math.h"
+#include "led.h"
 #include "ahrs.h"
 #include "matrix.h"
 
@@ -73,5 +74,25 @@ void cross_product_3x1(float vec_a[3], float vec_b[3], float vec_result[3])
 }
 
 void geometry_ctrl(euler_t rc_cmd, float attitude_q[4])
+{
+	MAT_ALLOC_INIT(R, 3, 3);
+	MAT_ALLOC_INIT(Rd, 3, 3);
+	MAT_ALLOC_INIT(Rt, 3, 3);
+	MAT_ALLOC_INIT(Rtd, 3, 3);
+	MAT_ALLOC_INIT(RtdR, 3, 3);
+	MAT_ALLOC_INIT(RtRd, 3, 3);
+	MAT_ALLOC_INIT(eR_mat_double, 3, 3);
+	MAT_ALLOC_INIT(eR_mat, 3, 3);
+	MAT_ALLOC_INIT(eR, 3, 1);
+
+	/* calculate attitude error eR */
+	MAT_MULT(&Rtd, &R, &RtdR);
+	MAT_MULT(&Rt, &Rd, &RtRd);
+	MAT_SUB(&RtdR, &RtRd, &eR_mat_double);
+	MAT_SCALE(&eR_mat_double, 0.5f, &eR_mat);
+	vee_map_3x3(&eR_mat, &eR);
+}
+
+void thrust_allocate_quadrotor(float *forces, float *moments, float *motors)
 {
 }
