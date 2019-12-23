@@ -61,13 +61,13 @@ SRC+=lib/FreeRTOS/Source/croutine.c \
 	lib/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c \
 
 SRC+=./core/main.c \
-	./core/flight_ctl.c \
-	./core/geometry_ctl.c \
 	./core/sys_time.c \
 	./core/lpf.c \
 	./core/debug_link.c \
 	./core/ahrs.c \
-	./core/madgwick_ahrs.c
+	./core/madgwick_ahrs.c \
+	./core/controllers/attitude_ctrl.c \
+	./core/controllers/flight_ctl.c
 
 SRC+=./common/delay.c \
 	./common/bound.c \
