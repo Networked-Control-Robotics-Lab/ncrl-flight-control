@@ -11,58 +11,58 @@
 #define kwy 0.0f
 #define kwz 0.0f
 
-void euler_to_rotation_matrix(euler_t *euler, float r[3][3])
+void euler_to_rotation_matrix(euler_t *euler, float *r)
 {
 	float phi = euler->roll;
 	float theta = euler->pitch;
 	float psi = euler->yaw;
 
-	r[0][0] = arm_cos_f32(theta)*arm_cos_f32(psi);
-	r[0][1] = -arm_cos_f32(phi)*arm_sin_f32(psi) + arm_sin_f32(phi)*arm_sin_f32(theta)*arm_cos_f32(psi);
-	r[0][2] = arm_sin_f32(phi)*arm_sin_f32(psi) + arm_cos_f32(phi)*arm_sin_f32(theta)*arm_cos_f32(psi);
+	r[0*0] = arm_cos_f32(theta)*arm_cos_f32(psi);
+	r[0*1] = -arm_cos_f32(phi)*arm_sin_f32(psi) + arm_sin_f32(phi)*arm_sin_f32(theta)*arm_cos_f32(psi);
+	r[0*2] = arm_sin_f32(phi)*arm_sin_f32(psi) + arm_cos_f32(phi)*arm_sin_f32(theta)*arm_cos_f32(psi);
 
-	r[1][0] = arm_cos_f32(theta)*arm_sin_f32(psi);
-	r[1][1] = arm_cos_f32(phi)*arm_cos_f32(psi) + arm_sin_f32(phi)*arm_sin_f32(theta)*arm_sin_f32(psi);
-	r[1][2] = -arm_sin_f32(phi)*arm_cos_f32(psi) + arm_cos_f32(phi)*arm_sin_f32(theta)*arm_sin_f32(psi);
+	r[1*0] = arm_cos_f32(theta)*arm_sin_f32(psi);
+	r[1*1] = arm_cos_f32(phi)*arm_cos_f32(psi) + arm_sin_f32(phi)*arm_sin_f32(theta)*arm_sin_f32(psi);
+	r[1*2] = -arm_sin_f32(phi)*arm_cos_f32(psi) + arm_cos_f32(phi)*arm_sin_f32(theta)*arm_sin_f32(psi);
 
-	r[2][0] = -arm_sin_f32(theta);
-	r[2][1] = arm_sin_f32(phi)*arm_cos_f32(theta);
-	r[2][2] = arm_cos_f32(phi)*arm_cos_f32(theta);
+	r[2*0] = -arm_sin_f32(theta);
+	r[2*1] = arm_sin_f32(phi)*arm_cos_f32(theta);
+	r[2*2] = arm_cos_f32(phi)*arm_cos_f32(theta);
 }
 
-void quat_to_rotation_matrix(float q[4], float r[3][3])
+void quat_to_rotation_matrix(float q[4], float *r)
 {
-	r[0][0] = 1.0f - 2.0f * (q[2]*q[2] + q[3]*q[3]);
-	r[0][1] = 2.0f * (q[1]*q[2] - q[0]*q[3]);
-	r[0][2] = 2.0f * (q[0]*q[2] - q[1]*q[3]);
+	r[0*0] = 1.0f - 2.0f * (q[2]*q[2] + q[3]*q[3]);
+	r[0*1] = 2.0f * (q[1]*q[2] - q[0]*q[3]);
+	r[0*2] = 2.0f * (q[0]*q[2] - q[1]*q[3]);
 
-	r[1][0] = 2.0f * (q[1]*q[2] + q[0]*q[3]);
-	r[1][1] = 1.0f - 2.0f * (q[1]*q[1] + q[3]*q[3]);
-	r[1][2] = 2.0f * (q[2]*q[3] - q[0]*q[1]);
+	r[1*0] = 2.0f * (q[1]*q[2] + q[0]*q[3]);
+	r[1*1] = 1.0f - 2.0f * (q[1]*q[1] + q[3]*q[3]);
+	r[1*2] = 2.0f * (q[2]*q[3] - q[0]*q[1]);
 
-	r[2][0] = 2.0f * (q[1]*q[3] - q[0]*q[2]);
-	r[2][1] = 2.0f * (q[0]*q[1] + q[2]*q[3]);
-	r[2][2] = 1.0f - 2.0f * (q[1]*q[1]+q[2]*q[2]);
+	r[2*0] = 2.0f * (q[1]*q[3] - q[0]*q[2]);
+	r[2*1] = 2.0f * (q[0]*q[1] + q[2]*q[3]);
+	r[2*2] = 1.0f - 2.0f * (q[1]*q[1]+q[2]*q[2]);
 }
 
-void vee_map_3x3(float mat[3][3], float vec[3])
+void vee_map_3x3(float *mat, float vec[3])
 {
-	vec[0] = mat[2][1];
-	vec[1] = mat[0][2];
-	vec[2] = mat[1][0];
+	vec[0] = mat[2*1];
+	vec[1] = mat[0*2];
+	vec[2] = mat[1*0];
 }
 
-void hat_map_3x3(float vec[3], float mat[3][3])
+void hat_map_3x3(float vec[3], float *mat)
 {
-	mat[0][0] = 0.0f;
-	mat[0][1] = -vec[2];
-	mat[0][2] = +vec[1];
-	mat[1][0] = +vec[2];
-	mat[1][1] = 0.0f;
-	mat[1][2] = -vec[0];
-	mat[2][0] = -vec[1];
-	mat[2][1] = +vec[0];
-	mat[2][2] = 0.0f;
+	mat[0*0] = 0.0f;
+	mat[0*1] = -vec[2];
+	mat[0*2] = +vec[1];
+	mat[1*0] = +vec[2];
+	mat[1*1] = 0.0f;
+	mat[1*2] = -vec[0];
+	mat[2*0] = -vec[1];
+	mat[2*1] = +vec[0];
+	mat[2*2] = 0.0f;
 }
 
 void cross_product_3x1(float vec_a[3], float vec_b[3], float vec_result[3])
@@ -108,7 +108,7 @@ void geometry_ctrl(euler_t *rc, float attitude_q[4], float *output_forces, float
 	MAT_MULT(&Rt, &Rd, &RtRd); //XXX: duplicated term
 	MAT_SUB(&RtdR, &RtRd, &eR_mat_double);
 	MAT_SCALE(&eR_mat_double, 0.5f, &eR_mat);
-	vee_map_3x3(&eR_mat, &eR);
+	vee_map_3x3(_mat_(eR_mat), _mat_(eR));
 
 	/* calculate attitude rate error eW */
 	MAT_MULT(&Rt, &Rd, &RtRd);
