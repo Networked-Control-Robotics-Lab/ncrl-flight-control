@@ -11,6 +11,13 @@
 #define kwy 0.0f
 #define kwz 0.0f
 
+MAT_ALLOC(J, 3, 1);
+
+void geometry_ctl_init(void)
+{
+	MAT_INIT(J, 3, 1);
+}
+
 void euler_to_rotation_matrix(euler_t *euler, float *r)
 {
 	float phi = euler->roll;
@@ -92,10 +99,21 @@ void geometry_ctrl(euler_t *rc, float attitude_q[4], float *output_forces, float
 	MAT_ALLOC_INIT(RtRdWd, 3, 3);
 	MAT_ALLOC_INIT(W, 3, 1);
 	MAT_ALLOC_INIT(Wd, 3, 1);
+	MAT_ALLOC_INIT(W_hat, 3, 3);
+	MAT_ALLOC_INIT(Wd_dot, 3, 1);
+	MAT_ALLOC_INIT(JW, 3, 1);
+	MAT_ALLOC_INIT(WJW, 3, 1);
 	MAT_ALLOC_INIT(eR_mat_double, 3, 3);
 	MAT_ALLOC_INIT(eR_mat, 3, 3);
 	MAT_ALLOC_INIT(eR, 3, 1);
 	MAT_ALLOC_INIT(eW, 3, 1);
+	MAT_ALLOC_INIT(WRt, 3, 3);
+	MAT_ALLOC_INIT(WRtRd, 3, 3);
+	MAT_ALLOC_INIT(WRtRdWd, 3, 1);
+	MAT_ALLOC_INIT(RtRdWddot, 3, 1);
+	MAT_ALLOC_INIT(WRtRdWd_RtRdWddot, 3, 1);
+	MAT_ALLOC_INIT(J_WRtRdWd_RtRdWddot, 3, 1);
+	MAT_ALLOC_INIT(inertia_effect, 3, 1);
 
 	/* convert attitude (quaternion) to rotation matrix */
 	quat_to_rotation_matrix(&attitude_q[0], _mat_(R));
@@ -103,21 +121,49 @@ void geometry_ctrl(euler_t *rc, float attitude_q[4], float *output_forces, float
 	/* convert radio command (euler angle) to rotation matrix */
 	euler_to_rotation_matrix(rc, _mat_(Rd));
 
+	/* set desired angular velocity to 0 */
+	_mat_(Wd)[0] = 0.0f;
+	_mat_(Wd)[1] = 0.0f;
+	_mat_(Wd)[2] = 0.0f;
+	_mat_(Wd_dot)[0] = 0.0f;
+	_mat_(Wd_dot)[1] = 0.0f;
+	_mat_(Wd_dot)[2] = 0.0f;
+
 	/* calculate attitude error eR */
 	MAT_MULT(&Rtd, &R, &RtdR);
-	MAT_MULT(&Rt, &Rd, &RtRd); //XXX: duplicated term
+	MAT_MULT(&Rt, &Rd, &RtRd);
 	MAT_SUB(&RtdR, &RtRd, &eR_mat_double);
 	MAT_SCALE(&eR_mat_double, 0.5f, &eR_mat);
 	vee_map_3x3(_mat_(eR_mat), _mat_(eR));
 
 	/* calculate attitude rate error eW */
 	MAT_MULT(&Rt, &Rd, &RtRd);
-	MAT_MULT(&RtRd, &Wd, &RtRdWd); //XXX: duplicated term
+	//MAT_MULT(&RtRd, &Wd, &RtRdWd); //the term is duplicated
 	MAT_SUB(&W, &RtRdWd, &eW);
 
-	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0];
-	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1];
-	output_moments[2] = -krz*_mat_(eR)[2] -kwz*_mat_(eW)[2];
+	/* calculate inertia effect */
+	//W x JW
+	MAT_MULT(&J, &W, &JW);
+	cross_product_3x1(_mat_(W), _mat_(JW), _mat_(WJW));
+	//W * R^T * Rd * Wd
+	hat_map_3x3(_mat_(W), _mat_(W_hat));
+	MAT_MULT(&W_hat, &Rt, &WRt);
+	MAT_MULT(&WRt, &Rd, &WRtRd);
+	MAT_MULT(&WRtRd, &Wd, &WRtRdWd);
+	//R^T * Rd * Wd_dot
+	//MAT_MULT(&Rt, &Rd, &RtRd); //the term is duplicated
+	MAT_MULT(&RtRd, &Wd_dot, &RtRdWddot);
+	//(W * R^T * Rd * Wd) - (R^T * Rd * Wd_dot)
+	MAT_SUB(&WRtRdWd, &RtRdWddot, &WRtRdWd_RtRdWddot);
+	//J*[(W * R^T * Rd * Wd) - (R^T * Rd * Wd_dot)]
+	MAT_MULT(&J, &WRtRdWd_RtRdWddot, &J_WRtRdWd_RtRdWddot);
+	//inertia effect = (W x JW) - J*[(W * R^T * Rd * Wd) - (R^T * Rd * Wd_dot)]
+	MAT_SUB(&WJW, &J_WRtRdWd_RtRdWddot, &inertia_effect);
+
+	/* control input M1, M2, M3 */
+	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0] + _mat_(inertia_effect)[0];
+	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1] + _mat_(inertia_effect)[1];
+	output_moments[2] = -krz*_mat_(eR)[2] -kwz*_mat_(eW)[2] + _mat_(inertia_effect)[2];
 }
 
 void thrust_allocate_quadrotor(float *forces, float *moments, float *motors)
