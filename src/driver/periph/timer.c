@@ -4,7 +4,7 @@
 #include "semphr.h"
 #include "timer.h"
 #include "led.h"
-#include "attitude_pd_ctrl.h"
+#include "controller_task.h"
 #include "sys_time.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 10

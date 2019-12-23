@@ -116,8 +116,8 @@ void Madgwick_MARG_AHRS(madgwick_t* Madgwick, float ax, float ay, float az, floa
 		float _4q1 = 4.0f*Madgwick->q1;
 		float _4q2 = 4.0f*Madgwick->q2;
 		float _4q3 = 4.0f*Madgwick->q3;
-		float _2q0q2 = 2.0f * Madgwick->q0 * Madgwick->q2;
-		float _2q2q3 = 2.0f * Madgwick->q2 * Madgwick->q3;
+		//float _2q0q2 = 2.0f * Madgwick->q0 * Madgwick->q2;
+		//float _2q2q3 = 2.0f * Madgwick->q2 * Madgwick->q3;
 		float q0q0 = Madgwick->q0 * Madgwick->q0;
 		float q0q1 = Madgwick->q0 * Madgwick->q1;
 		float q0q2 = Madgwick->q0 * Madgwick->q2;

@@ -61,12 +61,13 @@ SRC+=lib/FreeRTOS/Source/croutine.c \
 	lib/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c \
 
 SRC+=./core/main.c \
-	./core/sys_time.c \
 	./core/estimators/lpf.c \
 	./core/estimators/ahrs.c \
 	./core/estimators/madgwick_ahrs.c \
 	./core/controllers/attitude_pd_ctrl.c \
 	./core/controllers/attitude_geometry_ctrl.c \
+	./core/controllers/tracking_ctrl.c \
+	./core/controllers/controller_task.c \
 	./core/debug_link/debug_link.c
 
 SRC+=./common/delay.c \
@@ -85,7 +86,9 @@ SRC+=./driver/periph/led.c \
 	./driver/device/hmc5983.c \
 	./driver/device/sbus_receiver.c \
 	./driver/device/motor.c \
-	./driver/device/optitrack.c
+	./driver/device/optitrack.c \
+	./driver/device/sys_time.c \
+
 
 CFLAGS+=-I./
 CFLAGS+=-I./sys_startup
