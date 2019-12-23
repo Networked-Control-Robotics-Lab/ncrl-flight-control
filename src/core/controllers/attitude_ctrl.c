@@ -3,19 +3,39 @@
 #include "ahrs.h"
 #include "matrix.h"
 
-/* geometry controller's gains  */
-#define krx 0.0f
-#define kry 0.0f
-#define krz 0.0f
-#define kwx 0.0f
-#define kwy 0.0f
-#define kwz 0.0f
+MAT_ALLOC(J, 3, 3);
 
-MAT_ALLOC(J, 3, 1);
+float krx, kry, krz;
+float kwx, kwy, kwz;
+float mass;
+float uav_length_x, uav_length_y, uav_length_z;
 
 void geometry_ctl_init(void)
 {
-	MAT_INIT(J, 3, 1);
+	mass = 0.0f;
+
+	uav_length_x = 0.0f;
+	uav_length_y = 0.0f;
+	uav_length_z = 0.0f;
+
+	MAT_INIT(J, 3, 3);
+	_mat_(J)[0*0] = 0.0f; //Ixx
+	_mat_(J)[0*1] = 0.0f; //Ixy
+	_mat_(J)[0*2] = 0.0f; //Ixz
+	_mat_(J)[1*0] = 0.0f; //Iyx
+	_mat_(J)[1*1] = 0.0f; //Iyy
+	_mat_(J)[1*2] = 0.0f; //Iyz
+	_mat_(J)[2*0] = 0.0f; //Izx
+	_mat_(J)[2*1] = 0.0f; //Izy
+	_mat_(J)[2*2] = 0.0f; //Izz
+
+	/* attitude controller gains of geometry tracking controller */
+	krx = 0.0f;
+	kry = 0.0f;
+	krz = 0.0f;
+	kwx = 0.0f;
+	kwy = 0.0f;
+	kwz = 0.0f;
 }
 
 void euler_to_rotation_matrix(euler_t *euler, float *r)
