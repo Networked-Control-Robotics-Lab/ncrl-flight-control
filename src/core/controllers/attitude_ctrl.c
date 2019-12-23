@@ -3,6 +3,14 @@
 #include "ahrs.h"
 #include "matrix.h"
 
+/* geometry controller's gains  */
+#define krx 0.0f
+#define kry 0.0f
+#define krz 0.0f
+#define kwx 0.0f
+#define kwy 0.0f
+#define kwz 0.0f
+
 void euler_to_rotation_matrix(euler_t *euler, float r[3][3])
 {
 	float phi = euler->roll;
@@ -73,7 +81,7 @@ void cross_product_3x1(float vec_a[3], float vec_b[3], float vec_result[3])
 	vec_result[2] = vec_a[0]*vec_b[1] - vec_a[1]*vec_b[0];
 }
 
-void geometry_ctrl(euler_t rc_cmd, float attitude_q[4])
+void geometry_ctrl(euler_t *rc, float attitude_q[4], float *output_forces, float *output_moments)
 {
 	MAT_ALLOC_INIT(R, 3, 3);
 	MAT_ALLOC_INIT(Rd, 3, 3);
@@ -81,16 +89,35 @@ void geometry_ctrl(euler_t rc_cmd, float attitude_q[4])
 	MAT_ALLOC_INIT(Rtd, 3, 3);
 	MAT_ALLOC_INIT(RtdR, 3, 3);
 	MAT_ALLOC_INIT(RtRd, 3, 3);
+	MAT_ALLOC_INIT(RtRdWd, 3, 3);
+	MAT_ALLOC_INIT(W, 3, 1);
+	MAT_ALLOC_INIT(Wd, 3, 1);
 	MAT_ALLOC_INIT(eR_mat_double, 3, 3);
 	MAT_ALLOC_INIT(eR_mat, 3, 3);
 	MAT_ALLOC_INIT(eR, 3, 1);
+	MAT_ALLOC_INIT(eW, 3, 1);
+
+	/* convert attitude (quaternion) to rotation matrix */
+	quat_to_rotation_matrix(&attitude_q[0], _mat_(R));
+
+	/* convert radio command (euler angle) to rotation matrix */
+	euler_to_rotation_matrix(rc, _mat_(Rd));
 
 	/* calculate attitude error eR */
 	MAT_MULT(&Rtd, &R, &RtdR);
-	MAT_MULT(&Rt, &Rd, &RtRd);
+	MAT_MULT(&Rt, &Rd, &RtRd); //XXX: duplicated term
 	MAT_SUB(&RtdR, &RtRd, &eR_mat_double);
 	MAT_SCALE(&eR_mat_double, 0.5f, &eR_mat);
 	vee_map_3x3(&eR_mat, &eR);
+
+	/* calculate attitude rate error eW */
+	MAT_MULT(&Rt, &Rd, &RtRd);
+	MAT_MULT(&RtRd, &Wd, &RtRdWd); //XXX: duplicated term
+	MAT_SUB(&W, &RtRdWd, &eW);
+
+	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0];
+	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1];
+	output_moments[2] = -krz*_mat_(eR)[2] -kwz*_mat_(eW)[2];
 }
 
 void thrust_allocate_quadrotor(float *forces, float *moments, float *motors)
