@@ -1,5 +1,6 @@
 #include "madgwick_ahrs.h"
-#include "geometry_ctl.h"
+#include "arm_math.h"
+//#include "geometry_ctl.h"
 
 inline void LPF_float(float *raw, float *filtered, float alpha)
 {

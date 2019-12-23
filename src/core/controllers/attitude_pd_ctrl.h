@@ -1,5 +1,5 @@
-#ifndef __FLIGHT_CTL_H__
-#define __FLIGHT_CTL_H__
+#ifndef __ATTITUDE_PD_CTRL_H__
+#define __ATTITUDE_PD_CTRL_H__
 
 #include <stdbool.h>
 

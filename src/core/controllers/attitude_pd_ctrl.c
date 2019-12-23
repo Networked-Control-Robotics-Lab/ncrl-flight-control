@@ -16,7 +16,7 @@
 #include "imu.h"
 #include "ahrs.h"
 #include "madgwick_ahrs.h"
-#include "flight_ctl.h"
+#include "attitude_pd_ctrl.h"
 #include "sys_time.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 10

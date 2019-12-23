@@ -18,7 +18,7 @@
 #include "sys_time.h"
 #include "motor.h"
 #include "debug_link.h"
-#include "flight_ctl.h"
+#include "attitude_pd_ctrl.h"
 
 extern SemaphoreHandle_t flight_ctl_semphr;
 

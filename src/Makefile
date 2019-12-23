@@ -62,12 +62,12 @@ SRC+=lib/FreeRTOS/Source/croutine.c \
 
 SRC+=./core/main.c \
 	./core/sys_time.c \
-	./core/lpf.c \
-	./core/debug_link.c \
-	./core/ahrs.c \
-	./core/madgwick_ahrs.c \
+	./core/estimators/lpf.c \
+	./core/estimators/ahrs.c \
+	./core/estimators/madgwick_ahrs.c \
 	./core/controllers/attitude_pd_ctrl.c \
-	./core/controllers/attitude_geometry_ctrl.c
+	./core/controllers/attitude_geometry_ctrl.c \
+	./core/debug_link/debug_link.c
 
 SRC+=./common/delay.c \
 	./common/bound.c \
@@ -90,6 +90,9 @@ SRC+=./driver/periph/led.c \
 CFLAGS+=-I./
 CFLAGS+=-I./sys_startup
 CFLAGS+=-I./core
+CFLAGS+=-I./core/estimators
+CFLAGS+=-I./core/controllers
+CFLAGS+=-I./core/debug_link
 CFLAGS+=-I./common
 CFLAGS+=-I./driver/periph
 CFLAGS+=-I./driver/device
