@@ -66,8 +66,8 @@ SRC+=./core/main.c \
 	./core/debug_link.c \
 	./core/ahrs.c \
 	./core/madgwick_ahrs.c \
-	./core/controllers/attitude_ctrl.c \
-	./core/controllers/flight_ctl.c
+	./core/controllers/attitude_pd_ctrl.c \
+	./core/controllers/attitude_geometry_ctrl.c
 
 SRC+=./common/delay.c \
 	./common/bound.c \
