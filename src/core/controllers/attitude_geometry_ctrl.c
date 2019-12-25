@@ -219,6 +219,7 @@ void geometry_ctrl(euler_t *rc, float attitude_q[4], float *output_forces, float
 	/* convert radio command (euler angle) to rotation matrix */
 	euler_to_rotation_matrix(rc, _mat_(Rd));
 
+#if 1
 	/* set desired angular velocity to 0 */
 	_mat_(Wd)[0] = 0.0f;
 	_mat_(Wd)[1] = 0.0f;
@@ -226,6 +227,19 @@ void geometry_ctrl(euler_t *rc, float attitude_q[4], float *output_forces, float
 	_mat_(Wd_dot)[0] = 0.0f;
 	_mat_(Wd_dot)[1] = 0.0f;
 	_mat_(Wd_dot)[2] = 0.0f;
+#endif
+
+#if 0   //might need a prescaler to deal with high frequency noises
+	/* calculate desired attitude command Wd and Wd_dot */
+	rc_euler_curr[0] = rc->roll;
+	rc_euler_curr[1] = rc->pitch;
+	rc_euler_curr[2] = rc->yaw;
+	numerical_derivative_3x1(rc_euler_curr, rc_euler_last, _mat_(Wd));
+	Wd_curr[0] = _mat_(Wd)[0];
+	Wd_curr[1] = _mat_(Wd)[1];
+	Wd_curr[2] = _mat_(Wd)[2];
+	numerical_derivative_3x1(Wd_curr, Wd_last, _mat_(Wd_dot));
+#endif
 
 	/* calculate attitude error eR */
 	MAT_MULT(&Rtd, &R, &RtdR);
