@@ -1,17 +1,120 @@
 #include "arm_math.h"
+#include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
 #include "led.h"
+#include "sbus_receiver.h"
 #include "ahrs.h"
 #include "matrix.h"
 
+#define dt 0.0025
+
+extern SemaphoreHandle_t flight_ctl_semphr;
+
 MAT_ALLOC(J, 3, 3);
+MAT_ALLOC(R, 3, 3);
+MAT_ALLOC(Rd, 3, 3);
+MAT_ALLOC(Rt, 3, 3);
+MAT_ALLOC(Rtd, 3, 3);
+MAT_ALLOC(RtdR, 3, 3);
+MAT_ALLOC(RtRd, 3, 3);
+MAT_ALLOC(RtRdWd, 3, 3);
+MAT_ALLOC(W, 3, 1);
+MAT_ALLOC(Wd, 3, 1);
+MAT_ALLOC(W_hat, 3, 3);
+MAT_ALLOC(Wd_dot, 3, 1);
+MAT_ALLOC(JW, 3, 1);
+MAT_ALLOC(WJW, 3, 1);
+MAT_ALLOC(eR_mat_double, 3, 3);
+MAT_ALLOC(eR_mat, 3, 3);
+MAT_ALLOC(eR, 3, 1);
+MAT_ALLOC(eW, 3, 1);
+MAT_ALLOC(WRt, 3, 3);
+MAT_ALLOC(WRtRd, 3, 3);
+MAT_ALLOC(WRtRdWd, 3, 1);
+MAT_ALLOC(RtRdWddot, 3, 1);
+MAT_ALLOC(WRtRdWd_RtRdWddot, 3, 1);
+MAT_ALLOC(J_WRtRdWd_RtRdWddot, 3, 1);
+MAT_ALLOC(inertia_effect, 3, 1);
+
+float rc_euler_curr[3];
+float Wd_curr[3];
+float rc_euler_last[3];
+float Wd_last[3];
 
 float krx, kry, krz;
 float kwx, kwy, kwz;
 float mass;
 float uav_length_x, uav_length_y, uav_length_z;
 
+radio_t rc;
+
+void numerical_derivative_3x1(float *curr, float *last, float *derivative)
+{
+	derivative[0] = (curr[0] - last[0]) / dt;
+	derivative[1] = (curr[1] - last[1]) / dt;
+	derivative[2] = (curr[2] - last[2]) / dt;
+	last[0] = curr[0];
+	last[1] = curr[1];
+	last[2] = curr[2];
+}
+
+void prepare_rc_first_derivative(float *rc_derivative)
+{
+	read_rc_info(&rc);
+	rc_euler_last[0] = rc.roll;
+	rc_euler_last[1] = rc.pitch;
+	rc_euler_last[2] = rc.yaw;
+	while(xSemaphoreTake(flight_ctl_semphr, 9) == pdFALSE); //sleep for dt seconds
+	read_rc_info(&rc);
+	rc_euler_curr[0] = rc.roll;
+	rc_euler_curr[1] = rc.pitch;
+	rc_euler_curr[2] = rc.yaw;
+	numerical_derivative_3x1(rc_euler_curr, rc_euler_last, _mat_(Wd));
+	rc_euler_last[0] = rc_euler_curr[0];
+	rc_euler_last[1] = rc_euler_curr[1];
+	rc_euler_last[2] = rc_euler_curr[2];
+}
+
 void geometry_ctl_init(void)
 {
+	/* initialize desired attitude command Wd and Wd_dot */
+	prepare_rc_first_derivative(Wd_last);
+	while(xSemaphoreTake(flight_ctl_semphr, 9) == pdFALSE); //sleep for dt seconds
+	prepare_rc_first_derivative(Wd_curr);
+	numerical_derivative_3x1(Wd_curr, Wd_last, _mat_(Wd_dot)); //Wd_dot
+
+	//Wd
+	_mat_(Wd)[0] = Wd_curr[0];
+	_mat_(Wd)[1] = Wd_curr[1];
+	_mat_(Wd)[2] = Wd_curr[2];
+
+	MAT_INIT(J, 3, 3);
+	MAT_INIT(R, 3, 3);
+	MAT_INIT(Rd, 3, 3);
+	MAT_INIT(Rt, 3, 3);
+	MAT_INIT(Rtd, 3, 3);
+	MAT_INIT(RtdR, 3, 3);
+	MAT_INIT(RtRd, 3, 3);
+	MAT_INIT(RtRdWd, 3, 3);
+	MAT_INIT(W, 3, 1);
+	MAT_INIT(Wd, 3, 1);
+	MAT_INIT(W_hat, 3, 3);
+	MAT_INIT(Wd_dot, 3, 1);
+	MAT_INIT(JW, 3, 1);
+	MAT_INIT(WJW, 3, 1);
+	MAT_INIT(eR_mat_double, 3, 3);
+	MAT_INIT(eR_mat, 3, 3);
+	MAT_INIT(eR, 3, 1);
+	MAT_INIT(eW, 3, 1);
+	MAT_INIT(WRt, 3, 3);
+	MAT_INIT(WRtRd, 3, 3);
+	MAT_INIT(WRtRdWd, 3, 1);
+	MAT_INIT(RtRdWddot, 3, 1);
+	MAT_INIT(WRtRdWd_RtRdWddot, 3, 1);
+	MAT_INIT(J_WRtRdWd_RtRdWddot, 3, 1);
+	MAT_INIT(inertia_effect, 3, 1);
+
 	mass = 0.0f;
 
 	uav_length_x = 0.0f;
@@ -110,31 +213,6 @@ void cross_product_3x1(float vec_a[3], float vec_b[3], float vec_result[3])
 
 void geometry_ctrl(euler_t *rc, float attitude_q[4], float *output_forces, float *output_moments)
 {
-	MAT_ALLOC_INIT(R, 3, 3);
-	MAT_ALLOC_INIT(Rd, 3, 3);
-	MAT_ALLOC_INIT(Rt, 3, 3);
-	MAT_ALLOC_INIT(Rtd, 3, 3);
-	MAT_ALLOC_INIT(RtdR, 3, 3);
-	MAT_ALLOC_INIT(RtRd, 3, 3);
-	MAT_ALLOC_INIT(RtRdWd, 3, 3);
-	MAT_ALLOC_INIT(W, 3, 1);
-	MAT_ALLOC_INIT(Wd, 3, 1);
-	MAT_ALLOC_INIT(W_hat, 3, 3);
-	MAT_ALLOC_INIT(Wd_dot, 3, 1);
-	MAT_ALLOC_INIT(JW, 3, 1);
-	MAT_ALLOC_INIT(WJW, 3, 1);
-	MAT_ALLOC_INIT(eR_mat_double, 3, 3);
-	MAT_ALLOC_INIT(eR_mat, 3, 3);
-	MAT_ALLOC_INIT(eR, 3, 1);
-	MAT_ALLOC_INIT(eW, 3, 1);
-	MAT_ALLOC_INIT(WRt, 3, 3);
-	MAT_ALLOC_INIT(WRtRd, 3, 3);
-	MAT_ALLOC_INIT(WRtRdWd, 3, 1);
-	MAT_ALLOC_INIT(RtRdWddot, 3, 1);
-	MAT_ALLOC_INIT(WRtRdWd_RtRdWddot, 3, 1);
-	MAT_ALLOC_INIT(J_WRtRdWd_RtRdWddot, 3, 1);
-	MAT_ALLOC_INIT(inertia_effect, 3, 1);
-
 	/* convert attitude (quaternion) to rotation matrix */
 	quat_to_rotation_matrix(&attitude_q[0], _mat_(R));
 
