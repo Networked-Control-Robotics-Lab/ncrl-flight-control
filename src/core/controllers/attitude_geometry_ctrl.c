@@ -9,8 +9,6 @@
 
 #define dt 0.0025
 
-extern SemaphoreHandle_t flight_ctl_semphr;
-
 MAT_ALLOC(J, 3, 3);
 MAT_ALLOC(R, 3, 3);
 MAT_ALLOC(Rd, 3, 3);
@@ -37,58 +35,13 @@ MAT_ALLOC(WRtRdWd_RtRdWddot, 3, 1);
 MAT_ALLOC(J_WRtRdWd_RtRdWddot, 3, 1);
 MAT_ALLOC(inertia_effect, 3, 1);
 
-float rc_euler_curr[3];
-float Wd_curr[3];
-float rc_euler_last[3];
-float Wd_last[3];
-
 float krx, kry, krz;
 float kwx, kwy, kwz;
 float mass;
 float uav_length_x, uav_length_y, uav_length_z;
 
-radio_t rc;
-
-void numerical_derivative_3x1(float *curr, float *last, float *derivative)
-{
-	derivative[0] = (curr[0] - last[0]) / dt;
-	derivative[1] = (curr[1] - last[1]) / dt;
-	derivative[2] = (curr[2] - last[2]) / dt;
-	last[0] = curr[0];
-	last[1] = curr[1];
-	last[2] = curr[2];
-}
-
-void prepare_rc_first_derivative(float *rc_derivative)
-{
-	read_rc_info(&rc);
-	rc_euler_last[0] = rc.roll;
-	rc_euler_last[1] = rc.pitch;
-	rc_euler_last[2] = rc.yaw;
-	while(xSemaphoreTake(flight_ctl_semphr, 9) == pdFALSE); //sleep for dt seconds
-	read_rc_info(&rc);
-	rc_euler_curr[0] = rc.roll;
-	rc_euler_curr[1] = rc.pitch;
-	rc_euler_curr[2] = rc.yaw;
-	numerical_derivative_3x1(rc_euler_curr, rc_euler_last, _mat_(Wd));
-	rc_euler_last[0] = rc_euler_curr[0];
-	rc_euler_last[1] = rc_euler_curr[1];
-	rc_euler_last[2] = rc_euler_curr[2];
-}
-
 void geometry_ctl_init(void)
 {
-	/* initialize desired attitude command Wd and Wd_dot */
-	prepare_rc_first_derivative(Wd_last);
-	while(xSemaphoreTake(flight_ctl_semphr, 9) == pdFALSE); //sleep for dt seconds
-	prepare_rc_first_derivative(Wd_curr);
-	numerical_derivative_3x1(Wd_curr, Wd_last, _mat_(Wd_dot)); //Wd_dot
-
-	//Wd
-	_mat_(Wd)[0] = Wd_curr[0];
-	_mat_(Wd)[1] = Wd_curr[1];
-	_mat_(Wd)[2] = Wd_curr[2];
-
 	MAT_INIT(J, 3, 3);
 	MAT_INIT(R, 3, 3);
 	MAT_INIT(Rd, 3, 3);
@@ -227,18 +180,6 @@ void geometry_ctrl(euler_t *rc, float attitude_q[4], float *output_forces, float
 	_mat_(Wd_dot)[0] = 0.0f;
 	_mat_(Wd_dot)[1] = 0.0f;
 	_mat_(Wd_dot)[2] = 0.0f;
-#endif
-
-#if 0   //might need a prescaler to deal with high frequency noises
-	/* calculate desired attitude command Wd and Wd_dot */
-	rc_euler_curr[0] = rc->roll;
-	rc_euler_curr[1] = rc->pitch;
-	rc_euler_curr[2] = rc->yaw;
-	numerical_derivative_3x1(rc_euler_curr, rc_euler_last, _mat_(Wd));
-	Wd_curr[0] = _mat_(Wd)[0];
-	Wd_curr[1] = _mat_(Wd)[1];
-	Wd_curr[2] = _mat_(Wd)[2];
-	numerical_derivative_3x1(Wd_curr, Wd_last, _mat_(Wd_dot));
 #endif
 
 	/* calculate attitude error eR */
