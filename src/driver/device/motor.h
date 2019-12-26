@@ -3,8 +3,8 @@
 
 #include "stm32f4xx.h"
 
-#define DJI_ESC_PULSE_MAX 23000
-#define DJI_ESC_PULSE_MIN 8000
+#define DJI_ESC_PULSE_MAX 20750
+#define DJI_ESC_PULSE_MIN 11000
 
 #define MOTOR_PULSE_MAX DJI_ESC_PULSE_MAX
 #define MOTOR_PULSE_MIN DJI_ESC_PULSE_MIN
@@ -19,6 +19,7 @@
 void set_motor_pwm_pulse(volatile uint32_t *motor, uint16_t pulse);
 void motor_init(void);
 
+void motor_thrust_test(float ch1_motor_percentage);
 void esc_calibrate(void);
 
 #endif

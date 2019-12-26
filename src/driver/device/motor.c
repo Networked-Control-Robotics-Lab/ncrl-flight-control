@@ -25,6 +25,17 @@ void motor_init(void)
 	blocked_delay_ms(1000);
 }
 
+void motor_thrust_test(float ch1_motor_percentage)
+{
+	set_motor_pwm_pulse(MOTOR1, MOTOR_PULSE_MIN);
+	blocked_delay_ms(3000);
+
+	ch1_motor_percentage /= 100.0f;
+	float motor_range = (float)MOTOR_PULSE_MAX - MOTOR_PULSE_MIN;
+	float motor_bias = (float)MOTOR_PULSE_MIN;
+	set_motor_pwm_pulse(MOTOR1, (uint16_t)(motor_range * ch1_motor_percentage + motor_bias));
+}
+
 void esc_calibrate(void)
 {
 	set_motor_pwm_pulse(MOTOR1, MOTOR_PULSE_MAX);
