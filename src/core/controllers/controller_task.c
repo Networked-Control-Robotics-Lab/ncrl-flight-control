@@ -17,8 +17,11 @@
 #include "ahrs.h"
 #include "madgwick_ahrs.h"
 #include "attitude_pd_ctrl.h"
+#include "attitude_geometry_ctrl.h"
+#include "motor_thrust.h"
 #include "controller_task.h"
 #include "sys_time.h"
+#include "proj_config.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 10
 
@@ -159,6 +162,7 @@ void task_flight_ctl(void *param)
 	madgwick_init(&madgwick_ahrs_info, 400, 0.4);
 
 	pid_controller_init();
+	geometry_ctrl_init();
 
 	led_off(LED_R);
 	led_off(LED_G);
@@ -197,6 +201,7 @@ void task_flight_ctl(void *param)
 		ahrs.q[3] = madgwick_ahrs_info.q3;
 #endif
 
+#if (SELECT_CONTROLLER == QUADROTOR_USE_PID)
 		update_euler_heading_from_optitrack(&optitrack.q[0], &(ahrs.attitude.yaw));
 
 		/* altitude control */
@@ -238,6 +243,17 @@ void task_flight_ctl(void *param)
 			set_yaw_pd_setpoint(&pid_yaw, ahrs.attitude.yaw);
 			motor_control(0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 		}
+#elif (SELECT_CONTROLLER == QUADROTOR_USE_GEOMETRY)
+		float control_forces[3], control_moments[3];
+		float motor_cmd[4] = {0.0f}; //quadrotor
+		euler_t desired_attitude;
+		desired_attitude.roll = rc.roll;
+		desired_attitude.pitch = rc.pitch;
+		desired_attitude.yaw = rc.yaw;
+		float throttle_force = convert_motor_cmd_to_thrust(rc.throttle);
+		geometry_ctrl(&desired_attitude, ahrs.q, control_forces, control_moments);
+		thrust_allocate_quadrotor(motor_cmd, control_moments, throttle_force);
+#endif
 
 		taskYIELD();
 	}

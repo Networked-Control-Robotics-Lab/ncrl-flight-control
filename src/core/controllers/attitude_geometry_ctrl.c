@@ -43,7 +43,7 @@ float kwx, kwy, kwz;
 float mass;
 float uav_length_x, uav_length_y, uav_length_z;
 
-void geometry_ctl_init(void)
+void geometry_ctrl_init(void)
 {
 	MAT_INIT(J, 3, 3);
 	MAT_INIT(R, 3, 3);
