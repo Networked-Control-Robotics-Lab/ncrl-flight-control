@@ -250,8 +250,12 @@ void task_flight_ctl(void *param)
 		desired_attitude.roll = rc.roll;
 		desired_attitude.pitch = rc.pitch;
 		desired_attitude.yaw = rc.yaw;
+		float gyro[3];
+		gyro[0] = imu.gyro_lpf.x;
+		gyro[1] = imu.gyro_lpf.y;
+		gyro[2] = imu.gyro_lpf.z;
 		float throttle_force = convert_motor_cmd_to_thrust(rc.throttle);
-		geometry_ctrl(&desired_attitude, ahrs.q, control_forces, control_moments);
+		geometry_ctrl(&desired_attitude, ahrs.q, gyro, control_forces, control_moments);
 		thrust_allocate_quadrotor(motor_cmd, control_moments, throttle_force);
 #endif
 

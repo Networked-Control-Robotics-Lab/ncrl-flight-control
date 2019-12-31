@@ -212,13 +212,17 @@ void cross_product_3x1(float vec_a[3], float vec_b[3], float vec_result[3])
 	vec_result[2] = vec_a[0]*vec_b[1] - vec_a[1]*vec_b[0];
 }
 
-void geometry_ctrl(euler_t *rc, float attitude_q[4], float *output_forces, float *output_moments)
+void geometry_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_forces, float *output_moments)
 {
 	/* convert attitude (quaternion) to rotation matrix */
 	quat_to_rotation_matrix(&attitude_q[0], _mat_(R), _mat_(Rt));
 
 	/* convert radio command (euler angle) to rotation matrix */
 	euler_to_rotation_matrix(rc, _mat_(Rd), _mat_(Rtd));
+
+	_mat_(W)[0] = gyro[0];
+	_mat_(W)[1] = gyro[1];
+	_mat_(W)[2] = gyro[2];
 
 #if 1
 	/* set desired angular velocity to 0 */
