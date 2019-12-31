@@ -97,9 +97,10 @@ void geometry_ctrl_init(void)
 	kwz = 0.0f;
 }
 
-void euler_to_rotation_matrix(euler_t *euler, float *r)
+void euler_to_rotation_matrix(euler_t *euler, float *r, float *r_transpose)
 {
 	/* check: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles */
+	/* R = Rz(psi)Ry(theta)Rx(phi)*/
 	float cos_phi = arm_cos_f32(euler->roll);
 	float cos_theta = arm_cos_f32(euler->pitch);
 	float cos_psi = arm_cos_f32(euler->yaw);
@@ -107,7 +108,7 @@ void euler_to_rotation_matrix(euler_t *euler, float *r)
 	float sin_theta = arm_sin_f32(euler->pitch);
 	float sin_psi = arm_sin_f32(euler->yaw);
 
-	/* R = Rz(psi)Ry(theta)Rx(phi)*/ 
+	//R
 	r[0*3 + 0] = cos_theta * cos_psi;
 	r[0*3 + 1] = (-cos_phi * sin_psi) + (sin_phi * sin_theta * cos_psi);
 	r[0*3 + 2] = (sin_phi * sin_psi) + (cos_phi * sin_theta * cos_psi);
@@ -119,9 +120,22 @@ void euler_to_rotation_matrix(euler_t *euler, float *r)
 	r[2*3 + 0] = -sin_theta;
 	r[2*3 + 1] = sin_phi * cos_theta;
 	r[2*3 + 2] = cos_phi * cos_theta;
+
+	//transpose(R)
+	r_transpose[0*3 + 0] = r[0*3 + 0];
+	r_transpose[0*3 + 1] = r[1*3 + 0];
+	r_transpose[0*3 + 2] = r[2*3 + 0];
+
+	r_transpose[1*3 + 0] = r[0*3 + 1];
+	r_transpose[1*3 + 1] = r[1*3 + 1];
+	r_transpose[1*3 + 2] = r[2*3 + 1];
+
+	r_transpose[2*3 + 0] = r[0*3 + 2];
+	r_transpose[2*3 + 1] = r[1*3 + 2];
+	r_transpose[2*3 + 2] = r[2*3 + 2];
 }
 
-void quat_to_rotation_matrix(float q[4], float *r)
+void quat_to_rotation_matrix(float q[4], float *r, float *r_transpose)
 {
 	/* check: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles */
 	float q1q1 = q[1] * q[1];
@@ -134,6 +148,7 @@ void quat_to_rotation_matrix(float q[4], float *r)
 	float q2q3 = q[2] * q[3];
 	float q0q1 = q[0] * q[1];
 
+	//R
 	r[0*4 + 0] = 1.0f - 2.0f * (q2q2 + q3q3);
 	r[0*4 + 1] = 2.0f * (q1q2 - q0q3);
 	r[0*4 + 2] = 2.0f * (q0q2 - q1q3);
@@ -145,6 +160,20 @@ void quat_to_rotation_matrix(float q[4], float *r)
 	r[2*4 + 0] = 2.0f * (q1q3 - q0q2);
 	r[2*4 + 1] = 2.0f * (q0q1 + q2q3);
 	r[2*4 + 2] = 1.0f - 2.0f * (q1q1 + q2q2);
+
+	//transpose(R)
+	r_transpose[0*3 + 0] = r[0*3 + 0];
+	r_transpose[0*3 + 1] = r[1*3 + 0];
+	r_transpose[0*3 + 2] = r[2*3 + 0];
+
+	r_transpose[1*3 + 0] = r[0*3 + 1];
+	r_transpose[1*3 + 1] = r[1*3 + 1];
+	r_transpose[1*3 + 2] = r[2*3 + 1];
+
+	r_transpose[2*3 + 0] = r[0*3 + 2];
+	r_transpose[2*3 + 1] = r[1*3 + 2];
+	r_transpose[2*3 + 2] = r[2*3 + 2];
+
 }
 
 void vee_map_3x3(float *mat, float vec[3])
@@ -186,10 +215,10 @@ void cross_product_3x1(float vec_a[3], float vec_b[3], float vec_result[3])
 void geometry_ctrl(euler_t *rc, float attitude_q[4], float *output_forces, float *output_moments)
 {
 	/* convert attitude (quaternion) to rotation matrix */
-	quat_to_rotation_matrix(&attitude_q[0], _mat_(R));
+	quat_to_rotation_matrix(&attitude_q[0], _mat_(R), _mat_(Rt));
 
 	/* convert radio command (euler angle) to rotation matrix */
-	euler_to_rotation_matrix(rc, _mat_(Rd));
+	euler_to_rotation_matrix(rc, _mat_(Rd), _mat_(Rtd));
 
 #if 1
 	/* set desired angular velocity to 0 */
