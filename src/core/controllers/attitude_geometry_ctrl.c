@@ -99,25 +99,30 @@ void geometry_ctrl_init(void)
 
 void euler_to_rotation_matrix(euler_t *euler, float *r)
 {
-	float phi = euler->roll;
-	float theta = euler->pitch;
-	float psi = euler->yaw;
+	float cos_phi = arm_cos_f32(euler->roll);
+	float cos_theta = arm_cos_f32(euler->pitch);
+	float cos_psi = arm_cos_f32(euler->yaw);
+	float sin_phi = arm_sin_f32(euler->roll);
+	float sin_theta = arm_sin_f32(euler->pitch);
+	float sin_psi = arm_sin_f32(euler->yaw);
 
-	r[0*3 + 0] = arm_cos_f32(theta)*arm_cos_f32(psi);
-	r[0*3 + 1] = -arm_cos_f32(phi)*arm_sin_f32(psi) + arm_sin_f32(phi)*arm_sin_f32(theta)*arm_cos_f32(psi);
-	r[0*3 + 2] = arm_sin_f32(phi)*arm_sin_f32(psi) + arm_cos_f32(phi)*arm_sin_f32(theta)*arm_cos_f32(psi);
+	r[0*3 + 0] = cos_theta * cos_psi;
+	r[0*3 + 1] = (-cos_phi * sin_psi) + (sin_phi * sin_theta * cos_psi);
+	r[0*3 + 2] = (sin_phi * sin_psi) + (cos_phi * sin_theta * cos_psi);
 
-	r[1*3 + 0] = arm_cos_f32(theta)*arm_sin_f32(psi);
-	r[1*3 + 1] = arm_cos_f32(phi)*arm_cos_f32(psi) + arm_sin_f32(phi)*arm_sin_f32(theta)*arm_sin_f32(psi);
-	r[1*3 + 2] = -arm_sin_f32(phi)*arm_cos_f32(psi) + arm_cos_f32(phi)*arm_sin_f32(theta)*arm_sin_f32(psi);
+	r[1*3 + 0] = cos_theta * sin_psi;
+	r[1*3 + 1] = (cos_phi * cos_psi) + (sin_phi * sin_theta * sin_psi);
+	r[1*3 + 2] = (-sin_phi * cos_psi) + (cos_phi * sin_theta * sin_psi);
 
-	r[2*3 + 0] = -arm_sin_f32(theta);
-	r[2*3 + 1] = arm_sin_f32(phi)*arm_cos_f32(theta);
-	r[2*3 + 2] = arm_cos_f32(phi)*arm_cos_f32(theta);
+	r[2*3 + 0] = -sin_theta;
+	r[2*3 + 1] = sin_phi * cos_theta;
+	r[2*3 + 2] = cos_phi * cos_theta;
 }
 
 void quat_to_rotation_matrix(float q[4], float *r)
 {
+	//XXX: Too many duplicated operations
+
 	r[0*4 + 0] = 1.0f - 2.0f * (q[2]*q[2] + q[3]*q[3]);
 	r[0*4 + 1] = 2.0f * (q[1]*q[2] - q[0]*q[3]);
 	r[0*4 + 2] = 2.0f * (q[0]*q[2] - q[1]*q[3]);
