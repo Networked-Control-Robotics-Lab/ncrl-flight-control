@@ -6,8 +6,11 @@
 #include "sbus_receiver.h"
 #include "ahrs.h"
 #include "matrix.h"
+#include "motor_thrust.h"
 
-#define dt 0.0025
+#define dt 0.0025 //[s
+#define MOTOR_TO_CG_LENGTH 25.0f //[cm]
+#define COEFFICIENT_YAW 1.0f
 
 MAT_ALLOC(J, 3, 3);
 MAT_ALLOC(R, 3, 3);
@@ -219,6 +222,20 @@ void geometry_ctrl(euler_t *rc, float attitude_q[4], float *output_forces, float
 	output_moments[2] = -krz*_mat_(eR)[2] -kwz*_mat_(eW)[2] + _mat_(inertia_effect)[2];
 }
 
-void thrust_allocate_quadrotor(float *forces, float *moments, float *motors)
+void thrust_allocate_quadrotor(float *motors, float *moments, float force_total)
 {
+	float forces[4] = {0.0f};
+	float force_basis = 0.25f *  force_total;
+	float l_div_4_pos = +0.25f * MOTOR_TO_CG_LENGTH;
+	float l_div_4_neg = -0.25f * MOTOR_TO_CG_LENGTH;
+	float b_div_4_pos = +0.25f * COEFFICIENT_YAW;
+	float b_div_4_neg = -0.25f * COEFFICIENT_YAW;
+	forces[0] = l_div_4_pos * moments[0] + l_div_4_pos * moments[1] + b_div_4_pos * moments[2] + force_basis;
+	forces[1] = l_div_4_neg * moments[0] + l_div_4_pos * moments[1] + b_div_4_neg * moments[2] + force_basis;
+	forces[2] = l_div_4_neg * moments[0] + l_div_4_neg * moments[1] + b_div_4_pos * moments[2] + force_basis;
+	forces[3] = l_div_4_pos * moments[0] + l_div_4_neg * moments[1] + b_div_4_neg * moments[2] + force_basis;
+	motors[0] = convert_motor_thrust_to_cmd(forces[0]);
+	motors[1] = convert_motor_thrust_to_cmd(forces[1]);
+	motors[2] = convert_motor_thrust_to_cmd(forces[2]);
+	motors[3] = convert_motor_thrust_to_cmd(forces[3]);
 }
