@@ -99,6 +99,7 @@ void geometry_ctrl_init(void)
 
 void euler_to_rotation_matrix(euler_t *euler, float *r)
 {
+	/* check: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles */
 	float cos_phi = arm_cos_f32(euler->roll);
 	float cos_theta = arm_cos_f32(euler->pitch);
 	float cos_psi = arm_cos_f32(euler->yaw);
@@ -106,6 +107,7 @@ void euler_to_rotation_matrix(euler_t *euler, float *r)
 	float sin_theta = arm_sin_f32(euler->pitch);
 	float sin_psi = arm_sin_f32(euler->yaw);
 
+	/* R = Rz(psi)Ry(theta)Rx(phi)*/ 
 	r[0*3 + 0] = cos_theta * cos_psi;
 	r[0*3 + 1] = (-cos_phi * sin_psi) + (sin_phi * sin_theta * cos_psi);
 	r[0*3 + 2] = (sin_phi * sin_psi) + (cos_phi * sin_theta * cos_psi);
