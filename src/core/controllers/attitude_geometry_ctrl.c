@@ -78,15 +78,15 @@ void geometry_ctrl_init(void)
 	uav_length_z = 0.0f;
 
 	MAT_INIT(J, 3, 3);
-	_mat_(J)[0*0] = 0.0f; //Ixx
-	_mat_(J)[0*1] = 0.0f; //Ixy
-	_mat_(J)[0*2] = 0.0f; //Ixz
-	_mat_(J)[1*0] = 0.0f; //Iyx
-	_mat_(J)[1*1] = 0.0f; //Iyy
-	_mat_(J)[1*2] = 0.0f; //Iyz
-	_mat_(J)[2*0] = 0.0f; //Izx
-	_mat_(J)[2*1] = 0.0f; //Izy
-	_mat_(J)[2*2] = 0.0f; //Izz
+	_mat_(J)[0*3 + 0] = 0.0f; //Ixx
+	_mat_(J)[0*3 + 1] = 0.0f; //Ixy
+	_mat_(J)[0*3 + 2] = 0.0f; //Ixz
+	_mat_(J)[1*3 + 0] = 0.0f; //Iyx
+	_mat_(J)[1*3 + 1] = 0.0f; //Iyy
+	_mat_(J)[1*3 + 2] = 0.0f; //Iyz
+	_mat_(J)[2*3 + 0] = 0.0f; //Izx
+	_mat_(J)[2*3 + 1] = 0.0f; //Izy
+	_mat_(J)[2*3 + 2] = 0.0f; //Izz
 
 	/* attitude controller gains of geometry tracking controller */
 	krx = 0.0f;
@@ -103,52 +103,52 @@ void euler_to_rotation_matrix(euler_t *euler, float *r)
 	float theta = euler->pitch;
 	float psi = euler->yaw;
 
-	r[0*0] = arm_cos_f32(theta)*arm_cos_f32(psi);
-	r[0*1] = -arm_cos_f32(phi)*arm_sin_f32(psi) + arm_sin_f32(phi)*arm_sin_f32(theta)*arm_cos_f32(psi);
-	r[0*2] = arm_sin_f32(phi)*arm_sin_f32(psi) + arm_cos_f32(phi)*arm_sin_f32(theta)*arm_cos_f32(psi);
+	r[0*3 + 0] = arm_cos_f32(theta)*arm_cos_f32(psi);
+	r[0*3 + 1] = -arm_cos_f32(phi)*arm_sin_f32(psi) + arm_sin_f32(phi)*arm_sin_f32(theta)*arm_cos_f32(psi);
+	r[0*3 + 2] = arm_sin_f32(phi)*arm_sin_f32(psi) + arm_cos_f32(phi)*arm_sin_f32(theta)*arm_cos_f32(psi);
 
-	r[1*0] = arm_cos_f32(theta)*arm_sin_f32(psi);
-	r[1*1] = arm_cos_f32(phi)*arm_cos_f32(psi) + arm_sin_f32(phi)*arm_sin_f32(theta)*arm_sin_f32(psi);
-	r[1*2] = -arm_sin_f32(phi)*arm_cos_f32(psi) + arm_cos_f32(phi)*arm_sin_f32(theta)*arm_sin_f32(psi);
+	r[1*3 + 0] = arm_cos_f32(theta)*arm_sin_f32(psi);
+	r[1*3 + 1] = arm_cos_f32(phi)*arm_cos_f32(psi) + arm_sin_f32(phi)*arm_sin_f32(theta)*arm_sin_f32(psi);
+	r[1*3 + 2] = -arm_sin_f32(phi)*arm_cos_f32(psi) + arm_cos_f32(phi)*arm_sin_f32(theta)*arm_sin_f32(psi);
 
-	r[2*0] = -arm_sin_f32(theta);
-	r[2*1] = arm_sin_f32(phi)*arm_cos_f32(theta);
-	r[2*2] = arm_cos_f32(phi)*arm_cos_f32(theta);
+	r[2*3 + 0] = -arm_sin_f32(theta);
+	r[2*3 + 1] = arm_sin_f32(phi)*arm_cos_f32(theta);
+	r[2*3 + 2] = arm_cos_f32(phi)*arm_cos_f32(theta);
 }
 
 void quat_to_rotation_matrix(float q[4], float *r)
 {
-	r[0*0] = 1.0f - 2.0f * (q[2]*q[2] + q[3]*q[3]);
-	r[0*1] = 2.0f * (q[1]*q[2] - q[0]*q[3]);
-	r[0*2] = 2.0f * (q[0]*q[2] - q[1]*q[3]);
+	r[0*4 + 0] = 1.0f - 2.0f * (q[2]*q[2] + q[3]*q[3]);
+	r[0*4 + 1] = 2.0f * (q[1]*q[2] - q[0]*q[3]);
+	r[0*4 + 2] = 2.0f * (q[0]*q[2] - q[1]*q[3]);
 
-	r[1*0] = 2.0f * (q[1]*q[2] + q[0]*q[3]);
-	r[1*1] = 1.0f - 2.0f * (q[1]*q[1] + q[3]*q[3]);
-	r[1*2] = 2.0f * (q[2]*q[3] - q[0]*q[1]);
+	r[1*4 + 0] = 2.0f * (q[1]*q[2] + q[0]*q[3]);
+	r[1*4 + 1] = 1.0f - 2.0f * (q[1]*q[1] + q[3]*q[3]);
+	r[1*4 + 2] = 2.0f * (q[2]*q[3] - q[0]*q[1]);
 
-	r[2*0] = 2.0f * (q[1]*q[3] - q[0]*q[2]);
-	r[2*1] = 2.0f * (q[0]*q[1] + q[2]*q[3]);
-	r[2*2] = 1.0f - 2.0f * (q[1]*q[1]+q[2]*q[2]);
+	r[2*4 + 0] = 2.0f * (q[1]*q[3] - q[0]*q[2]);
+	r[2*4 + 1] = 2.0f * (q[0]*q[1] + q[2]*q[3]);
+	r[2*4 + 2] = 1.0f - 2.0f * (q[1]*q[1]+q[2]*q[2]);
 }
 
 void vee_map_3x3(float *mat, float vec[3])
 {
-	vec[0] = mat[2*1];
-	vec[1] = mat[0*2];
-	vec[2] = mat[1*0];
+	vec[0] = mat[2*3 + 1];
+	vec[1] = mat[0*3 + 2];
+	vec[2] = mat[1*3 + 0];
 }
 
 void hat_map_3x3(float vec[3], float *mat)
 {
-	mat[0*0] = 0.0f;
-	mat[0*1] = -vec[2];
-	mat[0*2] = +vec[1];
-	mat[1*0] = +vec[2];
-	mat[1*1] = 0.0f;
-	mat[1*2] = -vec[0];
-	mat[2*0] = -vec[1];
-	mat[2*1] = +vec[0];
-	mat[2*2] = 0.0f;
+	mat[0*3 + 0] = 0.0f;
+	mat[0*3 + 1] = -vec[2];
+	mat[0*3 + 2] = +vec[1];
+	mat[1*3 + 0] = +vec[2];
+	mat[1*3 + 1] = 0.0f;
+	mat[1*3 + 2] = -vec[0];
+	mat[2*3 + 0] = -vec[1];
+	mat[2*3 + 1] = +vec[0];
+	mat[2*3 + 2] = 0.0f;
 }
 
 void cross_product_3x1(float vec_a[3], float vec_b[3], float vec_result[3])
