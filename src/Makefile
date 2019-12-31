@@ -68,7 +68,7 @@ SRC+=./core/main.c \
 	./core/controllers/attitude_geometry_ctrl.c \
 	./core/controllers/motor_thrust.c \
 	./core/controllers/tracking_ctrl.c \
-	./core/controllers/controller_task.c \
+	./core/tasks/controller_task.c \
 	./core/debug_link/debug_link.c
 
 SRC+=./common/delay.c \
@@ -97,6 +97,7 @@ CFLAGS+=-I./core
 CFLAGS+=-I./core/estimators
 CFLAGS+=-I./core/controllers
 CFLAGS+=-I./core/debug_link
+CFLAGS+=-I./core/tasks
 CFLAGS+=-I./common
 CFLAGS+=-I./driver/periph
 CFLAGS+=-I./driver/device
