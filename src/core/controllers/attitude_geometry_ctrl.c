@@ -123,19 +123,28 @@ void euler_to_rotation_matrix(euler_t *euler, float *r)
 
 void quat_to_rotation_matrix(float q[4], float *r)
 {
-	//XXX: Too many duplicated operations
+	/* check: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles */
+	float q1q1 = q[1] * q[1];
+	float q2q2 = q[2] * q[2];
+	float q3q3 = q[3] * q[3];
+	float q1q2 = q[1] * q[2];
+	float q0q2 = q[0] * q[2];
+	float q0q3 = q[0] * q[3];
+	float q1q3 = q[1] * q[3];
+	float q2q3 = q[2] * q[3];
+	float q0q1 = q[0] * q[1];
 
-	r[0*4 + 0] = 1.0f - 2.0f * (q[2]*q[2] + q[3]*q[3]);
-	r[0*4 + 1] = 2.0f * (q[1]*q[2] - q[0]*q[3]);
-	r[0*4 + 2] = 2.0f * (q[0]*q[2] - q[1]*q[3]);
+	r[0*4 + 0] = 1.0f - 2.0f * (q2q2 + q3q3);
+	r[0*4 + 1] = 2.0f * (q1q2 - q0q3);
+	r[0*4 + 2] = 2.0f * (q0q2 - q1q3);
 
-	r[1*4 + 0] = 2.0f * (q[1]*q[2] + q[0]*q[3]);
-	r[1*4 + 1] = 1.0f - 2.0f * (q[1]*q[1] + q[3]*q[3]);
-	r[1*4 + 2] = 2.0f * (q[2]*q[3] - q[0]*q[1]);
+	r[1*4 + 0] = 2.0f * (q1q2 + q0q3);
+	r[1*4 + 1] = 1.0f - 2.0f * (q1q1 + q3q3);
+	r[1*4 + 2] = 2.0f * (q2q3 - q0q1);
 
-	r[2*4 + 0] = 2.0f * (q[1]*q[3] - q[0]*q[2]);
-	r[2*4 + 1] = 2.0f * (q[0]*q[1] + q[2]*q[3]);
-	r[2*4 + 2] = 1.0f - 2.0f * (q[1]*q[1]+q[2]*q[2]);
+	r[2*4 + 0] = 2.0f * (q1q3 - q0q2);
+	r[2*4 + 1] = 2.0f * (q0q1 + q2q3);
+	r[2*4 + 2] = 1.0f - 2.0f * (q1q1 + q2q2);
 }
 
 void vee_map_3x3(float *mat, float vec[3])
