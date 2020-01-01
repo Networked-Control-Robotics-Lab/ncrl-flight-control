@@ -147,17 +147,17 @@ void quat_to_rotation_matrix(float q[4], float *r, float *r_transpose)
 	float q0q1 = q[0] * q[1];
 
 	//R
-	r[0*4 + 0] = 1.0f - 2.0f * (q2q2 + q3q3);
-	r[0*4 + 1] = 2.0f * (q1q2 - q0q3);
-	r[0*4 + 2] = 2.0f * (q0q2 - q1q3);
+	r[0*3 + 0] = 1.0f - 2.0f * (q2q2 + q3q3);
+	r[0*3 + 1] = 2.0f * (q1q2 - q0q3);
+	r[0*3 + 2] = 2.0f * (q0q2 - q1q3);
 
-	r[1*4 + 0] = 2.0f * (q1q2 + q0q3);
-	r[1*4 + 1] = 1.0f - 2.0f * (q1q1 + q3q3);
-	r[1*4 + 2] = 2.0f * (q2q3 - q0q1);
+	r[1*3 + 0] = 2.0f * (q1q2 + q0q3);
+	r[1*3 + 1] = 1.0f - 2.0f * (q1q1 + q3q3);
+	r[1*3 + 2] = 2.0f * (q2q3 - q0q1);
 
-	r[2*4 + 0] = 2.0f * (q1q3 - q0q2);
-	r[2*4 + 1] = 2.0f * (q0q1 + q2q3);
-	r[2*4 + 2] = 1.0f - 2.0f * (q1q1 + q2q2);
+	r[2*3 + 0] = 2.0f * (q1q3 - q0q2);
+	r[2*3 + 1] = 2.0f * (q0q1 + q2q3);
+	r[2*3 + 2] = 1.0f - 2.0f * (q1q1 + q2q2);
 
 	//transpose(R)
 	r_transpose[0*3 + 0] = r[0*3 + 0];
@@ -211,22 +211,13 @@ void cross_product_3x1(float vec_a[3], float vec_b[3], float vec_result[3])
 
 void geometry_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_forces, float *output_moments)
 {
-	//attitude_q[0] = 1.0f; attitude_q[1] = attitude_q[2] = attitude_q[3] = 0.0f;
-	//rc->roll = rc->pitch = rc->yaw = 0.0f;
-
-	//FIXME
 	/* convert attitude (quaternion) to rotation matrix */
-	//quat_to_rotation_matrix(&attitude_q[0], _mat_(R), _mat_(Rt));
-	_mat_(R)[0] = 1.0f;
-	_mat_(R)[4] = 1.0f;
-	_mat_(R)[8] = 1.0f;
-	_mat_(Rt)[0] = 1.0f;
-	_mat_(Rt)[4] = 1.0f;
-	_mat_(Rt)[8] = 1.0f;
+	quat_to_rotation_matrix(&attitude_q[0], _mat_(R), _mat_(Rt));
 
 	/* convert radio command (euler angle) to rotation matrix */
 	euler_to_rotation_matrix(rc, _mat_(Rd), _mat_(Rtd));
 
+	/* W (angular velocity) */
 	_mat_(W)[0] = gyro[0];
 	_mat_(W)[1] = gyro[1];
 	_mat_(W)[2] = gyro[2];
