@@ -247,9 +247,9 @@ void task_flight_ctl(void *param)
 		float control_forces[3], control_moments[3];
 		float motor_cmd[4] = {0.0f}; //quadrotor
 		euler_t desired_attitude;
-		desired_attitude.roll = rc.roll;
-		desired_attitude.pitch = rc.pitch;
-		desired_attitude.yaw = rc.yaw;
+		desired_attitude.roll = deg_to_rad(rc.roll);
+		desired_attitude.pitch = deg_to_rad(rc.pitch);
+		desired_attitude.yaw = deg_to_rad(rc.yaw);
 		float gyro[3];
 		gyro[0] = imu.gyro_lpf.x;
 		gyro[1] = imu.gyro_lpf.y;

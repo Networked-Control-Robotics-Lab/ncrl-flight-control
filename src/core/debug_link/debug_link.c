@@ -195,10 +195,14 @@ void send_geometry_ctrl_debug(debug_msg_t *payload)
 {
 	payload->len = 3; //reserve for header message
 
+	float roll_error = rad_to_deg(_mat_(eR)[0]);
+	float pitch_error = rad_to_deg(_mat_(eR)[1]);
+	float yaw_error = rad_to_deg(_mat_(eR)[2]);
+
 	payload->s[2] = MESSAGE_ID_GEOMETRY_DEBUG;
-	payload->len += pack_float(&_mat_(eR)[0], payload->s + payload->len);
-	payload->len += pack_float(&_mat_(eR)[1], payload->s + payload->len);
-	payload->len += pack_float(&_mat_(eR)[2], payload->s + payload->len);
+	payload->len += pack_float(&roll_error, payload->s + payload->len);
+	payload->len += pack_float(&pitch_error, payload->s + payload->len);
+	payload->len += pack_float(&yaw_error, payload->s + payload->len);
 	payload->len += pack_float(&_mat_(eW)[0], payload->s + payload->len);
 	payload->len += pack_float(&_mat_(eW)[1], payload->s + payload->len);
 	payload->len += pack_float(&_mat_(eW)[2], payload->s + payload->len);

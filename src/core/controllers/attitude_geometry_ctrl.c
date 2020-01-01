@@ -26,7 +26,6 @@ MAT_ALLOC(W_hat, 3, 3);
 MAT_ALLOC(Wd_dot, 3, 1);
 MAT_ALLOC(JW, 3, 1);
 MAT_ALLOC(WJW, 3, 1);
-MAT_ALLOC(eR_mat_double, 3, 3);
 MAT_ALLOC(eR_mat, 3, 3);
 MAT_ALLOC(eR, 3, 1);
 MAT_ALLOC(eW, 3, 1);
@@ -59,7 +58,6 @@ void geometry_ctrl_init(void)
 	MAT_INIT(Wd_dot, 3, 1);
 	MAT_INIT(JW, 3, 1);
 	MAT_INIT(WJW, 3, 1);
-	MAT_INIT(eR_mat_double, 3, 3);
 	MAT_INIT(eR_mat, 3, 3);
 	MAT_INIT(eR, 3, 1);
 	MAT_INIT(eW, 3, 1);
@@ -123,15 +121,15 @@ void euler_to_rotation_matrix(euler_t *euler, float *r, float *r_transpose)
 
 	//transpose(R)
 	r_transpose[0*3 + 0] = r[0*3 + 0];
-	r_transpose[0*3 + 1] = r[1*3 + 0];
-	r_transpose[0*3 + 2] = r[2*3 + 0];
-
 	r_transpose[1*3 + 0] = r[0*3 + 1];
-	r_transpose[1*3 + 1] = r[1*3 + 1];
-	r_transpose[1*3 + 2] = r[2*3 + 1];
-
 	r_transpose[2*3 + 0] = r[0*3 + 2];
+
+	r_transpose[0*3 + 1] = r[1*3 + 0];
+	r_transpose[1*3 + 1] = r[1*3 + 0];
 	r_transpose[2*3 + 1] = r[1*3 + 2];
+
+	r_transpose[0*3 + 2] = r[2*3 + 0];
+	r_transpose[1*3 + 2] = r[2*3 + 1];
 	r_transpose[2*3 + 2] = r[2*3 + 2];
 }
 
@@ -163,17 +161,16 @@ void quat_to_rotation_matrix(float q[4], float *r, float *r_transpose)
 
 	//transpose(R)
 	r_transpose[0*3 + 0] = r[0*3 + 0];
-	r_transpose[0*3 + 1] = r[1*3 + 0];
-	r_transpose[0*3 + 2] = r[2*3 + 0];
-
 	r_transpose[1*3 + 0] = r[0*3 + 1];
-	r_transpose[1*3 + 1] = r[1*3 + 1];
-	r_transpose[1*3 + 2] = r[2*3 + 1];
-
 	r_transpose[2*3 + 0] = r[0*3 + 2];
-	r_transpose[2*3 + 1] = r[1*3 + 2];
-	r_transpose[2*3 + 2] = r[2*3 + 2];
 
+	r_transpose[0*3 + 1] = r[1*3 + 0];
+	r_transpose[1*3 + 1] = r[1*3 + 0];
+	r_transpose[2*3 + 1] = r[1*3 + 2];
+
+	r_transpose[0*3 + 2] = r[2*3 + 0];
+	r_transpose[1*3 + 2] = r[2*3 + 1];
+	r_transpose[2*3 + 2] = r[2*3 + 2];
 }
 
 void vee_map_3x3(float *mat, float vec[3])
@@ -214,8 +211,18 @@ void cross_product_3x1(float vec_a[3], float vec_b[3], float vec_result[3])
 
 void geometry_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_forces, float *output_moments)
 {
+	//attitude_q[0] = 1.0f; attitude_q[1] = attitude_q[2] = attitude_q[3] = 0.0f;
+	//rc->roll = rc->pitch = rc->yaw = 0.0f;
+
+	//FIXME
 	/* convert attitude (quaternion) to rotation matrix */
-	quat_to_rotation_matrix(&attitude_q[0], _mat_(R), _mat_(Rt));
+	//quat_to_rotation_matrix(&attitude_q[0], _mat_(R), _mat_(Rt));
+	_mat_(R)[0] = 1.0f;
+	_mat_(R)[4] = 1.0f;
+	_mat_(R)[8] = 1.0f;
+	_mat_(Rt)[0] = 1.0f;
+	_mat_(Rt)[4] = 1.0f;
+	_mat_(Rt)[8] = 1.0f;
 
 	/* convert radio command (euler angle) to rotation matrix */
 	euler_to_rotation_matrix(rc, _mat_(Rd), _mat_(Rtd));
@@ -237,9 +244,11 @@ void geometry_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_fo
 	/* calculate attitude error eR */
 	MAT_MULT(&Rtd, &R, &RtdR);
 	MAT_MULT(&Rt, &Rd, &RtRd);
-	MAT_SUB(&RtdR, &RtRd, &eR_mat_double);
-	MAT_SCALE(&eR_mat_double, 0.5f, &eR_mat);
+	MAT_SUB(&RtdR, &RtRd, &eR_mat);
 	vee_map_3x3(_mat_(eR_mat), _mat_(eR));
+	_mat_(eR)[0] *= 0.5f;
+	_mat_(eR)[1] *= 0.5f;
+	_mat_(eR)[2] *= 0.5f;
 
 	/* calculate attitude rate error eW */
 	MAT_MULT(&Rt, &Rd, &RtRd);

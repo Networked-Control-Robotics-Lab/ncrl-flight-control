@@ -205,19 +205,19 @@ class serial_plotter_class:
         	self.show_subplot()
         elif (message_id == 11):
           	plt.subplot(211)
-        	plt.ylabel('attitude error')
+        	plt.ylabel('attitude error [deg]')
         	plt.ylim([-200, 200])
         	self.create_curve('roll', 'red')
-                self.create_curve('pitch', 'orange')
-        	self.create_curve('yaw', 'yellow')
+                self.create_curve('pitch', 'blue')
+        	self.create_curve('yaw', 'green')
         	self.show_subplot()
 
          	plt.subplot(212)
-        	plt.ylabel('attitude rate error')
+        	plt.ylabel('attitude rate error [deg/s]')
         	plt.ylim([-200, 200])
         	self.create_curve('wx', 'red')
-                self.create_curve('wy', 'orange')
-        	self.create_curve('wz', 'yellow')
+                self.create_curve('wy', 'blue')
+        	self.create_curve('wz', 'green')
         	self.show_subplot()
              
 
