@@ -245,7 +245,7 @@ void geometry_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_fo
 	MAT_MULT(&Rt, &Rd, &RtRd);
 	//MAT_MULT(&RtRd, &Wd, &RtRdWd); //the term is duplicated
 	MAT_SUB(&W, &RtRdWd, &eW);
-
+#if 0
 	/* calculate inertia effect */
 	//W x JW
 	MAT_MULT(&J, &W, &JW);
@@ -269,6 +269,7 @@ void geometry_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_fo
 	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0] + _mat_(inertia_effect)[0];
 	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1] + _mat_(inertia_effect)[1];
 	output_moments[2] = -krz*_mat_(eR)[2] -kwz*_mat_(eW)[2] + _mat_(inertia_effect)[2];
+#endif
 }
 
 void thrust_allocate_quadrotor(float *motors, float *moments, float force_total)

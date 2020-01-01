@@ -36,6 +36,8 @@ extern float nav_ctl_pitch_command;
 
 extern float _mat_(P)[4 * 4];
 extern float _mat_(K)[4 * 4];
+extern float _mat_(eR)[3 * 1];
+extern float _mat_(eW)[3 * 1];
 
 radio_t rc;
 
@@ -189,6 +191,19 @@ void send_pid_debug(debug_msg_t *payload)
 #endif
 }
 
+void send_geometry_ctrl_debug(debug_msg_t *payload)
+{
+	payload->len = 3; //reserve for header message
+
+	payload->s[2] = MESSAGE_ID_GEOMETRY_DEBUG;
+	payload->len += pack_float(&_mat_(eR)[0], payload->s + payload->len);
+	payload->len += pack_float(&_mat_(eR)[1], payload->s + payload->len);
+	payload->len += pack_float(&_mat_(eR)[2], payload->s + payload->len);
+	payload->len += pack_float(&_mat_(eW)[0], payload->s + payload->len);
+	payload->len += pack_float(&_mat_(eW)[1], payload->s + payload->len);
+	payload->len += pack_float(&_mat_(eW)[2], payload->s + payload->len);
+}
+
 void send_optitrack_position_message(debug_msg_t *payload)
 {
 	payload->len = 3; //reserve for header message
@@ -263,7 +278,7 @@ void task_debug_link(void *param)
 		//send_imu_message(&payload);
 		//send_attitude_euler_message(&payload);
 		//send_attitude_quaternion_message(&payload);
-		send_attitude_imu_message(&payload);
+		//send_attitude_imu_message(&payload);
 		//send_ekf_message(&payload);
 		//send_pid_debug(&payload);
 		//send_motor_message(&payload);
@@ -274,6 +289,7 @@ void task_debug_link(void *param)
 		//send_general_float_message(pid_pos_x.error_current, &payload);
 		//send_accel_calib_message();
 		//send_accel_bias_calib_message();
+		send_geometry_ctrl_debug(&payload);
 		send_onboard_data(payload.s, payload.len);
 		freertos_task_delay(delay_time_ms);
 	}
