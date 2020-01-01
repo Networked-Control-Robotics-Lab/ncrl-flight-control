@@ -203,6 +203,23 @@ class serial_plotter_class:
         	plt.ylim([-200, 200])
         	self.create_curve('float variable', 'red')
         	self.show_subplot()
+        elif (message_id == 11):
+          	plt.subplot(211)
+        	plt.ylabel('attitude error')
+        	plt.ylim([-200, 200])
+        	self.create_curve('roll', 'red')
+                self.create_curve('pitch', 'orange')
+        	self.create_curve('yaw', 'yellow')
+        	self.show_subplot()
+
+         	plt.subplot(212)
+        	plt.ylabel('attitude rate error')
+        	plt.ylim([-200, 200])
+        	self.create_curve('wx', 'red')
+                self.create_curve('wy', 'orange')
+        	self.create_curve('wz', 'yellow')
+        	self.show_subplot()
+             
 
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \
