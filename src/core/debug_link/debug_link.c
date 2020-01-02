@@ -11,6 +11,7 @@
 #include "sbus_receiver.h"
 #include "ahrs.h"
 #include "attitude_pd_ctrl.h"
+#include "motor_thrust.h"
 #include "led.h"
 #include "optitrack.h"
 
@@ -199,13 +200,17 @@ void send_geometry_ctrl_debug(debug_msg_t *payload)
 	float pitch_error = rad_to_deg(_mat_(eR)[1]);
 	float yaw_error = rad_to_deg(_mat_(eR)[2]);
 
+	float wx_error = rad_to_deg(_mat_(eW)[0]);
+	float wy_error = rad_to_deg(_mat_(eW)[1]);
+	float wz_error = rad_to_deg(_mat_(eW)[2]);
+
 	payload->s[2] = MESSAGE_ID_GEOMETRY_DEBUG;
 	payload->len += pack_float(&roll_error, payload->s + payload->len);
 	payload->len += pack_float(&pitch_error, payload->s + payload->len);
 	payload->len += pack_float(&yaw_error, payload->s + payload->len);
-	payload->len += pack_float(&_mat_(eW)[0], payload->s + payload->len);
-	payload->len += pack_float(&_mat_(eW)[1], payload->s + payload->len);
-	payload->len += pack_float(&_mat_(eW)[2], payload->s + payload->len);
+	payload->len += pack_float(&wx_error, payload->s + payload->len);
+	payload->len += pack_float(&wy_error, payload->s + payload->len);
+	payload->len += pack_float(&wz_error, payload->s + payload->len);
 }
 
 void send_optitrack_position_message(debug_msg_t *payload)
@@ -291,6 +296,7 @@ void task_debug_link(void *param)
 		//send_optitrack_velocity_message(&payload);
 		//send_general_float_message(optitrack.recv_freq, &payload);
 		//send_general_float_message(pid_pos_x.error_current, &payload);
+		//send_general_float_message(motor_cmd[0], &payload);
 		//send_accel_calib_message();
 		//send_accel_bias_calib_message();
 		send_geometry_ctrl_debug(&payload);
