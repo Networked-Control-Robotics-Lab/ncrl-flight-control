@@ -265,17 +265,16 @@ void geometry_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_fo
 	//inertia effect = (W x JW) - J*[(W * R^T * Rd * Wd) - (R^T * Rd * Wd_dot)]
 	MAT_SUB(&WJW, &J_WRtRdWd_RtRdWddot, &inertia_effect);
 
-	/* control input M1, M2, M3 */
-	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0] + _mat_(inertia_effect)[0];
-	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1] + _mat_(inertia_effect)[1];
-	output_moments[2] = -krz*_mat_(eR)[2] -kwz*_mat_(eW)[2] + _mat_(inertia_effect)[2];
 #endif
+	/* control input M1, M2, M3 */
+	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0];// + _mat_(inertia_effect)[0];
+	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1];// + _mat_(inertia_effect)[1];
+	output_moments[2] = -krz*_mat_(eR)[2] -kwz*_mat_(eW)[2];// + _mat_(inertia_effect)[2];
 }
 
-void thrust_allocate_quadrotor(float *motors, float *moments, float force_total)
+void thrust_allocate_quadrotor(float *motors, float *moments, float force_basis)
 {
 	float forces[4] = {0.0f};
-	float force_basis = 0.25f *  force_total;
 	float l_div_4_pos = +0.25f * MOTOR_TO_CG_LENGTH;
 	float l_div_4_neg = -0.25f * MOTOR_TO_CG_LENGTH;
 	float b_div_4_pos = +0.25f * COEFFICIENT_YAW;

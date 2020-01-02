@@ -50,6 +50,8 @@ float nav_ctl_pitch_command; //body frame y direction control
 float motor1, motor2, motor3, motor4;
 radio_t rc;
 
+float motor_cmd[4];
+
 void pid_controller_init(void)
 {
 	/* attitude controllers */
@@ -245,7 +247,6 @@ void task_flight_ctl(void *param)
 		}
 #elif (SELECT_CONTROLLER == QUADROTOR_USE_GEOMETRY)
 		float control_forces[3], control_moments[3];
-		float motor_cmd[4] = {0.0f}; //quadrotor
 		euler_t desired_attitude;
 		desired_attitude.roll = deg_to_rad(rc.roll);
 		desired_attitude.pitch = deg_to_rad(rc.pitch);
@@ -254,9 +255,28 @@ void task_flight_ctl(void *param)
 		gyro[0] = imu.gyro_lpf.x;
 		gyro[1] = imu.gyro_lpf.y;
 		gyro[2] = imu.gyro_lpf.z;
-		float throttle_force = convert_motor_cmd_to_thrust(rc.throttle);
+		float throttle_force = convert_motor_cmd_to_thrust(rc.throttle / 100.0f); //FIXME
 		geometry_ctrl(&desired_attitude, ahrs.q, gyro, control_forces, control_moments);
 		thrust_allocate_quadrotor(motor_cmd, control_moments, throttle_force);
+
+		float percentage_to_pwm = (MOTOR_PULSE_MAX - MOTOR_PULSE_MIN);
+		motor_cmd[0] = motor_cmd[0] * percentage_to_pwm + MOTOR_PULSE_MIN;
+		motor_cmd[1] = motor_cmd[1] * percentage_to_pwm + MOTOR_PULSE_MIN;
+		motor_cmd[2] = motor_cmd[2] * percentage_to_pwm + MOTOR_PULSE_MIN;
+		motor_cmd[3] = motor_cmd[3] * percentage_to_pwm + MOTOR_PULSE_MIN;
+
+		if(rc.safety == false) {
+			led_on(LED_R);
+			led_off(LED_B);
+			set_motor_pwm_pulse(MOTOR1, (uint16_t)(motor_cmd[0]));
+			set_motor_pwm_pulse(MOTOR2, (uint16_t)(motor_cmd[1]));
+			set_motor_pwm_pulse(MOTOR3, (uint16_t)(motor_cmd[2]));
+			set_motor_pwm_pulse(MOTOR4, (uint16_t)(motor_cmd[3]));
+		} else {
+			led_on(LED_B);
+			led_off(LED_R);
+			motor_control(0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+		}
 #endif
 
 		taskYIELD();
