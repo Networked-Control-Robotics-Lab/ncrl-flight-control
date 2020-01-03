@@ -84,6 +84,7 @@ SRC+=./driver/periph/led.c \
 	./driver/periph/isr.c \
 	./driver/periph/exti.c \
 	./driver/device/mpu6500.c \
+	./driver/device/ms5611.c \
 	./driver/device/hmc5983.c \
 	./driver/device/sbus_receiver.c \
 	./driver/device/motor.c \
