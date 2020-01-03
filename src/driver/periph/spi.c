@@ -7,7 +7,7 @@
  * miso: gpio_pin_a_6
  * mosi: gpio_pin_a_7
  */
-void spi1_init()
+void spi1_init(void)
 {
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
@@ -45,6 +45,53 @@ void spi1_init()
 	SPI_Init(SPI1, &SPI_InitStruct);
 
 	SPI_Cmd(SPI1, ENABLE);
+}
+
+/* <spi3>
+ * usage: ms5611 (barometer)
+ * cs: gpio_pin_a_15
+ * sck: gpio_pin_b_3
+ * miso: gpio_pin_b_4
+ * mosi: gpio_pin_b_5
+ */
+void spi3_init(void)
+{
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI3, ENABLE);
+
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource3, GPIO_AF_SPI3);
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource4, GPIO_AF_SPI3);
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource5, GPIO_AF_SPI3);
+
+	GPIO_InitTypeDef GPIO_InitStruct = {
+		.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5,
+		.GPIO_Mode = GPIO_Mode_AF,
+		.GPIO_Speed = GPIO_Speed_50MHz,
+		.GPIO_OType = GPIO_OType_PP,
+		.GPIO_PuPd = GPIO_PuPd_UP
+	};
+	GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+	/* Chip select pin */
+	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_15;
+	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
+	GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+	SPI_InitTypeDef SPI_InitStruct = {
+		.SPI_Direction = SPI_Direction_2Lines_FullDuplex,
+		.SPI_Mode = SPI_Mode_Master,
+		.SPI_DataSize = SPI_DataSize_8b,
+		.SPI_CPOL = SPI_CPOL_High,
+		.SPI_CPHA = SPI_CPHA_2Edge,
+		.SPI_NSS = SPI_NSS_Soft,
+		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_4,
+		.SPI_FirstBit = SPI_FirstBit_MSB,
+		.SPI_CRCPolynomial = 7
+	};
+	SPI_Init(SPI3, &SPI_InitStruct);
+
+	SPI_Cmd(SPI3, ENABLE);
 }
 
 uint8_t spi_read_write(SPI_TypeDef *spi_channel, uint8_t data)
