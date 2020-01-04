@@ -64,6 +64,7 @@ SRC+=./core/main.c \
 	./core/estimators/lpf.c \
 	./core/estimators/ahrs.c \
 	./core/estimators/madgwick_ahrs.c \
+	./core/estimators/navigation.c \
 	./core/controllers/attitude_pd_ctrl.c \
 	./core/controllers/attitude_geometry_ctrl.c \
 	./core/controllers/motor_thrust.c \
