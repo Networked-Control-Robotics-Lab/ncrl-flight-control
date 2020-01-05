@@ -1,6 +1,9 @@
 #ifndef __PROJ_CONFIG_H__
 #define __PROJ_CONFIG_H__
 
+/* uav info */
+#define UAV_ID 0
+
 /* uav type */
 #define UAV_TYPE_QUADROTOR 0
 #define SELECT_UAV_TYPE UAV_TYPE_QUADROTOR
