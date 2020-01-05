@@ -73,7 +73,8 @@ SRC+=./core/main.c \
 	./core/tasks/mavlink_task.c \
 	./core/debug_link/debug_link.c \
 	./core/mavlink/publisher.c \
-	./core/mavlink/receiver.c
+	./core/mavlink/receiver.c \
+	./core/mavlink/parser.c
 
 SRC+=./common/delay.c \
 	./common/bound.c \
