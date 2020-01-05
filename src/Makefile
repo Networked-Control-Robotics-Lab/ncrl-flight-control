@@ -70,7 +70,10 @@ SRC+=./core/main.c \
 	./core/controllers/motor_thrust.c \
 	./core/controllers/tracking_ctrl.c \
 	./core/tasks/controller_task.c \
-	./core/debug_link/debug_link.c
+	./core/tasks/mavlink_task.c \
+	./core/debug_link/debug_link.c \
+	./core/mavlink/publisher.c \
+	./core/mavlink/receiver.c
 
 SRC+=./common/delay.c \
 	./common/bound.c \
@@ -92,7 +95,6 @@ SRC+=./driver/periph/led.c \
 	./driver/device/optitrack.c \
 	./driver/device/sys_time.c \
 
-
 CFLAGS+=-I./
 CFLAGS+=-I./sys_startup
 CFLAGS+=-I./core
@@ -100,6 +102,7 @@ CFLAGS+=-I./core/estimators
 CFLAGS+=-I./core/controllers
 CFLAGS+=-I./core/debug_link
 CFLAGS+=-I./core/tasks
+CFLAGS+=-I./core/mavlink
 CFLAGS+=-I./common
 CFLAGS+=-I./driver/periph
 CFLAGS+=-I./driver/device
@@ -109,6 +112,7 @@ CFLAGS+=-I./lib/CMSIS/Device/ST/STM32F4xx/Include
 CFLAGS+=-I./lib/STM32F4xx_StdPeriph_Driver/inc
 CFLAGS+=-I./lib/FreeRTOS/Source/include
 CFLAGS+=-I./lib/FreeRTOS/Source/portable/GCC/ARM_CM4F
+CFLAGS+=-I./lib/mavlink_v2/common
 
 OBJS=$(SRC:.c=.o)
 
