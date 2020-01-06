@@ -11,7 +11,8 @@
 #include "bound.h"
 
 #define dt 0.0025 //[s]
-#define MOTOR_TO_CG_LENGTH 25.0f //[cm]
+#define MOTOR_TO_CG_LENGTH 16.25f //[cm]
+#define MOTOR_TO_CG_LENGTH_M (MOTOR_TO_CG_LENGTH * 0.01) //[m]
 #define COEFFICIENT_YAW 1.0f
 
 MAT_ALLOC(J, 3, 3);
@@ -41,8 +42,6 @@ MAT_ALLOC(inertia_effect, 3, 1);
 
 float krx, kry, krz;
 float kwx, kwy, kwz;
-float mass;
-float uav_length_x, uav_length_y, uav_length_z;
 
 void geometry_ctrl_init(void)
 {
@@ -71,30 +70,18 @@ void geometry_ctrl_init(void)
 	MAT_INIT(J_WRtRdWd_RtRdWddot, 3, 1);
 	MAT_INIT(inertia_effect, 3, 1);
 
-	mass = 0.0f;
-
-	uav_length_x = 0.0f;
-	uav_length_y = 0.0f;
-	uav_length_z = 0.0f;
-
 	MAT_INIT(J, 3, 3);
-	_mat_(J)[0*3 + 0] = 0.0f; //Ixx
-	_mat_(J)[0*3 + 1] = 0.0f; //Ixy
-	_mat_(J)[0*3 + 2] = 0.0f; //Ixz
-	_mat_(J)[1*3 + 0] = 0.0f; //Iyx
-	_mat_(J)[1*3 + 1] = 0.0f; //Iyy
-	_mat_(J)[1*3 + 2] = 0.0f; //Iyz
-	_mat_(J)[2*3 + 0] = 0.0f; //Izx
-	_mat_(J)[2*3 + 1] = 0.0f; //Izy
-	_mat_(J)[2*3 + 2] = 0.0f; //Izz
+	_mat_(J)[0*3 + 0] = 0.001466f; //Ixx [kg*m^2]
+	_mat_(J)[1*3 + 1] = 0.001466f; //Iyy [kg*m^2]
+	_mat_(J)[2*3 + 2] = 0.002848f; //Izz [kg*m^2]
 
 	/* attitude controller gains of geometry tracking controller */
-	krx = 67.2f;
-	kry = 67.2f;
+	krx = 11.0f;
+	kry = 11.0f;
 	krz = 0.0f;
-	kwx = 11.2f;
-	kwy = 11.2f;
-	kwz = 1680.0f;
+	kwx = 1.85f;
+	kwy = 1.85f;
+	kwz = 11.0f;
 }
 
 void euler_to_rotation_matrix(euler_t *euler, float *r, float *r_transpose)
@@ -135,7 +122,7 @@ void euler_to_rotation_matrix(euler_t *euler, float *r, float *r_transpose)
 	r_transpose[2*3 + 2] = r[2*3 + 2];
 }
 
-void quat_to_rotation_matrix(float q[4], float *r, float *r_transpose)
+void quat_to_rotation_matrix(float *q, float *r, float *r_transpose)
 {
 	/* check: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles */
 	float q1q1 = q[1] * q[1];
@@ -175,14 +162,14 @@ void quat_to_rotation_matrix(float q[4], float *r, float *r_transpose)
 	r_transpose[2*3 + 2] = r[2*3 + 2];
 }
 
-void vee_map_3x3(float *mat, float vec[3])
+void vee_map_3x3(float *mat, float *vec)
 {
 	vec[0] = mat[2*3 + 1];
 	vec[1] = mat[0*3 + 2];
 	vec[2] = mat[1*3 + 0];
 }
 
-void hat_map_3x3(float vec[3], float *mat)
+void hat_map_3x3(float *vec, float *mat)
 {
 	mat[0*3 + 0] = 0.0f;
 	mat[0*3 + 1] = -vec[2];
@@ -195,17 +182,8 @@ void hat_map_3x3(float vec[3], float *mat)
 	mat[2*3 + 2] = 0.0f;
 }
 
-void cross_product_3x1(float vec_a[3], float vec_b[3], float vec_result[3])
+void cross_product_3x1(float *vec_a, float *vec_b, float *vec_result)
 {
-#if 0   //matrix approach
-	float mat_a_arr[3][3];
-	arm_matrix_instance_f32 mat_a, mat_b, mat_c;
-	arm_mat_init_f32(mat_a, 3, 3, mat_a_arr);
-	arm_mat_init_f32(mat_b, 3, 1, vec_b);
-	arm_mat_init_f32(mat_c, 3, 1, vec_result);
-	hat_map_3x3(vec_a, _mat_(mat_a));
-	arm_mat_mult_f32(&mat_a, &mat_b, &mat_result);
-#endif
 	vec_result[0] = vec_a[1]*vec_b[2] - vec_a[2]*vec_b[1];
 	vec_result[1] = vec_a[2]*vec_b[0] - vec_a[0]*vec_b[2];
 	vec_result[2] = vec_a[0]*vec_b[1] - vec_a[1]*vec_b[0];
@@ -253,11 +231,16 @@ void geometry_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_fo
 	//MAT_MULT(&Rt, &Rd, &RtRd); //the term is duplicated
 	MAT_MULT(&RtRd, &Wd, &RtRdWd);
 	MAT_SUB(&W, &RtRdWd, &eW);
-#if 0
+#if 1
 	/* calculate inertia effect */
 	//W x JW
 	MAT_MULT(&J, &W, &JW);
 	cross_product_3x1(_mat_(W), _mat_(JW), _mat_(WJW));
+	_mat_(inertia_effect)[0] = _mat_(WJW)[0] * 1000.0f; //convert from [kg*m^2] to [g*m^2]
+	_mat_(inertia_effect)[1] = _mat_(WJW)[1] * 1000.0f;
+	_mat_(inertia_effect)[2] = _mat_(WJW)[2] * 1000.0f;
+#endif
+#if 0
 	//W * R^T * Rd * Wd
 	hat_map_3x3(_mat_(W), _mat_(W_hat));
 	MAT_MULT(&W_hat, &Rt, &WRt);
@@ -283,10 +266,10 @@ void geometry_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_fo
 void thrust_allocate_quadrotor(float *motors, float *moments, float force_basis)
 {
 	float forces[4] = {0.0f};
-	float l_div_4_pos = +0.25f * MOTOR_TO_CG_LENGTH;
-	float l_div_4_neg = -0.25f * MOTOR_TO_CG_LENGTH;
-	float b_div_4_pos = +0.25f * COEFFICIENT_YAW;
-	float b_div_4_neg = -0.25f * COEFFICIENT_YAW;
+	static float l_div_4_pos = +0.25f * (1.0f / MOTOR_TO_CG_LENGTH_M);
+	static float l_div_4_neg = -0.25f * (1.0f / MOTOR_TO_CG_LENGTH_M);
+	static float b_div_4_pos = +0.25f * (1.0f / COEFFICIENT_YAW);
+	static float b_div_4_neg = -0.25f * (1.0f / COEFFICIENT_YAW);
 
 	forces[0] = l_div_4_pos * moments[0] + l_div_4_pos * moments[1] + b_div_4_pos * moments[2] + force_basis;
 	forces[1] = l_div_4_neg * moments[0] + l_div_4_pos * moments[1] + b_div_4_neg * moments[2] + force_basis;

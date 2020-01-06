@@ -39,7 +39,8 @@ extern float _mat_(P)[4 * 4];
 extern float _mat_(K)[4 * 4];
 extern float _mat_(eR)[3 * 1];
 extern float _mat_(eW)[3 * 1];
-
+extern float _mat_(J)[3 * 3];
+extern float _mat_(inertia_effect)[3 * 1];
 radio_t rc;
 
 int pack_float(float *data_float, uint8_t *byte_to_sent)
@@ -211,6 +212,9 @@ void send_geometry_ctrl_debug(debug_msg_t *payload)
 	payload->len += pack_float(&wx_error, payload->s + payload->len);
 	payload->len += pack_float(&wy_error, payload->s + payload->len);
 	payload->len += pack_float(&wz_error, payload->s + payload->len);
+	payload->len += pack_float(&_mat_(inertia_effect)[0], payload->s + payload->len);
+	payload->len += pack_float(&_mat_(inertia_effect)[1], payload->s + payload->len);
+	payload->len += pack_float(&_mat_(inertia_effect)[2], payload->s + payload->len);
 }
 
 void send_optitrack_position_message(debug_msg_t *payload)
