@@ -204,7 +204,7 @@ class serial_plotter_class:
         	self.create_curve('float variable', 'red')
         	self.show_subplot()
         elif (message_id == 11):
-          	plt.subplot(311)
+          	plt.subplot(411)
         	plt.ylabel('attitude error [deg]')
         	plt.ylim([-200, 200])
         	self.create_curve('roll', 'red')
@@ -212,7 +212,7 @@ class serial_plotter_class:
         	self.create_curve('yaw', 'green')
         	self.show_subplot()
 
-         	plt.subplot(312)
+         	plt.subplot(412)
         	plt.ylabel('attitude rate error [deg/s]')
         	plt.ylim([-200, 200])
         	self.create_curve('wx', 'red')
@@ -220,13 +220,22 @@ class serial_plotter_class:
         	self.create_curve('wz', 'green')
         	self.show_subplot()
  
-                plt.subplot(313)
+                plt.subplot(413)
                 plt.ylabel('inertia effect (moment)')
         	plt.ylim([-10000, 10000])
         	self.create_curve('tx', 'red')
                 self.create_curve('ty', 'blue')
         	self.create_curve('tz', 'green')
-        	self.show_subplot()            
+        	self.show_subplot()
+
+                plt.subplot(414)
+                plt.ylabel('forces')
+        	plt.ylim([-0, 1000])
+        	self.create_curve('f1', 'red')
+                self.create_curve('f2', 'blue')
+        	self.create_curve('f3', 'green')
+        	self.create_curve('f4', 'purple')
+        	self.show_subplot()
 
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \

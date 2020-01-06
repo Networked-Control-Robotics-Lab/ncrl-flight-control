@@ -43,6 +43,8 @@ MAT_ALLOC(inertia_effect, 3, 1);
 float krx, kry, krz;
 float kwx, kwy, kwz;
 
+float geometry_ctrl_forces[4];
+
 void geometry_ctrl_init(void)
 {
 	MAT_INIT(J, 3, 3);
@@ -71,9 +73,9 @@ void geometry_ctrl_init(void)
 	MAT_INIT(inertia_effect, 3, 1);
 
 	MAT_INIT(J, 3, 3);
-	_mat_(J)[0*3 + 0] = 0.001466f; //Ixx [kg*m^2]
-	_mat_(J)[1*3 + 1] = 0.001466f; //Iyy [kg*m^2]
-	_mat_(J)[2*3 + 2] = 0.002848f; //Izz [kg*m^2]
+	_mat_(J)[0*3 + 0] = 0.01466f; //Ixx [kg*m^2]
+	_mat_(J)[1*3 + 1] = 0.01466f; //Iyy [kg*m^2]
+	_mat_(J)[2*3 + 2] = 0.02848f; //Izz [kg*m^2]
 
 	/* attitude controller gains of geometry tracking controller */
 	krx = 11.0f;
@@ -265,23 +267,22 @@ void geometry_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_fo
 
 void thrust_allocate_quadrotor(float *motors, float *moments, float force_basis)
 {
-	float forces[4] = {0.0f};
 	static float l_div_4_pos = +0.25f * (1.0f / MOTOR_TO_CG_LENGTH_M);
 	static float l_div_4_neg = -0.25f * (1.0f / MOTOR_TO_CG_LENGTH_M);
 	static float b_div_4_pos = +0.25f * (1.0f / COEFFICIENT_YAW);
 	static float b_div_4_neg = -0.25f * (1.0f / COEFFICIENT_YAW);
 
-	forces[0] = l_div_4_pos * moments[0] + l_div_4_pos * moments[1] + b_div_4_pos * moments[2] + force_basis;
-	forces[1] = l_div_4_neg * moments[0] + l_div_4_pos * moments[1] + b_div_4_neg * moments[2] + force_basis;
-	forces[2] = l_div_4_neg * moments[0] + l_div_4_neg * moments[1] + b_div_4_pos * moments[2] + force_basis;
-	forces[3] = l_div_4_pos * moments[0] + l_div_4_neg * moments[1] + b_div_4_neg * moments[2] + force_basis;
+	geometry_ctrl_forces[0] = l_div_4_pos * moments[0] + l_div_4_pos * moments[1] + b_div_4_pos * moments[2] + force_basis;
+	geometry_ctrl_forces[1] = l_div_4_neg * moments[0] + l_div_4_pos * moments[1] + b_div_4_neg * moments[2] + force_basis;
+	geometry_ctrl_forces[2] = l_div_4_neg * moments[0] + l_div_4_neg * moments[1] + b_div_4_pos * moments[2] + force_basis;
+	geometry_ctrl_forces[3] = l_div_4_pos * moments[0] + l_div_4_neg * moments[1] + b_div_4_neg * moments[2] + force_basis;
 
 	/* assign motor pwm */
 	float percentage_to_pwm = (MOTOR_PULSE_MAX - MOTOR_PULSE_MIN);
-	motors[0] = convert_motor_thrust_to_cmd(forces[0]) * percentage_to_pwm + MOTOR_PULSE_MIN;
-	motors[1] = convert_motor_thrust_to_cmd(forces[1]) * percentage_to_pwm + MOTOR_PULSE_MIN;
-	motors[2] = convert_motor_thrust_to_cmd(forces[2]) * percentage_to_pwm + MOTOR_PULSE_MIN;
-	motors[3] = convert_motor_thrust_to_cmd(forces[3]) * percentage_to_pwm + MOTOR_PULSE_MIN;
+	motors[0] = convert_motor_thrust_to_cmd(geometry_ctrl_forces[0]) * percentage_to_pwm + MOTOR_PULSE_MIN;
+	motors[1] = convert_motor_thrust_to_cmd(geometry_ctrl_forces[1]) * percentage_to_pwm + MOTOR_PULSE_MIN;
+	motors[2] = convert_motor_thrust_to_cmd(geometry_ctrl_forces[2]) * percentage_to_pwm + MOTOR_PULSE_MIN;
+	motors[3] = convert_motor_thrust_to_cmd(geometry_ctrl_forces[3]) * percentage_to_pwm + MOTOR_PULSE_MIN;
 
 	bound_float(&motors[0], MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
 	bound_float(&motors[1], MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
