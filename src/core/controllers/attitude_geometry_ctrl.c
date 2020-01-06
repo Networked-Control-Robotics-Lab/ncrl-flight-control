@@ -213,6 +213,12 @@ void cross_product_3x1(float vec_a[3], float vec_b[3], float vec_result[3])
 
 void geometry_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_forces, float *output_moments)
 {
+	/* XXX:refine this code! */
+	/* yaw rate control  */
+	float yaw_rate_d = rc->yaw;
+	rc->yaw = 0.0f;
+	_mat_(Wd)[2] = yaw_rate_d; //yaw rate control
+
 	/* convert attitude (quaternion) to rotation matrix */
 	quat_to_rotation_matrix(&attitude_q[0], _mat_(R), _mat_(Rt));
 
@@ -228,13 +234,11 @@ void geometry_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_fo
 	/* set desired angular velocity to 0 */
 	_mat_(Wd)[0] = 0.0f;
 	_mat_(Wd)[1] = 0.0f;
-	_mat_(Wd)[2] = 0.0f;
+	//_mat_(Wd)[2] = 0.0f;
 	_mat_(Wd_dot)[0] = 0.0f;
 	_mat_(Wd_dot)[1] = 0.0f;
 	_mat_(Wd_dot)[2] = 0.0f;
 #endif
-
-	//_mat_(Wd)[2] = rc->yaw; //FIXME: The yaw rate is yet controllable
 
 	/* calculate attitude error eR */
 	MAT_MULT(&Rtd, &R, &RtdR);
@@ -246,8 +250,8 @@ void geometry_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_fo
 	_mat_(eR)[2] *= 0.5f;
 
 	/* calculate attitude rate error eW */
-	MAT_MULT(&Rt, &Rd, &RtRd);
-	//MAT_MULT(&RtRd, &Wd, &RtRdWd); //the term is duplicated
+	//MAT_MULT(&Rt, &Rd, &RtRd); //the term is duplicated
+	MAT_MULT(&RtRd, &Wd, &RtRdWd);
 	MAT_SUB(&W, &RtRdWd, &eW);
 #if 0
 	/* calculate inertia effect */

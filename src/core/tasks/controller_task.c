@@ -250,7 +250,7 @@ void task_flight_ctl(void *param)
 		euler_t desired_attitude;
 		desired_attitude.roll = deg_to_rad(-rc.roll);
 		desired_attitude.pitch = deg_to_rad(-rc.pitch);
-		desired_attitude.yaw = deg_to_rad(rc.yaw);
+		desired_attitude.yaw = deg_to_rad(-rc.yaw);
 		float gyro[3];
 		gyro[0] = deg_to_rad(imu.gyro_lpf.x);
 		gyro[1] = deg_to_rad(imu.gyro_lpf.y);
