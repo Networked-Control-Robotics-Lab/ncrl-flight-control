@@ -24,11 +24,14 @@ MAT_ALLOC(RtdR, 3, 3);
 MAT_ALLOC(RtRd, 3, 3);
 MAT_ALLOC(RtRdWd, 3, 3);
 MAT_ALLOC(W, 3, 1);
+MAT_ALLOC(W_dot, 3, 1);
 MAT_ALLOC(Wd, 3, 1);
 MAT_ALLOC(W_hat, 3, 3);
 MAT_ALLOC(Wd_dot, 3, 1);
 MAT_ALLOC(JW, 3, 1);
 MAT_ALLOC(WJW, 3, 1);
+MAT_ALLOC(JWdot, 3, 1);
+MAT_ALLOC(M, 3, 1);
 MAT_ALLOC(eR_mat, 3, 3);
 MAT_ALLOC(eR, 3, 1);
 MAT_ALLOC(eW, 3, 1);
@@ -59,11 +62,14 @@ void geometry_ctrl_init(void)
 	MAT_INIT(RtRd, 3, 3);
 	MAT_INIT(RtRdWd, 3, 3);
 	MAT_INIT(W, 3, 1);
+	MAT_INIT(W_dot, 3, 1);
 	MAT_INIT(Wd, 3, 1);
 	MAT_INIT(W_hat, 3, 3);
 	MAT_INIT(Wd_dot, 3, 1);
 	MAT_INIT(JW, 3, 1);
 	MAT_INIT(WJW, 3, 1);
+	MAT_INIT(JWdot, 3, 1);
+	MAT_INIT(M, 3, 1);
 	MAT_INIT(eR_mat, 3, 3);
 	MAT_INIT(eR, 3, 1);
 	MAT_INIT(eW, 3, 1);
@@ -192,6 +198,31 @@ void cross_product_3x1(float *vec_a, float *vec_b, float *vec_result)
 	vec_result[0] = vec_a[1]*vec_b[2] - vec_a[2]*vec_b[1];
 	vec_result[1] = vec_a[2]*vec_b[0] - vec_a[0]*vec_b[2];
 	vec_result[2] = vec_a[0]*vec_b[1] - vec_a[1]*vec_b[0];
+}
+
+void estimate_uav_dynamics(float *gyro, float *moments)
+{ 
+	static float angular_vel_last[3] = {0.0f};
+
+	_mat_(W_dot)[0] = (gyro[0] - angular_vel_last[0]) / dt;
+	_mat_(W_dot)[1] = (gyro[1] - angular_vel_last[1]) / dt;
+	_mat_(W_dot)[2] = (gyro[2] - angular_vel_last[2]) / dt;
+
+	angular_vel_last[0] = gyro[0];
+	angular_vel_last[1] = gyro[1];
+	angular_vel_last[2] = gyro[2];
+
+	//J* W_dot
+	MAT_MULT(&J, &W_dot, &JWdot);
+	//W x JW
+	MAT_MULT(&J, &W, &JW);
+	cross_product_3x1(_mat_(W), _mat_(JW), _mat_(WJW));
+	//M = J * W_dot + W X (J * W)
+	MAT_ADD(&JWdot, &WJW, &M);
+
+	moments[0] = _mat_(M)[0];
+	moments[1] = _mat_(M)[1];
+	moments[2] = _mat_(M)[2];
 }
 
 void geometry_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_forces, float *output_moments)

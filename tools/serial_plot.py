@@ -236,6 +236,14 @@ class serial_plotter_class:
         	self.create_curve('f3', 'green')
         	self.create_curve('f4', 'purple')
         	self.show_subplot()
+        elif (message_id == 12):
+          	plt.subplot(111)
+        	plt.ylabel('Moment')
+        	plt.ylim([-200, 200])
+        	self.create_curve('x', 'red')
+                self.create_curve('y', 'blue')
+        	self.create_curve('z', 'green')
+        	self.show_subplot()
 
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \

@@ -42,6 +42,7 @@ extern float _mat_(eW)[3 * 1];
 extern float _mat_(J)[3 * 3];
 extern float _mat_(inertia_effect)[3 * 1];
 extern float geometry_ctrl_inertia_forces[4];
+extern float uav_dynamics_m[3];
 radio_t rc;
 
 int pack_float(float *data_float, uint8_t *byte_to_sent)
@@ -222,6 +223,15 @@ void send_geometry_ctrl_debug(debug_msg_t *payload)
 	payload->len += pack_float(&geometry_ctrl_inertia_forces[3], payload->s + payload->len);
 }
 
+void send_uav_dynamics_debug(debug_msg_t *payload)
+{
+	payload->len = 3; //reserve for header message
+	payload->s[2] = MESSAGE_ID_UAV_DYNAMICS_DEBUG;
+	payload->len += pack_float(&uav_dynamics_m[0], payload->s + payload->len);
+	payload->len += pack_float(&uav_dynamics_m[1], payload->s + payload->len);
+	payload->len += pack_float(&uav_dynamics_m[2], payload->s + payload->len);
+}
+
 void send_optitrack_position_message(debug_msg_t *payload)
 {
 	payload->len = 3; //reserve for header message
@@ -308,7 +318,8 @@ void task_debug_link(void *param)
 		//send_general_float_message(motor_cmd[0], &payload);
 		//send_accel_calib_message();
 		//send_accel_bias_calib_message();
-		send_geometry_ctrl_debug(&payload);
+		//send_geometry_ctrl_debug(&payload);
+		send_uav_dynamics_debug(&payload);
 		send_onboard_data(payload.s, payload.len);
 		freertos_task_delay(delay_time_ms);
 	}
