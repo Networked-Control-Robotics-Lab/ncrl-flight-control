@@ -78,12 +78,12 @@ void geometry_ctrl_init(void)
 	_mat_(J)[2*3 + 2] = 0.02848f; //Izz [kg*m^2]
 
 	/* attitude controller gains of geometry tracking controller */
-	krx = 11.0f;
-	kry = 11.0f;
+	krx = 275.0f;
+	kry = 275.0f;
 	krz = 0.0f;
-	kwx = 1.85f;
-	kwy = 1.85f;
-	kwz = 11.0f;
+	kwx = 46.25f;
+	kwy = 46.25f;
+	kwz = 2750.0f;
 }
 
 void euler_to_rotation_matrix(euler_t *euler, float *r, float *r_transpose)
