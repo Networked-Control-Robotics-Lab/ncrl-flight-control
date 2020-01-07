@@ -222,7 +222,7 @@ class serial_plotter_class:
  
                 plt.subplot(413)
                 plt.ylabel('inertia effect (moment)')
-        	plt.ylim([-10000, 10000])
+        	plt.ylim([-200, 200])
         	self.create_curve('tx', 'red')
                 self.create_curve('ty', 'blue')
         	self.create_curve('tz', 'green')
