@@ -43,6 +43,7 @@ extern float _mat_(J)[3 * 3];
 extern float _mat_(inertia_effect)[3 * 1];
 extern float geometry_ctrl_inertia_forces[4];
 extern float uav_dynamics_m[3];
+extern float uav_dynamics_m_rot_frame[3];
 radio_t rc;
 
 int pack_float(float *data_float, uint8_t *byte_to_sent)
@@ -230,6 +231,9 @@ void send_uav_dynamics_debug(debug_msg_t *payload)
 	payload->len += pack_float(&uav_dynamics_m[0], payload->s + payload->len);
 	payload->len += pack_float(&uav_dynamics_m[1], payload->s + payload->len);
 	payload->len += pack_float(&uav_dynamics_m[2], payload->s + payload->len);
+	payload->len += pack_float(&uav_dynamics_m_rot_frame[0], payload->s + payload->len);
+	payload->len += pack_float(&uav_dynamics_m_rot_frame[1], payload->s + payload->len);
+	payload->len += pack_float(&uav_dynamics_m_rot_frame[2], payload->s + payload->len);
 }
 
 void send_optitrack_position_message(debug_msg_t *payload)

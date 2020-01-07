@@ -237,12 +237,20 @@ class serial_plotter_class:
         	self.create_curve('f4', 'purple')
         	self.show_subplot()
         elif (message_id == 12):
-          	plt.subplot(111)
+          	plt.subplot(211)
         	plt.ylabel('Moment (N*m)')
         	plt.ylim([-1, 1])
-        	self.create_curve('x', 'red')
-                self.create_curve('y', 'blue')
-        	self.create_curve('z', 'green')
+        	self.create_curve('Mx', 'red')
+                self.create_curve('My', 'blue')
+        	self.create_curve('Mz', 'green')
+        	self.show_subplot()
+
+          	plt.subplot(212)
+        	plt.ylabel('Moment_rot_frame (N*m)')
+        	plt.ylim([-1, 1])
+        	self.create_curve('Mx', 'red')
+                self.create_curve('My', 'blue')
+        	self.create_curve('Mz', 'green')
         	self.show_subplot()
 
     def show_graph(self):

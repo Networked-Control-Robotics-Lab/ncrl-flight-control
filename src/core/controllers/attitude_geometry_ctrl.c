@@ -201,7 +201,7 @@ void cross_product_3x1(float *vec_a, float *vec_b, float *vec_result)
 	vec_result[2] = vec_a[0]*vec_b[1] - vec_a[1]*vec_b[0];
 }
 
-void estimate_uav_dynamics(float *gyro, float *moments)
+void estimate_uav_dynamics(float *gyro, float *moments, float *m_rot_frame)
 { 
 	static float angular_vel_last[3] = {0.0f};
 	float angular_accel[3];
@@ -225,6 +225,9 @@ void estimate_uav_dynamics(float *gyro, float *moments)
 	//M = J * W_dot + W X (J * W)
 	MAT_ADD(&JWdot, &WJW, &M);
 
+	m_rot_frame[0] = _mat_(JWdot)[0];
+	m_rot_frame[1] = _mat_(JWdot)[1];
+	m_rot_frame[2] = _mat_(JWdot)[2];
 	moments[0] = _mat_(M)[0];
 	moments[1] = _mat_(M)[1];
 	moments[2] = _mat_(M)[2];

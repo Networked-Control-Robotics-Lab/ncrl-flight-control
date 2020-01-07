@@ -34,6 +34,7 @@ SemaphoreHandle_t flight_ctl_semphr;
 imu_t imu;
 ahrs_t ahrs;
 float uav_dynamics_m[3] = {0.0f};
+float uav_dynamics_m_rot_frame[3] = {0.0f};
 
 pid_control_t pid_roll;
 pid_control_t pid_pitch;
@@ -257,7 +258,7 @@ void task_flight_ctl(void *param)
 		gyro[1] = deg_to_rad(imu.gyro_lpf.y);
 		gyro[2] = deg_to_rad(imu.gyro_lpf.z);
 		float throttle_force = convert_motor_cmd_to_thrust(rc.throttle / 100.0f); //FIXME
-		estimate_uav_dynamics(gyro, uav_dynamics_m);
+		estimate_uav_dynamics(gyro, uav_dynamics_m, uav_dynamics_m_rot_frame);
 		geometry_ctrl(&desired_attitude, ahrs.q, gyro, control_forces, control_moments);
 
 		if(rc.safety == false) {
