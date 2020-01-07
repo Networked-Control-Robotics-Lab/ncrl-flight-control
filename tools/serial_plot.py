@@ -238,8 +238,8 @@ class serial_plotter_class:
         	self.show_subplot()
         elif (message_id == 12):
           	plt.subplot(111)
-        	plt.ylabel('Moment')
-        	plt.ylim([-200, 200])
+        	plt.ylabel('Moment (N*m)')
+        	plt.ylim([-1, 1])
         	self.create_curve('x', 'red')
                 self.create_curve('y', 'blue')
         	self.create_curve('z', 'green')

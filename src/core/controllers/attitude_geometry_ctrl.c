@@ -9,6 +9,7 @@
 #include "motor_thrust.h"
 #include "motor.h"
 #include "bound.h"
+#include "lpf.h"
 
 #define dt 0.0025 //[s]
 #define MOTOR_TO_CG_LENGTH 16.25f //[cm]
@@ -203,14 +204,18 @@ void cross_product_3x1(float *vec_a, float *vec_b, float *vec_result)
 void estimate_uav_dynamics(float *gyro, float *moments)
 { 
 	static float angular_vel_last[3] = {0.0f};
+	float angular_accel[3];
 
-	_mat_(W_dot)[0] = (gyro[0] - angular_vel_last[0]) / dt;
-	_mat_(W_dot)[1] = (gyro[1] - angular_vel_last[1]) / dt;
-	_mat_(W_dot)[2] = (gyro[2] - angular_vel_last[2]) / dt;
-
+	angular_accel[0] = (gyro[0] - angular_vel_last[0]) / dt;
+	angular_accel[1] = (gyro[1] - angular_vel_last[1]) / dt;
+	angular_accel[2] = (gyro[2] - angular_vel_last[2]) / dt;
 	angular_vel_last[0] = gyro[0];
 	angular_vel_last[1] = gyro[1];
 	angular_vel_last[2] = gyro[2];
+
+	lpf(angular_accel[0], &_mat_(W_dot)[0], 0.01);
+	lpf(angular_accel[1], &_mat_(W_dot)[1], 0.01);
+	lpf(angular_accel[2], &_mat_(W_dot)[2], 0.01);
 
 	//J* W_dot
 	MAT_MULT(&J, &W_dot, &JWdot);
