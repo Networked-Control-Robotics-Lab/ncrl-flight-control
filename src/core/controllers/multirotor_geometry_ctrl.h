@@ -1,5 +1,5 @@
-#ifndef __ATTITUDE_GEOMETRY_CTRL_H__
-#define __ATTITUDE_GEOMETRY_CTRL_H__
+#ifndef __MULTIROTOR_GEOMETRY_CTRL_H__
+#define __MULTIROTOR_GEOMETRY_CTRL_H__
 
 void estimate_uav_dynamics(float *gyro, float *moments, float *m_rot_frame);
 

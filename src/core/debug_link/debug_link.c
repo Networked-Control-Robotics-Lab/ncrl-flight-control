@@ -10,7 +10,7 @@
 #include "imu.h"
 #include "sbus_receiver.h"
 #include "ahrs.h"
-#include "attitude_pd_ctrl.h"
+#include "multirotor_pid_ctrl.h"
 #include "motor_thrust.h"
 #include "led.h"
 #include "optitrack.h"

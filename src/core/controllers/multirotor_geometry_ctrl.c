@@ -202,7 +202,7 @@ void cross_product_3x1(float *vec_a, float *vec_b, float *vec_result)
 }
 
 void estimate_uav_dynamics(float *gyro, float *moments, float *m_rot_frame)
-{ 
+{
 	static float angular_vel_last[3] = {0.0f};
 	float angular_accel[3];
 
@@ -313,7 +313,7 @@ void geometry_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_fo
 	geometry_ctrl_feedback_moments[2] = (-krx*_mat_(eR)[2] -kwx*_mat_(eW)[2]) * 0.0098f;
 	geometry_ctrl_feedfoward_moments[0] = _mat_(inertia_effect)[0];
 	geometry_ctrl_feedfoward_moments[1] = _mat_(inertia_effect)[1];
-	geometry_ctrl_feedfoward_moments[2] = _mat_(inertia_effect)[2];	
+	geometry_ctrl_feedfoward_moments[2] = _mat_(inertia_effect)[2];
 }
 
 void thrust_allocate_quadrotor(float *motors, float *moments, float force_basis)

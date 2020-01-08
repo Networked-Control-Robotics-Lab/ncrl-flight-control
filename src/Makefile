@@ -65,11 +65,10 @@ SRC+=./core/main.c \
 	./core/estimators/ahrs.c \
 	./core/estimators/madgwick_ahrs.c \
 	./core/estimators/navigation.c \
-	./core/controllers/attitude_pd_ctrl.c \
-	./core/controllers/attitude_geometry_ctrl.c \
+	./core/controllers/multirotor_pid_ctrl.c \
+	./core/controllers/multirotor_geometry_ctrl.c \
 	./core/controllers/motor_thrust.c \
-	./core/controllers/tracking_ctrl.c \
-	./core/tasks/controller_task.c \
+	./core/tasks/fc_task.c \
 	./core/tasks/mavlink_task.c \
 	./core/debug_link/debug_link.c \
 	./core/mavlink/publisher.c \

@@ -18,8 +18,8 @@
 #include "sys_time.h"
 #include "motor.h"
 #include "debug_link.h"
-#include "attitude_pd_ctrl.h"
-#include "controller_task.h"
+#include "multirotor_pid_ctrl.h"
+#include "fc_task.h"
 
 extern SemaphoreHandle_t flight_ctl_semphr;
 

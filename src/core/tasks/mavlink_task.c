@@ -15,7 +15,7 @@ void mavlink_handler_task(void)
 	while(1) {
 		if(prescaling_counter == 8) {
 			send_mavlink_heartbeat();
-			send_mavlink_gps();			
+			send_mavlink_gps();
 		}
 
 		send_mavlink_attitude();
