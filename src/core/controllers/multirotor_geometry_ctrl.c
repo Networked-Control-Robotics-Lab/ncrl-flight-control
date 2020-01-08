@@ -52,6 +52,8 @@ MAT_ALLOC(inertia_effect, 3, 1);
 
 float krx, kry, krz;
 float kwx, kwy, kwz;
+float kpx, kpy, kpz;
+float kvx, kvy, kyz;
 
 float geometry_ctrl_feedback_moments[3];
 float geometry_ctrl_feedfoward_moments[3];
@@ -94,13 +96,21 @@ void geometry_ctrl_init(void)
 	_mat_(J)[1*3 + 1] = 0.01466f; //Iyy [kg*m^2]
 	_mat_(J)[2*3 + 2] = 0.02848f; //Izz [kg*m^2]
 
-	/* attitude controller gains of geometry tracking controller */
+	/* attitude controller gains of geometry */
 	krx = 300.0f;
 	kry = 300.0f;
 	krz = 0.0f;
 	kwx = 46.25f;
 	kwy = 46.25f;
-	kwz = 2750.0f;
+	kwz = 2750.0;
+
+	/* tracking controller gains*/
+	kpx = 0.0f;
+	kpy = 0.0f;
+	kpz = 0.0f;
+	kvx = 0.0f;
+	kvy = 0.0f;
+	kyz = 0.0f;
 }
 
 void euler_to_rotation_matrix(euler_t *euler, float *r, float *r_transpose)
