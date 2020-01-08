@@ -13,6 +13,7 @@
 #include "lpf.h"
 #include "imu.h"
 #include "ahrs.h"
+#include "debug_link.h"
 
 #define dt 0.0025 //[s]
 #define MOTOR_TO_CG_LENGTH 16.25f //[cm]
@@ -52,10 +53,11 @@ MAT_ALLOC(inertia_effect, 3, 1);
 float krx, kry, krz;
 float kwx, kwy, kwz;
 
-float geometry_ctrl_forces[4];
-
 float geometry_ctrl_feedback_moments[3];
 float geometry_ctrl_feedfoward_moments[3];
+
+float uav_dynamics_m[3] = {0.0f}; //M = (J * W_dot) + (W X JW)
+float uav_dynamics_m_rot_frame[3] = {0.0f}; //M_rot = (J * W_dot)
 
 void geometry_ctrl_init(void)
 {
@@ -238,14 +240,8 @@ void estimate_uav_dynamics(float *gyro, float *moments, float *m_rot_frame)
 	moments[2] = _mat_(M)[2];
 }
 
-void geometry_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_forces, float *output_moments)
+void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_moments, bool heading_present)
 {
-	/* XXX:refine this code! */
-	/* yaw rate control  */
-	float yaw_rate_d = rc->yaw;
-	rc->yaw = 0.0f;
-	_mat_(Wd)[2] = yaw_rate_d; //yaw rate control
-
 	/* convert attitude (quaternion) to rotation matrix */
 	quat_to_rotation_matrix(&attitude_q[0], _mat_(R), _mat_(Rt));
 
@@ -257,15 +253,19 @@ void geometry_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_fo
 	_mat_(W)[1] = gyro[1];
 	_mat_(W)[2] = gyro[2];
 
-#if 1
-	/* set desired angular velocity to 0 */
+	/* set Wd and Wd_dot to 0 since there is no predefined trajectory */
 	_mat_(Wd)[0] = 0.0f;
 	_mat_(Wd)[1] = 0.0f;
-	//_mat_(Wd)[2] = 0.0f;
+	_mat_(Wd)[2] = 0.0f;
 	_mat_(Wd_dot)[0] = 0.0f;
 	_mat_(Wd_dot)[1] = 0.0f;
 	_mat_(Wd_dot)[2] = 0.0f;
-#endif
+
+	/* switch to yaw rate control mode if no heading information provided */
+	if(heading_present == false) {
+		krz = 0.0f; //disable yaw control
+		_mat_(Wd)[2] = rc->yaw; //set yaw rate desired value
+	}
 
 	/* calculate attitude error eR */
 	MAT_MULT(&Rtd, &R, &RtdR);
@@ -281,16 +281,16 @@ void geometry_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_fo
 	MAT_MULT(&RtRd, &Wd, &RtRdWd);
 	MAT_SUB(&W, &RtRdWd, &eW);
 
-#if 1   //without trajectory planning
-	/* calculate inertia effect */
+	/* calculate inertia effect (since Wd and Wd_dot are 0, the terms are excluded) */
 	//W x JW
 	MAT_MULT(&J, &W, &JW);
 	cross_product_3x1(_mat_(W), _mat_(JW), _mat_(WJW));
-	_mat_(inertia_effect)[0] = _mat_(WJW)[0] / 0.64;
-	_mat_(inertia_effect)[1] = _mat_(WJW)[1] / 0.64;
-	_mat_(inertia_effect)[2] = _mat_(WJW)[2] / 0.64;
-#endif
-#if 0   //with trajectory planning
+	_mat_(inertia_effect)[0] = _mat_(WJW)[0];
+	_mat_(inertia_effect)[1] = _mat_(WJW)[1];
+	_mat_(inertia_effect)[2] = _mat_(WJW)[2];
+
+#if 0
+	/* calculate inertia effect (trajectory is defined, Wd and Wd_dot are not zero) */
 	//W * R^T * Rd * Wd
 	hat_map_3x3(_mat_(W), _mat_(W_hat));
 	MAT_MULT(&W_hat, &Rt, &WRt);
@@ -307,12 +307,13 @@ void geometry_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_fo
 	MAT_SUB(&WJW, &J_WRtRdWd_RtRdWddot, &inertia_effect);
 
 #endif
+
 	/* control input M1, M2, M3 */
 	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0] + _mat_(inertia_effect)[0];
 	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1] + _mat_(inertia_effect)[1];
 	output_moments[2] = -krz*_mat_(eR)[2] -kwz*_mat_(eW)[2] + _mat_(inertia_effect)[2];
 
-	/* debug print */
+	/* XXX: debug print, refine this code! */
 	geometry_ctrl_feedback_moments[0] = (-krx*_mat_(eR)[0] -kwx*_mat_(eW)[0]) * 0.0098f; //gram force to newton
 	geometry_ctrl_feedback_moments[1] = (-krx*_mat_(eR)[1] -kwx*_mat_(eW)[1]) * 0.0098f;
 	geometry_ctrl_feedback_moments[2] = (-krx*_mat_(eR)[2] -kwx*_mat_(eW)[2]) * 0.0098f;
@@ -321,24 +322,26 @@ void geometry_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_fo
 	geometry_ctrl_feedfoward_moments[2] = _mat_(inertia_effect)[2];
 }
 
-void thrust_allocate_quadrotor(float *motors, float *moments, float force_basis)
+void thrust_allocate_quadrotor(float *moments, float force_basis)
 {
+	float motors[4], forces[4];
+
 	static float l_div_4_pos = +0.25f * (1.0f / MOTOR_TO_CG_LENGTH_M);
 	static float l_div_4_neg = -0.25f * (1.0f / MOTOR_TO_CG_LENGTH_M);
 	static float b_div_4_pos = +0.25f * (1.0f / COEFFICIENT_YAW);
 	static float b_div_4_neg = -0.25f * (1.0f / COEFFICIENT_YAW);
 
-	geometry_ctrl_forces[0] = l_div_4_pos * moments[0] + l_div_4_pos * moments[1] + b_div_4_pos * moments[2] + force_basis;
-	geometry_ctrl_forces[1] = l_div_4_neg * moments[0] + l_div_4_pos * moments[1] + b_div_4_neg * moments[2] + force_basis;
-	geometry_ctrl_forces[2] = l_div_4_neg * moments[0] + l_div_4_neg * moments[1] + b_div_4_pos * moments[2] + force_basis;
-	geometry_ctrl_forces[3] = l_div_4_pos * moments[0] + l_div_4_neg * moments[1] + b_div_4_neg * moments[2] + force_basis;
+	forces[0] = l_div_4_pos * moments[0] + l_div_4_pos * moments[1] + b_div_4_pos * moments[2] + force_basis;
+	forces[1] = l_div_4_neg * moments[0] + l_div_4_pos * moments[1] + b_div_4_neg * moments[2] + force_basis;
+	forces[2] = l_div_4_neg * moments[0] + l_div_4_neg * moments[1] + b_div_4_pos * moments[2] + force_basis;
+	forces[3] = l_div_4_pos * moments[0] + l_div_4_neg * moments[1] + b_div_4_neg * moments[2] + force_basis;
 
 	/* assign motor pwm */
 	float percentage_to_pwm = (MOTOR_PULSE_MAX - MOTOR_PULSE_MIN);
-	motors[0] = convert_motor_thrust_to_cmd(geometry_ctrl_forces[0]) * percentage_to_pwm + MOTOR_PULSE_MIN;
-	motors[1] = convert_motor_thrust_to_cmd(geometry_ctrl_forces[1]) * percentage_to_pwm + MOTOR_PULSE_MIN;
-	motors[2] = convert_motor_thrust_to_cmd(geometry_ctrl_forces[2]) * percentage_to_pwm + MOTOR_PULSE_MIN;
-	motors[3] = convert_motor_thrust_to_cmd(geometry_ctrl_forces[3]) * percentage_to_pwm + MOTOR_PULSE_MIN;
+	motors[0] = convert_motor_thrust_to_cmd(forces[0]) * percentage_to_pwm + MOTOR_PULSE_MIN;
+	motors[1] = convert_motor_thrust_to_cmd(forces[1]) * percentage_to_pwm + MOTOR_PULSE_MIN;
+	motors[2] = convert_motor_thrust_to_cmd(forces[2]) * percentage_to_pwm + MOTOR_PULSE_MIN;
+	motors[3] = convert_motor_thrust_to_cmd(forces[3]) * percentage_to_pwm + MOTOR_PULSE_MIN;
 
 	bound_float(&motors[0], MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
 	bound_float(&motors[1], MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
@@ -351,17 +354,13 @@ void thrust_allocate_quadrotor(float *motors, float *moments, float force_basis)
 	set_motor_pwm_pulse(MOTOR4, (uint16_t)(motors[3]));
 }
 
-float uav_dynamics_m[3] = {0.0f};
-float uav_dynamics_m_rot_frame[3] = {0.0f};
-float motor_cmd[4];
-
 void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc)
 {
 	//rc_mode_change_handler(rc);
 
-	update_euler_heading_from_optitrack(&optitrack.q[0], &(ahrs->attitude.yaw));
+	//update_euler_heading_from_optitrack(&optitrack.q[0], &(ahrs->attitude.yaw));
 
-	float control_forces[3], control_moments[3];
+	float control_moments[3];
 	euler_t desired_attitude;
 	desired_attitude.roll = deg_to_rad(-rc->roll);
 	desired_attitude.pitch = deg_to_rad(-rc->pitch);
@@ -371,16 +370,54 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc)
 	gyro[1] = deg_to_rad(imu->gyro_lpf.y);
 	gyro[2] = deg_to_rad(imu->gyro_lpf.z);
 	float throttle_force = convert_motor_cmd_to_thrust(rc->throttle / 100.0f); //FIXME
-	estimate_uav_dynamics(gyro, uav_dynamics_m, uav_dynamics_m_rot_frame);
-	geometry_ctrl(&desired_attitude, ahrs->q, gyro, control_forces, control_moments);
+
+	//estimate_uav_dynamics(gyro, uav_dynamics_m, uav_dynamics_m_rot_frame);
+
+	geometry_manual_ctrl(&desired_attitude, ahrs->q, gyro, control_moments, false);
 
 	if(rc->safety == false) {
 		led_on(LED_R);
 		led_off(LED_B);
-		thrust_allocate_quadrotor(motor_cmd, control_moments, throttle_force);
+		thrust_allocate_quadrotor(control_moments, throttle_force);
 	} else {
 		led_on(LED_B);
 		led_off(LED_R);
 		motor_halt();
 	}
+}
+
+void send_geometry_ctrl_debug(debug_msg_t *payload)
+{
+	float roll_error = rad_to_deg(_mat_(eR)[0]);
+	float pitch_error = rad_to_deg(_mat_(eR)[1]);
+	float yaw_error = rad_to_deg(_mat_(eR)[2]);
+
+	float wx_error = rad_to_deg(_mat_(eW)[0]);
+	float wy_error = rad_to_deg(_mat_(eW)[1]);
+	float wz_error = rad_to_deg(_mat_(eW)[2]);
+
+	pack_debug_debug_message_header(payload, MESSAGE_ID_GEOMETRY_DEBUG);
+	pack_debug_debug_message_float(&roll_error, payload);
+	pack_debug_debug_message_float(&pitch_error, payload);
+	pack_debug_debug_message_float(&yaw_error, payload);
+	pack_debug_debug_message_float(&wx_error, payload);
+	pack_debug_debug_message_float(&wy_error, payload);
+	pack_debug_debug_message_float(&wz_error, payload);
+	pack_debug_debug_message_float(&geometry_ctrl_feedback_moments[0], payload);
+	pack_debug_debug_message_float(&geometry_ctrl_feedback_moments[1], payload);
+	pack_debug_debug_message_float(&geometry_ctrl_feedback_moments[2], payload);
+	pack_debug_debug_message_float(&geometry_ctrl_feedfoward_moments[0], payload);
+	pack_debug_debug_message_float(&geometry_ctrl_feedfoward_moments[1], payload);
+	pack_debug_debug_message_float(&geometry_ctrl_feedfoward_moments[2], payload);
+}
+
+void send_uav_dynamics_debug(debug_msg_t *payload)
+{
+	pack_debug_debug_message_header(payload, MESSAGE_ID_UAV_DYNAMICS_DEBUG);
+	pack_debug_debug_message_float(&uav_dynamics_m[0], payload);
+	pack_debug_debug_message_float(&uav_dynamics_m[1], payload);
+	pack_debug_debug_message_float(&uav_dynamics_m[2], payload);
+	pack_debug_debug_message_float(&uav_dynamics_m_rot_frame[0], payload);
+	pack_debug_debug_message_float(&uav_dynamics_m_rot_frame[1], payload);
+	pack_debug_debug_message_float(&uav_dynamics_m_rot_frame[2], payload);
 }

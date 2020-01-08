@@ -31,4 +31,7 @@ typedef struct {
 
 void task_debug_link(void *param);
 
+void pack_debug_debug_message_header(debug_msg_t *payload, int message_id);
+void pack_debug_debug_message_float(float *data_float, debug_msg_t *payload);
+
 #endif
