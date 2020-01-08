@@ -322,6 +322,6 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc)
 		led_on(LED_B);
 		led_off(LED_R);
 		set_yaw_pd_setpoint(&pid_yaw, ahrs->attitude.yaw);
-		motor_control(0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+		motor_halt();
 	}
 }

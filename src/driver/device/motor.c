@@ -25,6 +25,16 @@ void motor_init(void)
 	blocked_delay_ms(1000);
 }
 
+void motor_halt(void)
+{
+	set_motor_pwm_pulse(MOTOR1, MOTOR_PULSE_MIN);
+	set_motor_pwm_pulse(MOTOR2, MOTOR_PULSE_MIN);
+	set_motor_pwm_pulse(MOTOR3, MOTOR_PULSE_MIN);
+	set_motor_pwm_pulse(MOTOR4, MOTOR_PULSE_MIN);
+	set_motor_pwm_pulse(MOTOR5, MOTOR_PULSE_MIN);
+	set_motor_pwm_pulse(MOTOR6, MOTOR_PULSE_MIN);
+}
+
 void motor_thrust_test(float ch1_motor_percentage)
 {
 	set_motor_pwm_pulse(MOTOR1, MOTOR_PULSE_MIN);

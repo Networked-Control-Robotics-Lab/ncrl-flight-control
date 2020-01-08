@@ -4,17 +4,22 @@
 #include "semphr.h"
 #include "led.h"
 #include "sbus_receiver.h"
+#include "optitrack.h"
 #include "ahrs.h"
 #include "matrix.h"
 #include "motor_thrust.h"
 #include "motor.h"
 #include "bound.h"
 #include "lpf.h"
+#include "imu.h"
+#include "ahrs.h"
 
 #define dt 0.0025 //[s]
 #define MOTOR_TO_CG_LENGTH 16.25f //[cm]
 #define MOTOR_TO_CG_LENGTH_M (MOTOR_TO_CG_LENGTH * 0.01) //[m]
 #define COEFFICIENT_YAW 1.0f
+
+extern optitrack_t optitrack;
 
 MAT_ALLOC(J, 3, 3);
 MAT_ALLOC(R, 3, 3);
@@ -344,4 +349,38 @@ void thrust_allocate_quadrotor(float *motors, float *moments, float force_basis)
 	set_motor_pwm_pulse(MOTOR2, (uint16_t)(motors[1]));
 	set_motor_pwm_pulse(MOTOR3, (uint16_t)(motors[2]));
 	set_motor_pwm_pulse(MOTOR4, (uint16_t)(motors[3]));
+}
+
+float uav_dynamics_m[3] = {0.0f};
+float uav_dynamics_m_rot_frame[3] = {0.0f};
+float motor_cmd[4];
+
+void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc)
+{
+	//rc_mode_change_handler(rc);
+
+	update_euler_heading_from_optitrack(&optitrack.q[0], &(ahrs->attitude.yaw));
+
+	float control_forces[3], control_moments[3];
+	euler_t desired_attitude;
+	desired_attitude.roll = deg_to_rad(-rc->roll);
+	desired_attitude.pitch = deg_to_rad(-rc->pitch);
+	desired_attitude.yaw = deg_to_rad(-rc->yaw);
+	float gyro[3];
+	gyro[0] = deg_to_rad(imu->gyro_lpf.x);
+	gyro[1] = deg_to_rad(imu->gyro_lpf.y);
+	gyro[2] = deg_to_rad(imu->gyro_lpf.z);
+	float throttle_force = convert_motor_cmd_to_thrust(rc->throttle / 100.0f); //FIXME
+	estimate_uav_dynamics(gyro, uav_dynamics_m, uav_dynamics_m_rot_frame);
+	geometry_ctrl(&desired_attitude, ahrs->q, gyro, control_forces, control_moments);
+
+	if(rc->safety == false) {
+		led_on(LED_R);
+		led_off(LED_B);
+		thrust_allocate_quadrotor(motor_cmd, control_moments, throttle_force);
+	} else {
+		led_on(LED_B);
+		led_off(LED_R);
+		motor_halt();
+	}
 }

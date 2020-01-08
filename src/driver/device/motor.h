@@ -18,6 +18,7 @@
 
 void set_motor_pwm_pulse(volatile uint32_t *motor, uint16_t pulse);
 void motor_init(void);
+void motor_halt(void);
 
 void motor_thrust_test(float ch1_motor_percentage);
 void esc_calibrate(void);

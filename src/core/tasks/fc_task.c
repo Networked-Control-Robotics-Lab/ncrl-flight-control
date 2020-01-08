@@ -31,11 +31,6 @@ imu_t imu;
 ahrs_t ahrs;
 radio_t rc;
 
-float uav_dynamics_m[3] = {0.0f};
-float uav_dynamics_m_rot_frame[3] = {0.0f};
-
-float motor_cmd[4];
-
 void flight_ctl_semaphore_handler(void)
 {
 	static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
@@ -117,28 +112,7 @@ void task_flight_ctl(void *param)
 #if (SELECT_CONTROLLER == QUADROTOR_USE_PID)
 		multirotor_pid_control(&imu, &ahrs, &rc);
 #elif (SELECT_CONTROLLER == QUADROTOR_USE_GEOMETRY)
-		float control_forces[3], control_moments[3];
-		euler_t desired_attitude;
-		desired_attitude.roll = deg_to_rad(-rc.roll);
-		desired_attitude.pitch = deg_to_rad(-rc.pitch);
-		desired_attitude.yaw = deg_to_rad(-rc.yaw);
-		float gyro[3];
-		gyro[0] = deg_to_rad(imu.gyro_lpf.x);
-		gyro[1] = deg_to_rad(imu.gyro_lpf.y);
-		gyro[2] = deg_to_rad(imu.gyro_lpf.z);
-		float throttle_force = convert_motor_cmd_to_thrust(rc.throttle / 100.0f); //FIXME
-		estimate_uav_dynamics(gyro, uav_dynamics_m, uav_dynamics_m_rot_frame);
-		geometry_ctrl(&desired_attitude, ahrs.q, gyro, control_forces, control_moments);
 
-		if(rc.safety == false) {
-			led_on(LED_R);
-			led_off(LED_B);
-			thrust_allocate_quadrotor(motor_cmd, control_moments, throttle_force);
-		} else {
-			led_on(LED_B);
-			led_off(LED_R);
-			motor_control(0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-		}
 #endif
 
 		taskYIELD();
