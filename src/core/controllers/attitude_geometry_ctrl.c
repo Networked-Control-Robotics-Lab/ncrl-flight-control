@@ -49,8 +49,8 @@ float kwx, kwy, kwz;
 
 float geometry_ctrl_forces[4];
 
-float geometry_ctrl_inertia_moments[3];
-float geometry_ctrl_inertia_forces[4];
+float geometry_ctrl_feedback_moments[3];
+float geometry_ctrl_feedfoward_moments[3];
 
 void geometry_ctrl_init(void)
 {
@@ -275,24 +275,17 @@ void geometry_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_fo
 	//MAT_MULT(&Rt, &Rd, &RtRd); //the term is duplicated
 	MAT_MULT(&RtRd, &Wd, &RtRdWd);
 	MAT_SUB(&W, &RtRdWd, &eW);
-#if 0
+
+#if 1   //without trajectory planning
 	/* calculate inertia effect */
 	//W x JW
 	MAT_MULT(&J, &W, &JW);
 	cross_product_3x1(_mat_(W), _mat_(JW), _mat_(WJW));
-	_mat_(inertia_effect)[0] = _mat_(WJW)[0] * 1000.0f; //convert from [kg*m^2] to [g*m^2]
-	_mat_(inertia_effect)[1] = _mat_(WJW)[1] * 1000.0f;
-	_mat_(inertia_effect)[2] = _mat_(WJW)[2] * 1000.0f;
+	_mat_(inertia_effect)[0] = _mat_(WJW)[0] / 0.64;
+	_mat_(inertia_effect)[1] = _mat_(WJW)[1] / 0.64;
+	_mat_(inertia_effect)[2] = _mat_(WJW)[2] / 0.64;
 #endif
-#if 1
-	_mat_(inertia_effect)[0] = (_mat_(W)[1] * _mat_(J)[8] * _mat_(W)[2] - _mat_(W)[2] * _mat_(J)[4] * _mat_(W)[1]);
-	_mat_(inertia_effect)[1] = (_mat_(W)[2] * _mat_(J)[0] * _mat_(W)[0] - _mat_(W)[0] * _mat_(J)[8] * _mat_(W)[2]);
-	_mat_(inertia_effect)[2] = (_mat_(W)[0] * _mat_(J)[4] * _mat_(W)[1] - _mat_(W)[1] * _mat_(J)[0] * _mat_(W)[0]);
-	_mat_(inertia_effect)[0] *= 1000.0f;
-	_mat_(inertia_effect)[1] *= 1000.0f;
-	_mat_(inertia_effect)[2] *= 1000.0f;
-#endif
-#if 0
+#if 0   //with trajectory planning
 	//W * R^T * Rd * Wd
 	hat_map_3x3(_mat_(W), _mat_(W_hat));
 	MAT_MULT(&W_hat, &Rt, &WRt);
@@ -314,9 +307,13 @@ void geometry_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_fo
 	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1] + _mat_(inertia_effect)[1];
 	output_moments[2] = -krz*_mat_(eR)[2] -kwz*_mat_(eW)[2] + _mat_(inertia_effect)[2];
 
-	geometry_ctrl_inertia_moments[0] = _mat_(inertia_effect)[0];
-	geometry_ctrl_inertia_moments[1] = _mat_(inertia_effect)[1];
-	geometry_ctrl_inertia_moments[2] = _mat_(inertia_effect)[2];	
+	/* debug print */
+	geometry_ctrl_feedback_moments[0] = (-krx*_mat_(eR)[0] -kwx*_mat_(eW)[0]) * 0.0098f; //gram force to newton
+	geometry_ctrl_feedback_moments[1] = (-krx*_mat_(eR)[1] -kwx*_mat_(eW)[1]) * 0.0098f;
+	geometry_ctrl_feedback_moments[2] = (-krx*_mat_(eR)[2] -kwx*_mat_(eW)[2]) * 0.0098f;
+	geometry_ctrl_feedfoward_moments[0] = _mat_(inertia_effect)[0];
+	geometry_ctrl_feedfoward_moments[1] = _mat_(inertia_effect)[1];
+	geometry_ctrl_feedfoward_moments[2] = _mat_(inertia_effect)[2];	
 }
 
 void thrust_allocate_quadrotor(float *motors, float *moments, float force_basis)
@@ -330,15 +327,6 @@ void thrust_allocate_quadrotor(float *motors, float *moments, float force_basis)
 	geometry_ctrl_forces[1] = l_div_4_neg * moments[0] + l_div_4_pos * moments[1] + b_div_4_neg * moments[2] + force_basis;
 	geometry_ctrl_forces[2] = l_div_4_neg * moments[0] + l_div_4_neg * moments[1] + b_div_4_pos * moments[2] + force_basis;
 	geometry_ctrl_forces[3] = l_div_4_pos * moments[0] + l_div_4_neg * moments[1] + b_div_4_neg * moments[2] + force_basis;
-
-	geometry_ctrl_inertia_forces[0] = l_div_4_pos * geometry_ctrl_inertia_moments[0] +
-					  l_div_4_pos * geometry_ctrl_inertia_moments[1] + b_div_4_pos * geometry_ctrl_inertia_moments[2];
-	geometry_ctrl_inertia_forces[1] = l_div_4_neg * geometry_ctrl_inertia_moments[0] +
-					  l_div_4_pos * geometry_ctrl_inertia_moments[1] + b_div_4_neg * geometry_ctrl_inertia_moments[2];
-	geometry_ctrl_inertia_forces[2] = l_div_4_neg * geometry_ctrl_inertia_moments[0] +
-					  l_div_4_neg * geometry_ctrl_inertia_moments[1] + b_div_4_pos * geometry_ctrl_inertia_moments[2];
-	geometry_ctrl_inertia_forces[3] = l_div_4_pos * geometry_ctrl_inertia_moments[0] +
-					  l_div_4_neg * geometry_ctrl_inertia_moments[1] + b_div_4_neg * geometry_ctrl_inertia_moments[2];
 
 	/* assign motor pwm */
 	float percentage_to_pwm = (MOTOR_PULSE_MAX - MOTOR_PULSE_MIN);
