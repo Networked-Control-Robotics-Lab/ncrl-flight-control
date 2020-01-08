@@ -47,25 +47,25 @@ radio_t rc;
 extern float geometry_ctrl_feedback_moments[3];
 extern float geometry_ctrl_feedfoward_moments[3];
 
-int pack_float(float *data_float, uint8_t *byte_to_sent)
+int pack_debug_message_float(float *data_float, uint8_t *byte_to_sent)
 {
 	memcpy(byte_to_sent, (uint8_t *)data_float, sizeof(float));
 	return sizeof(float);
 }
 
-int pack_vector3d(vector3d_f_t *data_vector3d, uint8_t *byte_to_sent)
+int pack_debug_message_vector3d(vector3d_f_t *data_vector3d, uint8_t *byte_to_sent)
 {
 	memcpy(byte_to_sent, (uint8_t *)data_vector3d, sizeof(vector3d_f_t));
 	return sizeof(vector3d_f_t);
 }
 
-int pack_attitude(euler_t *data_attitude, uint8_t *byte_to_sent)
+int pack_debug_message_euler(euler_t *data_attitude, uint8_t *byte_to_sent)
 {
 	memcpy(byte_to_sent, (uint8_t *)data_attitude, sizeof(euler_t));
 	return sizeof(euler_t);
 }
 
-static uint8_t generate_checksum_byte(uint8_t *payload, int payload_count)
+static uint8_t generate_debug_message_checksum(uint8_t *payload, int payload_count)
 {
 	uint8_t result = 0;
 
@@ -76,11 +76,17 @@ static uint8_t generate_checksum_byte(uint8_t *payload, int payload_count)
 	return result;
 }
 
+static void pack_debug_message_header(debug_msg_t *payload, int message_id)
+{
+	payload->len = 3; //reserve for header message
+	payload->s[2] = message_id;
+}
+
 static void send_onboard_data(uint8_t *payload, int payload_count)
 {
 	uint8_t checksum;
 
-	checksum = generate_checksum_byte(payload + 3, payload_count - 3);
+	checksum = generate_debug_message_checksum(payload + 3, payload_count - 3);
 
 	payload[0] = '@';
 	payload[1] = payload_count - 3;
@@ -93,114 +99,92 @@ static void send_onboard_data(uint8_t *payload, int payload_count)
 
 void send_imu_message(debug_msg_t *payload)
 {
-	payload->len = 3; //reserve for header message
-
-	payload->s[2] = MESSAGE_ID_IMU;
-
-	payload->len += pack_vector3d(&imu.accel_raw, payload->s + payload->len);
-	payload->len += pack_vector3d(&imu.accel_lpf, payload->s + payload->len);
-	payload->len += pack_vector3d(&imu.gyro_raw, payload->s + payload->len);
-	payload->len += pack_vector3d(&imu.gyro_lpf, payload->s + payload->len);
+	pack_debug_message_header(payload, MESSAGE_ID_IMU);
+	payload->len += pack_debug_message_vector3d(&imu.accel_raw, payload->s + payload->len);
+	payload->len += pack_debug_message_vector3d(&imu.accel_lpf, payload->s + payload->len);
+	payload->len += pack_debug_message_vector3d(&imu.gyro_raw, payload->s + payload->len);
+	payload->len += pack_debug_message_vector3d(&imu.gyro_lpf, payload->s + payload->len);
 }
 
 void send_attitude_euler_message(debug_msg_t *payload)
 {
-	payload->len = 3; //reserve for header message
-
-	payload->s[2] = MESSAGE_ID_ATTITUDE_EULER;
-
-	payload->len += pack_attitude(&ahrs.attitude, payload->s + payload->len);
+	pack_debug_message_header(payload, MESSAGE_ID_ATTITUDE_EULER);
+	payload->len += pack_debug_message_euler(&ahrs.attitude, payload->s + payload->len);
 }
 
 void send_attitude_quaternion_message(debug_msg_t *payload)
 {
-	payload->len = 3; //reserve for header message
-
-	payload->s[2] = MESSAGE_ID_ATTITUDE_QUAT;
-
-	payload->len += pack_float(&ahrs.q[0], payload->s + payload->len);
-	payload->len += pack_float(&ahrs.q[1], payload->s + payload->len);
-	payload->len += pack_float(&ahrs.q[2], payload->s + payload->len);
-	payload->len += pack_float(&ahrs.q[3], payload->s + payload->len);
+	pack_debug_message_header(payload, MESSAGE_ID_ATTITUDE_QUAT);
+	payload->len += pack_debug_message_float(&ahrs.q[0], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&ahrs.q[1], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&ahrs.q[2], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&ahrs.q[3], payload->s + payload->len);
 }
 
 void send_attitude_imu_message(debug_msg_t *payload)
 {
-	payload->len = 3; //reserve for header message
-
-	payload->s[2] = MESSAGE_ID_ATTITUDE_IMU;
-
-	payload->len += pack_attitude(&ahrs.attitude, payload->s + payload->len);
-	payload->len += pack_vector3d(&imu.accel_lpf, payload->s + payload->len);
-	payload->len += pack_vector3d(&imu.gyro_lpf, payload->s + payload->len);
+	pack_debug_message_header(payload, MESSAGE_ID_ATTITUDE_IMU);
+	payload->len += pack_debug_message_euler(&ahrs.attitude, payload->s + payload->len);
+	payload->len += pack_debug_message_vector3d(&imu.accel_lpf, payload->s + payload->len);
+	payload->len += pack_debug_message_vector3d(&imu.gyro_lpf, payload->s + payload->len);
 }
 
 void send_ekf_message(debug_msg_t *payload)
 {
-	payload->len = 3; //reserve for header message
-
-	payload->s[2] = MESSAGE_ID_EKF;
-
-	payload->len += pack_float(&_mat_(P)[0], payload->s + payload->len);
-	payload->len += pack_float(&_mat_(P)[5], payload->s + payload->len);
-	payload->len += pack_float(&_mat_(P)[10], payload->s + payload->len);
-	payload->len += pack_float(&_mat_(P)[15], payload->s + payload->len);
-	payload->len += pack_float(&_mat_(K)[0], payload->s + payload->len);
-	payload->len += pack_float(&_mat_(K)[5], payload->s + payload->len);
-	payload->len += pack_float(&_mat_(K)[10], payload->s + payload->len);
-	payload->len += pack_float(&_mat_(K)[15], payload->s + payload->len);
+	pack_debug_message_header(payload, MESSAGE_ID_EKF);
+	payload->len += pack_debug_message_float(&_mat_(P)[0], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&_mat_(P)[5], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&_mat_(P)[10], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&_mat_(P)[15], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&_mat_(K)[0], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&_mat_(K)[5], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&_mat_(K)[10], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&_mat_(K)[15], payload->s + payload->len);
 }
 
 void send_motor_message(debug_msg_t *payload)
 {
-	payload->len = 3; //reserve for header message
-
-	payload->s[2] = MESSAGE_ID_MOTOR;
-
-	payload->len += pack_float(&motor1, payload->s + payload->len);
-	payload->len += pack_float(&motor2, payload->s + payload->len);
-	payload->len += pack_float(&motor3, payload->s + payload->len);
-	payload->len += pack_float(&motor4, payload->s + payload->len);
+	pack_debug_message_header(payload, MESSAGE_ID_MOTOR);
+	payload->len += pack_debug_message_float(&motor1, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&motor2, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&motor3, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&motor4, payload->s + payload->len);
 }
 
 void send_pid_debug(debug_msg_t *payload)
 {
-	payload->len = 3; //reserve for header message
-
-	payload->s[2] = MESSAGE_ID_PID_DEBUG;
+	pack_debug_message_header(payload, MESSAGE_ID_PID_DEBUG);
 #if 1
 	//roll pd control
-	payload->len += pack_float(&pid_roll.error_current, payload->s + payload->len);
-	payload->len += pack_float(&pid_roll.error_derivative, payload->s + payload->len);
-	payload->len += pack_float(&pid_roll.p_final, payload->s + payload->len);
-	payload->len += pack_float(&pid_roll.i_final, payload->s + payload->len);
-	payload->len += pack_float(&pid_roll.d_final, payload->s + payload->len);
-	payload->len += pack_float(&pid_roll.output, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&pid_roll.error_current, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&pid_roll.error_derivative, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&pid_roll.p_final, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&pid_roll.i_final, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&pid_roll.d_final, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&pid_roll.output, payload->s + payload->len);
 #endif
 
 #if 0
-	payload->len += pack_float(&pid_pitch.error_current, payload->s + payload->len);
-	payload->len += pack_float(&pid_pitch.error_derivative, payload->s + payload->len);
-	payload->len += pack_float(&pid_pitch.p_final, payload->s + payload->len);
-	payload->len += pack_float(&pid_pitch.i_final, payload->s + payload->len);
-	payload->len += pack_float(&pid_pitch.d_final, payload->s + payload->len);
-	payload->len += pack_float(&pid_pitch.output, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&pid_pitch.error_current, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&pid_pitch.error_derivative, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&pid_pitch.p_final, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&pid_pitch.i_final, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&pid_pitch.d_final, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&pid_pitch.output, payload->s + payload->len);
 #endif
 
 #if 0
-	payload->len += pack_float(&pid_yaw_rate.error_current, payload->s + payload->len);
-	payload->len += pack_float(&pid_yaw_rate.error_derivative, payload->s + payload->len);
-	payload->len += pack_float(&pid_yaw_rate.p_final, payload->s + payload->len);
-	payload->len += pack_float(&pid_yaw_rate.i_final, payload->s + payload->len);
-	payload->len += pack_float(&pid_yaw_rate.d_final, payload->s + payload->len);
-	payload->len += pack_float(&pid_yaw_rate.output, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&pid_yaw_rate.error_current, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&pid_yaw_rate.error_derivative, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&pid_yaw_rate.p_final, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&pid_yaw_rate.i_final, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&pid_yaw_rate.d_final, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&pid_yaw_rate.output, payload->s + payload->len);
 #endif
 }
 
 void send_geometry_ctrl_debug(debug_msg_t *payload)
 {
-	payload->len = 3; //reserve for header message
-
 	float roll_error = rad_to_deg(_mat_(eR)[0]);
 	float pitch_error = rad_to_deg(_mat_(eR)[1]);
 	float yaw_error = rad_to_deg(_mat_(eR)[2]);
@@ -209,77 +193,64 @@ void send_geometry_ctrl_debug(debug_msg_t *payload)
 	float wy_error = rad_to_deg(_mat_(eW)[1]);
 	float wz_error = rad_to_deg(_mat_(eW)[2]);
 
-	payload->s[2] = MESSAGE_ID_GEOMETRY_DEBUG;
-	payload->len += pack_float(&roll_error, payload->s + payload->len);
-	payload->len += pack_float(&pitch_error, payload->s + payload->len);
-	payload->len += pack_float(&yaw_error, payload->s + payload->len);
-	payload->len += pack_float(&wx_error, payload->s + payload->len);
-	payload->len += pack_float(&wy_error, payload->s + payload->len);
-	payload->len += pack_float(&wz_error, payload->s + payload->len);
-	payload->len += pack_float(&geometry_ctrl_feedback_moments[0], payload->s + payload->len);
-	payload->len += pack_float(&geometry_ctrl_feedback_moments[1], payload->s + payload->len);
-	payload->len += pack_float(&geometry_ctrl_feedback_moments[2], payload->s + payload->len);
-	payload->len += pack_float(&geometry_ctrl_feedfoward_moments[0], payload->s + payload->len);
-	payload->len += pack_float(&geometry_ctrl_feedfoward_moments[1], payload->s + payload->len);
-	payload->len += pack_float(&geometry_ctrl_feedfoward_moments[2], payload->s + payload->len);
+	pack_debug_message_header(payload, MESSAGE_ID_GEOMETRY_DEBUG);
+	payload->len += pack_debug_message_float(&roll_error, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&pitch_error, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&yaw_error, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&wx_error, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&wy_error, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&wz_error, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&geometry_ctrl_feedback_moments[0], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&geometry_ctrl_feedback_moments[1], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&geometry_ctrl_feedback_moments[2], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&geometry_ctrl_feedfoward_moments[0], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&geometry_ctrl_feedfoward_moments[1], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&geometry_ctrl_feedfoward_moments[2], payload->s + payload->len);
 }
 
 void send_uav_dynamics_debug(debug_msg_t *payload)
 {
-	payload->len = 3; //reserve for header message
-	payload->s[2] = MESSAGE_ID_UAV_DYNAMICS_DEBUG;
-	payload->len += pack_float(&uav_dynamics_m[0], payload->s + payload->len);
-	payload->len += pack_float(&uav_dynamics_m[1], payload->s + payload->len);
-	payload->len += pack_float(&uav_dynamics_m[2], payload->s + payload->len);
-	payload->len += pack_float(&uav_dynamics_m_rot_frame[0], payload->s + payload->len);
-	payload->len += pack_float(&uav_dynamics_m_rot_frame[1], payload->s + payload->len);
-	payload->len += pack_float(&uav_dynamics_m_rot_frame[2], payload->s + payload->len);
+	pack_debug_message_header(payload, MESSAGE_ID_UAV_DYNAMICS_DEBUG);
+	payload->len += pack_debug_message_float(&uav_dynamics_m[0], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&uav_dynamics_m[1], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&uav_dynamics_m[2], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&uav_dynamics_m_rot_frame[0], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&uav_dynamics_m_rot_frame[1], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&uav_dynamics_m_rot_frame[2], payload->s + payload->len);
 }
 
 void send_optitrack_position_message(debug_msg_t *payload)
 {
-	payload->len = 3; //reserve for header message
-
-	payload->s[2] = MESSAGE_ID_OPTITRACK_POSITION;
-
-	payload->len += pack_float(&optitrack.pos_x, payload->s + payload->len);
-	payload->len += pack_float(&optitrack.pos_y, payload->s + payload->len);
-	payload->len += pack_float(&optitrack.pos_z, payload->s + payload->len);
+	pack_debug_message_header(payload, MESSAGE_ID_OPTITRACK_POSITION);
+	payload->len += pack_debug_message_float(&optitrack.pos_x, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&optitrack.pos_y, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&optitrack.pos_z, payload->s + payload->len);
 }
 
 void send_optitrack_quaternion_message(debug_msg_t *payload)
 {
-	payload->len = 3; //reserve for header message
-
-	payload->s[2] = MESSAGE_ID_OPTITRACK_QUATERNION;
-
-	payload->len += pack_float(&optitrack.q[0], payload->s + payload->len);
-	payload->len += pack_float(&optitrack.q[1], payload->s + payload->len);
-	payload->len += pack_float(&optitrack.q[2], payload->s + payload->len);
-	payload->len += pack_float(&optitrack.q[3], payload->s + payload->len);
+	pack_debug_message_header(payload, MESSAGE_ID_OPTITRACK_QUATERNION);
+	payload->len += pack_debug_message_float(&optitrack.q[0], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&optitrack.q[1], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&optitrack.q[2], payload->s + payload->len);
+	payload->len += pack_debug_message_float(&optitrack.q[3], payload->s + payload->len);
 }
 
 void send_optitrack_velocity_message(debug_msg_t *payload)
 {
-	payload->len = 3; //reserve for header message
-
-	payload->s[2] = MESSAGE_ID_OPTITRACK_VELOCITY;
-
-	payload->len += pack_float(&optitrack.vel_raw_x, payload->s + payload->len);
-	payload->len += pack_float(&optitrack.vel_raw_y, payload->s + payload->len);
-	payload->len += pack_float(&optitrack.vel_raw_z, payload->s + payload->len);
-	payload->len += pack_float(&optitrack.vel_lpf_x, payload->s + payload->len);
-	payload->len += pack_float(&optitrack.vel_lpf_y, payload->s + payload->len);
-	payload->len += pack_float(&optitrack.vel_lpf_z, payload->s + payload->len);
+	pack_debug_message_header(payload, MESSAGE_ID_OPTITRACK_VELOCITY);
+	payload->len += pack_debug_message_float(&optitrack.vel_raw_x, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&optitrack.vel_raw_y, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&optitrack.vel_raw_z, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&optitrack.vel_lpf_x, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&optitrack.vel_lpf_y, payload->s + payload->len);
+	payload->len += pack_debug_message_float(&optitrack.vel_lpf_z, payload->s + payload->len);
 }
 
 void send_general_float_message(float val, debug_msg_t *payload)
 {
-	payload->len = 3; //reserve for header message
-
-	payload->s[2] = MESSAGE_ID_GENERAL_FLOAT;
-
-	payload->len += pack_float(&val, payload->s + payload->len);
+	pack_debug_message_header(payload, MESSAGE_ID_GENERAL_FLOAT);
+	payload->len += pack_debug_message_float(&val, payload->s + payload->len);
 }
 
 void send_accel_calib_message(void)
