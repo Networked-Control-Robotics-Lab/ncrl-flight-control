@@ -360,19 +360,21 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc)
 
 	//update_euler_heading_from_optitrack(&optitrack.q[0], &(ahrs->attitude.yaw));
 
-	float control_moments[3];
 	euler_t desired_attitude;
 	desired_attitude.roll = deg_to_rad(-rc->roll);
 	desired_attitude.pitch = deg_to_rad(-rc->pitch);
 	desired_attitude.yaw = deg_to_rad(-rc->yaw);
+
 	float gyro[3];
 	gyro[0] = deg_to_rad(imu->gyro_lpf.x);
 	gyro[1] = deg_to_rad(imu->gyro_lpf.y);
 	gyro[2] = deg_to_rad(imu->gyro_lpf.z);
+
 	float throttle_force = convert_motor_cmd_to_thrust(rc->throttle / 100.0f); //FIXME
 
 	//estimate_uav_dynamics(gyro, uav_dynamics_m, uav_dynamics_m_rot_frame);
 
+	float control_moments[3];
 	geometry_manual_ctrl(&desired_attitude, ahrs->q, gyro, control_moments, false);
 
 	if(rc->safety == false) {
