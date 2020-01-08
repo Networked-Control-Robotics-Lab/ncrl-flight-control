@@ -95,8 +95,8 @@ void geometry_ctrl_init(void)
 	_mat_(J)[2*3 + 2] = 0.02848f; //Izz [kg*m^2]
 
 	/* attitude controller gains of geometry tracking controller */
-	krx = 275.0f;
-	kry = 275.0f;
+	krx = 300.0f;
+	kry = 300.0f;
 	krz = 0.0f;
 	kwx = 46.25f;
 	kwy = 46.25f;
@@ -285,9 +285,9 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 	//W x JW
 	MAT_MULT(&J, &W, &JW);
 	cross_product_3x1(_mat_(W), _mat_(JW), _mat_(WJW));
-	_mat_(inertia_effect)[0] = _mat_(WJW)[0];
-	_mat_(inertia_effect)[1] = _mat_(WJW)[1];
-	_mat_(inertia_effect)[2] = _mat_(WJW)[2];
+	_mat_(inertia_effect)[0] = _mat_(WJW)[0] * 101.97; //[newton * m] to [gram force * m]
+	_mat_(inertia_effect)[1] = _mat_(WJW)[1] * 101.97;
+	_mat_(inertia_effect)[2] = _mat_(WJW)[2] * 101.97;
 
 #if 0
 	/* calculate inertia effect (trajectory is defined, Wd and Wd_dot are not zero) */
@@ -314,7 +314,7 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 	output_moments[2] = -krz*_mat_(eR)[2] -kwz*_mat_(eW)[2] + _mat_(inertia_effect)[2];
 
 	/* XXX: debug print, refine this code! */
-	geometry_ctrl_feedback_moments[0] = (-krx*_mat_(eR)[0] -kwx*_mat_(eW)[0]) * 0.0098f; //gram force to newton
+	geometry_ctrl_feedback_moments[0] = (-krx*_mat_(eR)[0] -kwx*_mat_(eW)[0]) * 0.0098f; //[gram force * m] to [newton * m]
 	geometry_ctrl_feedback_moments[1] = (-krx*_mat_(eR)[1] -kwx*_mat_(eW)[1]) * 0.0098f;
 	geometry_ctrl_feedback_moments[2] = (-krx*_mat_(eR)[2] -kwx*_mat_(eW)[2]) * 0.0098f;
 	geometry_ctrl_feedfoward_moments[0] = _mat_(inertia_effect)[0];
