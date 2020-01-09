@@ -6,6 +6,7 @@
 #include "sbus_receiver.h"
 #include "optitrack.h"
 #include "ahrs.h"
+#include "vector.h"
 #include "matrix.h"
 #include "motor_thrust.h"
 #include "motor.h"
@@ -30,6 +31,7 @@ MAT_ALLOC(Rtd, 3, 3);
 MAT_ALLOC(RtdR, 3, 3);
 MAT_ALLOC(RtRd, 3, 3);
 MAT_ALLOC(RtRdWd, 3, 3);
+MAT_ALLOC(Re3, 3, 1);
 MAT_ALLOC(W, 3, 1);
 MAT_ALLOC(W_dot, 3, 1);
 MAT_ALLOC(Wd, 3, 1);
@@ -49,11 +51,17 @@ MAT_ALLOC(RtRdWddot, 3, 1);
 MAT_ALLOC(WRtRdWd_RtRdWddot, 3, 1);
 MAT_ALLOC(J_WRtRdWd_RtRdWddot, 3, 1);
 MAT_ALLOC(inertia_effect, 3, 1);
+MAT_ALLOC(f_ctrl, 3, 1);
+MAT_ALLOC(b1d, 3, 1);
+MAT_ALLOC(b2d, 3, 1);
+MAT_ALLOC(b3d, 3, 1);
+MAT_ALLOC(e3, 3, 1);
 
 float krx, kry, krz;
 float kwx, kwy, kwz;
 float kpx, kpy, kpz;
-float kvx, kvy, kyz;
+float kvx, kvy, kvz;
+float uav_mass;
 
 float geometry_ctrl_feedback_moments[3];
 float geometry_ctrl_feedfoward_moments[3];
@@ -71,6 +79,7 @@ void geometry_ctrl_init(void)
 	MAT_INIT(RtdR, 3, 3);
 	MAT_INIT(RtRd, 3, 3);
 	MAT_INIT(RtRdWd, 3, 3);
+	MAT_INIT(Re3, 3, 1);
 	MAT_INIT(W, 3, 1);
 	MAT_INIT(W_dot, 3, 1);
 	MAT_INIT(Wd, 3, 1);
@@ -90,11 +99,20 @@ void geometry_ctrl_init(void)
 	MAT_INIT(WRtRdWd_RtRdWddot, 3, 1);
 	MAT_INIT(J_WRtRdWd_RtRdWddot, 3, 1);
 	MAT_INIT(inertia_effect, 3, 1);
+	MAT_INIT(b1d, 3, 1);
+	MAT_INIT(b2d, 3, 1);
+	MAT_INIT(b3d, 3, 1);
+	MAT_INIT(e3, 3, 1);
 
-	MAT_INIT(J, 3, 3);
+	_mat_(e3)[0] = 0.0f;
+	_mat_(e3)[1] = 0.0f;
+	_mat_(e3)[2] = 1.0f;
+
 	_mat_(J)[0*3 + 0] = 0.01466f; //Ixx [kg*m^2]
 	_mat_(J)[1*3 + 1] = 0.01466f; //Iyy [kg*m^2]
 	_mat_(J)[2*3 + 2] = 0.02848f; //Izz [kg*m^2]
+
+	uav_mass = 1.0;
 
 	/* attitude controller gains of geometry */
 	krx = 300.0f;
@@ -110,7 +128,7 @@ void geometry_ctrl_init(void)
 	kpz = 0.0f;
 	kvx = 0.0f;
 	kvy = 0.0f;
-	kyz = 0.0f;
+	kvz = 0.0f;
 }
 
 void euler_to_rotation_matrix(euler_t *euler, float *r, float *r_transpose)
@@ -216,6 +234,17 @@ void cross_product_3x1(float *vec_a, float *vec_b, float *vec_result)
 	vec_result[0] = vec_a[1]*vec_b[2] - vec_a[2]*vec_b[1];
 	vec_result[1] = vec_a[2]*vec_b[0] - vec_a[0]*vec_b[2];
 	vec_result[2] = vec_a[0]*vec_b[1] - vec_a[1]*vec_b[0];
+}
+
+float dot_product_3x1(float *vec_a, float *vec_b)
+{
+	//TODO: replace this with dsp library's function
+	return vec_a[0]*vec_b[0] + vec_a[1]*vec_b[1] + vec_a[2]*vec_b[2];
+}
+
+float norm_3x1(float *vec)
+{
+	return sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 }
 
 void estimate_uav_dynamics(float *gyro, float *moments, float *m_rot_frame)
@@ -330,6 +359,119 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 	geometry_ctrl_feedfoward_moments[0] = _mat_(inertia_effect)[0];
 	geometry_ctrl_feedfoward_moments[1] = _mat_(inertia_effect)[1];
 	geometry_ctrl_feedfoward_moments[2] = _mat_(inertia_effect)[2];
+}
+
+void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *curr_pos, float *desired_pos,
+			    float *curr_vel, float *desired_vel, float *desired_accel, float *output_moments,
+			    float *output_force, bool manual_flight)
+{
+	float pos_error[3];
+	pos_error[0] = curr_pos[0] - desired_pos[0];
+	pos_error[1] = curr_pos[1] - desired_pos[1];
+	pos_error[2] = curr_pos[2] - desired_pos[2];
+
+	float vel_error[3];
+	vel_error[0] = curr_vel[0] - desired_vel[0];
+	vel_error[1] = curr_vel[1] - desired_vel[1];
+	vel_error[2] = curr_vel[2] - desired_vel[2];
+
+	_mat_(f_ctrl)[0] = kpx*pos_error[0] - kvx*vel_error[0] + uav_mass * desired_accel[0];
+	_mat_(f_ctrl)[1] = kpy*pos_error[1] - kvy*vel_error[1] + uav_mass * desired_accel[1];
+	_mat_(f_ctrl)[2] = kpz*pos_error[2] - kvz*vel_error[2] - uav_mass * 9.8f + uav_mass * desired_accel[2];
+
+	float _1_div_f_ctrl_norm = 1.0f / norm_3x1(_mat_(f_ctrl));
+
+	/* convert attitude (quaternion) to rotation matrix */
+	quat_to_rotation_matrix(&attitude_q[0], _mat_(R), _mat_(Rt));
+
+	if(manual_flight == true) {
+		/* enable altitude control only, control roll and pitch manually */
+		//convert radio command (euler angle) to rotation matrix
+		euler_to_rotation_matrix(rc, _mat_(Rd), _mat_(Rtd));
+	} else {
+		/* enable tracking control for x and y axis */
+		//b1d
+		_mat_(b1d)[0] = arm_cos_f32(rc->yaw);
+		_mat_(b1d)[1] = arm_sin_f32(rc->yaw);
+		_mat_(b1d)[2] = 0.0f;
+		//b3d
+		_mat_(b3d)[0] = _mat_(f_ctrl)[0] * _1_div_f_ctrl_norm;
+		_mat_(b3d)[1] = _mat_(f_ctrl)[1] * _1_div_f_ctrl_norm;
+		_mat_(b3d)[2] = _mat_(f_ctrl)[2] * _1_div_f_ctrl_norm;
+		//b3d X b1d
+		cross_product_3x1(_mat_(b3d), _mat_(b1d), _mat_(b2d));
+
+		//Rd = [b1d; b3d X b1d; b3d]
+		_mat_(Rd)[0*3 + 0] = _mat_(b1d)[0];
+		_mat_(Rd)[1*3 + 0] = _mat_(b1d)[1];
+		_mat_(Rd)[2*3 + 0] = _mat_(b1d)[2];
+		_mat_(Rd)[0*3 + 1] = _mat_(b2d)[0];
+		_mat_(Rd)[1*3 + 1] = _mat_(b2d)[1];
+		_mat_(Rd)[2*3 + 1] = _mat_(b2d)[2];
+		_mat_(Rd)[0*3 + 2] = _mat_(b3d)[0];
+		_mat_(Rd)[1*3 + 2] = _mat_(b3d)[1];
+		_mat_(Rd)[2*3 + 2] = _mat_(b3d)[2];
+
+		//transpose(Rd)
+		_mat_(Rtd)[0*3 + 0] = _mat_(Rd)[0*3 + 0];
+		_mat_(Rtd)[1*3 + 0] = _mat_(Rd)[0*3 + 1];
+		_mat_(Rtd)[2*3 + 0] = _mat_(Rd)[0*3 + 2];
+		_mat_(Rtd)[0*3 + 1] = _mat_(Rd)[1*3 + 0];
+		_mat_(Rtd)[1*3 + 1] = _mat_(Rd)[1*3 + 0];
+		_mat_(Rtd)[2*3 + 1] = _mat_(Rd)[1*3 + 2];
+		_mat_(Rtd)[0*3 + 2] = _mat_(Rd)[2*3 + 0];
+		_mat_(Rtd)[1*3 + 2] = _mat_(Rd)[2*3 + 1];
+		_mat_(Rtd)[2*3 + 2] = _mat_(Rd)[2*3 + 2];
+	}
+
+	/* R * e3 */
+	MAT_MULT(&R, &e3, &Re3);
+	/* -(-kx * ex - kv * ev - mge3 + m * x_dot_dot_d) . (R * e3) */
+	float neg_f_ctrl[3];
+	neg_f_ctrl[0] = -_mat_(f_ctrl)[0];
+	neg_f_ctrl[1] = -_mat_(f_ctrl)[1];
+	neg_f_ctrl[2] = -_mat_(f_ctrl)[2];
+	*output_force = dot_product_3x1(neg_f_ctrl, _mat_(Re3));
+
+	/* W (angular velocity) */
+	_mat_(W)[0] = gyro[0];
+	_mat_(W)[1] = gyro[1];
+	_mat_(W)[2] = gyro[2];
+
+	/* set Wd and Wd_dot to 0 since there is no predefined trajectory */
+	_mat_(Wd)[0] = 0.0f;
+	_mat_(Wd)[1] = 0.0f;
+	_mat_(Wd)[2] = 0.0f;
+	_mat_(Wd_dot)[0] = 0.0f;
+	_mat_(Wd_dot)[1] = 0.0f;
+	_mat_(Wd_dot)[2] = 0.0f;
+
+	/* calculate attitude error eR */
+	MAT_MULT(&Rtd, &R, &RtdR);
+	MAT_MULT(&Rt, &Rd, &RtRd);
+	MAT_SUB(&RtdR, &RtRd, &eR_mat);
+	vee_map_3x3(_mat_(eR_mat), _mat_(eR));
+	_mat_(eR)[0] *= 0.5f;
+	_mat_(eR)[1] *= 0.5f;
+	_mat_(eR)[2] *= 0.5f;
+
+	/* calculate attitude rate error eW */
+	//MAT_MULT(&Rt, &Rd, &RtRd); //the term is duplicated
+	MAT_MULT(&RtRd, &Wd, &RtRdWd);
+	MAT_SUB(&W, &RtRdWd, &eW);
+
+	/* calculate inertia effect (since Wd and Wd_dot are 0, the terms are excluded) */
+	//W x JW
+	MAT_MULT(&J, &W, &JW);
+	cross_product_3x1(_mat_(W), _mat_(JW), _mat_(WJW));
+	_mat_(inertia_effect)[0] = _mat_(WJW)[0] * 101.97; //[newton * m] to [gram force * m]
+	_mat_(inertia_effect)[1] = _mat_(WJW)[1] * 101.97;
+	_mat_(inertia_effect)[2] = _mat_(WJW)[2] * 101.97;
+
+	/* control input M1, M2, M3 */
+	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0] + _mat_(inertia_effect)[0];
+	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1] + _mat_(inertia_effect)[1];
+	output_moments[2] = -krz*_mat_(eR)[2] -kwz*_mat_(eW)[2] + _mat_(inertia_effect)[2];
 }
 
 void thrust_allocate_quadrotor(float *moments, float force_basis)
