@@ -17,6 +17,7 @@
 #include "debug_link.h"
 
 #define dt 0.0025 //[s]
+#define gravity_accel 9.8 //gravity acceleration [m/s^2]
 #define MOTOR_TO_CG_LENGTH 16.25f //[cm]
 #define MOTOR_TO_CG_LENGTH_M (MOTOR_TO_CG_LENGTH * 0.01) //[m]
 #define COEFFICIENT_YAW 1.0f
@@ -378,7 +379,7 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 
 	_mat_(f_ctrl)[0] = kpx*pos_error[0] - kvx*vel_error[0] + uav_mass * desired_accel[0];
 	_mat_(f_ctrl)[1] = kpy*pos_error[1] - kvy*vel_error[1] + uav_mass * desired_accel[1];
-	_mat_(f_ctrl)[2] = kpz*pos_error[2] - kvz*vel_error[2] - uav_mass * 9.8f + uav_mass * desired_accel[2];
+	_mat_(f_ctrl)[2] = kpz*pos_error[2] - kvz*vel_error[2] - uav_mass * gravity_accel + uav_mass * desired_accel[2];
 
 	float _1_div_f_ctrl_norm = 1.0f / norm_3x1(_mat_(f_ctrl));
 
