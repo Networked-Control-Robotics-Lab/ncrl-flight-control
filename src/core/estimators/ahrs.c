@@ -144,11 +144,41 @@ void calc_attitude_use_accel(euler_t *att_estimated, vector3d_f_t *accel)
 	att_estimated->pitch = atan2(-accel->y, accel->z);
 }
 
-void update_euler_heading_from_optitrack(float *q, float *heading)
+void quaternion_mult(float *q1, float *q2, float *q_mult)
+{
+	q_mult[0] = q1[1] * q2[0] + q1[2] * q2[3] - q1[3] * q2[2] + q1[0] * q2[1];  //q0
+	q_mult[1] = -q1[1] * q2[3] + q1[2] * q2[0] + q1[3] * q2[1] + q1[0] * q2[2]; //q1
+	q_mult[2] = q1[1] * q2[2] - q1[2] * q2[1] + q1[3] * q2[0] + q1[0] * q2[3];  //q2
+	q_mult[3] = -q1[1] * q2[1] - q1[2] * q2[2] - q1[3] * q2[3] + q1[0] * q2[0]; //q3
+}
+
+void quaternion_conj(float *q, float *q_conj)
+{
+	q_conj[0] = q[0];
+	q_conj[1] = -q[1];
+	q_conj[2] = -q[2];
+	q_conj[3] = -q[3];
+}
+
+void update_heading_from_optitrack(float *q, ahrs_t *ahrs)
 {
 	euler_t att_euler;
 	quat_to_euler(q, &att_euler);
-	*heading = rad_to_deg(att_euler.yaw);
+
+	/* update heading euler angle */
+	ahrs->attitude.yaw = rad_to_deg(att_euler.yaw);
+
+	/* update uav attitude quaternion */
+	float q_yaw[4], q_yaw_conj[4], q_tmp[4];
+	float half_psi = deg_to_rad(att_euler.yaw / 2.0f);
+	q_yaw[0] = arm_cos_f32(half_psi);
+	q_yaw[1] = 0.0f;
+	q_yaw[2] = 0.0f;
+	q_yaw[3] = arm_sin_f32(half_psi);
+	/* q_att_new = q * q_att_old * conj(q) */
+	quaternion_conj(q_yaw, q_yaw_conj);
+	quaternion_mult(q_yaw, ahrs->q, q_tmp);
+	quaternion_mult(q_tmp, q_yaw_conj, ahrs->q);
 }
 
 void ahrs_ekf_state_predict(vector3d_f_t accel, vector3d_f_t gyro)

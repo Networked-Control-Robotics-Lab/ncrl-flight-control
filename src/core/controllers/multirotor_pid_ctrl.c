@@ -283,8 +283,6 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc)
 {
 	rc_mode_change_handler(rc);
 
-	update_euler_heading_from_optitrack(&optitrack.q[0], &(ahrs->attitude.yaw));
-
 	/* altitude control */
 	altitude_control(optitrack.pos_z, optitrack.vel_lpf_z, &pid_alt_vel, &pid_alt);
 

@@ -25,6 +25,8 @@
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 10
 
+extern optitrack_t optitrack;
+
 SemaphoreHandle_t flight_ctl_semphr;
 
 imu_t imu;
@@ -108,6 +110,8 @@ void task_flight_ctl(void *param)
 		ahrs.q[2] = madgwick_ahrs_info.q2;
 		ahrs.q[3] = madgwick_ahrs_info.q3;
 #endif
+
+		update_heading_from_optitrack(&optitrack.q[0], &ahrs);
 
 #if (SELECT_CONTROLLER == QUADROTOR_USE_PID)
 		multirotor_pid_control(&imu, &ahrs, &rc);
