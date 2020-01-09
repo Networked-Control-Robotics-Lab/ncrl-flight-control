@@ -99,6 +99,7 @@ void geometry_ctrl_init(void)
 	MAT_INIT(WRtRdWd_RtRdWddot, 3, 1);
 	MAT_INIT(J_WRtRdWd_RtRdWddot, 3, 1);
 	MAT_INIT(inertia_effect, 3, 1);
+	MAT_INIT(f_ctrl, 3, 1);
 	MAT_INIT(b1d, 3, 1);
 	MAT_INIT(b2d, 3, 1);
 	MAT_INIT(b3d, 3, 1);
