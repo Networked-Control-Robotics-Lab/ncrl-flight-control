@@ -246,6 +246,7 @@ float dot_product_3x1(float *vec_a, float *vec_b)
 
 float norm_3x1(float *vec)
 {
+	//TODO: optimize this function with dsp library's function
 	return sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 }
 
