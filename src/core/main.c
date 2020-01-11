@@ -20,6 +20,7 @@
 #include "debug_link.h"
 #include "multirotor_pid_ctrl.h"
 #include "fc_task.h"
+#include "proj_config.h"
 
 extern SemaphoreHandle_t flight_ctl_semphr;
 
@@ -30,7 +31,7 @@ int main(void)
 	/* freertos initialization */
 	flight_ctl_semphr = xSemaphoreCreateBinary();
 
-	optitrack_init(0); //setup tracker id for this MAV
+	optitrack_init(UAV_ID); //setup tracker id for this MAV
 
 	/* driver initialization */
 	led_init();

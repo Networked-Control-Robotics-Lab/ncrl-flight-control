@@ -87,7 +87,6 @@ void task_flight_ctl(void *param)
 	madgwick_init(&madgwick_ahrs_info, 400, 0.4);
 
 	multirotor_pid_controller_init();
-
 	geometry_ctrl_init();
 
 	led_off(LED_R);

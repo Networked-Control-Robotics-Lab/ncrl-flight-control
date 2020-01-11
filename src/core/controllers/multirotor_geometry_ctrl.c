@@ -573,7 +573,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float de
 	if(optitrack_present == true) {
 		desired_attitude.roll = deg_to_rad(-rc->roll);
 		desired_attitude.pitch = deg_to_rad(-rc->pitch);
-		desired_attitude.yaw = deg_to_rad(-desired_heading); //yaw rate controller
+		desired_attitude.yaw = deg_to_rad(desired_heading); //yaw rate controller
 	} else {
 		desired_attitude.roll = deg_to_rad(-rc->roll);
 		desired_attitude.pitch = deg_to_rad(-rc->pitch);
