@@ -61,6 +61,20 @@ void rc_safety_protection(void)
 	} while(rc_safety_check(&rc) == 1);
 }
 
+void rc_yaw_setpoint_handler(float *desired_yaw, float rc_yaw_cmd, float dt)
+{
+	/* changing yaw setpoint if yaw joystick exceed the +-5 degree zone */
+	if(rc_yaw_cmd > +5.0f || rc_yaw_cmd < -5.0f) {
+		*desired_yaw += rc_yaw_cmd * dt;
+		/* signal bounding */
+		if(*desired_yaw > +180.0f) {
+			*desired_yaw -= 360.0f;
+		} else if(*desired_yaw < -180.0f) {
+			*desired_yaw += 360.0f;
+		}
+	}
+}
+
 void task_flight_ctl(void *param)
 {
 	euler_t att_euler_est;
@@ -82,12 +96,15 @@ void task_flight_ctl(void *param)
 
 	rc_safety_protection();
 
+	float desired_yaw = 0.0f;
+
 	while(1) {
 		while(xSemaphoreTake(flight_ctl_semphr, 9) == pdFALSE);
 
 		//gpio_toggle(MOTOR7_FREQ_TEST);
 
 		read_rc_info(&rc);
+		rc_yaw_setpoint_handler(&desired_yaw, rc.yaw, 0.0025);
 
 #if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
 		ahrs_estimate(&att_euler_est, ahrs.q, imu.accel_lpf, imu.gyro_lpf);
@@ -112,9 +129,9 @@ void task_flight_ctl(void *param)
 #endif
 
 #if (SELECT_CONTROLLER == QUADROTOR_USE_PID)
-		multirotor_pid_control(&imu, &ahrs, &rc);
+		multirotor_pid_control(&imu, &ahrs, &rc); //TODO: pass desired yaw angle
 #elif (SELECT_CONTROLLER == QUADROTOR_USE_GEOMETRY)
-		multirotor_geometry_control(&imu, &ahrs, &rc);
+		multirotor_geometry_control(&imu, &ahrs, &rc); //TODO: pass desired yaw angle
 #endif
 
 		taskYIELD();
