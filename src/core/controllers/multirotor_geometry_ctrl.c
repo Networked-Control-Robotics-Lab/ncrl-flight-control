@@ -618,6 +618,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float de
 	} else {
 		led_on(LED_B);
 		led_off(LED_R);
+		desired_heading = deg_to_rad(ahrs->attitude.yaw);
 		motor_halt();
 	}
 }
