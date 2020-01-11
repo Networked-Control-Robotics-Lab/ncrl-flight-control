@@ -521,16 +521,24 @@ void thrust_allocate_quadrotor(float *moments, float force_basis)
 	set_motor_pwm_pulse(MOTOR4, (uint16_t)(motors[3]));
 }
 
-void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc)
+void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float desired_heading)
 {
 	//rc_mode_change_handler(rc);
 
 	//update_euler_heading_from_optitrack(&optitrack.q[0], &(ahrs->attitude.yaw));
 
+	bool heading_present = optitrack_available();
+
 	euler_t desired_attitude;
-	desired_attitude.roll = deg_to_rad(-rc->roll);
-	desired_attitude.pitch = deg_to_rad(-rc->pitch);
-	desired_attitude.yaw = deg_to_rad(-rc->yaw);
+	if(heading_present == true) {
+		desired_attitude.roll = deg_to_rad(-rc->roll);
+		desired_attitude.pitch = deg_to_rad(-rc->pitch);
+		desired_attitude.yaw = deg_to_rad(-desired_heading); //yaw rate controller
+	} else {
+		desired_attitude.roll = deg_to_rad(-rc->roll);
+		desired_attitude.pitch = deg_to_rad(-rc->pitch);
+		desired_attitude.yaw = deg_to_rad(-rc->yaw); //heading controller
+	}
 
 	float gyro[3];
 	gyro[0] = deg_to_rad(imu->gyro_lpf.x);
@@ -542,7 +550,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc)
 	//estimate_uav_dynamics(gyro, uav_dynamics_m, uav_dynamics_m_rot_frame);
 
 	float control_moments[3];
-	geometry_manual_ctrl(&desired_attitude, ahrs->q, gyro, control_moments, false);
+	geometry_manual_ctrl(&desired_attitude, ahrs->q, gyro, control_moments, heading_present);
 
 	if(rc->safety == false) {
 		led_on(LED_R);
