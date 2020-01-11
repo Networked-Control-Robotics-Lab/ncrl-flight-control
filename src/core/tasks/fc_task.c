@@ -129,9 +129,9 @@ void task_flight_ctl(void *param)
 #endif
 
 #if (SELECT_CONTROLLER == QUADROTOR_USE_PID)
-		multirotor_pid_control(&imu, &ahrs, &rc); //TODO: pass desired yaw angle
+		multirotor_pid_control(&imu, &ahrs, &rc, desired_yaw);
 #elif (SELECT_CONTROLLER == QUADROTOR_USE_GEOMETRY)
-		multirotor_geometry_control(&imu, &ahrs, &rc); //TODO: pass desired yaw angle
+		multirotor_geometry_control(&imu, &ahrs, &rc, desired_yaw);
 #endif
 
 		taskYIELD();

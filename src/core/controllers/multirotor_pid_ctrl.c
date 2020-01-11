@@ -115,19 +115,9 @@ void set_yaw_pd_setpoint(pid_control_t *pid, float new_setpoint)
 	pid->setpoint = new_setpoint;
 }
 
-void yaw_pd_control(pid_control_t *pid, float rc_yaw, float ahrs_yaw, float yaw_rate, float loop_dt)
+void yaw_pd_control(pid_control_t *pid, float desired_heading, float ahrs_yaw, float yaw_rate, float loop_dt)
 {
-	/* changing setpoint if yaw joystick exceed the +-5 degree zone */
-	if(rc_yaw > +5.0f || rc_yaw < -5.0f) {
-		pid->setpoint += rc_yaw * loop_dt;
-		/* signal bounding */
-		if(pid->setpoint > +180.0f) {
-			pid->setpoint -= 360.0f;
-		} else if(pid->setpoint < -180.0f) {
-			pid->setpoint += 360.0f;
-		}
-	}
-
+	pid->setpoint = desired_heading;
 	pid->error_current = pid->setpoint - ahrs_yaw;
 	pid->error_derivative = -yaw_rate;
 	pid->p_final = pid->kp * pid->error_current;
@@ -279,7 +269,7 @@ void rc_mode_change_handler(radio_t *rc)
 	flight_mode_last = rc->flight_mode;
 }
 
-void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc)
+void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float desired_heading)
 {
 	rc_mode_change_handler(rc);
 
@@ -303,7 +293,7 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc)
 	attitude_pid_control(&pid_roll, ahrs->attitude.roll, final_roll_cmd, imu->gyro_lpf.x);
 	attitude_pid_control(&pid_pitch, ahrs->attitude.pitch, final_pitch_cmd, imu->gyro_lpf.y);
 	yaw_rate_p_control(&pid_yaw_rate, -rc->yaw, imu->gyro_lpf.z); //used if magnetometer/optitrack not performed
-	yaw_pd_control(&pid_yaw, rc->yaw, ahrs->attitude.yaw, imu->gyro_lpf.z, 0.0025);
+	yaw_pd_control(&pid_yaw, desired_heading, ahrs->attitude.yaw, imu->gyro_lpf.z, 0.0025);
 
 	/* disable control output if sensor not available */
 	float yaw_ctrl_output = pid_yaw.output;
