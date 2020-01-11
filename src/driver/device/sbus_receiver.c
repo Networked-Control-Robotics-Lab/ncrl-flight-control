@@ -97,7 +97,7 @@ void read_rc_info(radio_t *rc)
 	if(flight_mode_raw < floght_mode_low_thresh) {
 		rc->flight_mode = FLIGHT_MODE_MANUAL;
 	} else if (flight_mode_raw < flight_mode_up_thresh && flight_mode_raw > floght_mode_low_thresh) {
-		rc->flight_mode = FLIGHT_MODE_HALTING;
+		rc->flight_mode = FLIGHT_MODE_HOVERING;
 	} else if (flight_mode_raw > flight_mode_up_thresh) {
 		rc->flight_mode = FLIGHT_MODE_NAVIGATION;
 	} else {
@@ -155,7 +155,7 @@ void debug_print_rc_info(radio_t *rc)
 
 	if(rc->flight_mode == FLIGHT_MODE_MANUAL) {
 		flight_mode_s = manual_mode_s;
-	} else if(rc->flight_mode == FLIGHT_MODE_HALTING) {
+	} else if(rc->flight_mode == FLIGHT_MODE_HOVERING) {
 		flight_mode_s = halting_mode_s;
 	} else if(rc->flight_mode == FLIGHT_MODE_NAVIGATION) {
 		flight_mode_s = navigation_mode_s;

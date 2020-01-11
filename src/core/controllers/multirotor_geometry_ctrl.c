@@ -531,7 +531,7 @@ void rc_mode_change_handler_geometry(radio_t *rc)
 	static int flight_mode_last = FLIGHT_MODE_MANUAL;
 
 	//if mode switched to hovering
-	if(rc->flight_mode == FLIGHT_MODE_HALTING && flight_mode_last != FLIGHT_MODE_HALTING) {
+	if(rc->flight_mode == FLIGHT_MODE_HOVERING && flight_mode_last != FLIGHT_MODE_HOVERING) {
 		desired_pos[0] = optitrack.pos_x;
 		desired_pos[1] = optitrack.pos_y;
 		desired_pos[2] = optitrack.pos_z;
@@ -592,7 +592,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float de
 	float control_moments[3] = {0.0f}, control_force = 0.0f;
 
 	switch(rc->flight_mode) {
-	case FLIGHT_MODE_HALTING:
+	case FLIGHT_MODE_HOVERING:
 	case FLIGHT_MODE_NAVIGATION:
 		if(optitrack_present == true) {
 			curr_pos[0] = optitrack.pos_x;

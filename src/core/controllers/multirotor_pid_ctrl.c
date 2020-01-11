@@ -229,7 +229,7 @@ void rc_mode_change_handler_pid(radio_t *rc)
 	static int flight_mode_last = FLIGHT_MODE_MANUAL;
 
 	//if mode switched to hovering
-	if(rc->flight_mode == FLIGHT_MODE_HALTING && flight_mode_last != FLIGHT_MODE_HALTING) {
+	if(rc->flight_mode == FLIGHT_MODE_HOVERING && flight_mode_last != FLIGHT_MODE_HOVERING) {
 		pid_alt.enable = true;
 		pid_alt_vel.enable = true;
 		pid_alt.setpoint = optitrack.pos_z;
