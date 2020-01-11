@@ -111,8 +111,6 @@ void task_flight_ctl(void *param)
 		ahrs.q[3] = madgwick_ahrs_info.q3;
 #endif
 
-		update_heading_from_optitrack(&optitrack.q[0], &ahrs);
-
 #if (SELECT_CONTROLLER == QUADROTOR_USE_PID)
 		multirotor_pid_control(&imu, &ahrs, &rc);
 #elif (SELECT_CONTROLLER == QUADROTOR_USE_GEOMETRY)

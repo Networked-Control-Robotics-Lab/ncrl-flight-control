@@ -3,6 +3,7 @@
 #include "arm_math.h"
 #include "led.h"
 #include "mpu6500.h"
+#include "optitrack.h"
 #include "vector.h"
 #include "ahrs.h"
 #include "lpf.h"
@@ -13,6 +14,8 @@
 #define AHRS_SELECT AHRS_SELECT_CF
 
 #define dt 0.0025 //0.0025s = 400Hz
+
+extern optitrack_t optitrack;
 
 MAT_ALLOC(x_priori, 4, 1);
 MAT_ALLOC(x_posteriori, 4, 1);
@@ -160,25 +163,23 @@ void quaternion_conj(float *q, float *q_conj)
 	q_conj[3] = -q[3];
 }
 
-void update_heading_from_optitrack(float *q, ahrs_t *ahrs)
+void calc_optitrack_yaw_quaternion(float *q_yaw)
 {
-	euler_t att_euler;
-	quat_to_euler(q, &att_euler);
+	if(optitrack_available() == true) {
+		euler_t optitrack_euler;
+		quat_to_euler(optitrack.q, &optitrack_euler);
 
-	/* update heading euler angle */
-	ahrs->attitude.yaw = rad_to_deg(att_euler.yaw);
-
-	/* update uav attitude quaternion */
-	float q_yaw[4], q_yaw_conj[4], q_tmp[4];
-	float half_psi = deg_to_rad(att_euler.yaw / 2.0f);
-	q_yaw[0] = arm_cos_f32(half_psi);
-	q_yaw[1] = 0.0f;
-	q_yaw[2] = 0.0f;
-	q_yaw[3] = arm_sin_f32(half_psi);
-	/* q_att_new = q * q_att_old * conj(q) */
-	quaternion_conj(q_yaw, q_yaw_conj);
-	quaternion_mult(q_yaw, ahrs->q, q_tmp);
-	quaternion_mult(q_tmp, q_yaw_conj, ahrs->q);
+		float half_psi = deg_to_rad(optitrack_euler.yaw / 2.0f);
+		q_yaw[0] = arm_cos_f32(half_psi);
+		q_yaw[1] = 0.0f;
+		q_yaw[2] = 0.0f;
+		q_yaw[3] = arm_sin_f32(half_psi);
+	} else {
+		q_yaw[0] = 1.0f;
+		q_yaw[1] = 0.0f;
+		q_yaw[2] = 0.0f;
+		q_yaw[3] = 0.0f;
+	}
 }
 
 void ahrs_ekf_state_predict(vector3d_f_t accel, vector3d_f_t gyro)
@@ -319,12 +320,22 @@ void ahrs_complementary_filter_estimate(vector3d_f_t accel, vector3d_f_t gyro)
 	vector3d_normalize(&accel); //normalize acceleromter
 	convert_gravity_to_quat(&accel, q_gravity);
 
+	float q_yaw[4];
+
+#if (SELECT_HEADING == HEADING_USE_OPTITRACK)
+	/* fusing yaw angle with optitrack */
+	calc_optitrack_yaw_quaternion(q_yaw);
+#endif
+
+	float q_gravity_yaw[4];
+	quaternion_mult(q_gravity, q_yaw, q_gravity_yaw);
+
 	/* sensors fusion */
 	float a = 0.995f;
-	_mat_(x_posteriori)[0] = (_mat_(x_priori)[0] * a) + (q_gravity[0]* (1.0 - a));
-	_mat_(x_posteriori)[1] = (_mat_(x_priori)[1] * a) + (q_gravity[1]* (1.0 - a));
-	_mat_(x_posteriori)[2] = (_mat_(x_priori)[2] * a) + (q_gravity[2]* (1.0 - a));
-	_mat_(x_posteriori)[3] = (_mat_(x_priori)[3] * a) + (q_gravity[3]* (1.0 - a));
+	_mat_(x_posteriori)[0] = (_mat_(x_priori)[0] * a) + (q_gravity_yaw[0]* (1.0 - a));
+	_mat_(x_posteriori)[1] = (_mat_(x_priori)[1] * a) + (q_gravity_yaw[1]* (1.0 - a));
+	_mat_(x_posteriori)[2] = (_mat_(x_priori)[2] * a) + (q_gravity_yaw[2]* (1.0 - a));
+	_mat_(x_posteriori)[3] = (_mat_(x_priori)[3] * a) + (q_gravity_yaw[3]* (1.0 - a));
 	quat_normalize(&_mat_(x_posteriori)[0]);
 
 	/* update state variables for rate gyro */

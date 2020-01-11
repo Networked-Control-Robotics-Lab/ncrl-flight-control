@@ -2,6 +2,7 @@
 #define __OPTITRACK_H__
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef struct {
 	uint8_t id;

@@ -8,7 +8,12 @@
 #define UAV_TYPE_QUADROTOR 0
 #define SELECT_UAV_TYPE UAV_TYPE_QUADROTOR
 
-/* ahrs */
+/* heading sensor */
+#define HEADING_USE_MAGNETOMETER 0
+#define HEADING_USE_OPTITRACK 1
+#define SELECT_HEADING HEADING_USE_OPTITRACK
+
+/* ahrs algorithm */
 #define AHRS_COMPLEMENTARY_FILTER 0
 #define AHRS_EKF 1
 #define AHRS_MADGWICK_FILTER 2

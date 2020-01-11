@@ -24,7 +24,6 @@ void imu_read(vector3d_f_t *accel, vector3d_f_t *gyro);
 
 void ahrs_init(vector3d_f_t init_accel);
 void ahrs_estimate(euler_t *att_euler, float *att_quat, vector3d_f_t accel, vector3d_f_t gyro);
-void update_heading_from_optitrack(float *q, ahrs_t *ahrs);
 
 void quat_normalize(float *q);
 
