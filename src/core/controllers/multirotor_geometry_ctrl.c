@@ -244,6 +244,16 @@ void norm_3x1(float *vec, float *norm)
 	arm_sqrt_f32(sq_sum, norm);
 }
 
+void normalize_3x1(float *vec)
+{
+	float sq_sum = vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2];
+	float norm;
+	arm_sqrt_f32(sq_sum, &norm);
+	vec[0] /= norm;
+	vec[1] /= norm;
+	vec[2] /= norm;
+}
+
 void estimate_uav_dynamics(float *gyro, float *moments, float *m_rot_frame)
 {
 	static float angular_vel_last[3] = {0.0f};
@@ -362,11 +372,13 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 			    float *curr_vel, float *desired_vel, float *desired_accel, float *output_moments,
 			    float *output_force, bool manual_flight)
 {
+	/* ex = x - xd */
 	float pos_error[3];
 	pos_error[0] = curr_pos[0] - desired_pos[0];
 	pos_error[1] = curr_pos[1] - desired_pos[1];
 	pos_error[2] = curr_pos[2] - desired_pos[2];
 
+	/* ev = v - vd */
 	float vel_error[3];
 	vel_error[0] = curr_vel[0] - desired_vel[0];
 	vel_error[1] = curr_vel[1] - desired_vel[1];
@@ -376,8 +388,8 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	_mat_(kxex_kvev_mge3_mxd_dot_dot)[1] = kpy*pos_error[1] - kvy*vel_error[1] + uav_mass * desired_accel[1];
 	_mat_(kxex_kvev_mge3_mxd_dot_dot)[2] = kpz*pos_error[2] - kvz*vel_error[2] - uav_mass * gravity_accel + uav_mass * desired_accel[2];
 
-	//calculate the denominator of b3d
-	float b3d_denominator;
+	/* calculate the denominator of b3d */
+	float b3d_denominator; //caution: this term should not be 0
 	norm_3x1(_mat_(kxex_kvev_mge3_mxd_dot_dot), &b3d_denominator);
 	b3d_denominator /= -1.0f;
 
@@ -394,12 +406,15 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 		_mat_(b1d)[0] = arm_cos_f32(rc->yaw);
 		_mat_(b1d)[1] = arm_sin_f32(rc->yaw);
 		_mat_(b1d)[2] = 0.0f;
-		//b3d
+		//b3d = -kxex_kvev_mge3_mxd_dot_dot / ||kxex_kvev_mge3_mxd_dot_dot||
 		_mat_(b3d)[0] = _mat_(kxex_kvev_mge3_mxd_dot_dot)[0] * b3d_denominator;
 		_mat_(b3d)[1] = _mat_(kxex_kvev_mge3_mxd_dot_dot)[1] * b3d_denominator;
 		_mat_(b3d)[2] = _mat_(kxex_kvev_mge3_mxd_dot_dot)[2] * b3d_denominator;
-		//b2d = b3d X b1d
+		//b2d = b3d X b1d / ||b3d X b1d||
 		cross_product_3x1(_mat_(b3d), _mat_(b1d), _mat_(b2d));
+		normalize_3x1(_mat_(b2d));
+		/* proj[b1d] = b2d X b3d */
+		cross_product_3x1(_mat_(b2d), _mat_(b3d), _mat_(b1d));
 
 		//Rd = [b1d; b3d X b1d; b3d]
 		_mat_(Rd)[0*3 + 0] = _mat_(b1d)[0];
