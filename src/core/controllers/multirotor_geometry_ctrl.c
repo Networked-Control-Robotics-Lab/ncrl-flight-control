@@ -52,7 +52,7 @@ MAT_ALLOC(RtRdWddot, 3, 1);
 MAT_ALLOC(WRtRdWd_RtRdWddot, 3, 1);
 MAT_ALLOC(J_WRtRdWd_RtRdWddot, 3, 1);
 MAT_ALLOC(inertia_effect, 3, 1);
-MAT_ALLOC(f_ctrl, 3, 1);
+MAT_ALLOC(kxex_kvev_mge3_mxd_dot_dot, 3, 1);
 MAT_ALLOC(b1d, 3, 1);
 MAT_ALLOC(b2d, 3, 1);
 MAT_ALLOC(b3d, 3, 1);
@@ -100,7 +100,7 @@ void geometry_ctrl_init(void)
 	MAT_INIT(WRtRdWd_RtRdWddot, 3, 1);
 	MAT_INIT(J_WRtRdWd_RtRdWddot, 3, 1);
 	MAT_INIT(inertia_effect, 3, 1);
-	MAT_INIT(f_ctrl, 3, 1);
+	MAT_INIT(kxex_kvev_mge3_mxd_dot_dot, 3, 1);
 	MAT_INIT(b1d, 3, 1);
 	MAT_INIT(b2d, 3, 1);
 	MAT_INIT(b3d, 3, 1);
@@ -114,7 +114,7 @@ void geometry_ctrl_init(void)
 	_mat_(J)[1*3 + 1] = 0.01466f; //Iyy [kg*m^2]
 	_mat_(J)[2*3 + 2] = 0.02848f; //Izz [kg*m^2]
 
-	uav_mass = 1.0;
+	uav_mass = 1.0; //[kg]
 
 	/* attitude controller gains of geometry */
 	krx = 300.0f;
@@ -238,16 +238,10 @@ void cross_product_3x1(float *vec_a, float *vec_b, float *vec_result)
 	vec_result[2] = vec_a[0]*vec_b[1] - vec_a[1]*vec_b[0];
 }
 
-float dot_product_3x1(float *vec_a, float *vec_b)
+void norm_3x1(float *vec, float *norm)
 {
-	//TODO: replace this with dsp library's function
-	return vec_a[0]*vec_b[0] + vec_a[1]*vec_b[1] + vec_a[2]*vec_b[2];
-}
-
-float norm_3x1(float *vec)
-{
-	//TODO: optimize this function with dsp library's function
-	return sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
+	float sq_sum = vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2];
+	arm_sqrt_f32(sq_sum, norm);
 }
 
 void estimate_uav_dynamics(float *gyro, float *moments, float *m_rot_frame)
@@ -378,11 +372,14 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	vel_error[1] = curr_vel[1] - desired_vel[1];
 	vel_error[2] = curr_vel[2] - desired_vel[2];
 
-	_mat_(f_ctrl)[0] = kpx*pos_error[0] - kvx*vel_error[0] + uav_mass * desired_accel[0];
-	_mat_(f_ctrl)[1] = kpy*pos_error[1] - kvy*vel_error[1] + uav_mass * desired_accel[1];
-	_mat_(f_ctrl)[2] = kpz*pos_error[2] - kvz*vel_error[2] - uav_mass * gravity_accel + uav_mass * desired_accel[2];
+	_mat_(kxex_kvev_mge3_mxd_dot_dot)[0] = kpx*pos_error[0] - kvx*vel_error[0] + uav_mass * desired_accel[0];
+	_mat_(kxex_kvev_mge3_mxd_dot_dot)[1] = kpy*pos_error[1] - kvy*vel_error[1] + uav_mass * desired_accel[1];
+	_mat_(kxex_kvev_mge3_mxd_dot_dot)[2] = kpz*pos_error[2] - kvz*vel_error[2] - uav_mass * gravity_accel + uav_mass * desired_accel[2];
 
-	float _1_div_f_ctrl_norm = 1.0f / norm_3x1(_mat_(f_ctrl));
+	//calculate the denominator of b3d
+	float b3d_denominator;
+	norm_3x1(_mat_(kxex_kvev_mge3_mxd_dot_dot), &b3d_denominator);
+	b3d_denominator /= -1.0f;
 
 	/* convert attitude (quaternion) to rotation matrix */
 	quat_to_rotation_matrix(&attitude_q[0], _mat_(R), _mat_(Rt));
@@ -398,10 +395,10 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 		_mat_(b1d)[1] = arm_sin_f32(rc->yaw);
 		_mat_(b1d)[2] = 0.0f;
 		//b3d
-		_mat_(b3d)[0] = _mat_(f_ctrl)[0] * _1_div_f_ctrl_norm;
-		_mat_(b3d)[1] = _mat_(f_ctrl)[1] * _1_div_f_ctrl_norm;
-		_mat_(b3d)[2] = _mat_(f_ctrl)[2] * _1_div_f_ctrl_norm;
-		//b3d X b1d
+		_mat_(b3d)[0] = _mat_(kxex_kvev_mge3_mxd_dot_dot)[0] * b3d_denominator;
+		_mat_(b3d)[1] = _mat_(kxex_kvev_mge3_mxd_dot_dot)[1] * b3d_denominator;
+		_mat_(b3d)[2] = _mat_(kxex_kvev_mge3_mxd_dot_dot)[2] * b3d_denominator;
+		//b2d = b3d X b1d
 		cross_product_3x1(_mat_(b3d), _mat_(b1d), _mat_(b2d));
 
 		//Rd = [b1d; b3d X b1d; b3d]
@@ -429,12 +426,12 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 
 	/* R * e3 */
 	MAT_MULT(&R, &e3, &Re3);
-	/* -(-kx * ex - kv * ev - mge3 + m * x_dot_dot_d) . (R * e3) */
-	float neg_f_ctrl[3];
-	neg_f_ctrl[0] = -_mat_(f_ctrl)[0];
-	neg_f_ctrl[1] = -_mat_(f_ctrl)[1];
-	neg_f_ctrl[2] = -_mat_(f_ctrl)[2];
-	*output_force = dot_product_3x1(neg_f_ctrl, _mat_(Re3));
+	/* f = -(-kx * ex - kv * ev - mge3 + m * x_d_dot_dot) . (R * e3) */
+	float neg_kxex_kvev_mge3_mxd_dot_dot[3];
+	neg_kxex_kvev_mge3_mxd_dot_dot[0] = -_mat_(kxex_kvev_mge3_mxd_dot_dot)[0];
+	neg_kxex_kvev_mge3_mxd_dot_dot[1] = -_mat_(kxex_kvev_mge3_mxd_dot_dot)[1];
+	neg_kxex_kvev_mge3_mxd_dot_dot[2] = -_mat_(kxex_kvev_mge3_mxd_dot_dot)[2];
+	arm_dot_prod_f32(neg_kxex_kvev_mge3_mxd_dot_dot, _mat_(Re3), 3, output_force);
 
 	/* W (angular velocity) */
 	_mat_(W)[0] = gyro[0];

@@ -29,6 +29,7 @@ SRC+=lib/CMSIS/DSP_Lib/Source/CommonTables/arm_common_tables.c \
 	lib/CMSIS/DSP_Lib/Source/StatisticsFunctions/arm_power_f32.c \
 	lib/CMSIS/DSP_Lib/Source/StatisticsFunctions/arm_max_f32.c \
 	lib/CMSIS/DSP_Lib/Source/BasicMathFunctions/arm_sub_f32.c \
+	lib/CMSIS/DSP_Lib/Source/BasicMathFunctions/arm_dot_prod_f32.c \
 	lib/CMSIS/DSP_Lib/Source/SupportFunctions/arm_copy_f32.c \
 	lib/CMSIS/DSP_Lib/Source/MatrixFunctions/arm_mat_init_f32.c \
 	lib/CMSIS/DSP_Lib/Source/MatrixFunctions/arm_mat_scale_f32.c \
