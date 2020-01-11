@@ -224,7 +224,7 @@ void motor_control(volatile float throttle_percentage, float throttle_ctrl_prece
 	set_motor_pwm_pulse(MOTOR4, (uint16_t)m4_pwm);
 }
 
-void rc_mode_change_handler(radio_t *rc)
+void rc_mode_change_handler_pid(radio_t *rc)
 {
 	static int flight_mode_last = FLIGHT_MODE_MANUAL;
 
@@ -271,7 +271,7 @@ void rc_mode_change_handler(radio_t *rc)
 
 void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float desired_heading)
 {
-	rc_mode_change_handler(rc);
+	rc_mode_change_handler_pid(rc);
 
 	/* altitude control */
 	altitude_control(optitrack.pos_z, optitrack.vel_lpf_z, &pid_alt_vel, &pid_alt);

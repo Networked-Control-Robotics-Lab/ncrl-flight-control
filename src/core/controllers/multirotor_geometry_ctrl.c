@@ -70,6 +70,11 @@ float geometry_ctrl_feedfoward_moments[3];
 float uav_dynamics_m[3] = {0.0f}; //M = (J * W_dot) + (W X JW)
 float uav_dynamics_m_rot_frame[3] = {0.0f}; //M_rot = (J * W_dot)
 
+float curr_pos[3], desired_pos[3];
+float curr_vel[3], desired_vel[3];
+float curr_accel[3], desired_accel[3];
+bool altitude_control_only = true;
+
 void geometry_ctrl_init(void)
 {
 	MAT_INIT(J, 3, 3);
@@ -369,8 +374,8 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 }
 
 void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *curr_pos, float *desired_pos,
-			    float *curr_vel, float *desired_vel, float *desired_accel, float *output_moments,
-			    float *output_force, bool manual_flight)
+			    float *curr_vel, float *desired_vel, float *curr_accel, float *desired_accel,
+			    float *output_moments, float *output_force, bool manual_flight)
 {
 	/* ex = x - xd */
 	float pos_error[3];
@@ -521,16 +526,51 @@ void thrust_allocate_quadrotor(float *moments, float force_basis)
 	set_motor_pwm_pulse(MOTOR4, (uint16_t)(motors[3]));
 }
 
+void rc_mode_change_handler_geometry(radio_t *rc)
+{
+	static int flight_mode_last = FLIGHT_MODE_MANUAL;
+
+	//if mode switched to hovering
+	if(rc->flight_mode == FLIGHT_MODE_HALTING && flight_mode_last != FLIGHT_MODE_HALTING) {
+		desired_pos[0] = optitrack.pos_x;
+		desired_pos[1] = optitrack.pos_y;
+		desired_pos[2] = optitrack.pos_z;
+		desired_vel[0] = 0.0f;
+		desired_vel[1] = 0.0f;
+		desired_vel[2] = 0.0f;
+		desired_accel[0] = 0.0f;
+		desired_accel[1] = 0.0f;
+		desired_accel[2] = 0.0f;
+	}
+
+	//if mode switched to navigation
+	if(rc->flight_mode == FLIGHT_MODE_NAVIGATION && flight_mode_last != FLIGHT_MODE_NAVIGATION) {
+		desired_pos[0] = 0.0f;
+		desired_pos[1] = 0.0f;
+		desired_pos[2] = 0.0f;
+		desired_vel[0] = 0.0f;
+		desired_vel[1] = 0.0f;
+		desired_vel[2] = 0.0f;
+		desired_accel[0] = 0.0f;
+		desired_accel[1] = 0.0f;
+		desired_accel[2] = 0.0f;
+	}
+
+	//if current mode if maunal
+	if(rc->flight_mode == FLIGHT_MODE_MANUAL) {
+	}
+
+	flight_mode_last = rc->flight_mode;
+}
+
 void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float desired_heading)
 {
-	//rc_mode_change_handler(rc);
+	rc_mode_change_handler_geometry(rc);
 
-	//update_euler_heading_from_optitrack(&optitrack.q[0], &(ahrs->attitude.yaw));
-
-	bool heading_present = optitrack_available();
+	bool optitrack_present = optitrack_available();
 
 	euler_t desired_attitude;
-	if(heading_present == true) {
+	if(optitrack_present == true) {
 		desired_attitude.roll = deg_to_rad(-rc->roll);
 		desired_attitude.pitch = deg_to_rad(-rc->pitch);
 		desired_attitude.yaw = deg_to_rad(-desired_heading); //yaw rate controller
@@ -549,8 +589,27 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float de
 
 	//estimate_uav_dynamics(gyro, uav_dynamics_m, uav_dynamics_m_rot_frame);
 
-	float control_moments[3];
-	geometry_manual_ctrl(&desired_attitude, ahrs->q, gyro, control_moments, heading_present);
+	float control_moments[3] = {0.0f}, control_force = 0.0f;
+
+	switch(rc->flight_mode) {
+	case FLIGHT_MODE_HALTING:
+	case FLIGHT_MODE_NAVIGATION:
+		if(optitrack_present == true) {
+			curr_pos[0] = optitrack.pos_x;
+			curr_pos[1] = optitrack.pos_y;
+			curr_pos[2] = optitrack.pos_z;
+			curr_vel[0] = optitrack.vel_lpf_x;
+			curr_vel[1] = optitrack.vel_lpf_y;
+			curr_vel[2] = optitrack.vel_lpf_z;
+			geometry_tracking_ctrl(&desired_attitude, ahrs->q, gyro, curr_pos, desired_pos,
+                            		       curr_vel, desired_vel, curr_accel, desired_accel, control_moments,
+                            		       &control_force, altitude_control_only);
+			break;		
+		}
+	case FLIGHT_MODE_MANUAL:
+	default:
+		geometry_manual_ctrl(&desired_attitude, ahrs->q, gyro, control_moments, optitrack_present);
+	}
 
 	if(rc->safety == false) {
 		led_on(LED_R);
