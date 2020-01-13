@@ -149,10 +149,10 @@ void calc_attitude_use_accel(euler_t *att_estimated, vector3d_f_t *accel)
 
 void quaternion_mult(float *q1, float *q2, float *q_mult)
 {
-	q_mult[0] = q1[1] * q2[0] + q1[2] * q2[3] - q1[3] * q2[2] + q1[0] * q2[1];  //q0
-	q_mult[1] = -q1[1] * q2[3] + q1[2] * q2[0] + q1[3] * q2[1] + q1[0] * q2[2]; //q1
-	q_mult[2] = q1[1] * q2[2] - q1[2] * q2[1] + q1[3] * q2[0] + q1[0] * q2[3];  //q2
-	q_mult[3] = -q1[1] * q2[1] - q1[2] * q2[2] - q1[3] * q2[3] + q1[0] * q2[0]; //q3
+	q_mult[0] = q1[0]*q2[0] - q1[1]*q2[1] - q1[2]*q2[2] - q1[3]*q2[3];
+	q_mult[1] = -q1[0]*q2[1] + q1[1]*q2[0] + q1[2]*q2[3] + q1[3]*q2[2];
+	q_mult[2] = q1[0]*q2[2] - q1[1]*q2[3] + q1[2]*q2[0] + q1[3]*q2[1];
+	q_mult[3] = -q1[0]*q2[3] - q1[1]*q2[2] - q1[2]*q2[1] + q1[3]*q2[0];
 }
 
 void quaternion_conj(float *q, float *q_conj)
@@ -169,7 +169,7 @@ void calc_optitrack_yaw_quaternion(float *q_yaw)
 		euler_t optitrack_euler;
 		quat_to_euler(optitrack.q, &optitrack_euler);
 
-		float half_psi = deg_to_rad(optitrack_euler.yaw / 2.0f);
+		float half_psi = optitrack_euler.yaw / 2.0f;
 		q_yaw[0] = arm_cos_f32(half_psi);
 		q_yaw[1] = 0.0f;
 		q_yaw[2] = 0.0f;
