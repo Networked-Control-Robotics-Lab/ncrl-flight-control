@@ -350,7 +350,7 @@ void ahrs_init(vector3d_f_t init_accel)
 	ahrs_ekf_init(init_accel);
 }
 
-void ahrs_estimate(euler_t *att_euler, float *att_quat, vector3d_f_t accel, vector3d_f_t gyro)
+void ahrs_estimate(ahrs_t *ahrs, vector3d_f_t accel, vector3d_f_t gyro)
 {
 #if AHRS_SELECT == AHRS_SELECT_EKF
 	ahrs_ekf_estimate(accel, gyro);
@@ -362,12 +362,12 @@ void ahrs_estimate(euler_t *att_euler, float *att_quat, vector3d_f_t accel, vect
 
 	euler_t euler;
 	quat_to_euler(&_mat_(x_posteriori)[0], &euler);
-	att_euler->roll = rad_to_deg(euler.roll);
-	att_euler->pitch = rad_to_deg(euler.pitch);
-	att_euler->yaw = 0.0f; //rad_to_deg(euler.yaw);
+	ahrs->attitude.roll = rad_to_deg(euler.roll);
+	ahrs->attitude.pitch = rad_to_deg(euler.pitch);
+	ahrs->attitude.yaw = rad_to_deg(euler.yaw);
 
-	att_quat[0] = _mat_(x_posteriori)[0];
-	att_quat[1] = _mat_(x_posteriori)[1];
-	att_quat[2] = _mat_(x_posteriori)[2];
-	att_quat[3] = _mat_(x_posteriori)[3];
+	ahrs->q[0] = _mat_(x_posteriori)[0];
+	ahrs->q[1] = _mat_(x_posteriori)[1];
+	ahrs->q[2] = _mat_(x_posteriori)[2];
+	ahrs->q[3] = _mat_(x_posteriori)[3];
 }

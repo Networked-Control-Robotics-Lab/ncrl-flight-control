@@ -77,8 +77,6 @@ void rc_yaw_setpoint_handler(float *desired_yaw, float rc_yaw_cmd, float dt)
 
 void task_flight_ctl(void *param)
 {
-	euler_t att_euler_est;
-
 	mpu6500_init(&imu);
 	motor_init();
 
@@ -106,9 +104,7 @@ void task_flight_ctl(void *param)
 		rc_yaw_setpoint_handler(&desired_yaw, rc.yaw, 0.0025);
 
 #if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
-		ahrs_estimate(&att_euler_est, ahrs.q, imu.accel_lpf, imu.gyro_lpf);
-		ahrs.attitude.roll = att_euler_est.roll;
-		ahrs.attitude.pitch = att_euler_est.pitch;
+		ahrs_estimate(&ahrs, imu.accel_lpf, imu.gyro_lpf);
 #elif (SELECT_AHRS ==  AHRS_MADGWICK_FILTER)
 		madgwick_imu_ahrs(&madgwick_ahrs_info,
 		                  imu.accel_lpf.x,
@@ -118,9 +114,8 @@ void task_flight_ctl(void *param)
 		                  deg_to_rad(imu.gyro_lpf.y),
 		                  deg_to_rad(imu.gyro_lpf.z));
 
-		ahrs.attitude.roll = att_euler_est.roll = madgwick_ahrs_info.Roll;
-		ahrs.attitude.pitch = att_euler_est.pitch = madgwick_ahrs_info.Pitch;
-
+		ahrs.attitude.roll = madgwick_ahrs_info.Roll;
+		ahrs.attitude.pitch = madgwick_ahrs_info.Pitch;
 		ahrs.q[0] = madgwick_ahrs_info.q0;
 		ahrs.q[1] = madgwick_ahrs_info.q1;
 		ahrs.q[2] = madgwick_ahrs_info.q2;
