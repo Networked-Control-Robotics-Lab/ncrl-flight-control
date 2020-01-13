@@ -110,13 +110,13 @@ void mpu6500_int_handler(void)
 	buffer[13] = spi_read_write(SPI1, 0xff);
 
 	/* composite sensor data */
-	mpu6500->accel_unscaled.x = +((int16_t)buffer[0] << 8) | (int16_t)buffer[1];
+	mpu6500->accel_unscaled.x = -((int16_t)buffer[0] << 8) | (int16_t)buffer[1];
 	mpu6500->accel_unscaled.y = -((int16_t)buffer[2] << 8) | (int16_t)buffer[3];
 	mpu6500->accel_unscaled.z = -((int16_t)buffer[4] << 8) | (int16_t)buffer[5];
 	mpu6500->temp_unscaled = ((int16_t)buffer[6] << 8) | (int16_t)buffer[7];
-	mpu6500->gyro_unscaled.x = +((int16_t)buffer[8] << 8) | (int16_t)buffer[9];
+	mpu6500->gyro_unscaled.x = -((int16_t)buffer[8] << 8) | (int16_t)buffer[9];
 	mpu6500->gyro_unscaled.y = -((int16_t)buffer[10] << 8) | (int16_t)buffer[11];
-	mpu6500->gyro_unscaled.z = -((int16_t)buffer[12] << 8) | (int16_t)buffer[13];
+	mpu6500->gyro_unscaled.z = +((int16_t)buffer[12] << 8) | (int16_t)buffer[13];
 
 	if(mpu6500_init_finished == false) {
 		mpu6500_gyro_bias_calc(&mpu6500->accel_unscaled);
@@ -150,11 +150,11 @@ void mpu6500_fix_bias(vector3d_16_t *accel_unscaled, vector3d_16_t *gyro_unscale
 
 void mpu6500_accel_convert_to_scale(vector3d_16_t *accel_unscaled, vector3d_f_t *accel_scaled)
 {
-	float gx_max = +2111, gx_min = -2020;
+	float gx_max = +2020, gx_min = -2111;
 	float gy_max = +2079, gy_min = -2043;
 	float gz_max = +2558, gz_min = -2048;
 
-	float bias_x = -450;//60;
+	float bias_x = +450;//60;
 	float bias_y = +200;//30;
 	float bias_z = 480;
 

@@ -118,10 +118,10 @@ void convert_gravity_to_quat(vector3d_f_t *a, float *q)
 		q[0] = _sqrt;
 		//q1
 		arm_sqrt_f32(2.0f * (a->z + 1.0f), &_sqrt);
-		q[1] = +a->y / _sqrt;
+		q[1] = -a->y / _sqrt;
 		//q2
 		arm_sqrt_f32(2.0f * (a->z + 1.0f), &_sqrt);
-		q[2] = -a->x / _sqrt;
+		q[2] = +a->x / _sqrt;
 		//q3
 		q[3] = 0.0f;
 	} else {
@@ -130,12 +130,12 @@ void convert_gravity_to_quat(vector3d_f_t *a, float *q)
 		q[0] = -a->y / _sqrt;
 		//q1
 		arm_sqrt_f32((1.0f - a->z) * 0.5f, &_sqrt);
-		q[1] = -_sqrt;
+		q[1] = +_sqrt;
 		//q2
 		q[2] = 0.0f;
 		//q3
 		arm_sqrt_f32(2.0f * (1.0f - a->z), &_sqrt);
-		q[3] = -a->x / _sqrt;
+		q[3] = +a->x / _sqrt;
 	}
 
 	quat_normalize(q);
@@ -169,7 +169,7 @@ void calc_optitrack_yaw_quaternion(float *q_yaw)
 		euler_t optitrack_euler;
 		quat_to_euler(optitrack.q, &optitrack_euler);
 
-		float half_psi = optitrack_euler.yaw / 2.0f;
+		float half_psi = -optitrack_euler.yaw / 2.0f;
 		q_yaw[0] = arm_cos_f32(half_psi);
 		q_yaw[1] = 0.0f;
 		q_yaw[2] = 0.0f;
