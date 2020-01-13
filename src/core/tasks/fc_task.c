@@ -101,7 +101,7 @@ void task_flight_ctl(void *param)
 		//gpio_toggle(MOTOR7_FREQ_TEST);
 
 		read_rc_info(&rc);
-		rc_yaw_setpoint_handler(&desired_yaw, rc.yaw, 0.0025);
+		rc_yaw_setpoint_handler(&desired_yaw, -rc.yaw, 0.0025);
 
 #if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
 		ahrs_estimate(&ahrs, imu.accel_lpf, imu.gyro_lpf);

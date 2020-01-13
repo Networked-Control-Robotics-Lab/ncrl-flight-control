@@ -119,7 +119,7 @@ void yaw_pd_control(pid_control_t *pid, float desired_heading, float ahrs_yaw, f
 {
 	pid->setpoint = desired_heading;
 	pid->error_current = pid->setpoint - ahrs_yaw;
-	pid->error_derivative = -yaw_rate;
+	pid->error_derivative = yaw_rate;
 	pid->p_final = pid->kp * pid->error_current;
 	pid->d_final = pid->kd * pid->error_derivative;
 	pid->output = pid->p_final + pid->d_final;
