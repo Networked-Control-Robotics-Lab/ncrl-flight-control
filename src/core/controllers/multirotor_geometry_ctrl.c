@@ -62,6 +62,7 @@ float krx, kry, krz;
 float kwx, kwy, kwz;
 float kpx, kpy, kpz;
 float kvx, kvy, kvz;
+float yaw_rate_ctrl_gain;
 float uav_mass;
 
 float geometry_ctrl_feedback_moments[3];
@@ -122,12 +123,13 @@ void geometry_ctrl_init(void)
 	uav_mass = 1.0; //[kg]
 
 	/* attitude controller gains of geometry */
-	krx = 300.0f;
-	kry = 300.0f;
-	krz = 0.0f;
-	kwx = 46.25f;
-	kwy = 46.25f;
-	kwz = 2750.0;
+	krx = 500.0f;
+	kry = 500.0f;
+	krz = 1500.0f;
+	kwx = 100.25f;
+	kwy = 100.25f;
+	kwz = 300.0;
+	yaw_rate_ctrl_gain = 2750.0f;
 
 	/* tracking controller gains*/
 	kpx = 0.0f;
@@ -312,10 +314,17 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 	_mat_(Wd_dot)[1] = 0.0f;
 	_mat_(Wd_dot)[2] = 0.0f;
 
+	float _krz, _kwz; //switch between full heading control and yaw rate control
+
 	/* switch to yaw rate control mode if no heading information provided */
 	if(heading_present == false) {
-		krz = 0.0f; //disable yaw control
+		/* yaw rate control only */
+		_krz = 0.0f;
+		_kwz = yaw_rate_ctrl_gain;
 		_mat_(Wd)[2] = rc->yaw; //set yaw rate desired value
+	} else {
+		_krz = krz;
+		_kwz = kwz;
 	}
 
 	/* calculate attitude error eR */
@@ -362,7 +371,7 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 	/* control input M1, M2, M3 */
 	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0] + _mat_(inertia_effect)[0];
 	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1] + _mat_(inertia_effect)[1];
-	output_moments[2] = -krz*_mat_(eR)[2] -kwz*_mat_(eW)[2] + _mat_(inertia_effect)[2];
+	output_moments[2] = -_krz*_mat_(eR)[2] -_kwz*_mat_(eW)[2] + _mat_(inertia_effect)[2];
 
 	/* XXX: debug print, refine this code! */
 	geometry_ctrl_feedback_moments[0] = (-krx*_mat_(eR)[0] -kwx*_mat_(eW)[0]) * 0.0098f; //[gram force * m] to [newton * m]
@@ -592,6 +601,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float de
 	float control_moments[3] = {0.0f}, control_force = 0.0f;
 
 	switch(rc->flight_mode) {
+#if 0
 	case FLIGHT_MODE_HOVERING:
 	case FLIGHT_MODE_NAVIGATION:
 		if(optitrack_present == true) {
@@ -606,6 +616,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float de
                             		       &control_force, altitude_control_only);
 			break;		
 		}
+#endif
 	case FLIGHT_MODE_MANUAL:
 	default:
 		geometry_manual_ctrl(&desired_attitude, ahrs->q, gyro, control_moments, optitrack_present);
