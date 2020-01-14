@@ -54,10 +54,10 @@ void mpu6500_reset()
 	blocked_delay_ms(200);
 }
 
-float _gyro_bias[3] = {0.0f, 0.0f, 0.0f};
-
 void mpu6500_gyro_bias_calc(vector3d_16_t *gyro)
 {
+	static float _gyro_bias[3] = {0.0f, 0.0f, 0.0f};
+
 	_gyro_bias[0] += (float)gyro->x / (float)GYRO_CALIB_SAMPLE_CNT;
 	_gyro_bias[1] += (float)gyro->y / (float)GYRO_CALIB_SAMPLE_CNT;
 	_gyro_bias[2] += (float)gyro->z / (float)GYRO_CALIB_SAMPLE_CNT;
@@ -158,9 +158,9 @@ void mpu6500_accel_convert_to_scale(vector3d_16_t *accel_unscaled, vector3d_f_t 
 	float gx_max = +2020, gx_min = -2111;
 	float gy_max = +2079, gy_min = -2043;
 	float gz_max = +2558, gz_min = -2048;
-	float bias_x = +450;
-	float bias_y = +200;
-	float bias_z = 480;
+	float bias_x = 600;  //trim this for pitch angle, + sign for - angle compensation
+	float bias_y = -100;  //trim this for roll angle, + sign for + angle compensation
+	float bias_z = 0;
 
 	float rescale_x = 4096.0f / (gx_max - gx_min);
 	float rescale_y = 4096.0f / (gy_max - gy_min);
