@@ -15,7 +15,6 @@
 #include "lpf.h"
 #include "imu.h"
 #include "ahrs.h"
-#include "madgwick_ahrs.h"
 #include "multirotor_pid_ctrl.h"
 #include "multirotor_geometry_ctrl.h"
 #include "motor_thrust.h"
@@ -81,8 +80,6 @@ void task_flight_ctl(void *param)
 	motor_init();
 
 	ahrs_init(imu.accel_raw);
-	madgwick_t madgwick_ahrs_info;
-	madgwick_init(&madgwick_ahrs_info, 400, 0.4);
 
 	multirotor_pid_controller_init();
 	geometry_ctrl_init();
@@ -103,24 +100,7 @@ void task_flight_ctl(void *param)
 		read_rc_info(&rc);
 		rc_yaw_setpoint_handler(&desired_yaw, -rc.yaw, 0.0025);
 
-#if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
 		ahrs_estimate(&ahrs, imu.accel_lpf, imu.gyro_lpf);
-#elif (SELECT_AHRS ==  AHRS_MADGWICK_FILTER)
-		madgwick_imu_ahrs(&madgwick_ahrs_info,
-		                  imu.accel_lpf.x,
-		                  imu.accel_lpf.y,
-		                  imu.accel_lpf.z,
-		                  deg_to_rad(imu.gyro_lpf.x),
-		                  deg_to_rad(imu.gyro_lpf.y),
-		                  deg_to_rad(imu.gyro_lpf.z));
-
-		ahrs.attitude.roll = madgwick_ahrs_info.Roll;
-		ahrs.attitude.pitch = madgwick_ahrs_info.Pitch;
-		ahrs.q[0] = madgwick_ahrs_info.q0;
-		ahrs.q[1] = madgwick_ahrs_info.q1;
-		ahrs.q[2] = madgwick_ahrs_info.q2;
-		ahrs.q[3] = madgwick_ahrs_info.q3;
-#endif
 
 #if (SELECT_CONTROLLER == QUADROTOR_USE_PID)
 		multirotor_pid_control(&imu, &ahrs, &rc, desired_yaw);

@@ -6,6 +6,7 @@
 #include "optitrack.h"
 #include "vector.h"
 #include "ahrs.h"
+#include "madgwick_ahrs.h"
 #include "lpf.h"
 #include "uart.h"
 #include "matrix.h"
@@ -40,6 +41,8 @@ MAT_ALLOC(dt_4x4, 4, 4) = {dt, 0, 0,0,
                            0, 0, 0, dt
                           };
 
+madgwick_t madgwick_ahrs;
+
 void ahrs_ekf_init(vector3d_f_t init_accel)
 {
 	//initialize matrices
@@ -70,6 +73,9 @@ void ahrs_ekf_init(vector3d_f_t init_accel)
 	calc_attitude_use_accel(&att_init, &init_accel);
 	euler_to_quat(&att_init, &_mat_(x_priori)[0]);
 	quat_normalize(&_mat_(x_priori)[0]);
+
+	/* initialize madgwick filter */
+	madgwick_init(&madgwick_ahrs, 400, 0.4);
 }
 
 //in: euler angle [radian], out: quaternion
@@ -352,12 +358,18 @@ void ahrs_init(vector3d_f_t init_accel)
 
 void ahrs_estimate(ahrs_t *ahrs, vector3d_f_t accel, vector3d_f_t gyro)
 {
-#if AHRS_SELECT == AHRS_SELECT_EKF
+#if (AHRS_SELECT == AHRS_SELECT_EKF)
 	ahrs_ekf_estimate(accel, gyro);
-#endif
-
-#if AHRS_SELECT == AHRS_SELECT_CF
+#elif (AHRS_SELECT == AHRS_SELECT_CF)
 	ahrs_complementary_filter_estimate(accel, gyro);
+#elif (AHRS_SELECT == AHRS_MADGWICK_FILTER)
+	madgwick_imu_ahrs(&madgwick_ahrs, accel_lpf.x, accel_lpf.y, accel_lpf.z,
+			  deg_to_rad(gyro.x), deg_to_rad(gyro.y), deg_to_rad(gyro.z));
+
+	ahrs->q[0] = madgwick_ahrs.q0;
+	ahrs->q[1] = madgwick_ahrs.q1;
+	ahrs->q[2] = madgwick_ahrs.q2;
+	ahrs->q[3] = madgwick_ahrs.q3;
 #endif
 
 	euler_t euler;

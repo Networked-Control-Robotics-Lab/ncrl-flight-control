@@ -158,7 +158,7 @@ void mpu6500_accel_convert_to_scale(vector3d_16_t *accel_unscaled, vector3d_f_t 
 	float gx_max = +2020, gx_min = -2111;
 	float gy_max = +2079, gy_min = -2043;
 	float gz_max = +2558, gz_min = -2048;
-	float bias_x = 600;  //trim this for pitch angle, + sign for - angle compensation
+	float bias_x = +600;  //trim this for pitch angle, + sign for - angle compensation
 	float bias_y = -100;  //trim this for roll angle, + sign for + angle compensation
 	float bias_z = 0;
 
