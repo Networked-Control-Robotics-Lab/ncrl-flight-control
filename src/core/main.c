@@ -48,7 +48,7 @@ int main(void)
 
 	blocked_delay_ms(1000);
 
-	xTaskCreate(task_flight_ctl, "flight control", 4096, NULL, tskIDLE_PRIORITY + 3, NULL);
+	xTaskCreate(task_flight_ctrl, "flight control", 4096, NULL, tskIDLE_PRIORITY + 3, NULL);
 	xTaskCreate(task_debug_link, "debug link", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
 
 	/* start freertos scheduler */

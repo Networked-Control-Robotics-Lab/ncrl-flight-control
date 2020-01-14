@@ -74,7 +74,7 @@ void rc_yaw_setpoint_handler(float *desired_yaw, float rc_yaw_cmd, float dt)
 	}
 }
 
-void task_flight_ctl(void *param)
+void task_flight_ctrl(void *param)
 {
 	mpu6500_init(&imu);
 	motor_init();
