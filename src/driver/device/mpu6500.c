@@ -14,7 +14,7 @@
 
 #define GYRO_CALIB_SAMPLE_CNT 10000;
 
-vector3d_16_t gyro_bias  = {0.0f, 0.0f, 0.0f};
+vector3d_16_t gyro_bias  = {0, 0, 0};
 
 int gyro_sample_cnt = GYRO_CALIB_SAMPLE_CNT;
 
@@ -54,16 +54,21 @@ void mpu6500_reset()
 	blocked_delay_ms(200);
 }
 
+float _gyro_bias[3] = {0.0f, 0.0f, 0.0f};
+
 void mpu6500_gyro_bias_calc(vector3d_16_t *gyro)
 {
+	_gyro_bias[0] += (float)gyro->x / (float)GYRO_CALIB_SAMPLE_CNT;
+	_gyro_bias[1] += (float)gyro->y / (float)GYRO_CALIB_SAMPLE_CNT;
+	_gyro_bias[2] += (float)gyro->z / (float)GYRO_CALIB_SAMPLE_CNT;
+
 	gyro_sample_cnt--;
 	if(gyro_sample_cnt == 0) {
+		gyro_bias.x = (int16_t)_gyro_bias[0];
+		gyro_bias.y = (int16_t)_gyro_bias[1];
+		gyro_bias.z = (int16_t)_gyro_bias[2];
 		mpu6500_init_finished = true;
 	}
-
-	gyro_bias.x += (float)gyro->x / (float)GYRO_CALIB_SAMPLE_CNT;
-	gyro_bias.y += (float)gyro->y / (float)GYRO_CALIB_SAMPLE_CNT;
-	gyro_bias.z += (float)gyro->z / (float)GYRO_CALIB_SAMPLE_CNT;
 }
 
 void mpu6500_init(imu_t *imu)
@@ -118,8 +123,10 @@ void mpu6500_int_handler(void)
 	mpu6500->gyro_unscaled.y = -((int16_t)buffer[10] << 8) | (int16_t)buffer[11];
 	mpu6500->gyro_unscaled.z = +((int16_t)buffer[12] << 8) | (int16_t)buffer[13];
 
+	mpu6500_chip_deselect();
+
 	if(mpu6500_init_finished == false) {
-		mpu6500_gyro_bias_calc(&mpu6500->accel_unscaled);
+		mpu6500_gyro_bias_calc(&mpu6500->gyro_unscaled);
 		return;
 	}
 
@@ -137,8 +144,6 @@ void mpu6500_int_handler(void)
 	lpf(mpu6500->gyro_raw.x, &(mpu6500->gyro_lpf.x), 0.03);
 	lpf(mpu6500->gyro_raw.y, &(mpu6500->gyro_lpf.y), 0.03);
 	lpf(mpu6500->gyro_raw.z, &(mpu6500->gyro_lpf.z), 0.03);
-
-	mpu6500_chip_deselect();
 }
 
 void mpu6500_fix_bias(vector3d_16_t *accel_unscaled, vector3d_16_t *gyro_unscaled)
@@ -153,9 +158,8 @@ void mpu6500_accel_convert_to_scale(vector3d_16_t *accel_unscaled, vector3d_f_t 
 	float gx_max = +2020, gx_min = -2111;
 	float gy_max = +2079, gy_min = -2043;
 	float gz_max = +2558, gz_min = -2048;
-
-	float bias_x = +450;//60;
-	float bias_y = +200;//30;
+	float bias_x = +450;
+	float bias_y = +200;
 	float bias_z = 480;
 
 	float rescale_x = 4096.0f / (gx_max - gx_min);
