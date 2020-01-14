@@ -141,9 +141,9 @@ void mpu6500_int_handler(void)
 	lpf(mpu6500->accel_raw.x, &(mpu6500->accel_lpf.x), 0.03);
 	lpf(mpu6500->accel_raw.y, &(mpu6500->accel_lpf.y), 0.03);
 	lpf(mpu6500->accel_raw.z, &(mpu6500->accel_lpf.z), 0.03);
-	lpf(mpu6500->gyro_raw.x, &(mpu6500->gyro_lpf.x), 1.0); //gyro do not require low pass filtering
-	lpf(mpu6500->gyro_raw.y, &(mpu6500->gyro_lpf.y), 1.0);
-	lpf(mpu6500->gyro_raw.z, &(mpu6500->gyro_lpf.z), 1.0);
+	lpf(mpu6500->gyro_raw.x, &(mpu6500->gyro_lpf.x), 1.0f); //gyro do not require low pass filtering
+	lpf(mpu6500->gyro_raw.y, &(mpu6500->gyro_lpf.y), 1.0f);
+	lpf(mpu6500->gyro_raw.z, &(mpu6500->gyro_lpf.z), 1.0f);
 }
 
 void mpu6500_fix_bias(vector3d_16_t *accel_unscaled, vector3d_16_t *gyro_unscaled)

@@ -12,8 +12,6 @@
 #include "matrix.h"
 #include "delay.h"
 
-#define AHRS_SELECT AHRS_SELECT_CF
-
 #define dt 0.0025 //0.0025s = 400Hz
 
 extern optitrack_t optitrack;
@@ -358,11 +356,11 @@ void ahrs_init(vector3d_f_t init_accel)
 
 void ahrs_estimate(ahrs_t *ahrs, vector3d_f_t accel, vector3d_f_t gyro)
 {
-#if (AHRS_SELECT == AHRS_SELECT_EKF)
+#if (SELECT_AHRS == AHRS_EKF)
 	ahrs_ekf_estimate(accel, gyro);
-#elif (AHRS_SELECT == AHRS_SELECT_CF)
+#elif (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
 	ahrs_complementary_filter_estimate(accel, gyro);
-#elif (AHRS_SELECT == AHRS_MADGWICK_FILTER)
+#elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
 	madgwick_imu_ahrs(&madgwick_ahrs, accel_lpf.x, accel_lpf.y, accel_lpf.z,
 			  deg_to_rad(gyro.x), deg_to_rad(gyro.y), deg_to_rad(gyro.z));
 

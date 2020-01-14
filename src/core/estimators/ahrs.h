@@ -3,9 +3,6 @@
 
 #include "vector.h"
 
-#define AHRS_SELECT_EKF 0
-#define AHRS_SELECT_CF 1
-
 #define deg_to_rad(angle) (angle * 0.01745329252)
 #define rad_to_deg(radian) (radian * 57.2957795056)
 
