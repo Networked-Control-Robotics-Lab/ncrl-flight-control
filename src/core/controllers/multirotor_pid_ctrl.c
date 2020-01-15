@@ -43,11 +43,11 @@ float motor1, motor2, motor3, motor4;
 void multirotor_pid_controller_init(void)
 {
 	/* attitude controllers */
-	pid_roll.kp = 0.3f;
+	pid_roll.kp = 0.41f;
 	pid_roll.ki = 0.0f;
 	pid_roll.kd = 0.05f;
 
-	pid_pitch.kp = 0.3f;
+	pid_pitch.kp = 0.41f;
 	pid_pitch.ki = 0.0f;
 	pid_pitch.kd = 0.05f;
 
@@ -285,7 +285,8 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float desired
 	float final_roll_cmd = -rc->roll;
 	float final_pitch_cmd = -rc->pitch;
 	if(pid_pos_x.enable == true && pid_pos_y.enable == true && optitrack_available() == true) {
-		final_roll_cmd -= nav_ctl_roll_command; //y directional control
+		//FIXME: direction sign
+		final_roll_cmd += nav_ctl_roll_command; //y directional control
 		final_pitch_cmd -= nav_ctl_pitch_command; //x directional control
 	}
 
