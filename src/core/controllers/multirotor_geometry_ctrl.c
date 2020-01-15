@@ -123,12 +123,12 @@ void geometry_ctrl_init(void)
 	uav_mass = 1.0; //[kg]
 
 	/* attitude controller gains of geometry */
-	krx = 500.0f;
-	kry = 500.0f;
-	krz = 1500.0f;
-	kwx = 100.25f;
-	kwy = 100.25f;
-	kwz = 300.0;
+	krx = 300.0f;
+	kry = 300.0f;
+	krz = 1200.0f;
+	kwx = 60.25f;
+	kwy = 60.25f;
+	kwz = 500.0;
 	yaw_rate_ctrl_gain = 2750.0f;
 
 	/* tracking controller gains*/
