@@ -11,6 +11,7 @@
 #include "uart.h"
 #include "matrix.h"
 #include "delay.h"
+#include "proj_config.h"
 
 #define dt 0.0025 //0.0025s = 400Hz
 
@@ -361,7 +362,7 @@ void ahrs_estimate(ahrs_t *ahrs, vector3d_f_t accel, vector3d_f_t gyro)
 #elif (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
 	ahrs_complementary_filter_estimate(accel, gyro);
 #elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
-	madgwick_imu_ahrs(&madgwick_ahrs, accel_lpf.x, accel_lpf.y, accel_lpf.z,
+	madgwick_imu_ahrs(&madgwick_ahrs, accel.x, accel.y, accel.z,
 			  deg_to_rad(gyro.x), deg_to_rad(gyro.y), deg_to_rad(gyro.z));
 
 	ahrs->q[0] = madgwick_ahrs.q0;
@@ -369,7 +370,6 @@ void ahrs_estimate(ahrs_t *ahrs, vector3d_f_t accel, vector3d_f_t gyro)
 	ahrs->q[2] = madgwick_ahrs.q2;
 	ahrs->q[3] = madgwick_ahrs.q3;
 #endif
-
 	euler_t euler;
 	quat_to_euler(&_mat_(x_posteriori)[0], &euler);
 	ahrs->attitude.roll = rad_to_deg(euler.roll);
