@@ -293,6 +293,9 @@ void ahrs_ekf_estimate(vector3d_f_t accel, vector3d_f_t gyro)
 
 void ahrs_complementary_filter_estimate(vector3d_f_t accel, vector3d_f_t gyro)
 {
+	/* check the paper: Keeping a Good Attitude: A Quaternion-Based Orientation Filter for IMUs and MARGs
+	 * by Roberto G. Valenti, Ivan Dryanovski and Jizhong Xiao */
+
 	/* construct system transition function f */
 	float half_q0_dt = 0.5f * _mat_(x_priori)[0] * dt;
 	float half_q1_dt = 0.5f * _mat_(x_priori)[1] * dt;
