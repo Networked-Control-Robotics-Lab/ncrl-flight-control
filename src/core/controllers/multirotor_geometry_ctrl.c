@@ -572,7 +572,7 @@ void rc_mode_change_handler_geometry(radio_t *rc)
 	flight_mode_last = rc->flight_mode;
 }
 
-void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float desired_heading)
+void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desired_heading)
 {
 	rc_mode_change_handler_geometry(rc);
 
@@ -582,7 +582,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float de
 	if(optitrack_present == true) {
 		desired_attitude.roll = deg_to_rad(-rc->roll);
 		desired_attitude.pitch = deg_to_rad(-rc->pitch);
-		desired_attitude.yaw = deg_to_rad(desired_heading); //yaw rate controller
+		desired_attitude.yaw = deg_to_rad(*desired_heading); //yaw rate controller
 	} else {
 		desired_attitude.roll = deg_to_rad(-rc->roll);
 		desired_attitude.pitch = deg_to_rad(-rc->pitch);
@@ -629,7 +629,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float de
 	} else {
 		led_on(LED_B);
 		led_off(LED_R);
-		desired_heading = deg_to_rad(ahrs->attitude.yaw);
+		*desired_heading = deg_to_rad(ahrs->attitude.yaw);
 		motor_halt();
 	}
 }

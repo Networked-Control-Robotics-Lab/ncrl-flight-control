@@ -269,7 +269,7 @@ void rc_mode_change_handler_pid(radio_t *rc)
 	flight_mode_last = rc->flight_mode;
 }
 
-void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float desired_heading)
+void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desired_heading)
 {
 	rc_mode_change_handler_pid(rc);
 
@@ -294,7 +294,7 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float desired
 	attitude_pid_control(&pid_roll, ahrs->attitude.roll, final_roll_cmd, imu->gyro_lpf.x);
 	attitude_pid_control(&pid_pitch, ahrs->attitude.pitch, final_pitch_cmd, imu->gyro_lpf.y);
 	yaw_rate_p_control(&pid_yaw_rate, -rc->yaw, imu->gyro_lpf.z); //used if magnetometer/optitrack not performed
-	yaw_pd_control(&pid_yaw, desired_heading, ahrs->attitude.yaw, imu->gyro_lpf.z, 0.0025);
+	yaw_pd_control(&pid_yaw, *desired_heading, ahrs->attitude.yaw, imu->gyro_lpf.z, 0.0025);
 
 	/* disable control output if sensor not available */
 	float yaw_ctrl_output = pid_yaw.output;

@@ -103,9 +103,9 @@ void task_flight_ctrl(void *param)
 		ahrs_estimate(&ahrs, imu.accel_lpf, imu.gyro_lpf);
 
 #if (SELECT_CONTROLLER == QUADROTOR_USE_PID)
-		multirotor_pid_control(&imu, &ahrs, &rc, desired_yaw);
+		multirotor_pid_control(&imu, &ahrs, &rc, &desired_yaw);
 #elif (SELECT_CONTROLLER == QUADROTOR_USE_GEOMETRY)
-		multirotor_geometry_control(&imu, &ahrs, &rc, desired_yaw);
+		multirotor_geometry_control(&imu, &ahrs, &rc, &desired_yaw);
 #endif
 
 		taskYIELD();
