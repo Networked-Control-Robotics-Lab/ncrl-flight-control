@@ -155,9 +155,9 @@ void calc_attitude_use_accel(euler_t *att_estimated, vector3d_f_t *accel)
 void quaternion_mult(float *q1, float *q2, float *q_mult)
 {
 	q_mult[0] = q1[0]*q2[0] - q1[1]*q2[1] - q1[2]*q2[2] - q1[3]*q2[3];
-	q_mult[1] = -q1[0]*q2[1] + q1[1]*q2[0] + q1[2]*q2[3] + q1[3]*q2[2];
+	q_mult[1] = q1[0]*q2[1] + q1[1]*q2[0] + q1[2]*q2[3] - q1[3]*q2[2];
 	q_mult[2] = q1[0]*q2[2] - q1[1]*q2[3] + q1[2]*q2[0] + q1[3]*q2[1];
-	q_mult[3] = -q1[0]*q2[3] - q1[1]*q2[2] - q1[2]*q2[1] + q1[3]*q2[0];
+	q_mult[3] = q1[0]*q2[3] + q1[1]*q2[2] - q1[2]*q2[1] + q1[3]*q2[0];
 }
 
 void quaternion_conj(float *q, float *q_conj)
@@ -174,7 +174,8 @@ void calc_optitrack_yaw_quaternion(float *q_yaw)
 		euler_t optitrack_euler;
 		quat_to_euler(optitrack.q, &optitrack_euler);
 
-		float half_psi = -optitrack_euler.yaw / 2.0f;
+		float half_psi = optitrack_euler.yaw / 2.0f;
+
 		q_yaw[0] = arm_cos_f32(half_psi);
 		q_yaw[1] = 0.0f;
 		q_yaw[2] = 0.0f;
@@ -332,8 +333,9 @@ void ahrs_complementary_filter_estimate(vector3d_f_t accel, vector3d_f_t gyro)
 	calc_optitrack_yaw_quaternion(q_yaw);
 #endif
 
+	/* 3-2-1 rotation order */
 	float q_gravity_yaw[4];
-	quaternion_mult(q_gravity, q_yaw, q_gravity_yaw);
+	quaternion_mult(q_yaw, q_gravity, q_gravity_yaw);
 
 	/* sensors fusion */
 	float a = 0.995f;
