@@ -24,22 +24,22 @@ ser = serial.Serial(
 
 q = [1.0, 0.0, 0.0, 0.0]
 
+#transformation matrix using quaternion
 def q_to_mat4(q0, q1, q2 ,q3):
     return np.array(
-        [[1 - 2*q2*q2 - 2*q3*q3, 2*q1*q2 - 2*q3*q0, 2*q1*q3 + 2*q2*q0, 0],
-        [2*q1*q2 + 2*q3*q0, 1 - 2*q1*q1 - 2*q3*q3, 2*q2*q3 - 2*q1*q0, 0],
-        [2*q1*q3 - 2*q2*q0, 2*q2*q3 + 2*q1*q0, 1 - 2*q1*q1 - 2*q2*q2, 0],
-        [0, 0, 0, 1] ],'f')
+        [[1 - 2*(q2*q2 + q3*q3), 2*(q1*q2 - q0*q3), 2*(q0*q2 + q1*q3), 0],
+         [2*(q1*q2 + q0*q3), q0*q0 - q1*q1 + q2*q2 - q3*q3, 2*(q2*q3 - q0*q1), 0],
+         [2*(q1*q3 - q0*q2), 2*(q0*q1 + q2*q3), q0*q0 - q1*q1 - q2*q2 + q3*q3, 0],
+         [0, 0, 0, 1]],'f')
 
 
 def quat_to_ypr(q0, q1, q2, q3):
-    yaw   = math.atan2(2.0 * (q1 * q2 + q0 * q3), q0 * q0 + q1 * q1 - q2 * q2 - q3 * q3)
-    pitch = -math.sin(2.0 * (q1 * q3 - q0 * q2))
-    roll  = math.atan2(2.0 * (q0 * q1 + q2 * q3), q0 * q0 - q1 * q1 - q2 * q2 + q3 * q3)
+    roll = math.atan2(2*(q0*q1 + q2*q3), 1 - 2*(q1*q1 + q2*q2))
+    pitch = math.sin(2*(q0*q2 - q3*q1))
+    yaw = math.atan2(2*(q0*q3 + q1*q2), 1 - 2*(q2*q2 + q3*q3))
+    roll *= 180.0 / math.pi
     pitch *= 180.0 / math.pi
-    yaw   *= 180.0 / math.pi
-    yaw   -= -0.13  #declination at Chandrapur, Maharashtra is - 0 degress 13 min
-    roll  *= 180.0 / math.pi
+    yaw *= 180.0 / math.pi
     return [yaw, pitch, roll]
 
 
