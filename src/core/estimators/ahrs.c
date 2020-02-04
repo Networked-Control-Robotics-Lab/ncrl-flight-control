@@ -337,13 +337,27 @@ void ahrs_complementary_filter_estimate(vector3d_f_t accel, vector3d_f_t gyro)
 	float q_gravity_yaw[4];
 	quaternion_mult(q_yaw, q_gravity, q_gravity_yaw);
 
-	/* sensors fusion */
+#if 1   /* sensor fusion with LERP */
 	float a = 0.995f;
 	_mat_(x_posteriori)[0] = (_mat_(x_priori)[0] * a) + (q_gravity_yaw[0]* (1.0 - a));
 	_mat_(x_posteriori)[1] = (_mat_(x_priori)[1] * a) + (q_gravity_yaw[1]* (1.0 - a));
 	_mat_(x_posteriori)[2] = (_mat_(x_priori)[2] * a) + (q_gravity_yaw[2]* (1.0 - a));
 	_mat_(x_posteriori)[3] = (_mat_(x_priori)[3] * a) + (q_gravity_yaw[3]* (1.0 - a));
 	quat_normalize(&_mat_(x_posteriori)[0]);
+#endif
+
+#if 0   /* sensor fusion with SLERP */
+	float cos_omega;
+	arm_dot_prod_f32(_mat_(x_priori), q_gravity_yaw, 4, &cos_omega);
+	float omega = acos(cos_omega);
+	float sin_omega = arm_sin_f32(omega);
+	float fuse_ratio_gyro = arm_sin_f32(a * omega) / sin_omega;
+	float fuse_ratio_acc_mag = arm_sin_f32((1-a) * omega) / sin_omega;
+	_mat_(x_posteriori)[0] = fuse_ratio_gyro * _mat_(x_priori)[0] + fuse_ratio_acc_mag * q_gravity_yaw[0];
+	_mat_(x_posteriori)[1] = fuse_ratio_gyro * _mat_(x_priori)[1] + fuse_ratio_acc_mag * q_gravity_yaw[1];
+	_mat_(x_posteriori)[2] = fuse_ratio_gyro * _mat_(x_priori)[2] + fuse_ratio_acc_mag * q_gravity_yaw[2];
+	_mat_(x_posteriori)[3] = fuse_ratio_gyro * _mat_(x_priori)[3] + fuse_ratio_acc_mag * q_gravity_yaw[3];
+#endif
 
 	/* update state variables for rate gyro */
 	_mat_(x_priori)[0] = _mat_(x_posteriori)[0];
