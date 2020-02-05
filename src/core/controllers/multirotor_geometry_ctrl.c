@@ -503,7 +503,7 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	output_moments[2] = -krz*_mat_(eR)[2] -kwz*_mat_(eW)[2] + _mat_(inertia_effect)[2];
 }
 
-void thrust_allocate_quadrotor(float *moments, float force_basis)
+void thrust_force_allocate_quadrotor(float *moments, float force_basis)
 {
 	float motors[4], forces[4];
 
@@ -625,7 +625,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	if(rc->safety == false) {
 		led_on(LED_R);
 		led_off(LED_B);
-		thrust_allocate_quadrotor(control_moments, throttle_force);
+		thrust_force_allocate_quadrotor(control_moments, throttle_force);
 	} else {
 		led_on(LED_B);
 		led_off(LED_R);
