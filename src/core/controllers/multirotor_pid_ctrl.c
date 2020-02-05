@@ -119,6 +119,21 @@ void yaw_pd_control(pid_control_t *pid, float desired_heading, float ahrs_yaw, f
 {
 	pid->setpoint = desired_heading;
 	pid->error_current = pid->setpoint - ahrs_yaw;
+
+	/* find the shorter way to rotate */
+	float compl_angle;
+	if(pid->error_current < 0.0f) {
+		compl_angle = pid->error_current + 360.0f;
+		if(fabs(pid->error_current) > compl_angle) {
+			pid->error_current = compl_angle;
+		}
+	} else if(pid->error_current > 0.0f) {
+		compl_angle = pid->error_current - 360.0f;
+		if(fabs(compl_angle) < pid->error_current) {
+			pid->error_current = compl_angle;
+		}
+	}
+
 	pid->error_derivative = yaw_rate;
 	pid->p_final = pid->kp * pid->error_current;
 	pid->d_final = pid->kd * pid->error_derivative;
@@ -178,7 +193,6 @@ void position_2d_control(float current_pos, float current_vel, pid_control_t *po
 	pos_pid->output = pos_pid->p_final + pos_pid->i_final + pos_pid->d_final;
 	bound_float(&pos_pid->output, pos_pid->output_max, pos_pid->output_min);
 }
-
 
 void motor_control(volatile float throttle_percentage, float throttle_ctrl_precentage, float roll_ctrl_precentage,
                    float pitch_ctrl_precentage, float yaw_ctrl_precentage)
