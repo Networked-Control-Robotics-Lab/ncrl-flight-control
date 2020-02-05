@@ -1,11 +1,5 @@
 #include "madgwick_ahrs.h"
 #include "arm_math.h"
-//#include "geometry_ctl.h"
-
-inline void LPF_float(float *raw, float *filtered, float alpha)
-{
-	*filtered = (1.0f - alpha) * (*filtered) + alpha *((*raw));
-}
 
 void madgwick_init(madgwick_t* madgwick, float sample_rate, float beta)
 {
@@ -21,7 +15,6 @@ void MadgwickcalculateAngles(madgwick_t* Madgwick)
 {
 	Madgwick->Roll_rad = (float) atan2(Madgwick->q0 * Madgwick->q1 + Madgwick->q2 * Madgwick->q3, 0.5f - Madgwick->q1 * Madgwick->q1 - Madgwick->q2 * Madgwick->q2);
 	Madgwick->Pitch_rad = (float) asin(-2.0f * (Madgwick->q1 * Madgwick->q3 - Madgwick->q0 * Madgwick->q2));
-
 	Madgwick->Roll = Madgwick->Roll_rad*Madgwick_RAD2DEG(1);
 	Madgwick->Pitch = Madgwick->Pitch_rad*Madgwick_RAD2DEG(1);
 }
@@ -174,27 +167,3 @@ void Madgwick_MARG_AHRS(madgwick_t* Madgwick, float ax, float ay, float az, floa
 	/* Calculate new angles */
 	MadgwickcalculateAngles(Madgwick);
 }
-
-void heading_Madgwick(madgwick_t* MadgwickIMU, MPU9250_t *MPU9250)
-{
-	float MagX_rotated=0.0f,MagY_rotated=0.0f;//,MagZ_rotated=0.0f;
-
-	float C_roll = arm_cos_f32(-MadgwickIMU->Roll_rad);
-	float S_roll = arm_sin_f32(-MadgwickIMU->Roll_rad);
-
-	float C_pitch = arm_cos_f32(-MadgwickIMU->Pitch_rad);
-	float S_pitch = arm_sin_f32(-MadgwickIMU->Pitch_rad);
-
-	MagX_rotated = MPU9250->Mx*(C_pitch)+MPU9250->My*(S_roll)*(S_pitch)-MPU9250->Mz*(C_roll)*(S_pitch);
-	MagY_rotated = MPU9250->My*(C_roll)+MPU9250->Mz*(S_roll);
-
-	MadgwickIMU->Yaw_rad = atan2f(MagY_rotated,MagX_rotated);
-	LPF_float(&MadgwickIMU->Yaw_rad, &MadgwickIMU->Yaw_rad_filtered, 0.018);
-
-	MadgwickIMU->Yaw_filtered = MadgwickIMU->Yaw_rad_filtered*57.32484076433121f;
-	MadgwickIMU->Yaw = MadgwickIMU->Yaw_filtered;
-
-	//MadgwickIMU->Yaw_filtered = lowpass_float(&MadgwickIMU->Yaw_filtered, &MadgwickIMU->Yaw, 0.015);
-	//printf("%f\n", MadgwickIMU->Yaw_filtered);
-}
-
