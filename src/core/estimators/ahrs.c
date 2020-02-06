@@ -74,7 +74,7 @@ void ahrs_ekf_init(vector3d_f_t init_accel)
 	quat_normalize(&_mat_(x_priori)[0]);
 
 	/* initialize madgwick filter */
-	madgwick_init(&madgwick_ahrs, 400, 0.4);
+	madgwick_init(&madgwick_ahrs, 400, 0.3);
 }
 
 //in: euler angle [radian], out: quaternion
