@@ -366,40 +366,24 @@ void ahrs_estimate(ahrs_t *ahrs, vector3d_f_t accel, vector3d_f_t gyro)
 {
 #if (SELECT_AHRS == AHRS_EKF)
 	ahrs_ekf_estimate(accel, gyro);
-
-	euler_t euler;
-	quat_to_euler(&_mat_(x_posteriori)[0], &euler);
-	ahrs->attitude.roll = rad_to_deg(euler.roll);
-	ahrs->attitude.pitch = rad_to_deg(euler.pitch);
-	ahrs->attitude.yaw = rad_to_deg(euler.yaw);
-
-	ahrs->q[0] = _mat_(x_posteriori)[0];
-	ahrs->q[1] = _mat_(x_posteriori)[1];
-	ahrs->q[2] = _mat_(x_posteriori)[2];
-	ahrs->q[3] = _mat_(x_posteriori)[3];
 #elif (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
 	ahrs_complementary_filter_estimate(accel, gyro);
-
-	euler_t euler;
-	quat_to_euler(&_mat_(x_posteriori)[0], &euler);
-	ahrs->attitude.roll = rad_to_deg(euler.roll);
-	ahrs->attitude.pitch = rad_to_deg(euler.pitch);
-	ahrs->attitude.yaw = rad_to_deg(euler.yaw);
-
-	ahrs->q[0] = _mat_(x_posteriori)[0];
-	ahrs->q[1] = _mat_(x_posteriori)[1];
-	ahrs->q[2] = _mat_(x_posteriori)[2];
-	ahrs->q[3] = _mat_(x_posteriori)[3];
 #elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
 	madgwick_imu_ahrs(&madgwick_ahrs, -accel.x, -accel.y, accel.z,
 			  deg_to_rad(gyro.x), deg_to_rad(gyro.y), deg_to_rad(gyro.z));
-
-	ahrs->q[0] = madgwick_ahrs.q0;
-	ahrs->q[1] = madgwick_ahrs.q1;
-	ahrs->q[2] = madgwick_ahrs.q2;
-	ahrs->q[3] = madgwick_ahrs.q3;
-	ahrs->attitude.roll = madgwick_ahrs.Roll;
-	ahrs->attitude.pitch = madgwick_ahrs.Pitch;
-	ahrs->attitude.yaw = 0.0f;
+	_mat_(x_posteriori)[0] = madgwick_ahrs.q0;
+	_mat_(x_posteriori)[1] = madgwick_ahrs.q1;
+	_mat_(x_posteriori)[2] = madgwick_ahrs.q2;
+	_mat_(x_posteriori)[3] = madgwick_ahrs.q3;
 #endif
+	euler_t euler;
+	quat_to_euler(&_mat_(x_posteriori)[0], &euler);
+	ahrs->attitude.roll = rad_to_deg(euler.roll);
+	ahrs->attitude.pitch = rad_to_deg(euler.pitch);
+	ahrs->attitude.yaw = rad_to_deg(euler.yaw);
+
+	ahrs->q[0] = _mat_(x_posteriori)[0];
+	ahrs->q[1] = _mat_(x_posteriori)[1];
+	ahrs->q[2] = _mat_(x_posteriori)[2];
+	ahrs->q[3] = _mat_(x_posteriori)[3];
 }
