@@ -6,8 +6,8 @@
 
 typedef struct _madgwick_t {
 	float beta;
-	float q0, q1, q2, q3;
-	float sampleRate;
+	float dt;
+	float q[4];
 } madgwick_t;
 
 void madgwick_init(madgwick_t* madgwick, float sample_rate, float beta);
