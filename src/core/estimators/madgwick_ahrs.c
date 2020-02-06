@@ -18,7 +18,9 @@ void madgwick_imu_ahrs(madgwick_t* madgwick, float ax, float ay, float az, float
 	float q2_dot = 0.5f * (madgwick->q[0] * gy - madgwick->q[1] * gz + madgwick->q[3] * gx);
 	float q3_dot = 0.5f * (madgwick->q[0] * gz + madgwick->q[1] * gy - madgwick->q[2] * gx);
 
-	float accel_norm = 1.0f / sqrt(ax*ax + ay*ay + az*az);
+	float accel_norm;
+	arm_sqrt_f32(ax*ax + ay*ay + az*az, &accel_norm);
+	accel_norm = 1.0f /accel_norm;
 	ax *= accel_norm;
 	ay *= accel_norm;
 	az *= accel_norm;
@@ -44,7 +46,9 @@ void madgwick_imu_ahrs(madgwick_t* madgwick, float ax, float ay, float az, float
 	float g3 = _4q3*q1q1_q2q2 - _2q1*ax - _2q2*ay;
 
 	/* normalize step magnitude */
-	float g_norm = 1.0f / sqrt(g0*g0 + g1*g1 + g2*g2 + g3*g3);
+	float g_norm;
+	arm_sqrt_f32(g0*g0 + g1*g1 + g2*g2 + g3*g3, &g_norm);
+	g_norm = 1.0f / g_norm;
 	g0 *= g_norm;
 	g1 *= g_norm;
 	g2 *= g_norm;
@@ -60,7 +64,9 @@ void madgwick_imu_ahrs(madgwick_t* madgwick, float ax, float ay, float az, float
 	madgwick->q[2] += q2_dot*madgwick->dt;
 	madgwick->q[3] += q3_dot*madgwick->dt;
 
-	float q_norm = 1.0f / sqrt(q0q0 + q1q1 + q2q2 + q3q3);
+	float q_norm;
+	arm_sqrt_f32(q0q0 + q1q1 + q2q2 + q3q3, &q_norm);
+	q_norm = 1.0f / q_norm;
 	madgwick->q[0] *= q_norm;
 	madgwick->q[1] *= q_norm;
 	madgwick->q[2] *= q_norm;
@@ -80,12 +86,16 @@ void madgwick_margs_ahrs(madgwick_t* madgwick, float ax, float ay, float az, flo
 	float q2_dot = 0.5f * (madgwick->q[0]*gy - madgwick->q[1]*gz + madgwick->q[3]*gx);
 	float q3_dot = 0.5f * (madgwick->q[0]*gz + madgwick->q[1]*gy - madgwick->q[2]*gx);
 
-	float accel_norm = 1.0f / sqrt(ax*ax + ay*ay + az*az);
+	float accel_norm;
+	arm_sqrt_f32(ax*ax + ay*ay + az*az, &accel_norm);
+	accel_norm = 1.0f / accel_norm;
 	ax *= accel_norm;
 	ay *= accel_norm;
 	az *= accel_norm;
 
-	float mag_norm = 1.0f / sqrt(mx*mx + my*my + mz*mz);
+	float mag_norm;
+	arm_sqrt_f32(mx*mx + my*my + mz*mz, &mag_norm);
+	mag_norm = 1.0f / mag_norm;
 	mx *= mag_norm;
 	my *= mag_norm;
 	mz *= mag_norm;
@@ -119,7 +129,8 @@ void madgwick_margs_ahrs(madgwick_t* madgwick, float ax, float ay, float az, flo
 		   mx*q1q1 + _2q1*my*madgwick->q[2] + _2q1*mz*madgwick->q[3] - mx*q2q2 - mx*q3q3;
 	float hy = _2q0mx*madgwick->q[3] + my*q0q0 - _2q0mz*madgwick->q[1] +
 		   _2q1mx*madgwick->q[2] - my*q1q1 + my*q2q2 + _2q2*mz*madgwick->q[3] - my*q3q3;
-	float _2bx = (float)sqrt(hx*hx + hy*hy);
+	float _2bx;
+	arm_sqrt_f32(hx*hx + hy*hy, &_2bx);
 	float _2bz = -_2q0mx*madgwick->q[2] + _2q0my*madgwick->q[1] + mz*q0q0 +
 		     _2q1mx*madgwick->q[3] - mz*q1q1 + _2q2*my*madgwick->q[3] - mz*q2q2 + mz*q3q3;
 	float _4bx = 2.0f * _2bx;
@@ -144,7 +155,9 @@ void madgwick_margs_ahrs(madgwick_t* madgwick, float ax, float ay, float az, flo
 		   _2bx*madgwick->q[1]*(_2bx*(q0q2+q1q3) + _2bz*(0.5f-q1q1-q2q2)-mz);
 
 	/* normalize step magnitude */
-	float g_norm = 1.0f / sqrt(g0*g0 + g1*g1 + g2*g2 + g3*g3);
+	float g_norm;
+	arm_sqrt_f32(g0*g0 + g1*g1 + g2*g2 + g3*g3, &g_norm);
+	g_norm = 1.0f / g_norm;
 	g0 *= g_norm;
 	g1 *= g_norm;
 	g2 *= g_norm;
@@ -161,7 +174,9 @@ void madgwick_margs_ahrs(madgwick_t* madgwick, float ax, float ay, float az, flo
 	madgwick->q[2] += q2_dot * madgwick->dt;
 	madgwick->q[3] += q3_dot * madgwick->dt;
 
-	float q_norm = 1.0f / sqrt(q0q0 + q1q1 + q2q2 + q3q3);
+	float q_norm;
+	arm_sqrt_f32(q0q0 + q1q1 + q2q2 + q3q3, &q_norm);
+	q_norm = 1.0f / q_norm;
 	madgwick->q[0] *= q_norm;
 	madgwick->q[1] *= q_norm;
 	madgwick->q[2] *= q_norm;
