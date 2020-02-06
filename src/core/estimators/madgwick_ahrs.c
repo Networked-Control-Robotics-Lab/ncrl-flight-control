@@ -115,21 +115,36 @@ void madgwick_margs_ahrs(madgwick_t* madgwick, float ax, float ay, float az, flo
 	float q1q1_q2q2 = q1q1 + q2q2;
 
 	/* reference direction of earth's magnetic field */
-	float hx = mx * q0q0 - _2q0my * madgwick->q[3] + _2q0mz * madgwick->q[2] + mx * q1q1 + _2q1 * my * madgwick->q[2] + _2q1 * mz * madgwick->q[3] - mx * q2q2 - mx * q3q3;
-	float hy = _2q0mx * madgwick->q[3] + my * q0q0 - _2q0mz * madgwick->q[1] + _2q1mx * madgwick->q[2] - my * q1q1 + my * q2q2 + _2q2 * mz * madgwick->q[3] - my * q3q3;
-	float _2bx = (float) sqrt(hx * hx + hy * hy);
-	float _2bz = -_2q0mx * madgwick->q[2] + _2q0my * madgwick->q[1] + mz * q0q0 + _2q1mx * madgwick->q[3] - mz * q1q1 + _2q2 * my * madgwick->q[3] - mz * q2q2 + mz * q3q3;
+	float hx = mx*q0q0 - _2q0my*madgwick->q[3] + _2q0mz*madgwick->q[2] +
+		   mx*q1q1 + _2q1*my*madgwick->q[2] + _2q1*mz*madgwick->q[3] - mx*q2q2 - mx*q3q3;
+	float hy = _2q0mx*madgwick->q[3] + my*q0q0 - _2q0mz*madgwick->q[1] +
+		   _2q1mx*madgwick->q[2] - my*q1q1 + my*q2q2 + _2q2*mz*madgwick->q[3] - my*q3q3;
+	float _2bx = (float)sqrt(hx*hx + hy*hy);
+	float _2bz = -_2q0mx*madgwick->q[2] + _2q0my*madgwick->q[1] + mz*q0q0 +
+		     _2q1mx*madgwick->q[3] - mz*q1q1 + _2q2*my*madgwick->q[3] - mz*q2q2 + mz*q3q3;
 	float _4bx = 2.0f * _2bx;
 	float _4bz = 2.0f * _2bz;
 
 	/* gradient decent algorithm corrective step */
-	float g0 = _4q0*q1q1_q2q2 + _2q2*ax - _2q1*ay - _2bz * madgwick->q[2] * (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) + (-_2bx * madgwick->q[3] + _2bz * madgwick->q[1]) * (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) + _2bx * madgwick->q[2] * (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
-	float g1 = _4q1*q1q1_q2q2 - _2q3*ax - _2q0*ay + _4q1*az + _2bz * madgwick->q[3] * (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) + (_2bx * madgwick->q[2] + _2bz * madgwick->q[0]) * (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) + (_2bx * madgwick->q[3] - _4bz * madgwick->q[1]) * (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
-	float g2 = _4q2*q1q1_q2q2 + _2q0*ax - _2q3*ay + _4q2*az + (-_4bx * madgwick->q[2] - _2bz * madgwick->q[0]) * (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) + (_2bx * madgwick->q[1] + _2bz * madgwick->q[3]) * (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) + (_2bx * madgwick->q[0] - _4bz * madgwick->q[2]) * (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
-	float g3 = _4q3*q1q1_q2q2 - _2q1*ax - _2q2*ay + (-_4bx * madgwick->q[3] + _2bz * madgwick->q[1]) * (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) + (-_2bx * madgwick->q[0] + _2bz * madgwick->q[2]) * (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) + _2bx * madgwick->q[1] * (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
+	float g0 = _4q0*q1q1_q2q2 + _2q2*ax - _2q1*ay -
+		   _2bz*madgwick->q[2]*(_2bx*(0.5f-q2q2-q3q3)+_2bz*(q1q3-q0q2)-mx) +
+		   (-_2bx*madgwick->q[3]+_2bz*madgwick->q[1])*(_2bx*(q1q2-q0q3)+_2bz*(q0q1+q2q3)-my) +
+		   _2bx*madgwick->q[2]*(_2bx*(q0q2+q1q3) + _2bz*(0.5f-q1q1-q2q2)-mz);
+	float g1 = _4q1*q1q1_q2q2 - _2q3*ax - _2q0*ay + _4q1*az +
+		   _2bz*madgwick->q[3]*(_2bx*(0.5f-q2q2-q3q3)+_2bz*(q1q3-q0q2)-mx) +
+		   (_2bx*madgwick->q[2]+_2bz*madgwick->q[0])*(_2bx*(q1q2-q0q3)+_2bz*(q0q1+q2q3)-my) +
+		   (_2bx*madgwick->q[3]-_4bz*madgwick->q[1])*(_2bx*(q0q2+q1q3) + _2bz*(0.5f-q1q1-q2q2)-mz);
+	float g2 = _4q2*q1q1_q2q2+_2q0*ax - _2q3*ay + _4q2*az +
+		   (-_4bx*madgwick->q[2]-_2bz*madgwick->q[0])*(_2bx*(0.5f-q2q2-q3q3) +
+		   _2bz*(q1q3-q0q2)-mx)+(_2bx*madgwick->q[1]+_2bz*madgwick->q[3])*(_2bx*(q1q2-q0q3)+_2bz*(q0q1+q2q3)-my) +
+		   (_2bx*madgwick->q[0]-_4bz*madgwick->q[2])*(_2bx*(q0q2+q1q3)+_2bz*(0.5f-q1q1-q2q2)-mz);
+	float g3 = _4q3*q1q1_q2q2 - _2q1*ax - _2q2*ay +
+		   (-_4bx*madgwick->q[3]+_2bz*madgwick->q[1])*(_2bx*(0.5f-q2q2-q3q3)+_2bz*(q1q3-q0q2)-mx) +
+		   (-_2bx*madgwick->q[0]+_2bz*madgwick->q[2])*(_2bx*(q1q2-q0q3)+_2bz*(q0q1+q2q3)-my) +
+		   _2bx*madgwick->q[1]*(_2bx*(q0q2+q1q3) + _2bz*(0.5f-q1q1-q2q2)-mz);
 
 	/* normalize step magnitude */
-	float g_norm = 1 / sqrt(g0*g0 + g1*g1 + g2*g2 + g3*g3);
+	float g_norm = 1.0f / sqrt(g0*g0 + g1*g1 + g2*g2 + g3*g3);
 	g0 *= g_norm;
 	g1 *= g_norm;
 	g2 *= g_norm;
@@ -146,7 +161,7 @@ void madgwick_margs_ahrs(madgwick_t* madgwick, float ax, float ay, float az, flo
 	madgwick->q[2] += q2_dot * madgwick->dt;
 	madgwick->q[3] += q3_dot * madgwick->dt;
 
-	float q_norm = 1 / sqrt(q0q0 + q1q1 + q2q2 + q3q3);
+	float q_norm = 1.0f / sqrt(q0q0 + q1q1 + q2q2 + q3q3);
 	madgwick->q[0] *= q_norm;
 	madgwick->q[1] *= q_norm;
 	madgwick->q[2] *= q_norm;
