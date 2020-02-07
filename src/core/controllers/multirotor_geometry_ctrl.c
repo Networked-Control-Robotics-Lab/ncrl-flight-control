@@ -194,7 +194,7 @@ void quat_to_rotation_matrix(float *q, float *r, float *r_transpose)
 	//R
 	r[0*3 + 0] = 1.0f - 2.0f * (q2q2 + q3q3);
 	r[0*3 + 1] = 2.0f * (q1q2 - q0q3);
-	r[0*3 + 2] = 2.0f * (q0q2 - q1q3);
+	r[0*3 + 2] = 2.0f * (q0q2 + q1q3);
 
 	r[1*3 + 0] = 2.0f * (q1q2 + q0q3);
 	r[1*3 + 1] = 1.0f - 2.0f * (q1q1 + q3q3);
