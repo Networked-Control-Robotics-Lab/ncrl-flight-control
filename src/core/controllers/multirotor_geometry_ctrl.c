@@ -341,6 +341,7 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 	MAT_MULT(&RtRd, &Wd, &RtRdWd);
 	MAT_SUB(&W, &RtRdWd, &eW);
 
+#if 0   /* inertia effect without motion planning */
 	/* calculate inertia effect (since Wd and Wd_dot are 0, the terms are excluded) */
 	//W x JW
 	MAT_MULT(&J, &W, &JW);
@@ -348,8 +349,9 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 	_mat_(inertia_effect)[0] = _mat_(WJW)[0] * 101.97; //[newton * m] to [gram force * m]
 	_mat_(inertia_effect)[1] = _mat_(WJW)[1] * 101.97;
 	_mat_(inertia_effect)[2] = _mat_(WJW)[2] * 101.97;
+#endif
 
-#if 0
+#if 0   /* inertia effect with motion planning */
 	/* calculate inertia effect (trajectory is defined, Wd and Wd_dot are not zero) */
 	//W * R^T * Rd * Wd
 	hat_map_3x3(_mat_(W), _mat_(W_hat));
@@ -629,7 +631,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	} else {
 		led_on(LED_B);
 		led_off(LED_R);
-		*desired_heading = deg_to_rad(ahrs->attitude.yaw);
+		*desired_heading = ahrs->attitude.yaw;
 		motor_halt();
 	}
 }
