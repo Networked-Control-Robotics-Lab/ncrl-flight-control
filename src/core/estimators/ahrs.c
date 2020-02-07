@@ -317,7 +317,7 @@ void ahrs_complementary_filter_estimate(vector3d_f_t accel, vector3d_f_t gyro)
 	/* angular rate from rate gyro */
 	_mat_(w)[0] = deg_to_rad(gyro.x);
 	_mat_(w)[1] = deg_to_rad(gyro.y);
-	_mat_(w)[2] = 0.0f;
+	_mat_(w)[2] = deg_to_rad(gyro.z);
 
 	/* rate gyro integration */
 	MAT_MULT(&f, &w, &dx); //calculate dx = f * w
@@ -340,21 +340,32 @@ void ahrs_complementary_filter_estimate(vector3d_f_t accel, vector3d_f_t gyro)
 	//the unit length propertety of the quaternion
 	quat_normalize(q_roll_pitch);
 
-	float q_yaw[4];
-
-#if (SELECT_HEADING == HEADING_USE_OPTITRACK)
-	/* fusing yaw angle with optitrack */
-	calc_optitrack_yaw_quaternion(q_yaw);
-#endif
-
-	/* align the heading direction */
-	quaternion_mult(q_yaw, q_roll_pitch, _mat_(x_posteriori));
-
 	/* update state variables for rate gyro */
 	_mat_(x_priori)[0] = q_roll_pitch[0];
 	_mat_(x_priori)[1] = q_roll_pitch[1];
 	_mat_(x_priori)[2] = q_roll_pitch[2];
 	_mat_(x_priori)[3] = q_roll_pitch[3];
+}
+
+void reset_quaternion_yaw_angle(float *q)
+{
+	float q_original[4];
+	q_original[0] = q[0];
+	q_original[1] = q[1];
+	q_original[2] = q[2];
+	q_original[3] = q[3];
+
+	euler_t euler;
+	quat_to_euler(q, &euler);
+	float half_psi = euler.yaw / 2.0f;
+
+	float q_negative_yaw[4];
+	q_negative_yaw[0] = arm_cos_f32(-half_psi);
+	q_negative_yaw[1] = 0.0f;
+	q_negative_yaw[2] = 0.0f;
+	q_negative_yaw[3] = arm_sin_f32(-half_psi);
+
+	quaternion_mult(q_negative_yaw, q_original, q);
 }
 
 void ahrs_init(vector3d_f_t init_accel)
@@ -376,6 +387,25 @@ void ahrs_estimate(ahrs_t *ahrs, vector3d_f_t accel, vector3d_f_t gyro)
 	_mat_(x_posteriori)[2] = madgwick_ahrs.q[2];
 	_mat_(x_posteriori)[3] = madgwick_ahrs.q[3];
 #endif
+
+	//XXX: if magnetometer and optitrack not present
+	reset_quaternion_yaw_angle(_mat_(x_posteriori));
+
+#if (SELECT_HEADING == HEADING_USE_OPTITRACK)
+	float q_yaw[4];
+
+	/* fusing yaw angle with optitrack */
+	calc_optitrack_yaw_quaternion(q_yaw);
+
+	/* align the heading direction */
+	float q_roll_pitch[4];
+	q_roll_pitch[0] = _mat_(x_posteriori)[0];
+	q_roll_pitch[1] = _mat_(x_posteriori)[1];
+	q_roll_pitch[2] = _mat_(x_posteriori)[2];
+	q_roll_pitch[3] = _mat_(x_posteriori)[3];
+	quaternion_mult(q_yaw, q_roll_pitch, _mat_(x_posteriori));
+#endif
+
 	euler_t euler;
 	quat_to_euler(&_mat_(x_posteriori)[0], &euler);
 	ahrs->attitude.roll = rad_to_deg(euler.roll);
