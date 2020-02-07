@@ -174,7 +174,7 @@ void align_ahrs_with_optitrack_yaw(float *q_ahrs)
 		euler_t optitrack_euler;
 		quat_to_euler(optitrack.q, &optitrack_euler);
 
-		float half_psi = optitrack_euler.yaw / 2.0f;
+		float half_psi = optitrack_euler.yaw * 0.5f;
 
 		float q_yaw[4];
 		q_yaw[0] = arm_cos_f32(half_psi);
