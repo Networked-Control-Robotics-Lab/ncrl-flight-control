@@ -168,7 +168,7 @@ void quaternion_conj(float *q, float *q_conj)
 	q_conj[3] = -q[3];
 }
 
-void calc_optitrack_yaw_quaternion(float *q_yaw)
+void align_ahrs_with_optitrack_yaw(float *q_ahrs)
 {
 	if(optitrack_available() == true) {
 		euler_t optitrack_euler;
@@ -176,15 +176,18 @@ void calc_optitrack_yaw_quaternion(float *q_yaw)
 
 		float half_psi = optitrack_euler.yaw / 2.0f;
 
+		float q_yaw[4];
 		q_yaw[0] = arm_cos_f32(half_psi);
 		q_yaw[1] = 0.0f;
 		q_yaw[2] = 0.0f;
 		q_yaw[3] = arm_sin_f32(half_psi);
-	} else {
-		q_yaw[0] = 1.0f;
-		q_yaw[1] = 0.0f;
-		q_yaw[2] = 0.0f;
-		q_yaw[3] = 0.0f;
+
+		float q_original[4];
+		q_original[0] = q_ahrs[0];
+		q_original[1] = q_ahrs[1];
+		q_original[2] = q_ahrs[2];
+		q_original[3] = q_ahrs[3];
+		quaternion_mult(q_yaw, q_original, q_ahrs);
 	}
 }
 
@@ -388,22 +391,9 @@ void ahrs_estimate(ahrs_t *ahrs, vector3d_f_t accel, vector3d_f_t gyro)
 	_mat_(x_posteriori)[3] = madgwick_ahrs.q[3];
 #endif
 
-	//XXX: if magnetometer and optitrack not present
-	reset_quaternion_yaw_angle(_mat_(x_posteriori));
-
 #if (SELECT_HEADING == HEADING_USE_OPTITRACK)
-	float q_yaw[4];
-
-	/* fusing yaw angle with optitrack */
-	calc_optitrack_yaw_quaternion(q_yaw);
-
-	/* align the heading direction */
-	float q_roll_pitch[4];
-	q_roll_pitch[0] = _mat_(x_posteriori)[0];
-	q_roll_pitch[1] = _mat_(x_posteriori)[1];
-	q_roll_pitch[2] = _mat_(x_posteriori)[2];
-	q_roll_pitch[3] = _mat_(x_posteriori)[3];
-	quaternion_mult(q_yaw, q_roll_pitch, _mat_(x_posteriori));
+	reset_quaternion_yaw_angle(_mat_(x_posteriori));
+	align_ahrs_with_optitrack_yaw(_mat_(x_posteriori));
 #endif
 
 	euler_t euler;
