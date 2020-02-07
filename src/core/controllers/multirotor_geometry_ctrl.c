@@ -125,10 +125,10 @@ void geometry_ctrl_init(void)
 	/* attitude controller gains of geometry */
 	krx = 300.0f;
 	kry = 300.0f;
-	krz = 1200.0f;
-	kwx = 60.25f;
-	kwy = 60.25f;
-	kwz = 500.0;
+	krz = 1600.0f;
+	kwx = 40.25f;
+	kwy = 40.25f;
+	kwz = 200.0;
 	yaw_rate_ctrl_gain = 2750.0f;
 
 	/* tracking controller gains*/
