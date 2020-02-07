@@ -371,9 +371,9 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 #endif
 
 	/* control input M1, M2, M3 */
-	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0];// + _mat_(inertia_effect)[0];
-	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1];// + _mat_(inertia_effect)[1];
-	output_moments[2] = -_krz*_mat_(eR)[2] -_kwz*_mat_(eW)[2];// + _mat_(inertia_effect)[2];
+	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0] + _mat_(inertia_effect)[0];
+	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1] + _mat_(inertia_effect)[1];
+	output_moments[2] = -_krz*_mat_(eR)[2] -_kwz*_mat_(eW)[2] + _mat_(inertia_effect)[2];
 
 	/* XXX: debug print, refine this code! */
 	geometry_ctrl_feedback_moments[0] = (-krx*_mat_(eR)[0] -kwx*_mat_(eW)[0]) * 0.0098f; //[gram force * m] to [newton * m]
@@ -402,12 +402,13 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 
 	_mat_(kxex_kvev_mge3_mxd_dot_dot)[0] = kpx*pos_error[0] - kvx*vel_error[0] + uav_mass * desired_accel[0];
 	_mat_(kxex_kvev_mge3_mxd_dot_dot)[1] = kpy*pos_error[1] - kvy*vel_error[1] + uav_mass * desired_accel[1];
-	_mat_(kxex_kvev_mge3_mxd_dot_dot)[2] = kpz*pos_error[2] - kvz*vel_error[2] - uav_mass * gravity_accel + uav_mass * desired_accel[2];
+	_mat_(kxex_kvev_mge3_mxd_dot_dot)[2] = kpz*pos_error[2] - kvz*vel_error[2] - uav_mass * gravity_accel +
+					       uav_mass * desired_accel[2];
 
 	/* calculate the denominator of b3d */
 	float b3d_denominator; //caution: this term should not be 0
 	norm_3x1(_mat_(kxex_kvev_mge3_mxd_dot_dot), &b3d_denominator);
-	b3d_denominator /= -1.0f;
+	b3d_denominator = -1.0f / b3d_denominator;
 
 	/* convert attitude (quaternion) to rotation matrix */
 	quat_to_rotation_matrix(&attitude_q[0], _mat_(R), _mat_(Rt));
@@ -491,6 +492,7 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	MAT_MULT(&RtRd, &Wd, &RtRdWd);
 	MAT_SUB(&W, &RtRdWd, &eW);
 
+#if 0
 	/* calculate inertia effect (since Wd and Wd_dot are 0, the terms are excluded) */
 	//W x JW
 	MAT_MULT(&J, &W, &JW);
@@ -498,6 +500,7 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	_mat_(inertia_effect)[0] = _mat_(WJW)[0] * 101.97; //[newton * m] to [gram force * m]
 	_mat_(inertia_effect)[1] = _mat_(WJW)[1] * 101.97;
 	_mat_(inertia_effect)[2] = _mat_(WJW)[2] * 101.97;
+#endif
 
 	/* control input M1, M2, M3 */
 	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0] + _mat_(inertia_effect)[0];
