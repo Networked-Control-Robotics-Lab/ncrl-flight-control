@@ -125,7 +125,7 @@ void geometry_ctrl_init(void)
 	/* attitude controller gains of geometry */
 	krx = 300.0f;
 	kry = 300.0f;
-	krz = 1600.0f;
+	krz = 2400.0f;
 	kwx = 40.25f;
 	kwy = 40.25f;
 	kwz = 200.0;
@@ -371,9 +371,9 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 #endif
 
 	/* control input M1, M2, M3 */
-	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0] + _mat_(inertia_effect)[0];
-	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1] + _mat_(inertia_effect)[1];
-	output_moments[2] = -_krz*_mat_(eR)[2] -_kwz*_mat_(eW)[2] + _mat_(inertia_effect)[2];
+	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0];// + _mat_(inertia_effect)[0];
+	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1];// + _mat_(inertia_effect)[1];
+	output_moments[2] = -_krz*_mat_(eR)[2] -_kwz*_mat_(eW)[2];// + _mat_(inertia_effect)[2];
 
 	/* XXX: debug print, refine this code! */
 	geometry_ctrl_feedback_moments[0] = (-krx*_mat_(eR)[0] -kwx*_mat_(eW)[0]) * 0.0098f; //[gram force * m] to [newton * m]
