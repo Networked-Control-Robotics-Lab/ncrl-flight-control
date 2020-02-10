@@ -54,7 +54,8 @@ int main(void)
 #if (SELECT_TELEM == TELEM_DEBUG_LINK)
 	xTaskCreate(task_debug_link, "debug link", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
 #elif (SELECT_TELEM == TELEM_MAVLINK)
-	xTaskCreate(mavlink_handler_task, "mavlink", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
+	xTaskCreate(mavlink_send_task, "mavlink sender", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
+	xTaskCreate(mavlink_recpt_task, "mavlink receiver", 512, NULL, tskIDLE_PRIORITY + 2, NULL);
 #endif
 
 	/* start freertos scheduler */

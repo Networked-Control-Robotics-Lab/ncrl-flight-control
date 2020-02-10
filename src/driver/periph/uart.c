@@ -11,7 +11,14 @@
 #include "sbus_receiver.h"
 #include "optitrack.h"
 
+#define UART_QUEUE_SIZE 500
+
+typedef struct {
+	char c;
+} uart_c_t;
+
 SemaphoreHandle_t uart3_tx_semphr;
+QueueHandle_t uart3_rx_queue;
 
 /*
  * <uart1>
@@ -60,6 +67,7 @@ void uart1_init(int baudrate)
 void uart3_init(int baudrate)
 {
 	uart3_tx_semphr = xSemaphoreCreateBinary();
+	uart3_rx_queue = xQueueCreate(UART_QUEUE_SIZE, sizeof(uart_c_t));
 
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
@@ -98,6 +106,10 @@ void uart3_init(int baudrate)
 	};
 	NVIC_Init(&NVIC_InitStruct);
 	DMA_ITConfig(DMA1_Stream3, DMA_IT_TC, ENABLE);
+
+	NVIC_InitStruct.NVIC_IRQChannel = USART3_IRQn;
+	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = UART3_RX_ISR_PRIORITY;
+	USART_ITConfig(UART4, USART_IT_RXNE, ENABLE);
 }
 
 /*
@@ -339,14 +351,33 @@ void uart6_puts(char *s, int size)
 	while(DMA_GetFlagStatus(DMA2_Stream6, DMA_FLAG_TCIF6) == RESET);
 }
 
+char uart3_getc(void)
+{
+	uart_c_t recpt_c;
+	while(xQueueReceive(uart3_rx_queue, &recpt_c, portMAX_DELAY) == pdFALSE);
+	return recpt_c.c;
+}
+
 void DMA1_Stream3_IRQHandler(void)
 {
+	/* uart3 tx dma */
 	if(DMA_GetITStatus(DMA1_Stream3, DMA_IT_TCIF3) == SET) {
 		DMA_ClearITPendingBit(DMA1_Stream3, DMA_IT_TCIF3);
 
 		static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 		xSemaphoreGiveFromISR(uart3_tx_semphr, &xHigherPriorityTaskWoken);
 		portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+	}
+}
+
+void UART3_IRQHandler(void)
+{
+	uart_c_t uart_queue_item;
+
+	if(USART_GetITStatus(USART3, USART_IT_RXNE) == SET) {
+		uart_queue_item.c = USART_ReceiveData(USART3);
+		USART3->SR;
+		xQueueSendToBack(uart3_rx_queue, &uart_queue_item, 0);
 	}
 }
 
