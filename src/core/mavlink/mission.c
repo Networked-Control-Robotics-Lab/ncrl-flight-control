@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "mavlink.h"
+#include "../mavlink/publisher.h"
 
 void mav_request_autopilot_capabilities(void)
 {
@@ -21,6 +22,7 @@ void mav_request_autopilot_capabilities(void)
 	mavlink_msg_autopilot_version_pack(1, 0, &msg, cap, flight_sw_version, middleware_sw_ver,
 					   os_sw_version, board_version, flight_custom_ver, middleware_custom_ver,
 					   os_custom_ver, vendor_id, product_id, uid, NULL);
+	send_mavlink_msg_to_uart(&msg);
 }
 
 void mav_mission_request_list(void)
@@ -28,6 +30,6 @@ void mav_mission_request_list(void)
 	mavlink_message_t msg;
 
 	uint16_t waypoint_cnt = 0;
-	mavlink_msg_mission_count_pack(1, 0, &msg, 255, 0, waypoint_cnt,
-				       MAV_MISSION_TYPE_MISSION);
+	mavlink_msg_mission_count_pack(1, 0, &msg, 255, 0, waypoint_cnt, MAV_MISSION_TYPE_MISSION);
+	send_mavlink_msg_to_uart(&msg);
 }

@@ -1,7 +1,7 @@
 #include "mavlink.h"
-#include "./parser.h"
-#include "./mission.h"
-#include "./param.h"
+#include "../mavlink/parser.h"
+#include "../mavlink/mission.h"
+#include "../mavlink/param.h"
 
 /* enumerate mavlink handler function */
 enum ENUM_MAV_CMDS {
