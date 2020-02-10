@@ -1,6 +1,10 @@
 #include "stm32f4xx.h"
 #include "mavlink.h"
 #include "uart.h"
+#include "ahrs.h"
+#include "sys_time.h"
+
+extern ahrs_t ahrs;
 
 void send_mavlink_msg_to_uart(mavlink_message_t *msg)
 {
@@ -14,7 +18,7 @@ void send_mavlink_heartbeat(void)
 {
 	mavlink_message_t msg;
 	mavlink_msg_heartbeat_pack(1, 200, &msg, MAV_TYPE_QUADROTOR,
-	                           MAV_AUTOPILOT_GENERIC, 0, 0, MAV_STATE_ACTIVE);
+	                           MAV_AUTOPILOT_GENERIC, MAV_MODE_STABILIZE_ARMED, 0, MAV_STATE_ACTIVE);
 	send_mavlink_msg_to_uart(&msg);
 }
 
@@ -24,15 +28,17 @@ void send_mavlink_system_status(void)
 	float battery_remain_percentage = 100;
 	mavlink_message_t msg;
 
-	mavlink_msg_sys_status_pack(1, 0, &msg, 0, 0, 0, 0, battery_voltage, -1,
+	mavlink_msg_sys_status_pack(1, 200, &msg, 0, 0, 0, 0, battery_voltage, -1,
 	                            battery_remain_percentage, 0, 0, 0, 0, 0, 0);
 	send_mavlink_msg_to_uart(&msg);
 }
 
 void send_mavlink_attitude(void)
 {
-	float roll = 0.0f, pitch = 0.0f, yaw = 0.0f; //[radian]
-	uint32_t curr_time_ms = 0;
+	float roll = deg_to_rad(ahrs.attitude.roll);
+	float pitch = deg_to_rad(ahrs.attitude.pitch);
+	float yaw = deg_to_rad(ahrs.attitude.yaw);
+	uint32_t curr_time_ms = (uint32_t)get_sys_time_ms();
 
 	mavlink_message_t msg;
 	mavlink_msg_attitude_pack(1, 200, &msg, curr_time_ms, roll, pitch, yaw, 0.0, 0.0, 0.0);
@@ -44,7 +50,7 @@ void send_mavlink_gps(void)
 	float latitude = 0.0f, longitude = 0.0f, altitude = 0.0f;
 	float gps_vel_x = 0.0f, gps_vel_y = 0.0f;
 	float heading = 0.0f;
-	uint32_t curr_time_ms = 0;
+	uint32_t curr_time_ms = (uint32_t)get_sys_time_ms();
 
 	mavlink_message_t msg;
 	mavlink_msg_global_position_int_pack(1, 220, &msg, curr_time_ms, latitude, longitude, altitude, 0,

@@ -60,7 +60,6 @@ void uart1_init(int baudrate)
 void uart3_init(int baudrate)
 {
 	uart3_tx_semphr = xSemaphoreCreateBinary();
-	xSemaphoreGive(uart3_tx_semphr);
 
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
@@ -92,14 +91,13 @@ void uart3_init(int baudrate)
 	USART_ClearFlag(USART3, USART_FLAG_TC);
 
 	NVIC_InitTypeDef NVIC_InitStruct = {
-		.NVIC_IRQChannel = USART3_IRQn,
+		.NVIC_IRQChannel = DMA1_Stream3_IRQn,
 		.NVIC_IRQChannelPreemptionPriority = UART3_TX_ISR_PRIORITY,
 		.NVIC_IRQChannelSubPriority = 0,
 		.NVIC_IRQChannelCmd = ENABLE
 	};
 	NVIC_Init(&NVIC_InitStruct);
-
-	USART_ITConfig(USART3, USART_IT_TC, ENABLE);
+	DMA_ITConfig(DMA1_Stream3, DMA_IT_TC, ENABLE);
 }
 
 /*
@@ -283,8 +281,6 @@ void uart1_puts(char *s, int size)
 
 void uart3_puts(char *s, int size)
 {
-	xSemaphoreTake(uart3_tx_semphr, portMAX_DELAY);
-
 	//uart3 tx: dma1 channel4 stream3
 	DMA_ClearFlag(DMA1_Stream3, DMA_FLAG_TCIF3);
 
@@ -309,6 +305,8 @@ void uart3_puts(char *s, int size)
 	//send data from memory to uart data register
 	DMA_Cmd(DMA1_Stream3, ENABLE);
 	USART_DMACmd(USART3, USART_DMAReq_Tx, ENABLE);
+
+	xSemaphoreTake(uart3_tx_semphr, portMAX_DELAY); 
 }
 
 void uart6_puts(char *s, int size)
@@ -341,10 +339,10 @@ void uart6_puts(char *s, int size)
 	while(DMA_GetFlagStatus(DMA2_Stream6, DMA_FLAG_TCIF6) == RESET);
 }
 
-void USART3_IRQHandler(void)
+void DMA1_Stream3_IRQHandler(void)
 {
-	if(USART_GetITStatus(USART3, USART_IT_TC) == SET) {
-		USART_ClearFlag(USART3, USART_FLAG_TC);
+	if(DMA_GetITStatus(DMA1_Stream3, DMA_IT_TCIF3) == SET) {
+		DMA_ClearITPendingBit(DMA1_Stream3, DMA_IT_TCIF3);
 
 		static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 		xSemaphoreGiveFromISR(uart3_tx_semphr, &xHigherPriorityTaskWoken);

@@ -21,6 +21,7 @@
 #include "multirotor_pid_ctrl.h"
 #include "fc_task.h"
 #include "proj_config.h"
+#include "mavlink_task.h"
 
 extern SemaphoreHandle_t flight_ctl_semphr;
 
@@ -49,7 +50,12 @@ int main(void)
 	blocked_delay_ms(1000);
 
 	xTaskCreate(task_flight_ctrl, "flight control", 4096, NULL, tskIDLE_PRIORITY + 3, NULL);
+
+#if (SELECT_TELEM == TELEM_DEBUG_LINK)
 	xTaskCreate(task_debug_link, "debug link", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
+#elif (SELECT_TELEM == TELEM_MAVLINK)
+	xTaskCreate(mavlink_handler_task, "mavlink", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
+#endif
 
 	/* start freertos scheduler */
 	vTaskStartScheduler();

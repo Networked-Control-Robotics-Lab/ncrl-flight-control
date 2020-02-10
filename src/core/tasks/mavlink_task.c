@@ -5,7 +5,7 @@
 #include "../mavlink/publisher.h"
 #include "delay.h"
 
-void mavlink_handler_task(void)
+void mavlink_handler_task(void *param)
 {
 	float update_rate = 50.0f;
 	float delay_time_ms = (1.0f / update_rate) * 1000.0f;
@@ -13,9 +13,11 @@ void mavlink_handler_task(void)
 	int prescaling_counter = 0;
 
 	while(1) {
-		if(prescaling_counter == 8) {
+		if(prescaling_counter >= 10) {
 			send_mavlink_heartbeat();
+			send_mavlink_system_status();
 			send_mavlink_gps();
+			prescaling_counter = 0;
 		}
 
 		send_mavlink_attitude();
