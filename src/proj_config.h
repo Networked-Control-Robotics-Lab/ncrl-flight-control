@@ -8,6 +8,7 @@
 #define UAV_TYPE_QUADROTOR 0
 #define SELECT_UAV_TYPE UAV_TYPE_QUADROTOR
 
+/* telemetry protocol */
 #define TELEM_MAVLINK 0
 #define TELEM_DEBUG_LINK 1
 #define SELECT_TELEM TELEM_DEBUG_LINK
