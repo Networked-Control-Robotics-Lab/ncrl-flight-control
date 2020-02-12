@@ -109,7 +109,8 @@ void uart3_init(int baudrate)
 
 	NVIC_InitStruct.NVIC_IRQChannel = USART3_IRQn;
 	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = UART3_RX_ISR_PRIORITY;
-	USART_ITConfig(UART4, USART_IT_RXNE, ENABLE);
+	NVIC_Init(&NVIC_InitStruct);
+	USART_ITConfig(USART3, USART_IT_RXNE, ENABLE);
 }
 
 /*
@@ -364,20 +365,22 @@ void DMA1_Stream3_IRQHandler(void)
 	if(DMA_GetITStatus(DMA1_Stream3, DMA_IT_TCIF3) == SET) {
 		DMA_ClearITPendingBit(DMA1_Stream3, DMA_IT_TCIF3);
 
-		static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-		xSemaphoreGiveFromISR(uart3_tx_semphr, &xHigherPriorityTaskWoken);
-		portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+		BaseType_t higher_priority_task_woken = pdFALSE;
+		xSemaphoreGiveFromISR(uart3_tx_semphr, &higher_priority_task_woken);
+		portEND_SWITCHING_ISR(higher_priority_task_woken);
 	}
 }
 
-void UART3_IRQHandler(void)
+void USART3_IRQHandler(void)
 {
-	uart_c_t uart_queue_item;
-
 	if(USART_GetITStatus(USART3, USART_IT_RXNE) == SET) {
+		uart_c_t uart_queue_item;
 		uart_queue_item.c = USART_ReceiveData(USART3);
 		USART3->SR;
-		xQueueSendToBack(uart3_rx_queue, &uart_queue_item, 0);
+
+		BaseType_t higher_priority_task_woken = pdFALSE;
+		xQueueSendToBackFromISR(uart3_rx_queue, &uart_queue_item, &higher_priority_task_woken);
+		portEND_SWITCHING_ISR(higher_priority_task_woken);
 	}
 }
 
