@@ -253,6 +253,18 @@ class serial_plotter_class:
         	self.create_curve('Mz', 'green')
         	self.show_subplot()
 
+        elif (message_id == 13):
+                plt.subplot(211)
+        	plt.ylabel('accel [m/s^2]')
+        	plt.ylim([-30, 30])
+        	self.create_curve('gravity norm', 'red')
+        	self.show_subplot()
+
+                plt.subplot(212)
+                plt.ylabel('true(1), false(0)')
+                plt.ylim([-1.5, 1.5])
+                self.create_curve('free fall detected', 'red')
+
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \
 		interval=0, blit=True)

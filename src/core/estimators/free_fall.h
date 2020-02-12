@@ -2,5 +2,6 @@
 #define __FREE_FALL_H__
 
 bool free_fall_detect(float *accel);
+void send_free_fall_debug_message(debug_msg_t *payload);
 
 #endif
