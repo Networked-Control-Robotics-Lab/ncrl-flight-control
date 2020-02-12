@@ -9,6 +9,7 @@
 #include "vector.h"
 #include "sys_time.h"
 #include "lpf.h"
+#include "debug_link.h"
 
 #define OPTITRACK_SERIAL_MSG_SIZE 32
 
@@ -139,4 +140,32 @@ int optitrack_serial_decoder(uint8_t *buf)
 	}
 
 	return 0;
+}
+
+void send_optitrack_position_debug_message(debug_msg_t *payload)
+{
+	pack_debug_debug_message_header(payload, MESSAGE_ID_OPTITRACK_POSITION);
+	pack_debug_debug_message_float(&optitrack.pos_x, payload);
+	pack_debug_debug_message_float(&optitrack.pos_y, payload);
+	pack_debug_debug_message_float(&optitrack.pos_z, payload);
+}
+
+void send_optitrack_quaternion_debug_message(debug_msg_t *payload)
+{
+	pack_debug_debug_message_header(payload, MESSAGE_ID_OPTITRACK_QUATERNION);
+	pack_debug_debug_message_float(&optitrack.q[0], payload);
+	pack_debug_debug_message_float(&optitrack.q[1], payload);
+	pack_debug_debug_message_float(&optitrack.q[2], payload);
+	pack_debug_debug_message_float(&optitrack.q[3], payload);
+}
+
+void send_optitrack_velocity_debug_message(debug_msg_t *payload)
+{
+	pack_debug_debug_message_header(payload, MESSAGE_ID_OPTITRACK_VELOCITY);
+	pack_debug_debug_message_float(&optitrack.vel_raw_x, payload);
+	pack_debug_debug_message_float(&optitrack.vel_raw_y, payload);
+	pack_debug_debug_message_float(&optitrack.vel_raw_z, payload);
+	pack_debug_debug_message_float(&optitrack.vel_lpf_x, payload);
+	pack_debug_debug_message_float(&optitrack.vel_lpf_y, payload);
+	pack_debug_debug_message_float(&optitrack.vel_lpf_z, payload);
 }

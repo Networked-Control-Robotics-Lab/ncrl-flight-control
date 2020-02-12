@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "debug_link.h"
 
 typedef struct {
 	uint8_t id;
@@ -32,5 +33,9 @@ int optitrack_serial_decoder(uint8_t *buf);
 void optitrack_handler(uint8_t c);
 void optitrack_init(int id);
 bool optitrack_available(void);
+
+void send_optitrack_position_debug_message(debug_msg_t *payload);
+void send_optitrack_quaternion_debug_message(debug_msg_t *payload);
+void send_optitrack_velocity_debug_message(debug_msg_t *payload);
 
 #endif

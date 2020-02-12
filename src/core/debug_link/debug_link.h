@@ -30,9 +30,9 @@ typedef struct {
 	int payload_count;
 } package_t;
 
-void task_debug_link(void *param);
-
 void pack_debug_debug_message_header(debug_msg_t *payload, int message_id);
 void pack_debug_debug_message_float(float *data_float, debug_msg_t *payload);
+
+void send_onboard_data(uint8_t *payload, int payload_count);
 
 #endif

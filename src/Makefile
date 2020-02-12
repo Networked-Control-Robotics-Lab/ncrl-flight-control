@@ -72,6 +72,7 @@ SRC+=./core/main.c \
 	./core/controllers/motor_thrust.c \
 	./core/tasks/fc_task.c \
 	./core/tasks/mavlink_task.c \
+	./core/tasks/debug_link_task.c \
 	./core/debug_link/debug_link.c \
 	./core/mavlink/publisher.c \
 	./core/mavlink/parser.c \

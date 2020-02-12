@@ -21,6 +21,7 @@
 #include "fc_task.h"
 #include "sys_time.h"
 #include "proj_config.h"
+#include "debug_link.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 10
 
@@ -110,4 +111,52 @@ void task_flight_ctrl(void *param)
 
 		taskYIELD();
 	}
+}
+
+void send_imu_debug_message(debug_msg_t *payload)
+{
+	pack_debug_debug_message_header(payload, MESSAGE_ID_IMU);
+	pack_debug_debug_message_float(&imu.accel_raw.x, payload);
+	pack_debug_debug_message_float(&imu.accel_raw.y, payload);
+	pack_debug_debug_message_float(&imu.accel_raw.z, payload);
+	pack_debug_debug_message_float(&imu.accel_lpf.x, payload);
+	pack_debug_debug_message_float(&imu.accel_lpf.y, payload);
+	pack_debug_debug_message_float(&imu.accel_lpf.z, payload);
+	pack_debug_debug_message_float(&imu.gyro_raw.x, payload);
+	pack_debug_debug_message_float(&imu.gyro_raw.y, payload);
+	pack_debug_debug_message_float(&imu.gyro_raw.z, payload);
+	pack_debug_debug_message_float(&imu.gyro_lpf.x, payload);
+	pack_debug_debug_message_float(&imu.gyro_lpf.y, payload);
+	pack_debug_debug_message_float(&imu.gyro_lpf.z, payload);
+}
+
+void send_attitude_euler_debug_message(debug_msg_t *payload)
+{
+	pack_debug_debug_message_header(payload, MESSAGE_ID_ATTITUDE_EULER);
+	pack_debug_debug_message_float(&ahrs.attitude.roll, payload);
+	pack_debug_debug_message_float(&ahrs.attitude.pitch, payload);
+	pack_debug_debug_message_float(&ahrs.attitude.yaw, payload);
+}
+
+void send_attitude_quaternion_debug_message(debug_msg_t *payload)
+{
+	pack_debug_debug_message_header(payload, MESSAGE_ID_ATTITUDE_QUAT);
+	pack_debug_debug_message_float(&ahrs.q[0], payload);
+	pack_debug_debug_message_float(&ahrs.q[1], payload);
+	pack_debug_debug_message_float(&ahrs.q[2], payload);
+	pack_debug_debug_message_float(&ahrs.q[3], payload);
+}
+
+void send_attitude_imu_debug_message(debug_msg_t *payload)
+{
+	pack_debug_debug_message_header(payload, MESSAGE_ID_ATTITUDE_IMU);
+	pack_debug_debug_message_float(&ahrs.attitude.roll, payload);
+	pack_debug_debug_message_float(&ahrs.attitude.pitch, payload);
+	pack_debug_debug_message_float(&ahrs.attitude.yaw, payload);
+	pack_debug_debug_message_float(&imu.accel_lpf.x, payload);
+	pack_debug_debug_message_float(&imu.accel_lpf.y, payload);
+	pack_debug_debug_message_float(&imu.accel_lpf.z, payload);
+	pack_debug_debug_message_float(&imu.gyro_lpf.x, payload);
+	pack_debug_debug_message_float(&imu.gyro_lpf.y, payload);
+	pack_debug_debug_message_float(&imu.gyro_lpf.z, payload);
 }

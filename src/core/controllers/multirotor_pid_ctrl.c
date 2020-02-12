@@ -22,6 +22,7 @@
 #include "fc_task.h"
 #include "sys_time.h"
 #include "proj_config.h"
+#include "debug_link.h"
 
 extern optitrack_t optitrack;
 
@@ -328,4 +329,26 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desire
 		set_yaw_pd_setpoint(&pid_yaw, ahrs->attitude.yaw);
 		motor_halt();
 	}
+}
+
+void send_pid_debug_message(debug_msg_t *payload)
+{
+	pid_control_t pid = pid_roll;
+
+	pack_debug_debug_message_header(payload, MESSAGE_ID_PID_DEBUG);
+	pack_debug_debug_message_float(&pid.error_current, payload);
+	pack_debug_debug_message_float(&pid.error_derivative, payload);
+	pack_debug_debug_message_float(&pid.p_final, payload);
+	pack_debug_debug_message_float(&pid.i_final, payload);
+	pack_debug_debug_message_float(&pid.d_final, payload);
+	pack_debug_debug_message_float(&pid.output, payload);
+}
+
+void send_motor_debug_message(debug_msg_t *payload)
+{
+	pack_debug_debug_message_header(payload, MESSAGE_ID_MOTOR);
+	pack_debug_debug_message_float(&motor1, payload);
+	pack_debug_debug_message_float(&motor2, payload);
+	pack_debug_debug_message_float(&motor3, payload);
+	pack_debug_debug_message_float(&motor4, payload);
 }
