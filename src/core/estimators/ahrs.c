@@ -384,7 +384,7 @@ void ahrs_estimate(ahrs_t *ahrs, vector3d_f_t accel, vector3d_f_t gyro)
 	ahrs_complementary_filter_estimate(accel, gyro);
 #elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
 	madgwick_imu_ahrs(&madgwick_ahrs, -accel.x, -accel.y, accel.z,
-			  deg_to_rad(gyro.x), deg_to_rad(gyro.y), deg_to_rad(gyro.z));
+	                  deg_to_rad(gyro.x), deg_to_rad(gyro.y), deg_to_rad(gyro.z));
 	_mat_(x_posteriori)[0] = madgwick_ahrs.q[0];
 	_mat_(x_posteriori)[1] = madgwick_ahrs.q[1];
 	_mat_(x_posteriori)[2] = madgwick_ahrs.q[2];

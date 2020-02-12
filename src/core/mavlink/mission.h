@@ -1,7 +1,9 @@
 #ifndef __MISSION_H__
 #define __MISSION_H__
 
-void mav_request_autopilot_capabilities(void);
-void mav_mission_request_list(void);
+#include "mavlink.h"
+
+void mav_command_long(mavlink_message_t *received_msg);
+void mav_mission_request_list(mavlink_message_t *received_msg);
 
 #endif

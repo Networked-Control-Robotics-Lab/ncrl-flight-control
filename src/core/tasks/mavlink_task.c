@@ -11,6 +11,8 @@
 mavlink_message_t mavlink_recpt_msg;
 mavlink_status_t mavlink_recpt_status;
 
+volatile uint8_t received_mavlink_msg;
+
 void mavlink_send_task(void *param)
 {
 	float update_rate = 50.0f;
@@ -21,8 +23,8 @@ void mavlink_send_task(void *param)
 	while(1) {
 		if(prescaling_counter >= 10) {
 			send_mavlink_heartbeat();
-			send_mavlink_system_status();
-			send_mavlink_gps();
+			//send_mavlink_system_status();
+			//send_mavlink_gps();
 			prescaling_counter = 0;
 		}
 
@@ -40,7 +42,7 @@ void mavlink_send_task(void *param)
 void mavlink_recpt_task(void *param)
 {
 	while(1) {
-		char c = uart3_getc();
-		mavlink_parse_char(MAVLINK_COMM_0, (uint8_t)c, &mavlink_recpt_msg, &mavlink_recpt_status);
+		volatile char c = uart3_getc();
+		received_mavlink_msg = mavlink_parse_char(MAVLINK_COMM_1, (uint8_t)c, &mavlink_recpt_msg, &mavlink_recpt_status);
 	}
 }

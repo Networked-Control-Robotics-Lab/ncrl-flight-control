@@ -319,7 +319,7 @@ void uart3_puts(char *s, int size)
 	DMA_Cmd(DMA1_Stream3, ENABLE);
 	USART_DMACmd(USART3, USART_DMAReq_Tx, ENABLE);
 
-	xSemaphoreTake(uart3_tx_semphr, portMAX_DELAY); 
+	xSemaphoreTake(uart3_tx_semphr, portMAX_DELAY);
 }
 
 void uart6_puts(char *s, int size)

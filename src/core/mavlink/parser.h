@@ -2,6 +2,7 @@
 #define __MAVLINK_PARSER_H__
 
 #include <stdint.h>
+#include "mavlink.h"
 
 #define CMD_LEN(list) (sizeof(list) / sizeof(struct mavlink_parser_item))
 #define MAV_CMD_DEF(handler_function, id) \
@@ -10,7 +11,7 @@
 
 struct mavlink_parser_item {
 	uint16_t msg_id;
-	void (*handler)(void);
+	void (*handler)(mavlink_message_t *msg);
 };
 
 void parse_mavlink_received_msg(mavlink_message_t *msg);

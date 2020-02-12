@@ -385,8 +385,8 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 }
 
 void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *curr_pos, float *desired_pos,
-			    float *curr_vel, float *desired_vel, float *curr_accel, float *desired_accel,
-			    float *output_moments, float *output_force, bool manual_flight)
+                            float *curr_vel, float *desired_vel, float *curr_accel, float *desired_accel,
+                            float *output_moments, float *output_force, bool manual_flight)
 {
 	/* ex = x - xd */
 	float pos_error[3];
@@ -403,7 +403,7 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	_mat_(kxex_kvev_mge3_mxd_dot_dot)[0] = kpx*pos_error[0] - kvx*vel_error[0] + uav_mass * desired_accel[0];
 	_mat_(kxex_kvev_mge3_mxd_dot_dot)[1] = kpy*pos_error[1] - kvy*vel_error[1] + uav_mass * desired_accel[1];
 	_mat_(kxex_kvev_mge3_mxd_dot_dot)[2] = kpz*pos_error[2] - kvz*vel_error[2] - uav_mass * gravity_accel +
-					       uav_mass * desired_accel[2];
+	                                       uav_mass * desired_accel[2];
 
 	/* calculate the denominator of b3d */
 	float b3d_denominator; //caution: this term should not be 0
@@ -617,9 +617,9 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 			curr_vel[1] = optitrack.vel_lpf_y;
 			curr_vel[2] = optitrack.vel_lpf_z;
 			geometry_tracking_ctrl(&desired_attitude, ahrs->q, gyro, curr_pos, desired_pos,
-                            		       curr_vel, desired_vel, curr_accel, desired_accel, control_moments,
-                            		       &control_force, altitude_control_only);
-			break;		
+			                       curr_vel, desired_vel, curr_accel, desired_accel, control_moments,
+			                       &control_force, altitude_control_only);
+			break;
 		}
 #endif
 	case FLIGHT_MODE_MANUAL:

@@ -17,7 +17,7 @@ void send_mavlink_msg_to_uart(mavlink_message_t *msg)
 void send_mavlink_heartbeat(void)
 {
 	mavlink_message_t msg;
-	mavlink_msg_heartbeat_pack(1, 200, &msg, MAV_TYPE_QUADROTOR,
+	mavlink_msg_heartbeat_pack(1, 1, &msg, MAV_TYPE_QUADROTOR,
 	                           MAV_AUTOPILOT_GENERIC, MAV_MODE_STABILIZE_ARMED, 0, MAV_STATE_ACTIVE);
 	send_mavlink_msg_to_uart(&msg);
 }
@@ -28,7 +28,7 @@ void send_mavlink_system_status(void)
 	float battery_remain_percentage = 100;
 	mavlink_message_t msg;
 
-	mavlink_msg_sys_status_pack(1, 200, &msg, 0, 0, 0, 0, battery_voltage, -1,
+	mavlink_msg_sys_status_pack(1, 1, &msg, 0, 0, 0, 0, battery_voltage, -1,
 	                            battery_remain_percentage, 0, 0, 0, 0, 0, 0);
 	send_mavlink_msg_to_uart(&msg);
 }
@@ -41,7 +41,7 @@ void send_mavlink_attitude(void)
 	uint32_t curr_time_ms = (uint32_t)get_sys_time_ms();
 
 	mavlink_message_t msg;
-	mavlink_msg_attitude_pack(1, 200, &msg, curr_time_ms, roll, pitch, yaw, 0.0, 0.0, 0.0);
+	mavlink_msg_attitude_pack(1, 1, &msg, curr_time_ms, roll, pitch, yaw, 0.0, 0.0, 0.0);
 	send_mavlink_msg_to_uart(&msg);
 }
 
@@ -53,7 +53,7 @@ void send_mavlink_gps(void)
 	uint32_t curr_time_ms = (uint32_t)get_sys_time_ms();
 
 	mavlink_message_t msg;
-	mavlink_msg_global_position_int_pack(1, 220, &msg, curr_time_ms, latitude, longitude, altitude, 0,
+	mavlink_msg_global_position_int_pack(1, 1, &msg, curr_time_ms, latitude, longitude, altitude, 0,
 	                                     gps_vel_x, gps_vel_y, altitude, heading);
 	send_mavlink_msg_to_uart(&msg);
 }
@@ -63,7 +63,7 @@ void send_mavlink_current_waypoint(void)
 	int curr_waypoint = 0;
 
 	mavlink_message_t msg;
-	mavlink_msg_mission_current_pack(1, 0, &msg, curr_waypoint);
+	mavlink_msg_mission_current_pack(1, 1, &msg, curr_waypoint);
 	send_mavlink_msg_to_uart(&msg);
 }
 
@@ -72,6 +72,6 @@ void send_mavlink_reached_waypoint(void)
 	int curr_waypoint = 0;
 
 	mavlink_message_t msg;
-	mavlink_msg_mission_item_reached_pack(1, 0, &msg, curr_waypoint);
+	mavlink_msg_mission_item_reached_pack(1, 1, &msg, curr_waypoint);
 	send_mavlink_msg_to_uart(&msg);
 }

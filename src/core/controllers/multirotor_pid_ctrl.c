@@ -195,7 +195,7 @@ void position_2d_control(float current_pos, float current_vel, pid_control_t *po
 }
 
 void thrust_pwm_allocate_quadrotor(volatile float throttle_percentage, float throttle_ctrl_precentage, float roll_ctrl_precentage,
-                   float pitch_ctrl_precentage, float yaw_ctrl_precentage)
+                                   float pitch_ctrl_precentage, float yaw_ctrl_precentage)
 {
 	float percentage_to_pwm = 0.01 * (MOTOR_PULSE_MAX - MOTOR_PULSE_MIN);
 
@@ -321,7 +321,7 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desire
 		led_on(LED_R);
 		led_off(LED_B);
 		thrust_pwm_allocate_quadrotor(rc->throttle, pid_alt_vel.output, pid_roll.output,
-					      pid_pitch.output, yaw_ctrl_output);
+		                              pid_pitch.output, yaw_ctrl_output);
 	} else {
 		led_on(LED_B);
 		led_off(LED_R);
