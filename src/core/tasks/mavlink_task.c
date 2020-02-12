@@ -21,10 +21,10 @@ void mavlink_send_task(void *param)
 	int prescaling_counter = 0;
 
 	while(1) {
-		if(prescaling_counter >= 10) {
+		if(prescaling_counter == 50) {
 			send_mavlink_heartbeat();
-			//send_mavlink_system_status();
-			//send_mavlink_gps();
+			send_mavlink_system_status();
+			send_mavlink_gps();
 			prescaling_counter = 0;
 		}
 
