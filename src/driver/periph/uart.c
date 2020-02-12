@@ -352,11 +352,15 @@ void uart6_puts(char *s, int size)
 	while(DMA_GetFlagStatus(DMA2_Stream6, DMA_FLAG_TCIF6) == RESET);
 }
 
-char uart3_getc(void)
+bool uart3_getc(char *c)
 {
 	uart_c_t recpt_c;
-	while(xQueueReceive(uart3_rx_queue, &recpt_c, portMAX_DELAY) == pdFALSE);
-	return recpt_c.c;
+	if(xQueueReceive(uart3_rx_queue, &recpt_c, 0) == pdFALSE) {
+		return false;
+	} else {
+		*c = recpt_c.c;
+		return true;
+	}
 }
 
 void DMA1_Stream3_IRQHandler(void)

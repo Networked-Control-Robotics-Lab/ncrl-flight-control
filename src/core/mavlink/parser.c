@@ -18,12 +18,11 @@ enum ENUM_MAV_CMDS {
 
 /* register mavlink msg id to the handler function */
 struct mavlink_parser_item cmd_list[] = {
-	/* mission commands */
+	MAV_CMD_DEF(mav_mission_request_list, 43),
 	//MAV_CMD_DEF(mav_mission_count, 44),
 	//MAV_CMD_DEF(mav_mission_clear_all, 45),
 	//MAV_CMD_DEF(mav_mission_set_current, 41),
 	MAV_CMD_DEF(mav_command_long, 76),
-	/* onboard parameter access commands */
 	MAV_CMD_DEF(mav_param_request_list, 21),
 	//MAV_CMD_DEF(mav_param_request_read, 20),
 	//MAV_CMD_DEF(mav_param_set, 23)
@@ -31,17 +30,11 @@ struct mavlink_parser_item cmd_list[] = {
 
 void parse_mavlink_received_msg(mavlink_message_t *msg)
 {
-	if(msg->msgid == 0) return;
-
 	int i;
 	for(i = 0; i < (signed int)CMD_LEN(cmd_list); i++) {
 		if(msg->msgid == cmd_list[i].msg_id) {
 			cmd_list[i].handler(msg);
-			msg->msgid = 0; //reset mavlink msg id
 			break;
 		}
 	}
-
-	/* undefined command for parser */
-	msg->msgid = 0; //reset mavlink msg id
 }
