@@ -101,7 +101,7 @@ void task_flight_ctrl(void *param)
 		read_rc_info(&rc);
 		rc_yaw_setpoint_handler(&desired_yaw, -rc.yaw, 0.0025);
 
-#if (SELECT_HEADING == HEADING_USE_OPTITRACK)
+#if (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
 		optitrack_handler();
 #endif
 
