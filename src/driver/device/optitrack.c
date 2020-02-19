@@ -54,9 +54,15 @@ void optitrack_buf_push(uint8_t c)
 	}
 }
 
-void optitrack_handler(uint8_t c)
+void optitrack_handler(void)
 {
-	optitrack_buf_push(c);
+	/* receive a byte of optitrack packet */
+	char c;
+	if(uart7_getc(&c) == false) return;
+
+	optitrack_buf_push(c); //push received byte to the list
+
+	/* decode the packet */
 	if(c == '+' && optitrack_buf[0] == '@') {
 		/* decode optitrack message */
 		if(optitrack_serial_decoder(optitrack_buf) == 0) {
