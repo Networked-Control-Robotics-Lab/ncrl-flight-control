@@ -1,5 +1,7 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 #include "stm32f4xx_conf.h"
 #include "delay.h"
 #include "uart.h"
@@ -176,4 +178,15 @@ void mpu6500_gyro_convert_to_scale(vector3d_16_t *gyro_unscaled, vector3d_f_t *g
 	gyro_scaled->x = gyro_unscaled->x * MPU6500_GYRO_SCALE;
 	gyro_scaled->y = gyro_unscaled->y * MPU6500_GYRO_SCALE;
 	gyro_scaled->z = gyro_unscaled->z * MPU6500_GYRO_SCALE;
+}
+
+void debug_print_mpu6500_accel(void)
+{
+	char s[100] = {0};
+
+	sprintf(s, "[accel] x:%d, y:%d, z:%d\n\r", mpu6500->accel_unscaled.x,
+		mpu6500->accel_unscaled.y, mpu6500->accel_unscaled.z);
+
+	uart3_puts(s, strlen(s));
+	blocked_delay_ms(100);
 }
