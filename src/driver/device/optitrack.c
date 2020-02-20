@@ -30,6 +30,7 @@ bool optitrack_available(void)
 	//timeout if no data available more than 300ms
 	float current_time = get_sys_time_ms();
 	if((current_time - optitrack.time_now) > 300) {
+		led_off(LED_G);
 		return false;
 	}
 	return true;
@@ -58,16 +59,16 @@ void optitrack_handler(void)
 {
 	/* receive a byte of optitrack packet */
 	char c;
-	if(uart7_getc(&c) == false) return;
+	while(uart7_getc(&c) == true) {
+		optitrack_buf_push(c); //push received byte to the list
 
-	optitrack_buf_push(c); //push received byte to the list
-
-	/* decode the packet */
-	if(c == '+' && optitrack_buf[0] == '@') {
-		/* decode optitrack message */
-		if(optitrack_serial_decoder(optitrack_buf) == 0) {
-			led_on(LED_G);
-			optitrack_buf_pos = 0; //reset position pointer
+		/* decode the packet */
+		if(c == '+' && optitrack_buf[0] == '@') {
+			/* decode optitrack message */
+			if(optitrack_serial_decoder(optitrack_buf) == 0) {
+				led_on(LED_G);
+				optitrack_buf_pos = 0; //reset position pointer
+			}
 		}
 	}
 }
