@@ -185,7 +185,7 @@ void debug_print_mpu6500_accel(void)
 	char s[100] = {0};
 
 	sprintf(s, "[accel] x:%d, y:%d, z:%d\n\r", mpu6500->accel_unscaled.x,
-		mpu6500->accel_unscaled.y, mpu6500->accel_unscaled.z);
+	        mpu6500->accel_unscaled.y, mpu6500->accel_unscaled.z);
 
 	uart3_puts(s, strlen(s));
 	blocked_delay_ms(100);

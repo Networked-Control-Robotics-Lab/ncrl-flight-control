@@ -1,6 +1,8 @@
 #ifndef __PROJ_CONFIG_H__
 #define __PROJ_CONFIG_H__
 
+#define DO_CALIBRATION 0 //check line 42 of fc_task.c
+
 /* uav info */
 #define UAV_ID 0
 

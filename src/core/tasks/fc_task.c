@@ -33,6 +33,27 @@ imu_t imu;
 ahrs_t ahrs;
 radio_t rc;
 
+void system_calibration_loop(void)
+{
+	led_off(LED_R);
+	led_on(LED_G);
+	led_off(LED_B);
+
+	/* this is still a rapid prototype of system calibration function,
+	 * run the calibration by uncomment the one of the following */
+	while(1) {
+		/* (1) imu calibration */
+		//debug_print_mpu6500_accel();
+
+		/* (2) sbus calibration */
+		//debug_print_rc_val();
+
+		/* (3) debug print of radio command */
+		read_rc(&rc);
+		//debug_print_rc_info(&rc);
+	}
+}
+
 void flight_ctl_semaphore_handler(void)
 {
 	static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
@@ -92,6 +113,10 @@ void task_flight_ctrl(void *param)
 	rc_safety_protection();
 
 	float desired_yaw = 0.0f;
+
+#if (DO_CALIBRATION != 0)
+	system_calibration_loop();
+#endif
 
 	while(1) {
 		while(xSemaphoreTake(flight_ctl_semphr, 9) == pdFALSE);
