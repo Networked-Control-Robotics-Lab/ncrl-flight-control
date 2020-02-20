@@ -391,7 +391,7 @@ void ahrs_estimate(ahrs_t *ahrs, vector3d_f_t accel, vector3d_f_t gyro)
 	_mat_(x_posteriori)[3] = madgwick_ahrs.q[3];
 #endif
 
-#if (SELECT_HEADING == HEADING_USE_OPTITRACK)
+#if (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
 	reset_quaternion_yaw_angle(_mat_(x_posteriori));
 	align_ahrs_with_optitrack_yaw(_mat_(x_posteriori));
 #endif
