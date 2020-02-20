@@ -49,7 +49,7 @@ void system_calibration_loop(void)
 		//debug_print_rc_val();
 
 		/* (3) debug print of radio command */
-		read_rc(&rc);
+		//read_rc(&rc);
 		//debug_print_rc_info(&rc);
 	}
 }
