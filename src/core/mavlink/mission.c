@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "mavlink.h"
 #include "../mavlink/publisher.h"
+#include "ctrl_common.h"
 
 static void mavlink_send_capability(void)
 {
@@ -46,4 +47,24 @@ void mav_mission_request_list(mavlink_message_t *received_msg)
 	uint16_t waypoint_cnt = 0;
 	mavlink_msg_mission_count_pack_chan(1, 1, MAVLINK_COMM_1, &msg, 255, 0, waypoint_cnt, MAV_MISSION_TYPE_MISSION);
 	send_mavlink_msg_to_uart(&msg);
+}
+
+void mav_set_position_target_local_ned(mavlink_message_t *received_msg)
+{
+	mavlink_set_position_target_local_ned_t ned_target_cmd;
+	mavlink_msg_set_position_target_local_ned_decode(received_msg, &ned_target_cmd);
+
+	float pos_d[3], vel_d[3], accel_d[3], yaw;
+	pos_d[0] = ned_target_cmd.x;
+	pos_d[1] = ned_target_cmd.y;
+	pos_d[2] = ned_target_cmd.z;
+	vel_d[0] = ned_target_cmd.vx;
+	vel_d[1] = ned_target_cmd.vy;
+	vel_d[2] = ned_target_cmd.vz;
+	accel_d[0] = ned_target_cmd.afx;
+	accel_d[1] = ned_target_cmd.afy;
+	accel_d[2] = ned_target_cmd.afz;
+	yaw = ned_target_cmd.yaw;
+
+	set_tracking_ctrl_setpoint(pos_d, vel_d, accel_d, yaw);
 }
