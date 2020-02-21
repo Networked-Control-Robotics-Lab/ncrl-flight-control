@@ -11,15 +11,16 @@
 #include "sbus_receiver.h"
 #include "optitrack.h"
 
-#define UART_QUEUE_SIZE 500
+#define UART3_QUEUE_SIZE 500
+#define UART7_QUEUE_SIZE 500
 
 typedef struct {
 	char c;
 } uart_c_t;
 
 SemaphoreHandle_t uart3_tx_semphr;
-QueueHandle_t uart3_rx_queue;
 
+QueueHandle_t uart3_rx_queue;
 QueueHandle_t uart7_rx_queue;
 
 /*
@@ -54,9 +55,7 @@ void uart1_init(int baudrate)
 		.USART_Parity = USART_Parity_No
 	};
 	USART_Init(USART1, &USART_InitStruct);
-
 	USART_Cmd(USART1, ENABLE);
-
 	USART_ClearFlag(USART1, USART_FLAG_TC);
 }
 
@@ -69,7 +68,7 @@ void uart1_init(int baudrate)
 void uart3_init(int baudrate)
 {
 	uart3_tx_semphr = xSemaphoreCreateBinary();
-	uart3_rx_queue = xQueueCreate(UART_QUEUE_SIZE, sizeof(uart_c_t));
+	uart3_rx_queue = xQueueCreate(UART3_QUEUE_SIZE, sizeof(uart_c_t));
 
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
@@ -95,9 +94,7 @@ void uart3_init(int baudrate)
 		.USART_Parity = USART_Parity_No
 	};
 	USART_Init(USART3, &USART_InitStruct);
-
 	USART_Cmd(USART3, ENABLE);
-
 	USART_ClearFlag(USART3, USART_FLAG_TC);
 
 	NVIC_InitTypeDef NVIC_InitStruct = {
@@ -145,7 +142,6 @@ void uart4_init(int baudrate)
 		.USART_HardwareFlowControl = USART_HardwareFlowControl_None
 	};
 	USART_Init(UART4, &USART_InitStruct);
-
 	USART_Cmd(UART4, ENABLE);
 
 	NVIC_InitTypeDef NVIC_InitStruct = {
@@ -155,7 +151,6 @@ void uart4_init(int baudrate)
 		.NVIC_IRQChannelCmd = ENABLE
 	};
 	NVIC_Init(&NVIC_InitStruct);
-
 	USART_ITConfig(UART4, USART_IT_RXNE, ENABLE);
 }
 
@@ -191,9 +186,7 @@ void uart6_init(int baudrate)
 		.USART_Parity = USART_Parity_No
 	};
 	USART_Init(USART6, &USART_InitStruct);
-
 	USART_Cmd(USART6, ENABLE);
-
 	USART_ClearFlag(USART6, USART_FLAG_TC);
 }
 
@@ -205,7 +198,7 @@ void uart6_init(int baudrate)
  */
 void uart7_init(int baudrate)
 {
-	uart7_rx_queue = xQueueCreate(UART_QUEUE_SIZE, sizeof(uart_c_t));
+	uart7_rx_queue = xQueueCreate(UART7_QUEUE_SIZE, sizeof(uart_c_t));
 
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART7, ENABLE);
@@ -231,10 +224,7 @@ void uart7_init(int baudrate)
 	};
 	USART_Init(UART7, &USART_InitStruct);
 	USART_Cmd(UART7, ENABLE);
-
 	USART_ClearFlag(UART7, USART_FLAG_TC);
-
-	USART_ITConfig(UART7, USART_IT_RXNE, ENABLE);
 
 	NVIC_InitTypeDef NVIC_InitStruct = {
 		.NVIC_IRQChannel = UART7_IRQn,
@@ -243,6 +233,7 @@ void uart7_init(int baudrate)
 		.NVIC_IRQChannelCmd = ENABLE
 	};
 	NVIC_Init(&NVIC_InitStruct);
+	USART_ITConfig(UART7, USART_IT_RXNE, ENABLE);
 }
 
 void uart_putc(USART_TypeDef *uart, char c)
