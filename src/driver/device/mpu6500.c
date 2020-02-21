@@ -184,6 +184,9 @@ void mpu6500_int_handler(void)
 	lpf(mpu6500->accel_raw.x, &(mpu6500->accel_lpf.x), 0.03);
 	lpf(mpu6500->accel_raw.y, &(mpu6500->accel_lpf.y), 0.03);
 	lpf(mpu6500->accel_raw.z, &(mpu6500->accel_lpf.z), 0.03);
+	mpu6500->gyro_lpf.x = mpu6500->gyro_raw.x;
+	mpu6500->gyro_lpf.y = mpu6500->gyro_raw.y;
+	mpu6500->gyro_lpf.z = mpu6500->gyro_raw.z;
 }
 
 void debug_print_mpu6500_accel(void)
