@@ -9,42 +9,36 @@
 #include "sys_time.h"
 
 void parse_sbus(uint8_t *raw_buff, uint16_t *rc_val);
-void map_rc(radio_t *rc);
 void debug_print_raw_sbus(void);
 void debug_print_rc_val(void);
 void debug_print_rc_info(radio_t *rc);
 
 uint8_t sbus_buff[25] = {0};
 int sbus_cnt = 0;
-
 uint16_t rc_val[15];
 
-void read_rc(radio_t *rc)
+void sbus_rc_handler(uint8_t byte)
 {
 	static float curr_time_ms;
 	static float last_time_ms;
 
-	char c;
-	while(uart4_getc(&c) == true) {
-		curr_time_ms = get_sys_time_ms();
+	curr_time_ms = get_sys_time_ms();
 
-		/* use reception interval time to deteminate
-		   whether it is a new s-bus frame */
-		if((curr_time_ms - last_time_ms) > 2.0f) {
-			sbus_cnt = 0;
-		}
-
-		sbus_buff[sbus_cnt] = c;
-		sbus_cnt++;
-
-		if((sbus_cnt == 25) && (sbus_buff[0] == 0x0f) && (sbus_buff[24] == 0x00)) {
-			parse_sbus((uint8_t *)sbus_buff, (uint16_t *)rc_val);
-			map_rc(rc);
-			sbus_cnt = 0;
-		}
-
-		last_time_ms = curr_time_ms;
+	/* use reception interval time to deteminate
+	   whether it is a new s-bus frame */
+	if((curr_time_ms - last_time_ms) > 2.0f) {
+		sbus_cnt = 0;
 	}
+
+	sbus_buff[sbus_cnt] = byte;
+	sbus_cnt++;
+
+	if((sbus_cnt == 25) && (sbus_buff[0] == 0x0f) && (sbus_buff[24] == 0x00)) {
+		parse_sbus((uint8_t *)sbus_buff, (uint16_t *)rc_val);
+		sbus_cnt = 0;
+	}
+
+	last_time_ms = curr_time_ms;
 }
 
 void parse_sbus(uint8_t *raw_buff, uint16_t *rc_val)
@@ -70,7 +64,7 @@ void parse_sbus(uint8_t *raw_buff, uint16_t *rc_val)
 	//rc_val[15] = ((raw_buff[21] >> 5 | raw_buff[22] << 3) & 0x07ff);
 }
 
-void map_rc(radio_t *rc)
+void read_rc_info(radio_t *rc)
 {
 	float throttle_raw = (float)rc_val[2]; //channel 3
 	float roll_raw = (float)rc_val[0]; //channel 1

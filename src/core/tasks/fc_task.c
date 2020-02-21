@@ -78,7 +78,7 @@ void rc_safety_protection(void)
 			led_toggle(LED_R);
 			time_last = time_current;
 		}
-		read_rc(&rc);
+		read_rc_info(&rc);
 	} while(rc_safety_check(&rc) == 1);
 }
 
@@ -123,8 +123,7 @@ void task_flight_ctrl(void *param)
 
 		//gpio_toggle(MOTOR7_FREQ_TEST);
 
-		read_rc(&rc);
-
+		read_rc_info(&rc);
 		rc_yaw_setpoint_handler(&desired_yaw, -rc.yaw, 0.0025);
 
 #if (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
