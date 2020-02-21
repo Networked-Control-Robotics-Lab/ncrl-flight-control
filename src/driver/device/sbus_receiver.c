@@ -9,9 +9,6 @@
 #include "sys_time.h"
 
 void parse_sbus(uint8_t *raw_buff, uint16_t *rc_val);
-void debug_print_raw_sbus(void);
-void debug_print_rc_val(void);
-void debug_print_rc_info(radio_t *rc);
 
 uint8_t sbus_buff[25] = {0};
 int sbus_cnt = 0;
@@ -64,7 +61,7 @@ void parse_sbus(uint8_t *raw_buff, uint16_t *rc_val)
 	//rc_val[15] = ((raw_buff[21] >> 5 | raw_buff[22] << 3) & 0x07ff);
 }
 
-void read_rc_info(radio_t *rc)
+void read_rc(radio_t *rc)
 {
 	float throttle_raw = (float)rc_val[2]; //channel 3
 	float roll_raw = (float)rc_val[0]; //channel 1
@@ -145,28 +142,35 @@ void debug_print_rc_val(void)
 	blocked_delay_ms(100);
 }
 
-void debug_print_rc_info(radio_t *rc)
+void debug_print_rc_info(void)
 {
+	radio_t rc;
+	read_rc(&rc);
+
 	char s[300] = {0};
 	char *manual_mode_s = "[manual mode]";
-	char *halting_mode_s = "[halting mode]";
+	char *halting_mode_s = "[hovering mode]";
 	char *navigation_mode_s = "[navigation mode]";
 	char *flight_mode_s = 0;
 
-	if(rc->flight_mode == FLIGHT_MODE_MANUAL) {
+	switch(rc.flight_mode) {
+	case FLIGHT_MODE_MANUAL:
 		flight_mode_s = manual_mode_s;
-	} else if(rc->flight_mode == FLIGHT_MODE_HOVERING) {
+		break;
+	case FLIGHT_MODE_HOVERING:
 		flight_mode_s = halting_mode_s;
-	} else if(rc->flight_mode == FLIGHT_MODE_NAVIGATION) {
+		break;
+	case FLIGHT_MODE_NAVIGATION:
 		flight_mode_s = navigation_mode_s;
+		break;
 	}
 
-	if(rc->safety == true) {
+	if(rc.safety == true) {
 		sprintf(s, "[disarmed]%s roll:%lf,pitch:%lf,yaw:%lf,throttle:%lf\n\r",
-		        flight_mode_s, rc->roll, rc->pitch, rc->yaw, rc->throttle);
+		        flight_mode_s, rc.roll, rc.pitch, rc.yaw, rc.throttle);
 	} else {
 		sprintf(s, "[armed]%s roll:%lf,pitch:%lf,yaw:%lf,throttle:%lf\n\r",
-		        flight_mode_s, rc->roll, rc->pitch, rc->yaw, rc->throttle);
+		        flight_mode_s, rc.roll, rc.pitch, rc.yaw, rc.throttle);
 	}
 	uart3_puts(s, strlen(s));
 	blocked_delay_ms(100);

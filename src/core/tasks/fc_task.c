@@ -49,8 +49,7 @@ void system_calibration_loop(void)
 		//debug_print_rc_val();
 
 		/* (3) debug print of radio command */
-		//read_rc(&rc);
-		//debug_print_rc_info(&rc);
+		//debug_print_rc_info();
 	}
 }
 
@@ -78,7 +77,7 @@ void rc_safety_protection(void)
 			led_toggle(LED_R);
 			time_last = time_current;
 		}
-		read_rc_info(&rc);
+		read_rc(&rc);
 	} while(rc_safety_check(&rc) == 1);
 }
 
@@ -123,7 +122,7 @@ void task_flight_ctrl(void *param)
 
 		//gpio_toggle(MOTOR7_FREQ_TEST);
 
-		read_rc_info(&rc);
+		read_rc(&rc);
 		rc_yaw_setpoint_handler(&desired_yaw, -rc.yaw, 0.0025);
 
 #if (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
