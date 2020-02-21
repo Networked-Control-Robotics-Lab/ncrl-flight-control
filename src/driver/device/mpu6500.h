@@ -62,10 +62,6 @@
 void mpu6500_init(imu_t *imu);
 void mpu6500_int_handler(void);
 
-void mpu6500_fix_bias(vector3d_16_t *accel_unscaled, vector3d_16_t *gyro_unscaled);
-void mpu6500_accel_convert_to_scale(vector3d_16_t *accel_unscaled, vector3d_f_t *accel_scaled);
-void mpu6500_gyro_convert_to_scale(vector3d_16_t *gyro_unscaled, vector3d_f_t *gyro_scaled);
-
 void debug_print_mpu6500_accel(void);
 
 #endif
