@@ -1,8 +1,11 @@
 #include <stdint.h>
+#include <math.h>
 #include "delay.h"
 #include "ms5611.h"
 
 uint16_t c1, c2, c3, c4, c5, c6;
+
+float press_sea_level;
 
 void ms5611_reset(void)
 {
@@ -74,3 +77,19 @@ void ms5611_read_pressure(int32_t *temp, int32_t *pressure)
 	sens = (int64_t)c1 * (1 << 15) + ((int64_t)c3 * dt) / (1 << 8);
 	*pressure = ((d1 * sens) / (1 << 21) - off) / (1 << 15);
 }
+
+#if 0
+float ms5611_get_relative_height(void)
+{
+	float press_now, temp_now;
+	ms5611_read_pressure(&temp_now, &press_now);
+	return 44330.0f * (1.0f - pow(press_now / press_sea_level, 0.1902949f));
+}
+
+void m5611_set_sea_level(void)
+{
+	float press, temp;
+	ms5611_read_pressure(&temp, &press);
+	press_sea_level = press;
+}
+#endif
