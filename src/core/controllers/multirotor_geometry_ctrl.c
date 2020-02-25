@@ -63,9 +63,6 @@ float kvx, kvy, kvz;
 float yaw_rate_ctrl_gain;
 float uav_weight;
 
-float geometry_ctrl_feedback_moments[3];
-float geometry_ctrl_feedfoward_moments[3];
-
 float uav_dynamics_m[3] = {0.0f}; //M = (J * W_dot) + (W X JW)
 float uav_dynamics_m_rot_frame[3] = {0.0f}; //M_rot = (J * W_dot)
 
@@ -367,14 +364,6 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0] + _mat_(inertia_effect)[0];
 	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1] + _mat_(inertia_effect)[1];
 	output_moments[2] = -_krz*_mat_(eR)[2] -_kwz*_mat_(eW)[2] + _mat_(inertia_effect)[2];
-
-	/* XXX: debug print, refine this code! */
-	geometry_ctrl_feedback_moments[0] = (-krx*_mat_(eR)[0] -kwx*_mat_(eW)[0]) * 0.0098f; //[gram force * m] to [newton * m]
-	geometry_ctrl_feedback_moments[1] = (-krx*_mat_(eR)[1] -kwx*_mat_(eW)[1]) * 0.0098f;
-	geometry_ctrl_feedback_moments[2] = (-krx*_mat_(eR)[2] -kwx*_mat_(eW)[2]) * 0.0098f;
-	geometry_ctrl_feedfoward_moments[0] = _mat_(inertia_effect)[0];
-	geometry_ctrl_feedfoward_moments[1] = _mat_(inertia_effect)[1];
-	geometry_ctrl_feedfoward_moments[2] = _mat_(inertia_effect)[2];
 }
 
 void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *curr_pos, float *desired_pos,
@@ -644,6 +633,18 @@ void send_geometry_ctrl_debug(debug_msg_t *payload)
 	float wx_error = rad_to_deg(_mat_(eW)[0]);
 	float wy_error = rad_to_deg(_mat_(eW)[1]);
 	float wz_error = rad_to_deg(_mat_(eW)[2]);
+
+	float geometry_ctrl_feedback_moments[3];
+	float geometry_ctrl_feedfoward_moments[3];
+
+	/* calculate the feedback moment and convert the unit from [gram force * m] to [newton * m] */
+	geometry_ctrl_feedback_moments[0] = (-krx*_mat_(eR)[0] -kwx*_mat_(eW)[0]) * 0.0098f;
+	geometry_ctrl_feedback_moments[1] = (-krx*_mat_(eR)[1] -kwx*_mat_(eW)[1]) * 0.0098f;
+	geometry_ctrl_feedback_moments[2] = (-krx*_mat_(eR)[2] -kwx*_mat_(eW)[2]) * 0.0098f;
+
+	geometry_ctrl_feedfoward_moments[0] = _mat_(inertia_effect)[0];
+	geometry_ctrl_feedfoward_moments[1] = _mat_(inertia_effect)[1];
+	geometry_ctrl_feedfoward_moments[2] = _mat_(inertia_effect)[2];
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_GEOMETRY_DEBUG);
 	pack_debug_debug_message_float(&roll_error, payload);
