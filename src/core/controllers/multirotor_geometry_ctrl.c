@@ -55,7 +55,6 @@ MAT_ALLOC(kxex_kvev_mge3_mxd_dot_dot, 3, 1);
 MAT_ALLOC(b1d, 3, 1);
 MAT_ALLOC(b2d, 3, 1);
 MAT_ALLOC(b3d, 3, 1);
-MAT_ALLOC(e3, 3, 1);
 
 float krx, kry, krz;
 float kwx, kwy, kwz;
@@ -109,11 +108,6 @@ void geometry_ctrl_init(void)
 	MAT_INIT(b1d, 3, 1);
 	MAT_INIT(b2d, 3, 1);
 	MAT_INIT(b3d, 3, 1);
-	MAT_INIT(e3, 3, 1);
-
-	_mat_(e3)[0] = 0.0f;
-	_mat_(e3)[1] = 0.0f;
-	_mat_(e3)[2] = 1.0f;
 
 	_mat_(J)[0*3 + 0] = 0.01466f; //Ixx [kg*m^2]
 	_mat_(J)[1*3 + 1] = 0.01466f; //Iyy [kg*m^2]
@@ -457,7 +451,9 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	}
 
 	/* R * e3 */
-	MAT_MULT(&R, &e3, &Re3);
+	_mat_(Re3)[0] = _mat_(R)[0*3 + 2];
+	_mat_(Re3)[1] = _mat_(R)[1*3 + 2];
+	_mat_(Re3)[2] = _mat_(R)[2*3 + 2];
 	/* f = -(-kx * ex - kv * ev - mge3 + m * x_d_dot_dot) . (R * e3) */
 	float neg_kxex_kvev_mge3_mxd_dot_dot[3];
 	neg_kxex_kvev_mge3_mxd_dot_dot[0] = -_mat_(kxex_kvev_mge3_mxd_dot_dot)[0];
@@ -622,7 +618,9 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	case FLIGHT_MODE_MANUAL:
 	default:
 		geometry_manual_ctrl(&desired_attitude, ahrs->q, gyro, control_moments, optitrack_present);
-		control_force = 4.0f * convert_motor_cmd_to_thrust(rc->throttle / 100.0f); //thrust from rc FIXME
+
+		/* generate total thrust for quadrotor using rc in manual mode */
+		control_force = 4.0f * convert_motor_cmd_to_thrust(rc->throttle / 100.0f); //FIXME
 	}
 
 	if(rc->safety == false) {
