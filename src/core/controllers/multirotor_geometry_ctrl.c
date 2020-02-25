@@ -392,18 +392,20 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	float pos_error[3];
 	pos_error[0] = curr_pos[0] - desired_pos[0];
 	pos_error[1] = curr_pos[1] - desired_pos[1];
-	pos_error[2] = curr_pos[2] - desired_pos[2];
+	//swap the order since we actually feed the positive altitude (or negative z of NED frame) here
+	pos_error[2] = desired_pos[2] - curr_pos[2];
 
 	/* ev = v - vd */
 	float vel_error[3];
 	vel_error[0] = curr_vel[0] - desired_vel[0];
 	vel_error[1] = curr_vel[1] - desired_vel[1];
-	vel_error[2] = curr_vel[2] - desired_vel[2];
+	//swap the order since we actually feed the positive altitude (or negative z of NED frame) here
+	vel_error[2] = desired_vel[2] - curr_vel[2];
 
-	_mat_(kxex_kvev_mge3_mxd_dot_dot)[0] = kpx*pos_error[0] - kvx*vel_error[0] + uav_mass * desired_accel[0];
-	_mat_(kxex_kvev_mge3_mxd_dot_dot)[1] = kpy*pos_error[1] - kvy*vel_error[1] + uav_mass * desired_accel[1];
-	_mat_(kxex_kvev_mge3_mxd_dot_dot)[2] = kpz*pos_error[2] - kvz*vel_error[2] - uav_mass * gravity_accel +
-	                                       uav_mass * desired_accel[2];
+	_mat_(kxex_kvev_mge3_mxd_dot_dot)[0] = -kpx*pos_error[0] - kvx*vel_error[0] + uav_mass * desired_accel[0];
+	_mat_(kxex_kvev_mge3_mxd_dot_dot)[1] = -kpy*pos_error[1] - kvy*vel_error[1] + uav_mass * desired_accel[1];
+	_mat_(kxex_kvev_mge3_mxd_dot_dot)[2] = -kpz*pos_error[2] - kvz*vel_error[2] + uav_mass * desired_accel[2] -
+					       uav_mass * gravity_accel;
 
 	/* calculate the denominator of b3d */
 	float b3d_denominator; //caution: this term should not be 0
@@ -561,7 +563,7 @@ void rc_mode_change_handler_geometry(radio_t *rc)
 	if(rc->flight_mode == FLIGHT_MODE_NAVIGATION && flight_mode_last != FLIGHT_MODE_NAVIGATION) {
 		desired_pos[0] = 0.0f;
 		desired_pos[1] = 0.0f;
-		desired_pos[2] = 0.0f;
+		desired_pos[2] = optitrack.pos_z;
 		desired_vel[0] = 0.0f;
 		desired_vel[1] = 0.0f;
 		desired_vel[2] = 0.0f;
@@ -599,14 +601,11 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	gyro[1] = deg_to_rad(imu->gyro_lpf.y);
 	gyro[2] = deg_to_rad(imu->gyro_lpf.z);
 
-	float throttle_force = convert_motor_cmd_to_thrust(rc->throttle / 100.0f); //FIXME
-
 	//estimate_uav_dynamics(gyro, uav_dynamics_m, uav_dynamics_m_rot_frame);
 
 	float control_moments[3] = {0.0f}, control_force = 0.0f;
 
 	switch(rc->flight_mode) {
-#if 0
 	case FLIGHT_MODE_HOVERING:
 	case FLIGHT_MODE_NAVIGATION:
 		if(optitrack_present == true) {
@@ -621,16 +620,16 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 			                       &control_force, altitude_control_only);
 			break;
 		}
-#endif
 	case FLIGHT_MODE_MANUAL:
 	default:
 		geometry_manual_ctrl(&desired_attitude, ahrs->q, gyro, control_moments, optitrack_present);
+		control_force = convert_motor_cmd_to_thrust(rc->throttle / 100.0f); //thrust from rc FIXME
 	}
 
 	if(rc->safety == false) {
 		led_on(LED_R);
 		led_off(LED_B);
-		thrust_force_allocate_quadrotor(control_moments, throttle_force);
+		thrust_force_allocate_quadrotor(control_moments, control_force);
 	} else {
 		led_on(LED_B);
 		led_off(LED_R);
