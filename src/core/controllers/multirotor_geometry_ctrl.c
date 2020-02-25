@@ -17,7 +17,6 @@
 #include "debug_link.h"
 
 #define dt 0.0025 //[s]
-#define gravity_accel 9.8 //gravity acceleration [m/s^2]
 #define MOTOR_TO_CG_LENGTH 16.25f //[cm]
 #define MOTOR_TO_CG_LENGTH_M (MOTOR_TO_CG_LENGTH * 0.01) //[m]
 #define COEFFICIENT_YAW 1.0f
@@ -63,7 +62,7 @@ float kwx, kwy, kwz;
 float kpx, kpy, kpz;
 float kvx, kvy, kvz;
 float yaw_rate_ctrl_gain;
-float uav_mass;
+float uav_weight;
 
 float geometry_ctrl_feedback_moments[3];
 float geometry_ctrl_feedfoward_moments[3];
@@ -120,7 +119,7 @@ void geometry_ctrl_init(void)
 	_mat_(J)[1*3 + 1] = 0.01466f; //Iyy [kg*m^2]
 	_mat_(J)[2*3 + 2] = 0.02848f; //Izz [kg*m^2]
 
-	uav_mass = 1000.0; //[g]
+	uav_weight = 1000.0f; //[g]
 
 	/* attitude controller gains of geometry */
 	krx = 300.0f;
@@ -134,10 +133,10 @@ void geometry_ctrl_init(void)
 	/* tracking controller gains*/
 	kpx = 0.0f;
 	kpy = 0.0f;
-	kpz = 0.0f;
+	kpz = 20.0f;
 	kvx = 0.0f;
 	kvy = 0.0f;
-	kvz = 0.0f;
+	kvz = 3.0f;
 }
 
 void euler_to_rotation_matrix(euler_t *euler, float *r, float *r_transpose)
@@ -402,10 +401,9 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	//swap the order since we actually feed the positive altitude (or negative z of NED frame) here
 	vel_error[2] = desired_vel[2] - curr_vel[2];
 
-	_mat_(kxex_kvev_mge3_mxd_dot_dot)[0] = -kpx*pos_error[0] - kvx*vel_error[0] + uav_mass * desired_accel[0];
-	_mat_(kxex_kvev_mge3_mxd_dot_dot)[1] = -kpy*pos_error[1] - kvy*vel_error[1] + uav_mass * desired_accel[1];
-	_mat_(kxex_kvev_mge3_mxd_dot_dot)[2] = -kpz*pos_error[2] - kvz*vel_error[2] + uav_mass * desired_accel[2] -
-					       uav_mass * gravity_accel;
+	_mat_(kxex_kvev_mge3_mxd_dot_dot)[0] = -kpx*pos_error[0] - kvx*vel_error[0];
+	_mat_(kxex_kvev_mge3_mxd_dot_dot)[1] = -kpy*pos_error[1] - kvy*vel_error[1];
+	_mat_(kxex_kvev_mge3_mxd_dot_dot)[2] = -kpz*pos_error[2] - kvz*vel_error[2] - uav_weight;
 
 	/* calculate the denominator of b3d */
 	float b3d_denominator; //caution: this term should not be 0
@@ -510,36 +508,37 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	output_moments[2] = -krz*_mat_(eR)[2] -kwz*_mat_(eW)[2] + _mat_(inertia_effect)[2];
 }
 
-void thrust_force_allocate_quadrotor(float *moments, float force_basis)
+#define l_div_4_pos (+0.25f * (1.0f / MOTOR_TO_CG_LENGTH_M))
+#define l_div_4_neg (-0.25f * (1.0f / MOTOR_TO_CG_LENGTH_M))
+#define b_div_4_pos (+0.25f * (1.0f / COEFFICIENT_YAW))
+#define b_div_4_neg (-0.25f * (1.0f / COEFFICIENT_YAW))
+void thrust_force_allocate_quadrotor(float *moment, float total_force)
 {
-	float motors[4], forces[4];
+	float motor_pwm[4], motor_force[4];
 
-	static float l_div_4_pos = +0.25f * (1.0f / MOTOR_TO_CG_LENGTH_M);
-	static float l_div_4_neg = -0.25f * (1.0f / MOTOR_TO_CG_LENGTH_M);
-	static float b_div_4_pos = +0.25f * (1.0f / COEFFICIENT_YAW);
-	static float b_div_4_neg = -0.25f * (1.0f / COEFFICIENT_YAW);
+	float distributed_force = total_force *= 0.25; //split force to 4 motors
 
-	forces[0] = l_div_4_neg * moments[0] + l_div_4_pos * moments[1] + b_div_4_neg * moments[2] + force_basis;
-	forces[1] = l_div_4_pos * moments[0] + l_div_4_pos * moments[1] + b_div_4_pos * moments[2] + force_basis;
-	forces[2] = l_div_4_pos * moments[0] + l_div_4_neg * moments[1] + b_div_4_neg * moments[2] + force_basis;
-	forces[3] = l_div_4_neg * moments[0] + l_div_4_neg * moments[1] + b_div_4_pos * moments[2] + force_basis;
+	motor_force[0] = l_div_4_neg * moment[0] + l_div_4_pos * moment[1] + b_div_4_neg * moment[2] + distributed_force;
+	motor_force[1] = l_div_4_pos * moment[0] + l_div_4_pos * moment[1] + b_div_4_pos * moment[2] + distributed_force;
+	motor_force[2] = l_div_4_pos * moment[0] + l_div_4_neg * moment[1] + b_div_4_neg * moment[2] + distributed_force;
+	motor_force[3] = l_div_4_neg * moment[0] + l_div_4_neg * moment[1] + b_div_4_pos * moment[2] + distributed_force;
 
-	/* assign motor pwm */
+	/* convert force to pwm */
 	float percentage_to_pwm = (MOTOR_PULSE_MAX - MOTOR_PULSE_MIN);
-	motors[0] = convert_motor_thrust_to_cmd(forces[0]) * percentage_to_pwm + MOTOR_PULSE_MIN;
-	motors[1] = convert_motor_thrust_to_cmd(forces[1]) * percentage_to_pwm + MOTOR_PULSE_MIN;
-	motors[2] = convert_motor_thrust_to_cmd(forces[2]) * percentage_to_pwm + MOTOR_PULSE_MIN;
-	motors[3] = convert_motor_thrust_to_cmd(forces[3]) * percentage_to_pwm + MOTOR_PULSE_MIN;
+	motor_pwm[0] = convert_motor_thrust_to_cmd(motor_force[0]) * percentage_to_pwm + MOTOR_PULSE_MIN;
+	motor_pwm[1] = convert_motor_thrust_to_cmd(motor_force[1]) * percentage_to_pwm + MOTOR_PULSE_MIN;
+	motor_pwm[2] = convert_motor_thrust_to_cmd(motor_force[2]) * percentage_to_pwm + MOTOR_PULSE_MIN;
+	motor_pwm[3] = convert_motor_thrust_to_cmd(motor_force[3]) * percentage_to_pwm + MOTOR_PULSE_MIN;
 
-	bound_float(&motors[0], MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
-	bound_float(&motors[1], MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
-	bound_float(&motors[2], MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
-	bound_float(&motors[3], MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
+	bound_float(&motor_pwm[0], MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
+	bound_float(&motor_pwm[1], MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
+	bound_float(&motor_pwm[2], MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
+	bound_float(&motor_pwm[3], MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
 
-	set_motor_pwm_pulse(MOTOR1, (uint16_t)(motors[0]));
-	set_motor_pwm_pulse(MOTOR2, (uint16_t)(motors[1]));
-	set_motor_pwm_pulse(MOTOR3, (uint16_t)(motors[2]));
-	set_motor_pwm_pulse(MOTOR4, (uint16_t)(motors[3]));
+	set_motor_pwm_pulse(MOTOR1, (uint16_t)(motor_pwm[0]));
+	set_motor_pwm_pulse(MOTOR2, (uint16_t)(motor_pwm[1]));
+	set_motor_pwm_pulse(MOTOR3, (uint16_t)(motor_pwm[2]));
+	set_motor_pwm_pulse(MOTOR4, (uint16_t)(motor_pwm[3]));
 }
 
 void rc_mode_change_handler_geometry(radio_t *rc)
@@ -623,7 +622,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	case FLIGHT_MODE_MANUAL:
 	default:
 		geometry_manual_ctrl(&desired_attitude, ahrs->q, gyro, control_moments, optitrack_present);
-		control_force = convert_motor_cmd_to_thrust(rc->throttle / 100.0f); //thrust from rc FIXME
+		control_force = 4.0f * convert_motor_cmd_to_thrust(rc->throttle / 100.0f); //thrust from rc FIXME
 	}
 
 	if(rc->safety == false) {
