@@ -120,7 +120,7 @@ void geometry_ctrl_init(void)
 	_mat_(J)[1*3 + 1] = 0.01466f; //Iyy [kg*m^2]
 	_mat_(J)[2*3 + 2] = 0.02848f; //Izz [kg*m^2]
 
-	uav_mass = 1.0; //[kg]
+	uav_mass = 1000.0; //[g]
 
 	/* attitude controller gains of geometry */
 	krx = 300.0f;
