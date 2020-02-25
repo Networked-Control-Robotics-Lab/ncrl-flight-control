@@ -12,7 +12,6 @@
 #include "optitrack.h"
 
 #define UART3_QUEUE_SIZE 500
-#define UART7_QUEUE_SIZE 500
 
 typedef struct {
 	char c;
@@ -21,7 +20,6 @@ typedef struct {
 SemaphoreHandle_t uart3_tx_semphr;
 
 QueueHandle_t uart3_rx_queue;
-QueueHandle_t uart7_rx_queue;
 
 /*
  * <uart1>
@@ -198,8 +196,6 @@ void uart6_init(int baudrate)
  */
 void uart7_init(int baudrate)
 {
-	uart7_rx_queue = xQueueCreate(UART7_QUEUE_SIZE, sizeof(uart_c_t));
-
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART7, ENABLE);
 
@@ -358,17 +354,6 @@ bool uart3_getc(char *c)
 	}
 }
 
-bool uart7_getc(char *c)
-{
-	uart_c_t recpt_c;
-	if(xQueueReceive(uart7_rx_queue, &recpt_c, 0) == pdFALSE) {
-		return false;
-	} else {
-		*c = recpt_c.c;
-		return true;
-	}
-}
-
 void DMA1_Stream3_IRQHandler(void)
 {
 	/* uart3 tx dma */
@@ -383,7 +368,6 @@ void DMA1_Stream3_IRQHandler(void)
 
 void USART3_IRQHandler(void)
 {
-	/* using uart3 rxne interrupt to receive mavlink/debug_link message */
 	if(USART_GetITStatus(USART3, USART_IT_RXNE) == SET) {
 		uart_c_t uart_queue_item;
 		uart_queue_item.c = USART_ReceiveData(USART3);
@@ -411,14 +395,11 @@ void UART4_IRQHandler(void)
 
 void UART7_IRQHandler(void)
 {
-	/* using uart7 rxne interrupt to receive optitrack packet */
+	uint8_t c;
 	if(USART_GetITStatus(UART7, USART_IT_RXNE) == SET) {
-		uart_c_t uart_queue_item;
-		uart_queue_item.c = USART_ReceiveData(UART7);
+		c = USART_ReceiveData(UART7);
 		UART7->SR;
 
-		BaseType_t higher_priority_task_woken = pdFALSE;
-		xQueueSendToBackFromISR(uart7_rx_queue, &uart_queue_item, &higher_priority_task_woken);
-		portEND_SWITCHING_ISR(higher_priority_task_woken);
+		optitrack_handler(c);
 	}
 }

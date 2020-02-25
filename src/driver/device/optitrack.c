@@ -55,20 +55,14 @@ void optitrack_buf_push(uint8_t c)
 	}
 }
 
-void optitrack_handler(void)
+void optitrack_handler(uint8_t c)
 {
-	/* receive a byte of optitrack packet */
-	char c;
-	while(uart7_getc(&c) == true) {
-		optitrack_buf_push(c); //push received byte to the list
-
-		/* decode the packet */
-		if(c == '+' && optitrack_buf[0] == '@') {
-			/* decode optitrack message */
-			if(optitrack_serial_decoder(optitrack_buf) == 0) {
-				led_on(LED_G);
-				optitrack_buf_pos = 0; //reset position pointer
-			}
+	optitrack_buf_push(c);
+	if(c == '+' && optitrack_buf[0] == '@') {
+		/* decode optitrack message */
+		if(optitrack_serial_decoder(optitrack_buf) == 0) {
+			led_on(LED_G);
+			optitrack_buf_pos = 0; //reset position pointer
 		}
 	}
 }

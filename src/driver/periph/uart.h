@@ -19,6 +19,5 @@ void uart3_puts(char *s, int size);
 void uart6_puts(char *s, int size);
 
 bool uart3_getc(char *c);
-bool uart7_getc(char *c);
 
 #endif

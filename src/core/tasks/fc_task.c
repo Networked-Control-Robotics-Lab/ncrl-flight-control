@@ -125,10 +125,6 @@ void task_flight_ctrl(void *param)
 		read_rc(&rc);
 		rc_yaw_setpoint_handler(&desired_yaw, -rc.yaw, 0.0025);
 
-#if (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
-		optitrack_handler();
-#endif
-
 		ahrs_estimate(&ahrs, imu.accel_lpf, imu.gyro_lpf);
 
 #if (SELECT_CONTROLLER == QUADROTOR_USE_PID)
