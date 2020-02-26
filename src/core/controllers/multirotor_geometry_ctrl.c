@@ -124,10 +124,10 @@ void geometry_ctrl_init(void)
 	/* tracking controller gains*/
 	kpx = 0.0f;
 	kpy = 0.0f;
-	kpz = 20.0f;
+	kpz = 10.0f;
 	kvx = 0.0f;
 	kvy = 0.0f;
-	kvz = 3.0f;
+	kvz = 4.0f;
 }
 
 void euler_to_rotation_matrix(euler_t *euler, float *r, float *r_transpose)
