@@ -21,6 +21,8 @@
 #define MOTOR_TO_CG_LENGTH_M (MOTOR_TO_CG_LENGTH * 0.01) //[m]
 #define COEFFICIENT_YAW 1.0f
 
+#define newton_to_grams_force(n) (n * 101.97f) //[newton * m] to [gram force * m]
+
 extern optitrack_t optitrack;
 
 MAT_ALLOC(J, 3, 3);
@@ -331,17 +333,15 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 	MAT_MULT(&RtRd, &Wd, &RtRdWd);
 	MAT_SUB(&W, &RtRdWd, &eW);
 
-#if 0   /* inertia effect without motion planning */
-	/* calculate inertia effect (since Wd and Wd_dot are 0, the terms are excluded) */
+	/* calculate the inertia feedfoward term */
 	//W x JW
 	MAT_MULT(&J, &W, &JW);
 	cross_product_3x1(_mat_(W), _mat_(JW), _mat_(WJW));
-	_mat_(inertia_effect)[0] = _mat_(WJW)[0] * 101.97; //[newton * m] to [gram force * m]
-	_mat_(inertia_effect)[1] = _mat_(WJW)[1] * 101.97;
-	_mat_(inertia_effect)[2] = _mat_(WJW)[2] * 101.97;
-#endif
+	_mat_(inertia_effect)[0] = _mat_(WJW)[0];
+	_mat_(inertia_effect)[1] = _mat_(WJW)[1];
+	_mat_(inertia_effect)[2] = _mat_(WJW)[2];
 
-#if 0   /* inertia effect with motion planning */
+#if 0   /* inertia feedfoward term for motion planning (trajectory is known) */
 	/* calculate inertia effect (trajectory is defined, Wd and Wd_dot are not zero) */
 	//W * R^T * Rd * Wd
 	hat_map_3x3(_mat_(W), _mat_(W_hat));
@@ -361,9 +361,9 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 #endif
 
 	/* control input M1, M2, M3 */
-	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0] + _mat_(inertia_effect)[0];
-	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1] + _mat_(inertia_effect)[1];
-	output_moments[2] = -_krz*_mat_(eR)[2] -_kwz*_mat_(eW)[2] + _mat_(inertia_effect)[2];
+	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0] + newton_to_grams_force(_mat_(inertia_effect)[0]);
+	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1] + newton_to_grams_force(_mat_(inertia_effect)[1]);
+	output_moments[2] = -_krz*_mat_(eR)[2] -_kwz*_mat_(eW)[2] + newton_to_grams_force(_mat_(inertia_effect)[2]);
 }
 
 void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *curr_pos, float *desired_pos,
@@ -477,20 +477,18 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	MAT_MULT(&RtRd, &Wd, &RtRdWd);
 	MAT_SUB(&W, &RtRdWd, &eW);
 
-#if 0
-	/* calculate inertia effect (since Wd and Wd_dot are 0, the terms are excluded) */
+	/* calculate the inertia feedfoward term */
 	//W x JW
 	MAT_MULT(&J, &W, &JW);
 	cross_product_3x1(_mat_(W), _mat_(JW), _mat_(WJW));
-	_mat_(inertia_effect)[0] = _mat_(WJW)[0] * 101.97; //[newton * m] to [gram force * m]
-	_mat_(inertia_effect)[1] = _mat_(WJW)[1] * 101.97;
-	_mat_(inertia_effect)[2] = _mat_(WJW)[2] * 101.97;
-#endif
+	_mat_(inertia_effect)[0] = _mat_(WJW)[0];
+	_mat_(inertia_effect)[1] = _mat_(WJW)[1];
+	_mat_(inertia_effect)[2] = _mat_(WJW)[2];
 
 	/* control input M1, M2, M3 */
-	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0] + _mat_(inertia_effect)[0];
-	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1] + _mat_(inertia_effect)[1];
-	output_moments[2] = -krz*_mat_(eR)[2] -kwz*_mat_(eW)[2] + _mat_(inertia_effect)[2];
+	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0] + newton_to_grams_force(_mat_(inertia_effect)[0]);
+	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1] + newton_to_grams_force(_mat_(inertia_effect)[1]);
+	output_moments[2] = -krz*_mat_(eR)[2] -kwz*_mat_(eW)[2] + newton_to_grams_force(_mat_(inertia_effect)[2]);
 }
 
 #define l_div_4_pos (+0.25f * (1.0f / MOTOR_TO_CG_LENGTH_M))
