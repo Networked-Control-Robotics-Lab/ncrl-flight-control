@@ -102,8 +102,8 @@ static void mpu6500_accel_apply_correction(vector3d_16_t *accel_unscaled, vector
 	float gz_max = +2558.0f, gz_min = -2048.0f;
 
 	/* accelerometer bias */
-	float accel_bx = +600.0f;  //trim this for pitch angle, + sign for - angle compensation
-	float accel_by = -100.0f;  //trim this for roll angle, + sign for + angle compensation
+	float accel_bx = +750.0f;  //trim this for pitch angle, + sign for - angle compensation
+	float accel_by = -410.0f;  //trim this for roll angle, + sign for + angle compensation
 	float accel_bz = 0.0f;
 
 	float rescale_x = 4096.0f / (gx_max - gx_min);
