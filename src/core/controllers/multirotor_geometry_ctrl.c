@@ -122,11 +122,11 @@ void geometry_ctrl_init(void)
 	yaw_rate_ctrl_gain = 2750.0f;
 
 	/* tracking controller gains*/
-	kpx = 3.0f;
-	kpy = 3.0f;
+	kpx = 2.0f;
+	kpy = 2.0f;
 	kpz = 10.0f;
-	kvx = 2.0f;
-	kvy = 2.0f;
+	kvx = 1.2f;
+	kvy = 1.2f;
 	kvz = 4.0f;
 }
 
@@ -593,7 +593,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	case FLIGHT_MODE_HOVERING:
 	case FLIGHT_MODE_NAVIGATION:
 		if(fabs(rc->roll) > 5.0f || fabs(rc->pitch) > 5.0f) {
-			attitude_manual_height_auto = true;
+			//attitude_manual_height_auto = true;
 		} else {
 			attitude_manual_height_auto = false;
 		}
