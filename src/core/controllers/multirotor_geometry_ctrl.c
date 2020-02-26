@@ -592,7 +592,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	switch(rc->flight_mode) {
 	case FLIGHT_MODE_HOVERING:
 	case FLIGHT_MODE_NAVIGATION:
-		if(fabs(rc->roll) > 5.0f && fabs(rc->pitch) > 5.0f) {
+		if(fabs(rc->roll) > 5.0f || fabs(rc->pitch) > 5.0f) {
 			attitude_manual_height_auto = true;
 		} else {
 			attitude_manual_height_auto = false;
