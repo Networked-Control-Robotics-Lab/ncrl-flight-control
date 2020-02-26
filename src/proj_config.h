@@ -24,7 +24,7 @@
 /* quadrotor parameters */
 #define QUADROTOR_USE_PID 0
 #define QUADROTOR_USE_GEOMETRY 1
-#define SELECT_CONTROLLER QUADROTOR_USE_PID
+#define SELECT_CONTROLLER QUADROTOR_USE_GEOMETRY
 
 /* localization/heading sensor */
 #define LOCALIZATION_USE_GPS_MAG 0
