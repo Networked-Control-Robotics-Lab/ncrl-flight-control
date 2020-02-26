@@ -69,7 +69,7 @@ float uav_dynamics_m_rot_frame[3] = {0.0f}; //M_rot = (J * W_dot)
 float curr_pos[3], desired_pos[3];
 float curr_vel[3], desired_vel[3];
 float curr_accel[3], desired_accel[3];
-bool altitude_control_only = true;
+bool attitude_manual_height_auto = true;
 
 void geometry_ctrl_init(void)
 {
@@ -122,11 +122,11 @@ void geometry_ctrl_init(void)
 	yaw_rate_ctrl_gain = 2750.0f;
 
 	/* tracking controller gains*/
-	kpx = 0.0f;
-	kpy = 0.0f;
+	kpx = 3.0f;
+	kpy = 3.0f;
 	kpz = 10.0f;
-	kvx = 0.0f;
-	kvy = 0.0f;
+	kvx = 2.0f;
+	kvy = 2.0f;
 	kvz = 4.0f;
 }
 
@@ -592,6 +592,12 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	switch(rc->flight_mode) {
 	case FLIGHT_MODE_HOVERING:
 	case FLIGHT_MODE_NAVIGATION:
+		if(fabs(rc->roll) > 5.0f && fabs(rc->pitch) > 5.0f) {
+			attitude_manual_height_auto = true;
+		} else {
+			attitude_manual_height_auto = false;
+		}
+
 		if(optitrack_present == true) {
 			curr_pos[0] = optitrack.pos_x;
 			curr_pos[1] = optitrack.pos_y;
@@ -601,7 +607,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 			curr_vel[2] = optitrack.vel_lpf_z;
 			geometry_tracking_ctrl(&desired_attitude, ahrs->q, gyro, curr_pos, desired_pos,
 			                       curr_vel, desired_vel, curr_accel, desired_accel, control_moments,
-			                       &control_force, altitude_control_only);
+			                       &control_force, attitude_manual_height_auto);
 			break;
 		}
 	case FLIGHT_MODE_MANUAL:
