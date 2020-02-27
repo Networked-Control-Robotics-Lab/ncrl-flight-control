@@ -108,27 +108,37 @@ void geometry_ctrl_init(void)
 	MAT_INIT(b2d, 3, 1);
 	MAT_INIT(b3d, 3, 1);
 
+	/* uav inertia matrix */
 	_mat_(J)[0*3 + 0] = 0.01466f; //Ixx [kg*m^2]
 	_mat_(J)[1*3 + 1] = 0.01466f; //Iyy [kg*m^2]
 	_mat_(J)[2*3 + 2] = 0.02848f; //Izz [kg*m^2]
 
+	/* uav weight */
 	uav_weight = 1000.0f; //[g]
 
-	/* attitude controller gains of geometry */
+	/* attitude controller */
+	/* roll gains */
 	krx = 300.0f;
-	kry = 300.0f;
-	krz = 2400.0f;
 	kwx = 40.25f;
+	/* pitch gains */
+	kry = 300.0f;
 	kwy = 40.25f;
+	/* yaw gains */
+	krz = 2400.0f;
 	kwz = 200.0;
+	/* yaw rate gains
+	 * if heading sensor is not presented then switch to yaw rate control mode */
 	yaw_rate_ctrl_gain = 2750.0f;
 
-	/* tracking controller gains*/
+	/* tracking controller */
+	/* x-axis tracking gains  */
 	kpx = 2.0f;
-	kpy = 2.0f;
-	kpz = 10.0f;
 	kvx = 1.2f;
+	/* y-axis tracking gains */
+	kpy = 2.0f;
 	kvy = 1.2f;
+	/* z-axis tracking gains */
+	kpz = 10.0f;
 	kvz = 4.0f;
 }
 
