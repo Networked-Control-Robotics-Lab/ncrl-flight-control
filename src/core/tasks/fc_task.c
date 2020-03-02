@@ -10,6 +10,7 @@
 #include "pwm.h"
 #include "sbus_receiver.h"
 #include "mpu6500.h"
+#include "ms5611.h"
 #include "motor.h"
 #include "optitrack.h"
 #include "lpf.h"
@@ -98,6 +99,7 @@ void rc_yaw_setpoint_handler(float *desired_yaw, float rc_yaw_cmd, float dt)
 void task_flight_ctrl(void *param)
 {
 	mpu6500_init(&imu);
+	ms5611_init();
 	motor_init();
 
 	ahrs_init(imu.accel_raw);

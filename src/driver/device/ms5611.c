@@ -13,7 +13,7 @@ void ms5611_reset(void)
 	spi_read_write(SPI3, 0x1e);
 	ms5611_chip_deselect();
 
-	blocked_delay_ms(10);
+	blocked_delay_ms(100);
 }
 
 void ms5611_read_uint16(uint8_t address, uint16_t *data)
@@ -24,21 +24,22 @@ void ms5611_read_uint16(uint8_t address, uint16_t *data)
 	spi_read_write(SPI3, address);
 	byte1 = spi_read_write(SPI3, 0x00);
 	byte2 = spi_read_write(SPI3, 0x00);
-	*data = ((uint16_t)byte1 << 8) | (int32_t)byte2;
+	*data = ((uint16_t)byte1 << 8) | (uint16_t)byte2;
 	ms5611_chip_deselect();
 }
 
 void ms5611_read_int24(uint8_t address, int32_t *data)
 {
-	uint8_t byte1, byte2, byte3, byte4;
+	uint8_t byte1, byte2, byte3;
 
 	ms5611_chip_select();
 	spi_read_write(SPI3, address);
+	blocked_delay_ms(2);
+	spi_read_write(SPI3, 0x00);
 	byte1 = spi_read_write(SPI3, 0x00);
 	byte2 = spi_read_write(SPI3, 0x00);
 	byte3 = spi_read_write(SPI3, 0x00);
-	byte4 = spi_read_write(SPI3, 0x00);
-	*data = ((int32_t)byte1 << 24) | ((int32_t)byte2 << 16) | ((int32_t)byte3 << 8) | (int32_t)byte4;
+	*data = ((int32_t)byte1 << 16) | ((int32_t)byte2 << 8) | (int32_t)byte3;
 	ms5611_chip_deselect();
 }
 
@@ -73,7 +74,7 @@ void ms5611_read_pressure(int32_t *temp, int32_t *pressure)
 	dt = (int64_t)d2 - (int64_t)c5 * (1 << 8);
 	*temp = 2000 + (dt * (int64_t)c6) / (1 << 23);
 
-	off = (int64_t)c3 * (1 << 16) + ((int64_t)c4 * dt) / (1 << 7);
+	off = (int64_t)c2 * (1 << 16) + ((int64_t)c4 * dt) / (1 << 7);
 	sens = (int64_t)c1 * (1 << 15) + ((int64_t)c3 * dt) / (1 << 8);
 	*pressure = ((d1 * sens) / (1 << 21) - off) / (1 << 15);
 }

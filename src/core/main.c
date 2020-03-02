@@ -47,6 +47,7 @@ int main(void)
 	pwm_timer4_init(); //motor
 	exti10_init(); //imu ext interrupt
 	spi1_init(); //imu
+	spi3_init(); //barometer
 
 	blocked_delay_ms(1000);
 

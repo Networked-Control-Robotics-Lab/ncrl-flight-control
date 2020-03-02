@@ -56,6 +56,7 @@ void spi1_init(void)
  */
 void spi3_init(void)
 {
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI3, ENABLE);
 
@@ -82,10 +83,10 @@ void spi3_init(void)
 		.SPI_Direction = SPI_Direction_2Lines_FullDuplex,
 		.SPI_Mode = SPI_Mode_Master,
 		.SPI_DataSize = SPI_DataSize_8b,
-		.SPI_CPOL = SPI_CPOL_High,
-		.SPI_CPHA = SPI_CPHA_2Edge,
+		.SPI_CPOL = SPI_CPOL_Low,
+		.SPI_CPHA = SPI_CPHA_1Edge,
 		.SPI_NSS = SPI_NSS_Soft,
-		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_4,
+		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_256,
 		.SPI_FirstBit = SPI_FirstBit_MSB,
 		.SPI_CRCPolynomial = 7
 	};
