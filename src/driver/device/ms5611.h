@@ -8,6 +8,6 @@
 #define ms5611_chip_deselect() GPIO_SetBits(GPIOA, GPIO_Pin_15)
 
 void ms5611_init(void);
-void ms5611_read_pressure(int32_t *temp, int32_t *pressure);
+void ms5611_read_pressure(float *temp, float *pressure);
 
 #endif

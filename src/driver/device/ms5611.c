@@ -49,14 +49,12 @@ void ms5611_read_int24(uint8_t address, int32_t *data)
 void ms5611_read_prom(void)
 {
 	ms5611_chip_select();
-	//ms5611_read_uint16(0xa0, &d1);
 	ms5611_read_uint16(0xa2, &c1);
 	ms5611_read_uint16(0xa4, &c2);
 	ms5611_read_uint16(0xa6, &c3);
 	ms5611_read_uint16(0xa8, &c4);
 	ms5611_read_uint16(0xaa, &c5);
 	ms5611_read_uint16(0xac, &c6);
-	//ms5611_read_uint16(0xae, &d7);
 	ms5611_chip_deselect();
 }
 
@@ -66,7 +64,7 @@ void ms5611_init(void)
 	ms5611_read_prom();
 }
 
-void ms5611_read_pressure(int32_t *temp, int32_t *pressure)
+void ms5611_read_pressure(float *temp, float *pressure)
 {
 	int32_t d1, d2;
 	int64_t off, sens, dt;
@@ -75,11 +73,27 @@ void ms5611_read_pressure(int32_t *temp, int32_t *pressure)
 	ms5611_read_int24(0x50, &d2);
 
 	dt = (int64_t)d2 - (int64_t)c5 * (1 << 8);
-	*temp = 2000 + (dt * (int64_t)c6) / (1 << 23);
+	int32_t temp32 = 2000 + (dt * (int64_t)c6) / (1 << 23);
 
-	off = (int64_t)c2 * (1 << 16) + ((int64_t)c4 * dt) / (1 << 7);
-	sens = (int64_t)c1 * (1 << 15) + ((int64_t)c3 * dt) / (1 << 8);
-	*pressure = ((d1 * sens) / (1 << 21) - off) / (1 << 15);
+	/* second order temperature compensation (<20 degree c) */
+	int64_t t2 = 0, sens2 = 0, off2 = 0;
+	if(temp32 < 2000) {
+		t2 = (dt * dt) / (1 << 31);
+		int64_t temp_2000_sqrt = temp32 - 2000;
+		off2 = 2.5f * (temp_2000_sqrt * temp_2000_sqrt);
+		sens2 =  1.25f * (temp_2000_sqrt * temp_2000_sqrt);
+
+		temp32 -= t2;
+		off -= off2;
+		sens -= sens2;
+	}
+
+	off = (int64_t)c2 * (1 << 16) + ((int32_t)c4 * dt) / (1 << 7);
+	sens = (int64_t)c1 * (1 << 15) + ((int32_t)c3 * dt) / (1 << 8);
+	int32_t pressure32 = ((d1 * sens) / (1 << 21) - off) / (1 << 15);
+
+	*temp = (float)temp32 * 0.01f; //[deg c]
+	*pressure = (float)pressure32 * 0.01f; //[mbar]
 }
 
 #if 0
