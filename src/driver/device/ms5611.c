@@ -34,7 +34,10 @@ void ms5611_read_int24(uint8_t address, int32_t *data)
 
 	ms5611_chip_select();
 	spi_read_write(SPI3, address);
-	blocked_delay_ms(2);
+	ms5611_chip_deselect();
+	blocked_delay_ms(1);
+
+	ms5611_chip_select();
 	spi_read_write(SPI3, 0x00);
 	byte1 = spi_read_write(SPI3, 0x00);
 	byte2 = spi_read_write(SPI3, 0x00);
