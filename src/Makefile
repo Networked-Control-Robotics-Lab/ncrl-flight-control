@@ -74,6 +74,7 @@ SRC+=./core/main.c \
 	./core/tasks/fc_task.c \
 	./core/tasks/mavlink_task.c \
 	./core/tasks/debug_link_task.c \
+	./core/shell/quadshell.c \
 	./core/debug_link/debug_link.c \
 	./core/mavlink/publisher.c \
 	./core/mavlink/parser.c \
@@ -108,6 +109,7 @@ CFLAGS+=-I./core/controllers
 CFLAGS+=-I./core/debug_link
 CFLAGS+=-I./core/tasks
 CFLAGS+=-I./core/mavlink
+CFLAGS+=-I./core/shell
 CFLAGS+=-I./common
 CFLAGS+=-I./driver/periph
 CFLAGS+=-I./driver/device
