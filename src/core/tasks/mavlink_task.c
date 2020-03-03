@@ -39,7 +39,7 @@ void mavlink_task(void *param)
 
 
 		/* receive mavlink message */
-		if(uart3_getc(&c) == true) {
+		if(uart3_getc(&c, 0) == true) {
 			received_mavlink_msg =
 			        mavlink_parse_char(MAVLINK_COMM_1, (uint8_t)c, &mavlink_recpt_msg, &mavlink_recpt_status);
 		}

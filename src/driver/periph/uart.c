@@ -343,10 +343,10 @@ void uart6_puts(char *s, int size)
 	while(DMA_GetFlagStatus(DMA2_Stream6, DMA_FLAG_TCIF6) == RESET);
 }
 
-bool uart3_getc(char *c)
+bool uart3_getc(char *c, long sleep_ticks)
 {
 	uart_c_t recpt_c;
-	if(xQueueReceive(uart3_rx_queue, &recpt_c, 0) == pdFALSE) {
+	if(xQueueReceive(uart3_rx_queue, &recpt_c, sleep_ticks) == pdFALSE) {
 		return false;
 	} else {
 		*c = recpt_c.c;

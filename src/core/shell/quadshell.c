@@ -5,27 +5,23 @@
 #include "uart.h"
 #include "quadshell.h"
 
-/* port your own getc function here */
 static char shell_getc(void)
 {
 	char c;
-	uart3_getc(&c);
+	while(uart3_getc(&c, portMAX_DELAY) == false);
 	return c;
 }
 
-/* port your own puts function here */
 static void shell_puts(char *s)
 {
 	usart_puts(USART3, s, strlen(s));
 }
 
-/* define your own ctrl+c behavior here */
 static void shell_ctrl_c_handler(void)
 {
 	shell_puts("^C\n\r");
 }
 
-/* define your own unknown shell command behavior here */
 static void shell_unknown_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
 	char s[200];

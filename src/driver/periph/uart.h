@@ -18,6 +18,6 @@ void uart1_puts(char *s, int size);
 void uart3_puts(char *s, int size);
 void uart6_puts(char *s, int size);
 
-bool uart3_getc(char *c);
+bool uart3_getc(char *c, long sleep_ticks);
 
 #endif
