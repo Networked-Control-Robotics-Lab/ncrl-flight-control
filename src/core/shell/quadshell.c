@@ -12,7 +12,7 @@ static char shell_getc(void)
 	return c;
 }
 
-static void shell_puts(char *s)
+void shell_puts(char *s)
 {
 	usart_puts(USART3, s, strlen(s));
 }
@@ -85,9 +85,9 @@ static void shell_refresh_line(struct shell_struct *shell)
 {
 	char s[PROMPT_LEN_MAX * 2];
 	sprintf(s, "\33[2K\r"   /* clear current line */
-                "%s%s\r"        /* show prompt */
-                "\033[%dC",     /* move cursor */
-                shell->prompt_msg, shell->buf, shell->prompt_len + shell->cursor_pos);
+	        "%s%s\r"        /* show prompt */
+	        "\033[%dC",     /* move cursor */
+	        shell->prompt_msg, shell->buf, shell->prompt_len + shell->cursor_pos);
 	shell_puts(s);
 }
 
@@ -198,7 +198,7 @@ void shell_cli(struct shell_struct *shell)
 						shell_refresh_line(shell);
 					}
 				}
-			}				
+			}
 			break;
 		case BACKSPACE:
 			if(shell->char_cnt != 0 && shell->cursor_pos != 0) {

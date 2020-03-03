@@ -4,36 +4,30 @@
 #include "FreeRTOS.h"
 #include "uart.h"
 #include "quadshell.h"
-
-void shell_cmd_help(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt);
+#include "shell_cmds.h"
 
 struct cmd_list_entry shell_cmd_list[] = {
-        DEF_SHELL_CMD(help)
+	DEF_SHELL_CMD(help)
+	DEF_SHELL_CMD(takeoff)
+	DEF_SHELL_CMD(land)
+	DEF_SHELL_CMD(fly_enu)
 };
-
-void shell_cmd_help(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
-{
-	char *s = "help";
-	uart3_puts(s, strlen(s));
-}
 
 void shell_greeting(void)
 {
 	char *greeting = "                       _       _          _  _ \n\r"
-                         "                      | |     | |        | || |\n\r"
-                         "  __ _ _   _  __ _  __| |  ___| |__   ___| || |\n\r"
-                         " / _` | | | |/ _` |/ _` | / __| '_ \\ / _ \\ || |\n\r"
-                         "| (_| | |_| | (_| | (_| | \\__ \\ | | |  __/ || |\n\r"
-                         " \\__, |\\__,_|\\__,_|\\__,_| |___/_| |_|\\___|_||_|\n\r"
-                         "    | |\n\r"
-                         "    |_|\n\r\n\r";
-	int len = strlen(greeting);
-	uart3_puts(greeting, len);
+	                 "                      | |     | |        | || |\n\r"
+	                 "  __ _ _   _  __ _  __| |  ___| |__   ___| || |\n\r"
+	                 " / _` | | | |/ _` |/ _` | / __| '_ \\ / _ \\ || |\n\r"
+	                 "| (_| | |_| | (_| | (_| | \\__ \\ | | |  __/ || |\n\r"
+	                 " \\__, |\\__,_|\\__,_|\\__,_| |___/_| |_|\\___|_||_|\n\r"
+	                 "    | |\n\r"
+	                 "    |_|\n\r\n\r";
+	shell_puts(greeting);
 
 	char s[150];
 	sprintf(s, "firmware build time: %s %s\n\rtype 'help' for help\n\r\n\r", __TIME__, __DATE__);
-	len = strlen(s);
-	uart3_puts(s, len);
+	shell_puts(s);
 }
 
 void shell_task(void *param)

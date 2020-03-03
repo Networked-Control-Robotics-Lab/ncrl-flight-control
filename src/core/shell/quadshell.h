@@ -65,6 +65,7 @@ struct cmd_list_entry {
 
 void shell_init_struct(struct shell_struct *_shell, char *prompt_msg, char *ret_cmd);
 void shell_cls(void);
+void shell_puts(char *s);
 void shell_cli(struct shell_struct *_shell);
 void shell_cmd_exec(char *cmd, struct cmd_list_entry *cmd_list, int list_size);
 
