@@ -74,6 +74,7 @@ SRC+=./core/main.c \
 	./core/tasks/fc_task.c \
 	./core/tasks/mavlink_task.c \
 	./core/tasks/debug_link_task.c \
+	./core/tasks/shell_task.c \
 	./core/shell/quadshell.c \
 	./core/debug_link/debug_link.c \
 	./core/mavlink/publisher.c \

@@ -20,6 +20,7 @@
 #include "debug_link.h"
 #include "multirotor_pid_ctrl.h"
 #include "fc_task.h"
+#include "shell_task.h"
 #include "proj_config.h"
 #include "mavlink_task.h"
 #include "debug_link_task.h"
@@ -58,6 +59,8 @@ int main(void)
 	xTaskCreate(task_debug_link, "debug link", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
 #elif (SELECT_TELEM == TELEM_MAVLINK)
 	xTaskCreate(mavlink_task, "mavlink", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
+#elif (SELECT_TELEM == TELEM_SHELL)
+	xTaskCreate(shell_task, "shell", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
 #endif
 #endif
 

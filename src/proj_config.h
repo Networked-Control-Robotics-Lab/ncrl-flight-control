@@ -13,6 +13,7 @@
 /* telemetry protocol */
 #define TELEM_MAVLINK 0
 #define TELEM_DEBUG_LINK 1
+#define TELEM_SHELL 2
 #define SELECT_TELEM TELEM_DEBUG_LINK
 
 /* ahrs algorithm */
