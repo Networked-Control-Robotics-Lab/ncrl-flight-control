@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 #include "quadshell.h"
 #include "navigation.h"
@@ -9,7 +10,8 @@ void shell_cmd_help(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 	char *s = "supported commands:\n\r"
 	          "takeoff\n\r"
 	          "land\n\r"
-	          "fly x y z\n\r";
+	          "fly x y z\n\r"
+		  "mission\n\r";
 	shell_puts(s);
 }
 
@@ -98,6 +100,48 @@ void shell_cmd_fly(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int para
 	}
 }
 
-void shell_cmd_halt(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+void shell_cmd_mission(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
+	int ret_val;
+
+	if(param_cnt != 2) {
+		shell_puts("mission add: add new waypoint\n\r"
+                           "mission start: start waypoint mission\n\r"
+                           "mission halt: halt the executing waypoint mission\n\r"
+			   "mission resume: resume the halting waypoint mission\n\r"
+			   "mission clear: clear the waypoint list\n\r");
+	} else if(param_cnt == 2) {
+		if(strcmp(param_list[1], "add") == 0) {
+		} else if(strcmp(param_list[1], "start") == 0) {
+			ret_val = nav_waypoint_mission_start();
+			if(ret_val == 0) {
+				shell_puts("succeeded adding new waypoint.\n\r");
+			} else {
+				shell_puts("failed, waypoint list is full\n\r");
+			}
+		} else if(strcmp(param_list[1], "halt") == 0) {
+			ret_val = nav_halt_waypoint_mission();
+			if(ret_val == 0) {
+				shell_puts("succeeded halting the waypoint mission.\n\r");
+			} else {
+				shell_puts("failed, no executing mission can be halted!\n\r");
+			}
+		} else if(strcmp(param_list[1], "resume") == 0) {
+			ret_val = nav_resume_waypoint_mission();
+			if(ret_val == 0) {
+				shell_puts("succeeded resuming the waypoint mission.\n\r");
+			} else {
+				shell_puts("failed, no halting mission can be resumed!\n\r");
+			}
+		} else if(strcmp(param_list[1], "clear") == 0) {
+			ret_val = nav_clear_waypoint_list();
+			if(ret_val == 0) {
+				shell_puts("succeeded to clear the waypoint list.\n\r");
+			} else {
+				shell_puts("failed, waypoint list is empty!\n\r");
+			}
+		} else {
+			shell_puts("unknown mission command!\n\r");
+		}
+	}
 }

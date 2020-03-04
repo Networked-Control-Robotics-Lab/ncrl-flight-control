@@ -13,7 +13,7 @@ struct cmd_list_entry shell_cmd_list[] = {
 	DEF_SHELL_CMD(takeoff)
 	DEF_SHELL_CMD(land)
 	DEF_SHELL_CMD(fly)
-	DEF_SHELL_CMD(halt)
+	DEF_SHELL_CMD(mission)
 };
 
 void shell_greeting(void)
