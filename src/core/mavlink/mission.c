@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include "mavlink.h"
 #include "../mavlink/publisher.h"
-#include "ctrl_common.h"
+#include "navigation.h"
 
 static void mavlink_send_capability(void)
 {
@@ -51,6 +51,7 @@ void mav_mission_request_list(mavlink_message_t *received_msg)
 
 void mav_set_position_target_local_ned(mavlink_message_t *received_msg)
 {
+#if 0
 	mavlink_set_position_target_local_ned_t ned_target_cmd;
 	mavlink_msg_set_position_target_local_ned_decode(received_msg, &ned_target_cmd);
 
@@ -65,6 +66,5 @@ void mav_set_position_target_local_ned(mavlink_message_t *received_msg)
 	accel_d[1] = ned_target_cmd.afy;
 	accel_d[2] = ned_target_cmd.afz;
 	yaw = ned_target_cmd.yaw;
-
-	set_tracking_ctrl_setpoint(pos_d, vel_d, accel_d, yaw);
+#endif
 }

@@ -14,6 +14,7 @@
 #include "lpf.h"
 #include "imu.h"
 #include "ahrs.h"
+#include "navigation.h"
 #include "debug_link.h"
 
 #define dt 0.0025 //[s]
@@ -68,13 +69,17 @@ float uav_weight;
 float uav_dynamics_m[3] = {0.0f}; //M = (J * W_dot) + (W X JW)
 float uav_dynamics_m_rot_frame[3] = {0.0f}; //M_rot = (J * W_dot)
 
-float curr_pos[3], desired_pos[3];
+float curr_pos[3];
 float curr_vel[3], desired_vel[3];
 float curr_accel[3], desired_accel[3];
 bool attitude_manual_height_auto = true;
 
+nav_t nav;
+
 void geometry_ctrl_init(void)
 {
+	nav_init(&nav);
+
 	MAT_INIT(J, 3, 3);
 	MAT_INIT(R, 3, 3);
 	MAT_INIT(Rd, 3, 3);
@@ -376,16 +381,16 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 	output_moments[2] = -_krz*_mat_(eR)[2] -_kwz*_mat_(eW)[2] + newton_to_grams_force(_mat_(inertia_effect)[2]);
 }
 
-void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *curr_pos, float *desired_pos,
+void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *curr_pos,
                             float *curr_vel, float *desired_vel, float *curr_accel, float *desired_accel,
                             float *output_moments, float *output_force, bool manual_flight)
 {
 	/* ex = x - xd */
 	float pos_error[3];
-	pos_error[0] = curr_pos[0] - desired_pos[0];
-	pos_error[1] = curr_pos[1] - desired_pos[1];
+	pos_error[0] = curr_pos[0] - nav.wp_now.pos[0];
+	pos_error[1] = curr_pos[1] - nav.wp_now.pos[1];
 	//swap the order since we actually feed the positive altitude (or negative z of NED frame) here
-	pos_error[2] = desired_pos[2] - curr_pos[2];
+	pos_error[2] = nav.wp_now.pos[2] - curr_pos[2];
 
 	/* ev = v - vd */
 	float vel_error[3];
@@ -540,9 +545,9 @@ void rc_mode_change_handler_geometry(radio_t *rc)
 
 	//if mode switched to hovering
 	if(rc->flight_mode == FLIGHT_MODE_HOVERING && flight_mode_last != FLIGHT_MODE_HOVERING) {
-		desired_pos[0] = optitrack.pos_x;
-		desired_pos[1] = optitrack.pos_y;
-		desired_pos[2] = optitrack.pos_z;
+		nav.wp_now.pos[0] = optitrack.pos_x;
+		nav.wp_now.pos[1] = optitrack.pos_y;
+		nav.wp_now.pos[2] = optitrack.pos_z;
 		desired_vel[0] = 0.0f;
 		desired_vel[1] = 0.0f;
 		desired_vel[2] = 0.0f;
@@ -553,9 +558,9 @@ void rc_mode_change_handler_geometry(radio_t *rc)
 
 	//if mode switched to navigation
 	if(rc->flight_mode == FLIGHT_MODE_NAVIGATION && flight_mode_last != FLIGHT_MODE_NAVIGATION) {
-		desired_pos[0] = 0.0f;
-		desired_pos[1] = 0.0f;
-		desired_pos[2] = optitrack.pos_z;
+		nav.wp_now.pos[0] = 0.0f;
+		nav.wp_now.pos[1] = 0.0f;
+		nav.wp_now.pos[2] = optitrack.pos_z;
 		desired_vel[0] = 0.0f;
 		desired_vel[1] = 0.0f;
 		desired_vel[2] = 0.0f;
@@ -613,7 +618,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 			curr_vel[0] = optitrack.vel_lpf_x;
 			curr_vel[1] = optitrack.vel_lpf_y;
 			curr_vel[2] = optitrack.vel_lpf_z;
-			geometry_tracking_ctrl(&desired_attitude, ahrs->q, gyro, curr_pos, desired_pos,
+			geometry_tracking_ctrl(&desired_attitude, ahrs->q, gyro, curr_pos,
 			                       curr_vel, desired_vel, curr_accel, desired_accel, control_moments,
 			                       &control_force, attitude_manual_height_auto);
 			break;

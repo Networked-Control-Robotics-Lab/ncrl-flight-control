@@ -4,6 +4,7 @@
 #include "FreeRTOS.h"
 #include "uart.h"
 #include "quadshell.h"
+#include "navigation.h"
 #include "shell_cmds.h"
 
 struct cmd_list_entry shell_cmd_list[] = {
