@@ -40,9 +40,18 @@ static bool nav_test_point_in_rectangular_fence(float p[3])
 	}
 }
 
-int nav_add_new_waypoint(float pos[3], float heading)
+int nav_add_new_waypoint(float pos[3], float heading, float halt_time_sec)
 {
-	return 0;
+	if(nav_ptr->wp_num <= WAYPOINT_NUM_MAX) {
+		nav_ptr->wp_list[nav_ptr->wp_num].pos[0] = pos[0];
+		nav_ptr->wp_list[nav_ptr->wp_num].pos[1] = pos[1];
+		nav_ptr->wp_list[nav_ptr->wp_num].pos[2] = pos[2];
+		nav_ptr->wp_list[nav_ptr->wp_num].heading = heading;
+		nav_ptr->wp_num++;
+		return WP_SET_SUCCEED;
+	} else {
+		return WP_SET_EXCEED_MAX_WP;
+	}
 }
 
 int nav_goto_waypoint_now(float pos[3], float heading)

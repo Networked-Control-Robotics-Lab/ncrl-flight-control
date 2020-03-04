@@ -97,3 +97,7 @@ void shell_cmd_fly(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int para
 		shell_puts("command aborted\n\r");
 	}
 }
+
+void shell_cmd_halt(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
+}
