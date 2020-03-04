@@ -30,11 +30,11 @@ void nav_set_enu_rectangular_fence(float origin[3], float lx, float ly, float he
 
 static bool nav_test_point_in_rectangular_fence(float p[3])
 {
-	if((p[0] < (+nav_ptr->geo_fence.lx + nav_ptr->geo_fence.origin[0])) &&
-	    (p[0] > (-nav_ptr->geo_fence.lx + nav_ptr->geo_fence.origin[0])) &&
-	    (p[1] < (+nav_ptr->geo_fence.ly + nav_ptr->geo_fence.origin[1])) &&
-	    (p[1] > (-nav_ptr->geo_fence.ly + nav_ptr->geo_fence.origin[1])) &&
-	    (p[2] > 0.0f) && (p[2] < nav_ptr->geo_fence.height)) {
+	if((p[0] <= (+nav_ptr->geo_fence.lx + nav_ptr->geo_fence.origin[0])) &&
+	    (p[0] >= (-nav_ptr->geo_fence.lx + nav_ptr->geo_fence.origin[0])) &&
+	    (p[1] <= (+nav_ptr->geo_fence.ly + nav_ptr->geo_fence.origin[1])) &&
+	    (p[1] >= (-nav_ptr->geo_fence.ly + nav_ptr->geo_fence.origin[1])) &&
+	    (p[2] >= 0.0f) && (p[2] <= nav_ptr->geo_fence.height)) {
 		return true;
 	} else {
 		return false;
