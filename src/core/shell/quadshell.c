@@ -5,7 +5,7 @@
 #include "uart.h"
 #include "quadshell.h"
 
-static char shell_getc(void)
+char shell_getc(void)
 {
 	char c;
 	while(uart3_getc(&c, portMAX_DELAY) == false);
