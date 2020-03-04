@@ -12,7 +12,7 @@ struct cmd_list_entry shell_cmd_list[] = {
 	DEF_SHELL_CMD(clear)
 	DEF_SHELL_CMD(takeoff)
 	DEF_SHELL_CMD(land)
-	DEF_SHELL_CMD(fly_enu)
+	DEF_SHELL_CMD(fly)
 };
 
 void shell_greeting(void)

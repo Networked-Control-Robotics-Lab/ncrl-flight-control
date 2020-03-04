@@ -80,6 +80,9 @@ void geometry_ctrl_init(void)
 {
 	nav_init(&nav);
 
+	float geo_fence_origin[3] = {0.0f, 0.0f, 0.0f};
+	nav_set_enu_rectangular_fence(geo_fence_origin, 2.5f, 1.3f, 3.0f);
+
 	MAT_INIT(J, 3, 3);
 	MAT_INIT(R, 3, 3);
 	MAT_INIT(Rd, 3, 3);
@@ -385,12 +388,16 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
                             float *curr_vel, float *desired_vel, float *curr_accel, float *desired_accel,
                             float *output_moments, float *output_force, bool manual_flight)
 {
+	float pos_des_ned[3];
+	pos_des_ned[0] = nav.wp_now.pos[1];
+	pos_des_ned[1] = nav.wp_now.pos[0];
+	pos_des_ned[2] = -nav.wp_now.pos[2];
+
 	/* ex = x - xd */
 	float pos_error[3];
-	pos_error[0] = curr_pos[0] - nav.wp_now.pos[0];
-	pos_error[1] = curr_pos[1] - nav.wp_now.pos[1];
-	//swap the order since we actually feed the positive altitude (or negative z of NED frame) here
-	pos_error[2] = nav.wp_now.pos[2] - curr_pos[2];
+	pos_error[0] = curr_pos[0] - pos_des_ned[0];
+	pos_error[1] = curr_pos[1] - pos_des_ned[1];
+	pos_error[2] = -curr_pos[2] - pos_des_ned[2];
 
 	/* ev = v - vd */
 	float vel_error[3];
@@ -545,8 +552,8 @@ void rc_mode_change_handler_geometry(radio_t *rc)
 
 	//if mode switched to hovering
 	if(rc->flight_mode == FLIGHT_MODE_HOVERING && flight_mode_last != FLIGHT_MODE_HOVERING) {
-		nav.wp_now.pos[0] = optitrack.pos_x;
-		nav.wp_now.pos[1] = optitrack.pos_y;
+		nav.wp_now.pos[0] = optitrack.pos_y; //XXX:ENU
+		nav.wp_now.pos[1] = optitrack.pos_x;
 		nav.wp_now.pos[2] = optitrack.pos_z;
 		desired_vel[0] = 0.0f;
 		desired_vel[1] = 0.0f;
