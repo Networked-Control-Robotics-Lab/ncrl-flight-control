@@ -1,3 +1,4 @@
+#include "arm_math.h"
 #include "ahrs.h"
 #include "se3_math.h"
 
