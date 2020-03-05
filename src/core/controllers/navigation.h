@@ -55,7 +55,7 @@ void nav_init(nav_t *_nav);
 void nav_set_enu_rectangular_fence(float origin[3], float lx, float ly, float height);
 int nav_add_new_waypoint(float pos[3], float heading, float halt_time_sec);
 int nav_clear_waypoint_list(void);
-int nav_goto_waypoint_now(float pos[3], float heading);
+int nav_goto_waypoint_now(float pos[3], bool change_height);
 int nav_halt_waypoint_mission(void);
 int nav_resume_waypoint_mission(void);
 int nav_waypoint_mission_start(void);

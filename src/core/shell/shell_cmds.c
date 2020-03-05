@@ -40,14 +40,15 @@ void shell_cmd_land(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 
 void shell_cmd_fly(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
-	if(param_cnt != 4) {
+	char s[300] = {'\0'};
+
+	if(param_cnt != 4 && param_cnt != 3) {
 		shell_puts("wrong command format!\n\r"
 		           "fly_enu x y z\n\r");
 		return;
 	}
 
 	float pos[3] = {0.0f, 0.0f, 1.5f};
-	float heading = 0.0f;
 
 	char *end_ptr = NULL;
 
@@ -67,17 +68,26 @@ void shell_cmd_fly(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int para
 		return;
 	}
 
-	errno = 0;
-	pos[2] = strtof(param_list[3], &end_ptr);
-	if (errno != 0 || *end_ptr != '\0') {
-		shell_puts("bad command arguments!\n\r"
-		           "fly_enu x y z\n\r");
-		return;
+	
+	/* set z ifuser provided the third argument */
+	bool change_z = false;
+	if(param_cnt == 4) {
+		change_z = true;
+		errno = 0;
+		pos[2] = strtof(param_list[3], &end_ptr);
+		if (errno != 0 || *end_ptr != '\0') {
+			shell_puts("bad command arguments!\n\r"
+			           "fly_enu x y z\n\r");
+			return;
+		}
+
+		sprintf(s, "east-north-up waypoint (x, y, z) = (%f, %f, %f)\n\r"
+		        "confirm fly-to command [y/n]: ", pos[0], pos[1], pos[2]);
+	} else if(param_cnt == 3) {
+		sprintf(s, "east-north-up waypoint (x, y) = (%f, %f)\n\r"
+		        "confirm fly-to command [y/n]: ", pos[0], pos[1]);
 	}
 
-	char s[300] = {'\0'};
-	sprintf(s, "east-north-up waypoint (x, y, z) = (%f, %f, %f)\n\r"
-	        "confirm fly-to command [y/n]: ", pos[0], pos[1], pos[2]);
 	shell_puts(s);
 	char c = shell_getc();
 	sprintf(s, "%c\n\r", c);
@@ -85,11 +95,12 @@ void shell_cmd_fly(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int para
 
 	if(c == 'Y' || c == 'y') {
 		/* convert from [m] to [cm] */
+
 		pos[0] *= 100.0f;
 		pos[1] *= 100.0f;
 		pos[2] *= 100.0f;
 
-		int ret_val = nav_goto_waypoint_now(pos, heading);
+		int ret_val = nav_goto_waypoint_now(pos, change_z);
 		if(ret_val == WP_SET_OUT_OF_FENCE) {
 			shell_puts("failed, waypoint out of geo-fence!\n\r");
 		} else {

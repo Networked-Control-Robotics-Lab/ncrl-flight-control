@@ -67,7 +67,7 @@ int nav_clear_waypoint_list(void)
 	}
 }
 
-int nav_goto_waypoint_now(float pos[3], float heading)
+int nav_goto_waypoint_now(float pos[3], bool change_height)
 {
 	bool in_fence = nav_test_point_in_rectangular_fence(pos);
 
@@ -75,8 +75,9 @@ int nav_goto_waypoint_now(float pos[3], float heading)
 		nav_ptr->mode = NAV_HOVERING_WAYPOINT;
 		(nav_ptr->wp_now).pos[0] = pos[0];
 		(nav_ptr->wp_now).pos[1] = pos[1];
-		(nav_ptr->wp_now).pos[2] = pos[2];
-		(nav_ptr->wp_now).heading = heading;
+		if(change_height == true) {
+			(nav_ptr->wp_now).pos[2] = pos[2];
+		}
 		nav_ptr->curr_wp = 0; //reset waypoint list pointer
 		return WP_SET_SUCCEED;
 	} else {
