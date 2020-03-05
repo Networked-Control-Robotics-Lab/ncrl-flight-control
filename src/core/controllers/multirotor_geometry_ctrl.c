@@ -271,6 +271,9 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
                             float *curr_vel, float *desired_vel, float *curr_accel, float *desired_accel,
                             float *output_moments, float *output_force, bool manual_flight)
 {
+	nav_update_uav_info(curr_pos, curr_vel);
+	nav_waypoint_handler();
+
 	float pos_des_ned[3];
 	pos_des_ned[0] = nav.wp_now.pos[1];
 	pos_des_ned[1] = nav.wp_now.pos[0];
@@ -520,10 +523,18 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	}
 
 	if(rc->safety == false) {
-		led_on(LED_R);
-		led_off(LED_B);
-		thrust_force_allocate_quadrotor(control_moments, control_force);
+		if(nav.mode != NAV_MOTOR_LOCKED_MODE) {
+			led_on(LED_R);
+			led_off(LED_B);
+			thrust_force_allocate_quadrotor(control_moments, control_force);
+		} else {
+			led_on(LED_B);
+			led_off(LED_R);
+			*desired_heading = ahrs->attitude.yaw;
+			motor_halt();
+		}
 	} else {
+		nav.mode = NAV_HOVERING_WAYPOINT;
 		led_on(LED_B);
 		led_off(LED_R);
 		*desired_heading = ahrs->attitude.yaw;

@@ -19,6 +19,14 @@ void latitude_longitude_to_cartesian(float latitude, float longitude, float *x, 
 void nav_init(nav_t *_nav)
 {
 	nav_ptr = _nav;
+	nav_ptr->mode = NAV_HOVERING_WAYPOINT;
+}
+
+void nav_update_uav_info(float pos[3], float vel[3])
+{
+	nav_ptr->uav_info.pos[0] = pos[1];
+	nav_ptr->uav_info.pos[1] = pos[0];
+	nav_ptr->uav_info.pos[2] = pos[2]; //FIXME
 }
 
 void nav_set_enu_rectangular_fence(float origin[3], float lx, float ly, float height)
@@ -116,22 +124,48 @@ int nav_waypoint_mission_start(void)
 	}
 }
 
-void nav_waypoint_handler(float curr_pos[3])
+int nav_trigger_auto_landing(void)
+{
+	if(nav_ptr->mode == NAV_HOVERING_WAYPOINT) {
+		nav_ptr->landing_timer_last = get_sys_time_s();
+		nav_ptr->mode = NAV_LANDING_MODE;
+		return WP_SET_SUCCEED;
+	} else {
+		return WP_POSITION_NOT_FIX;
+	}
+}
+
+int nav_trigger_auto_takeoff(void)
+{
+	return WP_SET_SUCCEED;
+}
+
+void nav_waypoint_handler(void)
 {
 	static float start_time = 0.0f;
 	float curr_time = 0.0f;
 
-	if(nav_ptr->mode == NAV_TRAJECTORY_FOLLOWING_MODE ||
-	    nav_ptr->mode == NAV_HOVERING_WAYPOINT) {
+	switch(nav_ptr->mode) {
+	case NAV_LANDING_MODE: {
+		nav_ptr->wp_now.pos[2] -= 0.1;
+		if(nav_ptr->uav_info.pos[2] < 15.0f) {
+			nav_ptr->mode = NAV_MOTOR_LOCKED_MODE;
+		}
+		break;
+	}
+	case NAV_TRAJECTORY_FOLLOWING_MODE:
+	case NAV_HOVERING_WAYPOINT:
 		return;
 	}
+
+	return;
 
 	/* if receive halt command */
 	if(nav_ptr->halt_flag == true) {
 		/* hovering at current position */
-		nav_ptr->wp_now.pos[0] = curr_pos[0];
-		nav_ptr->wp_now.pos[1] = curr_pos[1];
-		nav_ptr->wp_now.pos[2] = curr_pos[2];
+		nav_ptr->wp_now.pos[0] = nav_ptr->uav_info.pos[0];
+		nav_ptr->wp_now.pos[1] = nav_ptr->uav_info.pos[1];
+		nav_ptr->wp_now.pos[2] = nav_ptr->uav_info.pos[2];
 		nav_ptr->halt_flag = false;
 		nav_ptr->mode = NAV_HOVERING_WAYPOINT;
 	}
@@ -155,11 +189,11 @@ void nav_waypoint_handler(float curr_pos[3])
 	} else if(nav_ptr->mode == NAV_FOLLOW_WAYPOINT) {
 		/* calculate 2-norm to check if enter the waypoint touch zone or not */
 		float curr_dist[3];
-		curr_dist[0] = curr_pos[0] - nav_ptr->wp_list[nav_ptr->curr_wp].pos[0];
+		curr_dist[0] = nav_ptr->uav_info.pos[0] - nav_ptr->wp_list[nav_ptr->curr_wp].pos[0];
 		curr_dist[0] *= curr_dist[0];
-		curr_dist[1] = curr_pos[1] - nav_ptr->wp_list[nav_ptr->curr_wp].pos[1];
+		curr_dist[1] = nav_ptr->uav_info.pos[1] - nav_ptr->wp_list[nav_ptr->curr_wp].pos[1];
 		curr_dist[1] *= curr_dist[1];
-		curr_dist[2] = curr_pos[2] - nav_ptr->wp_list[nav_ptr->curr_wp].pos[2];
+		curr_dist[2] = nav_ptr->uav_info.pos[2] - nav_ptr->wp_list[nav_ptr->curr_wp].pos[2];
 		curr_dist[2] *= curr_dist[2];
 
 		float accept_dist = nav_ptr->wp_list[nav_ptr->curr_wp].touch_radius;
