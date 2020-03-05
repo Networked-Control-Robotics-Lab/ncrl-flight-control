@@ -438,7 +438,7 @@ void rc_mode_change_handler_geometry(radio_t *rc)
 	if(rc->flight_mode == FLIGHT_MODE_HOVERING && flight_mode_last != FLIGHT_MODE_HOVERING) {
 		nav.wp_now.pos[0] = optitrack.pos_y; //XXX:ENU
 		nav.wp_now.pos[1] = optitrack.pos_x;
-		nav.wp_now.pos[2] = optitrack.pos_z;
+		nav.wp_now.pos[2] = 0;
 		desired_vel[0] = 0.0f;
 		desired_vel[1] = 0.0f;
 		desired_vel[2] = 0.0f;
@@ -449,9 +449,9 @@ void rc_mode_change_handler_geometry(radio_t *rc)
 
 	//if mode switched to navigation
 	if(rc->flight_mode == FLIGHT_MODE_NAVIGATION && flight_mode_last != FLIGHT_MODE_NAVIGATION) {
-		nav.wp_now.pos[0] = 0.0f;
-		nav.wp_now.pos[1] = 0.0f;
-		nav.wp_now.pos[2] = optitrack.pos_z;
+		nav.wp_now.pos[0] = optitrack.pos_y; //XXX:ENU
+		nav.wp_now.pos[1] = optitrack.pos_x;
+		nav.wp_now.pos[2] = 0.0f;
 		desired_vel[0] = 0.0f;
 		desired_vel[1] = 0.0f;
 		desired_vel[2] = 0.0f;
@@ -522,8 +522,13 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 		control_force = 4.0f * convert_motor_cmd_to_thrust(rc->throttle / 100.0f); //FIXME
 	}
 
+	bool halt_motor = false;
+	if(nav.wp_now.pos[2] < 10.0f && rc->throttle < 10.0f && nav.mode != NAV_MOTOR_LOCKED_MODE) {
+		halt_motor = true;
+	}
+
 	if(rc->safety == false) {
-		if(nav.mode != NAV_MOTOR_LOCKED_MODE) {
+		if(halt_motor == false) {
 			led_on(LED_R);
 			led_off(LED_B);
 			thrust_force_allocate_quadrotor(control_moments, control_force);
