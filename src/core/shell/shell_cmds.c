@@ -30,7 +30,7 @@ void shell_cmd_takeoff(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int 
 
 	if(c == 'Y' || c == 'y') {
 		int ret_val = nav_trigger_auto_takeoff();
-		if(ret_val == WP_SET_SUCCEED) {
+		if(ret_val == NAV_SET_SUCCEED) {
 			shell_puts("command accept.\n\r");
 		} else {
 			shell_puts("failed, uav had already takeoff\n\r");
@@ -50,7 +50,7 @@ void shell_cmd_land(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 
 	if(c == 'Y' || c == 'y') {
 		int ret_val = nav_trigger_auto_landing();
-		if(ret_val == WP_SET_SUCCEED) {
+		if(ret_val == NAV_SET_SUCCEED) {
 			shell_puts("command accept.\n\r");
 		} else {
 			shell_puts("failed, uav can only be landed while hovering at a point!\n\r");
@@ -123,7 +123,7 @@ void shell_cmd_fly(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int para
 		pos[2] *= 100.0f;
 
 		int ret_val = nav_goto_waypoint_now(pos, change_z);
-		if(ret_val == WP_SET_OUT_OF_FENCE) {
+		if(ret_val == NAV_WP_OUT_OF_FENCE) {
 			shell_puts("failed, waypoint out of geo-fence!\n\r");
 		} else {
 			shell_puts("command accept.\n\r");

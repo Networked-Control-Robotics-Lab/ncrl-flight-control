@@ -22,7 +22,8 @@ void nav_init(nav_t *_nav)
 	nav_ptr->mode = NAV_HOVERING_WAYPOINT;
 	nav_ptr->landing_speed = 0.1;
 	nav_ptr->takeoff_speed = 0.05;
-	nav_ptr->takeoff_height = 175;
+	nav_ptr->takeoff_height = 175;          //[cm]
+	nav_ptr->landing_accept_height = 15.0f; //[cm]
 }
 
 void nav_update_uav_info(float pos[3], float vel[3])
@@ -60,9 +61,9 @@ int nav_add_new_waypoint(float pos[3], float heading, float halt_time_sec)
 		nav_ptr->wp_list[nav_ptr->wp_num].pos[2] = pos[2];
 		nav_ptr->wp_list[nav_ptr->wp_num].heading = heading;
 		nav_ptr->wp_num++;
-		return WP_SET_SUCCEED;
+		return NAV_SET_SUCCEED;
 	} else {
-		return WP_SET_EXCEED_MAX_WP;
+		return NAV_WP_LIST_FULL;
 	}
 }
 
@@ -72,9 +73,9 @@ int nav_clear_waypoint_list(void)
 	    nav_ptr->mode != NAV_WAIT_NEXT_WAYPOINT) {
 		nav_ptr->wp_num = 0;
 		nav_ptr->curr_wp = 0;
-		return WP_SET_SUCCEED;
+		return NAV_SET_SUCCEED;
 	} else {
-		return WP_WP_LIST_EXECUTING;
+		return NAV_MISSION_EXECUTING;
 	}
 }
 
@@ -90,9 +91,9 @@ int nav_goto_waypoint_now(float pos[3], bool change_height)
 			(nav_ptr->wp_now).pos[2] = pos[2];
 		}
 		nav_ptr->curr_wp = 0; //reset waypoint list pointer
-		return WP_SET_SUCCEED;
+		return NAV_SET_SUCCEED;
 	} else {
-		return WP_SET_OUT_OF_FENCE;
+		return NAV_WP_OUT_OF_FENCE;
 	}
 }
 
@@ -100,9 +101,9 @@ int nav_halt_waypoint_mission(void)
 {
 	if(nav_ptr->mode == NAV_FOLLOW_WAYPOINT) {
 		nav_ptr->halt_flag = true;
-		return WP_SET_SUCCEED;
+		return NAV_SET_SUCCEED;
 	} else {
-		return WP_NO_EXECUTING_WP_LIST;
+		return NAV_NO_EXECUTING_MISSION;
 	}
 }
 
@@ -110,9 +111,9 @@ int nav_resume_waypoint_mission(void)
 {
 	if(nav_ptr->curr_wp != 0 && nav_ptr->curr_wp != (nav_ptr->wp_num - 1)) {
 		nav_ptr->mode = NAV_FOLLOW_WAYPOINT;
-		return WP_SET_SUCCEED;
+		return NAV_SET_SUCCEED;
 	} else {
-		return WP_NO_EXECUTING_WP_LIST;
+		return NAV_NO_EXECUTING_MISSION;
 	}
 }
 
@@ -121,9 +122,9 @@ int nav_waypoint_mission_start(void)
 	if(nav_ptr->wp_num >= 1) {
 		nav_ptr->curr_wp = 0;
 		nav_ptr->mode = NAV_FOLLOW_WAYPOINT;
-		return WP_SET_SUCCEED;
+		return NAV_SET_SUCCEED;
 	} else {
-		return WP_WP_LIST_EMPTY;
+		return NAV_WP_LIST_EMPYT;
 	}
 }
 
@@ -131,9 +132,9 @@ int nav_trigger_auto_landing(void)
 {
 	if(nav_ptr->mode == NAV_HOVERING_WAYPOINT) {
 		nav_ptr->mode = NAV_LANDING_MODE;
-		return WP_SET_SUCCEED;
+		return NAV_SET_SUCCEED;
 	} else {
-		return WP_POSITION_NOT_FIX;
+		return NAV_POSITION_NOT_FIX;
 	}
 }
 
@@ -141,8 +142,7 @@ int nav_trigger_auto_takeoff(void)
 {
 	if(nav_ptr->uav_info.pos[2] < 15.0f) {
 		nav_ptr->mode = NAV_TAKEOFF_MODE;
-		nav_ptr->wp_now.pos[2] = 50.0f;
-		return WP_SET_SUCCEED;
+		return NAV_SET_SUCCEED;
 	} else {
 		return NAV_UAV_ALREADY_TAKEOFF;
 	}

@@ -522,6 +522,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 		control_force = 4.0f * convert_motor_cmd_to_thrust(rc->throttle / 100.0f); //FIXME
 	}
 
+	/* lock motors if rc throttle < 10%, desired position < 25cm and nav.mode = motor lock mode */
 	bool halt_motor = false;
 	if(nav.wp_now.pos[2] < 25.0f && rc->throttle < 10.0f && nav.mode != NAV_MOTOR_LOCKED_MODE) {
 		halt_motor = true;

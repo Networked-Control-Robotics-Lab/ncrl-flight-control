@@ -5,8 +5,6 @@
 
 #define WAYPOINT_NUM_MAX 50
 
-#define LANDING_DECREASE_RATE (0.2 * 100) //[m/s]
-
 enum {
 	/* hovering at a waypoint */
 	NAV_HOVERING_WAYPOINT,
@@ -25,13 +23,13 @@ enum {
 } NAV_MODE;
 
 enum {
-	WP_SET_SUCCEED,
-	WP_SET_OUT_OF_FENCE,
-	WP_SET_EXCEED_MAX_WP,
-	WP_NO_EXECUTING_WP_LIST,
-	WP_WP_LIST_EXECUTING,
-	WP_WP_LIST_EMPTY,
-	WP_POSITION_NOT_FIX,
+	NAV_SET_SUCCEED,
+	NAV_WP_OUT_OF_FENCE,
+	NAV_WP_LIST_FULL,
+	NAV_MISSION_EXECUTING,
+	NAV_NO_EXECUTING_MISSION,
+	NAV_WP_LIST_EMPYT,
+	NAV_POSITION_NOT_FIX,
 	NAV_UAV_ALREADY_TAKEOFF
 } WP_SET_RETVAL;
 
@@ -60,6 +58,7 @@ typedef struct {
 	} geo_fence; /* rectangular geo-fence in enu frame */
 
 	float landing_speed;
+	float landing_accept_height;
 	float takeoff_speed;
 	float takeoff_height;
 	
