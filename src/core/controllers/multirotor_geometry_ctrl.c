@@ -523,7 +523,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	}
 
 	bool halt_motor = false;
-	if(nav.wp_now.pos[2] < 10.0f && rc->throttle < 10.0f && nav.mode != NAV_MOTOR_LOCKED_MODE) {
+	if(nav.wp_now.pos[2] < 25.0f && rc->throttle < 10.0f && nav.mode != NAV_MOTOR_LOCKED_MODE) {
 		halt_motor = true;
 	}
 

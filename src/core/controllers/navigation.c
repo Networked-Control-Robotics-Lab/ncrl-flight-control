@@ -20,6 +20,9 @@ void nav_init(nav_t *_nav)
 {
 	nav_ptr = _nav;
 	nav_ptr->mode = NAV_HOVERING_WAYPOINT;
+	nav_ptr->landing_speed = 0.1;
+	nav_ptr->takeoff_speed = 0.05;
+	nav_ptr->takeoff_height = 175;
 }
 
 void nav_update_uav_info(float pos[3], float vel[3])
@@ -161,31 +164,25 @@ void nav_waypoint_handler(void)
 	}
 
 	switch(nav_ptr->mode) {
+	case NAV_TRAJECTORY_FOLLOWING_MODE:
+	case NAV_HOVERING_WAYPOINT:
+		return;
 	case NAV_LANDING_MODE: {
-		nav_ptr->wp_now.pos[2] -= 0.1;
+		nav_ptr->wp_now.pos[2] -= nav_ptr->landing_speed;
 		if(nav_ptr->uav_info.pos[2] < 15.0f) {
 			nav_ptr->mode = NAV_MOTOR_LOCKED_MODE;
 		}
 		break;
 	}
 	case NAV_TAKEOFF_MODE: {
-		if(nav_ptr->uav_info.pos[2] > 25.0f) {
-			nav_ptr->wp_now.pos[2] += 0.05;
-		}
-
-		if(nav_ptr->uav_info.pos[2] > 175.0f) {
+		nav_ptr->wp_now.pos[2] += nav_ptr->takeoff_speed;
+		if(nav_ptr->uav_info.pos[2] > nav_ptr->takeoff_height) {
 			nav_ptr->mode = NAV_HOVERING_WAYPOINT;
-			nav_ptr->uav_info.pos[2] = 175.0f;
+			nav_ptr->uav_info.pos[2] = nav_ptr->takeoff_height;
 		}
+		break;
 	}
-	case NAV_TRAJECTORY_FOLLOWING_MODE:
-	case NAV_HOVERING_WAYPOINT:
-		return;
-	}
-
-	return;
-
-	if(nav_ptr->mode == NAV_WAIT_NEXT_WAYPOINT) {
+	case NAV_WAIT_NEXT_WAYPOINT: {
 		curr_time = get_sys_time_s();
 		/* check if time is up */
 		if((curr_time - start_time) > nav_ptr->wp_list[nav_ptr->curr_wp].halt_time_sec) {
@@ -201,7 +198,9 @@ void nav_waypoint_handler(void)
 				nav_ptr->mode = NAV_HOVERING_WAYPOINT;
 			}
 		}
-	} else if(nav_ptr->mode == NAV_FOLLOW_WAYPOINT) {
+		break;
+	}
+	case NAV_FOLLOW_WAYPOINT: {
 		/* calculate 2-norm to check if enter the waypoint touch zone or not */
 		float curr_dist[3];
 		curr_dist[0] = nav_ptr->uav_info.pos[0] - nav_ptr->wp_list[nav_ptr->curr_wp].pos[0];
@@ -219,5 +218,7 @@ void nav_waypoint_handler(void)
 			start_time = get_sys_time_s();
 			nav_ptr->mode = NAV_WAIT_NEXT_WAYPOINT;
 		}
+		break;
+	}
 	}
 }

@@ -59,6 +59,10 @@ typedef struct {
 		float height;
 	} geo_fence; /* rectangular geo-fence in enu frame */
 
+	float landing_speed;
+	float takeoff_speed;
+	float takeoff_height;
+	
 	int mode;
 	bool halt_flag;
 
