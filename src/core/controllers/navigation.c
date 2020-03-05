@@ -138,6 +138,7 @@ int nav_trigger_auto_takeoff(void)
 {
 	if(nav_ptr->uav_info.pos[2] < 15.0f) {
 		nav_ptr->mode = NAV_TAKEOFF_MODE;
+		nav_ptr->wp_now.pos[2] = 50.0f;
 		return WP_SET_SUCCEED;
 	} else {
 		return NAV_UAV_ALREADY_TAKEOFF;
@@ -168,10 +169,13 @@ void nav_waypoint_handler(void)
 		break;
 	}
 	case NAV_TAKEOFF_MODE: {
-		nav_ptr->wp_now.pos[2] += 0.03;
-		if(nav_ptr->uav_info.pos[2] > 100.0f) {
+		if(nav_ptr->uav_info.pos[2] > 25.0f) {
+			nav_ptr->wp_now.pos[2] += 0.05;
+		}
+
+		if(nav_ptr->uav_info.pos[2] > 175.0f) {
 			nav_ptr->mode = NAV_HOVERING_WAYPOINT;
-			nav_ptr->uav_info.pos[2] = 100.0f;
+			nav_ptr->uav_info.pos[2] = 175.0f;
 		}
 	}
 	case NAV_TRAJECTORY_FOLLOWING_MODE:
