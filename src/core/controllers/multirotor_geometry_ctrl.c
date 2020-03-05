@@ -59,6 +59,9 @@ MAT_ALLOC(b1d, 3, 1);
 MAT_ALLOC(b2d, 3, 1);
 MAT_ALLOC(b3d, 3, 1);
 
+float pos_error[3];
+float vel_error[3];
+
 float krx, kry, krz;
 float kwx, kwy, kwz;
 float kpx, kpy, kpz;
@@ -394,13 +397,11 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	pos_des_ned[2] = -nav.wp_now.pos[2];
 
 	/* ex = x - xd */
-	float pos_error[3];
 	pos_error[0] = curr_pos[0] - pos_des_ned[0];
 	pos_error[1] = curr_pos[1] - pos_des_ned[1];
 	pos_error[2] = -curr_pos[2] - pos_des_ned[2];
 
 	/* ev = v - vd */
-	float vel_error[3];
 	vel_error[0] = curr_vel[0] - desired_vel[0];
 	vel_error[1] = curr_vel[1] - desired_vel[1];
 	//swap the order since we actually feed the positive altitude (or negative z of NED frame) here
@@ -650,7 +651,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	}
 }
 
-void send_geometry_ctrl_debug(debug_msg_t *payload)
+void send_geometry_moment_ctrl_debug(debug_msg_t *payload)
 {
 	float roll_error = rad_to_deg(_mat_(eR)[0]);
 	float pitch_error = rad_to_deg(_mat_(eR)[1]);
@@ -672,7 +673,7 @@ void send_geometry_ctrl_debug(debug_msg_t *payload)
 	geometry_ctrl_feedfoward_moments[1] = _mat_(inertia_effect)[1];
 	geometry_ctrl_feedfoward_moments[2] = _mat_(inertia_effect)[2];
 
-	pack_debug_debug_message_header(payload, MESSAGE_ID_GEOMETRY_DEBUG);
+	pack_debug_debug_message_header(payload, MESSAGE_ID_GEOMETRY_MOMENT_CTRL);
 	pack_debug_debug_message_float(&roll_error, payload);
 	pack_debug_debug_message_float(&pitch_error, payload);
 	pack_debug_debug_message_float(&yaw_error, payload);
@@ -685,6 +686,14 @@ void send_geometry_ctrl_debug(debug_msg_t *payload)
 	pack_debug_debug_message_float(&geometry_ctrl_feedfoward_moments[0], payload);
 	pack_debug_debug_message_float(&geometry_ctrl_feedfoward_moments[1], payload);
 	pack_debug_debug_message_float(&geometry_ctrl_feedfoward_moments[2], payload);
+}
+
+void send_geometry_tracking_ctrl_debug(debug_msg_t *payload)
+{
+	pack_debug_debug_message_header(payload, MESSAGE_ID_GEOMETRY_TRACKING_CTRL);
+	pack_debug_debug_message_float(&pos_error[0], payload);
+	pack_debug_debug_message_float(&pos_error[1], payload);
+	pack_debug_debug_message_float(&pos_error[2], payload);
 }
 
 void send_uav_dynamics_debug(debug_msg_t *payload)

@@ -11,7 +11,7 @@ void shell_cmd_help(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 	          "takeoff\n\r"
 	          "land\n\r"
 	          "fly x y z\n\r"
-		  "mission\n\r";
+	          "mission\n\r";
 	shell_puts(s);
 }
 
@@ -106,10 +106,10 @@ void shell_cmd_mission(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int 
 
 	if(param_cnt != 2) {
 		shell_puts("mission add: add new waypoint\n\r"
-                           "mission start: start waypoint mission\n\r"
-                           "mission halt: halt the executing waypoint mission\n\r"
-			   "mission resume: resume the halting waypoint mission\n\r"
-			   "mission clear: clear the waypoint list\n\r");
+		           "mission start: start waypoint mission\n\r"
+		           "mission halt: halt the executing waypoint mission\n\r"
+		           "mission resume: resume the halting waypoint mission\n\r"
+		           "mission clear: clear the waypoint list\n\r");
 	} else if(param_cnt == 2) {
 		if(strcmp(param_list[1], "add") == 0) {
 		} else if(strcmp(param_list[1], "start") == 0) {

@@ -265,6 +265,15 @@ class serial_plotter_class:
                 plt.ylim([-1.5, 1.5])
                 self.create_curve('free fall detected', 'red')
 
+        elif (message_id == 14):
+          	plt.subplot(111)
+        	plt.ylabel('position error (cm)')
+        	plt.ylim([-300, 300])
+        	self.create_curve('ex', 'red')
+                self.create_curve('ey', 'blue')
+        	self.create_curve('ez', 'green')
+        	self.show_subplot()
+
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \
 		interval=0, blit=True)

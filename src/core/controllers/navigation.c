@@ -58,7 +58,7 @@ int nav_add_new_waypoint(float pos[3], float heading, float halt_time_sec)
 int nav_clear_waypoint_list(void)
 {
 	if(nav_ptr->mode != NAV_FOLLOW_WAYPOINT &&
-	   nav_ptr->mode != NAV_WAIT_NEXT_WAYPOINT) {
+	    nav_ptr->mode != NAV_WAIT_NEXT_WAYPOINT) {
 		nav_ptr->wp_num = 0;
 		nav_ptr->curr_wp = 0;
 		return WP_SET_SUCCEED;
@@ -72,7 +72,7 @@ int nav_goto_waypoint_now(float pos[3], float heading)
 	bool in_fence = nav_test_point_in_rectangular_fence(pos);
 
 	if(in_fence == true) {
-		nav_ptr->mode = NAV_HOVERING_WAYPOINT; 
+		nav_ptr->mode = NAV_HOVERING_WAYPOINT;
 		(nav_ptr->wp_now).pos[0] = pos[0];
 		(nav_ptr->wp_now).pos[1] = pos[1];
 		(nav_ptr->wp_now).pos[2] = pos[2];
@@ -121,7 +121,7 @@ void nav_waypoint_handler(float curr_pos[3])
 	float curr_time = 0.0f;
 
 	if(nav_ptr->mode == NAV_TRAJECTORY_FOLLOWING_MODE ||
-	   nav_ptr->mode == NAV_HOVERING_WAYPOINT) {
+	    nav_ptr->mode == NAV_HOVERING_WAYPOINT) {
 		return;
 	}
 
@@ -132,7 +132,7 @@ void nav_waypoint_handler(float curr_pos[3])
 		nav_ptr->wp_now.pos[1] = curr_pos[1];
 		nav_ptr->wp_now.pos[2] = curr_pos[2];
 		nav_ptr->halt_flag = false;
-		nav_ptr->mode = NAV_HOVERING_WAYPOINT; 
+		nav_ptr->mode = NAV_HOVERING_WAYPOINT;
 	}
 
 	if(nav_ptr->mode == NAV_WAIT_NEXT_WAYPOINT) {

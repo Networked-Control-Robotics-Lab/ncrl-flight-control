@@ -8,7 +8,8 @@
 void geometry_ctrl_init(void);
 void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desired_heading);
 
-void send_geometry_ctrl_debug(debug_msg_t *payload);
+void send_geometry_moment_ctrl_debug(debug_msg_t *payload);
+void send_geometry_tracking_ctrl_debug(debug_msg_t *payload);
 void send_uav_dynamics_debug(debug_msg_t *payload);
 
 #endif
