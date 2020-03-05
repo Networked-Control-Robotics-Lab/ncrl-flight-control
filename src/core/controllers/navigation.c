@@ -127,7 +127,6 @@ int nav_waypoint_mission_start(void)
 int nav_trigger_auto_landing(void)
 {
 	if(nav_ptr->mode == NAV_HOVERING_WAYPOINT) {
-		nav_ptr->landing_timer_last = get_sys_time_s();
 		nav_ptr->mode = NAV_LANDING_MODE;
 		return WP_SET_SUCCEED;
 	} else {
@@ -137,28 +136,18 @@ int nav_trigger_auto_landing(void)
 
 int nav_trigger_auto_takeoff(void)
 {
-	return WP_SET_SUCCEED;
+	if(nav_ptr->uav_info.pos[2] < 15.0f) {
+		nav_ptr->mode = NAV_TAKEOFF_MODE;
+		return WP_SET_SUCCEED;
+	} else {
+		return NAV_UAV_ALREADY_TAKEOFF;
+	}
 }
 
 void nav_waypoint_handler(void)
 {
 	static float start_time = 0.0f;
 	float curr_time = 0.0f;
-
-	switch(nav_ptr->mode) {
-	case NAV_LANDING_MODE: {
-		nav_ptr->wp_now.pos[2] -= 0.1;
-		if(nav_ptr->uav_info.pos[2] < 15.0f) {
-			nav_ptr->mode = NAV_MOTOR_LOCKED_MODE;
-		}
-		break;
-	}
-	case NAV_TRAJECTORY_FOLLOWING_MODE:
-	case NAV_HOVERING_WAYPOINT:
-		return;
-	}
-
-	return;
 
 	/* if receive halt command */
 	if(nav_ptr->halt_flag == true) {
@@ -169,6 +158,28 @@ void nav_waypoint_handler(void)
 		nav_ptr->halt_flag = false;
 		nav_ptr->mode = NAV_HOVERING_WAYPOINT;
 	}
+
+	switch(nav_ptr->mode) {
+	case NAV_LANDING_MODE: {
+		nav_ptr->wp_now.pos[2] -= 0.1;
+		if(nav_ptr->uav_info.pos[2] < 15.0f) {
+			nav_ptr->mode = NAV_MOTOR_LOCKED_MODE;
+		}
+		break;
+	}
+	case NAV_TAKEOFF_MODE: {
+		nav_ptr->wp_now.pos[2] += 0.03;
+		if(nav_ptr->uav_info.pos[2] > 100.0f) {
+			nav_ptr->mode = NAV_HOVERING_WAYPOINT;
+			nav_ptr->uav_info.pos[2] = 100.0f;
+		}
+	}
+	case NAV_TRAJECTORY_FOLLOWING_MODE:
+	case NAV_HOVERING_WAYPOINT:
+		return;
+	}
+
+	return;
 
 	if(nav_ptr->mode == NAV_WAIT_NEXT_WAYPOINT) {
 		curr_time = get_sys_time_s();

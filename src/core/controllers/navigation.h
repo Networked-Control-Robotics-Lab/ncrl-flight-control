@@ -32,6 +32,7 @@ enum {
 	WP_WP_LIST_EXECUTING,
 	WP_WP_LIST_EMPTY,
 	WP_POSITION_NOT_FIX,
+	NAV_UAV_ALREADY_TAKEOFF
 } WP_SET_RETVAL;
 
 struct waypoint_t {
@@ -46,14 +47,11 @@ struct uav_info_t {
 	float vel[3];
 };
 
+/* every entities in nav_t is defined in enu frame */
 typedef struct {
 	struct uav_info_t uav_info;
-	struct waypoint_t wp_now; //enu frame
+	struct waypoint_t wp_now;
 
-	float landing_timer_last;
-	float takeoff_timer_last;
-
-	//earth-north-up
 	struct {
 		float origin[3];
 		float lx;

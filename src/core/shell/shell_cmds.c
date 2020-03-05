@@ -27,12 +27,21 @@ void shell_cmd_takeoff(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int 
 	char c = shell_getc();
 	sprintf(s, "%c\n\r", c);
 	shell_puts(s);
+
+	if(c == 'Y' || c == 'y') {
+		int ret_val = nav_trigger_auto_takeoff();
+		if(ret_val == WP_SET_SUCCEED) {
+			shell_puts("command accept.\n\r");
+		} else {
+			shell_puts("failed, uav had already takeoff\n\r");
+		}
+	} else {
+		shell_puts("command aborted\n\r");
+	}
 }
 
 void shell_cmd_land(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
-	int ret_val;
-
 	char s[100] = {'\0'};
 	shell_puts("confirm landing command [y/n] ");
 	char c = shell_getc();
@@ -40,7 +49,7 @@ void shell_cmd_land(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 	shell_puts(s);
 
 	if(c == 'Y' || c == 'y') {
-		ret_val = nav_trigger_auto_landing();
+		int ret_val = nav_trigger_auto_landing();
 		if(ret_val == WP_SET_SUCCEED) {
 			shell_puts("command accept.\n\r");
 		} else {
