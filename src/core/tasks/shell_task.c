@@ -11,6 +11,7 @@ struct cmd_list_entry shell_cmd_list[] = {
 	DEF_SHELL_CMD(help)
 	DEF_SHELL_CMD(clear)
 	DEF_SHELL_CMD(disarm)
+	DEF_SHELL_CMD(arm)
 	DEF_SHELL_CMD(takeoff)
 	DEF_SHELL_CMD(land)
 	DEF_SHELL_CMD(fly)
