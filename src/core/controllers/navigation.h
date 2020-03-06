@@ -6,12 +6,14 @@
 #define WAYPOINT_NUM_MAX 50
 
 enum {
+	/* user manual flight mode */
+	NAV_MANUAL_FLIGHT_MODE,
 	/* hovering at a waypoint */
-	NAV_HOVERING_WAYPOINT,
+	NAV_HOVERING_MODE,
 	/* follow the waypoint list to fly */
-	NAV_FOLLOW_WAYPOINT,
-	/* hovering by current waypoint for some time before traveling to next one */
-	NAV_WAIT_NEXT_WAYPOINT,
+	NAV_FOLLOW_WAYPOINT_MODE,
+	/* hovering at current waypoint for some time before traveling to next one */
+	NAV_WAIT_NEXT_WAYPOINT_MODE,
 	/* follow a trajectory by given position, velocity and acceleration */
 	NAV_TRAJECTORY_FOLLOWING_MODE,
 	/* auto-takeoff mode */
@@ -29,7 +31,7 @@ enum {
 	NAV_MISSION_EXECUTING,
 	NAV_NO_EXECUTING_MISSION,
 	NAV_WP_LIST_EMPYT,
-	NAV_POSITION_NOT_FIX,
+	NAV_POSITION_NOT_FIXED,
 	NAV_UAV_ALREADY_TAKEOFF
 } WP_SET_RETVAL;
 

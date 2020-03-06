@@ -540,7 +540,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 			motor_halt();
 		}
 	} else {
-		nav.mode = NAV_HOVERING_WAYPOINT;
+		nav.mode = NAV_HOVERING_MODE;
 		led_on(LED_B);
 		led_off(LED_R);
 		*desired_heading = ahrs->attitude.yaw;
