@@ -31,10 +31,10 @@
 #define RC_SAFETY_THRESH ((float)(RC_SAFETY_MAX - RC_SAFETY_MIN) / 2.0)
 
 enum {
-	FLIGHT_MODE_MANUAL = 0,
-	FLIGHT_MODE_HOVERING = 1,
-	FLIGHT_MODE_NAVIGATION = 2
-} FLIGHT_MODE;
+	RC_AUX_MODE1 = 0, /* first position of the switch from top */
+	RC_AUX_MODE2 = 1, /* second position of the switch from top*/
+	RC_AUX_MODE3 = 2, /* third position of the switch from top*/
+} AUX_CHAN_MODE;
 
 typedef struct {
 	float throttle;
@@ -42,7 +42,7 @@ typedef struct {
 	float pitch;
 	float yaw;
 	bool safety;
-	int flight_mode;
+	int aux1_mode;
 } radio_t;
 
 void sbus_rc_handler(uint8_t byte);

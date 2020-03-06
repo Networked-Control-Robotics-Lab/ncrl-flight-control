@@ -432,10 +432,10 @@ void thrust_force_allocate_quadrotor(float *moment, float total_force)
 
 void rc_mode_change_handler_geometry(radio_t *rc)
 {
-	static int flight_mode_last = FLIGHT_MODE_MANUAL;
+	static int aux1_mode_last = RC_AUX_MODE1;
 
 	//if mode switched to hovering
-	if(rc->flight_mode == FLIGHT_MODE_HOVERING && flight_mode_last != FLIGHT_MODE_HOVERING) {
+	if(rc->aux1_mode == RC_AUX_MODE2 && aux1_mode_last != RC_AUX_MODE2) {
 		nav.wp_now.pos[0] = optitrack.pos_y; //XXX:ENU
 		nav.wp_now.pos[1] = optitrack.pos_x;
 		nav.wp_now.pos[2] = 0;
@@ -448,7 +448,7 @@ void rc_mode_change_handler_geometry(radio_t *rc)
 	}
 
 	//if mode switched to navigation
-	if(rc->flight_mode == FLIGHT_MODE_NAVIGATION && flight_mode_last != FLIGHT_MODE_NAVIGATION) {
+	if(rc->aux1_mode == RC_AUX_MODE3 && aux1_mode_last != RC_AUX_MODE3) {
 		nav.wp_now.pos[0] = optitrack.pos_y; //XXX:ENU
 		nav.wp_now.pos[1] = optitrack.pos_x;
 		nav.wp_now.pos[2] = 0.0f;
@@ -461,10 +461,10 @@ void rc_mode_change_handler_geometry(radio_t *rc)
 	}
 
 	//if current mode if maunal
-	if(rc->flight_mode == FLIGHT_MODE_MANUAL) {
+	if(rc->aux1_mode == RC_AUX_MODE1) {
 	}
 
-	flight_mode_last = rc->flight_mode;
+	aux1_mode_last = rc->aux1_mode;
 }
 
 void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desired_heading)
@@ -493,9 +493,9 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 
 	float control_moments[3] = {0.0f}, control_force = 0.0f;
 
-	switch(rc->flight_mode) {
-	case FLIGHT_MODE_HOVERING:
-	case FLIGHT_MODE_NAVIGATION:
+	switch(rc->aux1_mode) {
+	case RC_AUX_MODE2:
+	case RC_AUX_MODE3:
 		if(fabs(rc->roll) > 5.0f || fabs(rc->pitch) > 5.0f) {
 			//attitude_manual_height_auto = true;
 		} else {
@@ -514,7 +514,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 			                       &control_force, attitude_manual_height_auto);
 			break;
 		}
-	case FLIGHT_MODE_MANUAL:
+	case RC_AUX_MODE1:
 	default:
 		geometry_manual_ctrl(&desired_attitude, ahrs->q, gyro, control_moments, optitrack_present);
 

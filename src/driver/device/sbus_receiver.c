@@ -68,7 +68,7 @@ void read_rc(radio_t *rc)
 	float pitch_raw = (float)rc_val[1]; //channel 2
 	float yaw_raw = (float)rc_val[3]; //channel 4
 	float safety_raw = (float)rc_val[4]; //channel 5
-	float flight_mode_raw = (float)rc_val[5]; //channel 6
+	float aux1_mode_raw = (float)rc_val[5]; //channel 6
 
 	if(safety_raw > RC_SAFETY_THRESH) {
 		rc->safety = false; //disarmed
@@ -89,16 +89,16 @@ void read_rc(radio_t *rc)
 	               (RC_THROTTLE_RANGE_MAX - RC_THROTTLE_RANGE_MIN);
 
 	/* flight mode */
-	float flight_mode_up_thresh = (RC_FLIGHT_MODE_MAX + RC_FLIGHT_MODE_MID) / 2.0f;
-	float floght_mode_low_thresh = (RC_FLIGHT_MODE_MID + RC_FLIGHT_MODE_MIN) / 2.0f;
-	if(flight_mode_raw < floght_mode_low_thresh) {
-		rc->flight_mode = FLIGHT_MODE_MANUAL;
-	} else if (flight_mode_raw < flight_mode_up_thresh && flight_mode_raw > floght_mode_low_thresh) {
-		rc->flight_mode = FLIGHT_MODE_HOVERING;
-	} else if (flight_mode_raw > flight_mode_up_thresh) {
-		rc->flight_mode = FLIGHT_MODE_NAVIGATION;
+	float aux1_mode_up_thresh = (RC_FLIGHT_MODE_MAX + RC_FLIGHT_MODE_MID) / 2.0f;
+	float aux1_mode_low_thresh = (RC_FLIGHT_MODE_MID + RC_FLIGHT_MODE_MIN) / 2.0f;
+	if(aux1_mode_raw < aux1_mode_low_thresh) {
+		rc->aux1_mode = RC_AUX_MODE1;
+	} else if (aux1_mode_raw < aux1_mode_up_thresh && aux1_mode_raw > aux1_mode_low_thresh) {
+		rc->aux1_mode = RC_AUX_MODE2;
+	} else if (aux1_mode_raw > aux1_mode_up_thresh) {
+		rc->aux1_mode = RC_AUX_MODE3;
 	} else {
-		rc->flight_mode = FLIGHT_MODE_MANUAL;
+		rc->aux1_mode = RC_AUX_MODE1;
 	}
 
 	bound_float(&rc->roll, RC_ROLL_RANGE_MAX, RC_ROLL_RANGE_MIN);
@@ -110,7 +110,7 @@ void read_rc(radio_t *rc)
 int rc_safety_check(radio_t *rc)
 {
 	if(rc->safety == false) return 1;
-	if(rc->flight_mode != FLIGHT_MODE_MANUAL) return 1;
+	if(rc->aux1_mode != RC_AUX_MODE1) return 1;
 	if(rc->throttle > 10.0f) return 1;
 	if(rc->roll > 5.0f || rc->roll < -5.0f) return 1;
 	if(rc->pitch > 5.0f || rc->pitch < -5.0f) return 1;
@@ -148,29 +148,29 @@ void debug_print_rc_info(void)
 	read_rc(&rc);
 
 	char s[300] = {0};
-	char *manual_mode_s = "[manual mode]";
-	char *halting_mode_s = "[hovering mode]";
-	char *navigation_mode_s = "[navigation mode]";
-	char *flight_mode_s = 0;
+	char *aux1_mode1_s = "[aux1 mode1]";
+	char *aux1_mode2_s = "[aux1 mode2]";
+	char *aux1_mode3_s = "[aux1 mode3]";
+	char *aux1_mode_s = 0;
 
-	switch(rc.flight_mode) {
-	case FLIGHT_MODE_MANUAL:
-		flight_mode_s = manual_mode_s;
+	switch(rc.aux1_mode) {
+	case RC_AUX_MODE1:
+		aux1_mode_s = aux1_mode1_s;
 		break;
-	case FLIGHT_MODE_HOVERING:
-		flight_mode_s = halting_mode_s;
+	case RC_AUX_MODE2:
+		aux1_mode_s = aux1_mode2_s;
 		break;
-	case FLIGHT_MODE_NAVIGATION:
-		flight_mode_s = navigation_mode_s;
+	case RC_AUX_MODE3:
+		aux1_mode_s = aux1_mode3_s;
 		break;
 	}
 
 	if(rc.safety == true) {
 		sprintf(s, "[disarmed]%s roll:%lf,pitch:%lf,yaw:%lf,throttle:%lf\n\r",
-		        flight_mode_s, rc.roll, rc.pitch, rc.yaw, rc.throttle);
+		        aux1_mode_s, rc.roll, rc.pitch, rc.yaw, rc.throttle);
 	} else {
 		sprintf(s, "[armed]%s roll:%lf,pitch:%lf,yaw:%lf,throttle:%lf\n\r",
-		        flight_mode_s, rc.roll, rc.pitch, rc.yaw, rc.throttle);
+		        aux1_mode_s, rc.roll, rc.pitch, rc.yaw, rc.throttle);
 	}
 	uart3_puts(s, strlen(s));
 	blocked_delay_ms(100);
