@@ -20,10 +20,10 @@ void nav_init(nav_t *_nav)
 {
 	nav_ptr = _nav;
 	nav_ptr->mode = NAV_MANUAL_FLIGHT_MODE;
-	nav_ptr->landing_speed = 0.1;
-	nav_ptr->takeoff_speed = 0.05;
-	nav_ptr->takeoff_height = 175;          //[cm]
-	nav_ptr->landing_accept_height = 15.0f; //[cm]
+	nav_ptr->landing_speed = 0.13;
+	nav_ptr->takeoff_speed = 0.08;
+	nav_ptr->takeoff_height = 150;          //[cm]
+	nav_ptr->landing_accept_height = 20.0f; //[cm]
 }
 
 void nav_update_uav_info(float pos[3], float vel[3])

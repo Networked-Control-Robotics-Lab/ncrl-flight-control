@@ -76,9 +76,10 @@ float uav_dynamics_m_rot_frame[3] = {0.0f}; //M_rot = (J * W_dot)
 float curr_pos[3];
 float curr_vel[3], desired_vel[3];
 float curr_accel[3], desired_accel[3];
-bool attitude_manual_height_auto = true;
 
 nav_t nav;
+
+bool attitude_manual_height_auto = false;
 
 void geometry_ctrl_init(void)
 {
@@ -275,8 +276,8 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	nav_waypoint_handler();
 
 	float pos_des_ned[3];
-	pos_des_ned[0] = nav.wp_now.pos[1];
-	pos_des_ned[1] = nav.wp_now.pos[0];
+	pos_des_ned[0] = 0.0f;//nav.wp_now.pos[1];
+	pos_des_ned[1] = 0.0f;//nav.wp_now.pos[0];
 	pos_des_ned[2] = -nav.wp_now.pos[2];
 
 	/* ex = x - xd */
@@ -432,13 +433,13 @@ void thrust_force_allocate_quadrotor(float *moment, float total_force)
 
 void rc_mode_change_handler_geometry(radio_t *rc)
 {
-	static int aux1_mode_last = RC_AUX_MODE1;
+	static bool auto_flight_mode_last = false;
 
-	//if mode switched to hovering
-	if(rc->aux1_mode == RC_AUX_MODE2 && aux1_mode_last != RC_AUX_MODE2) {
+	//if mode switched to auto-flight
+	if(rc->auto_flight == true && auto_flight_mode_last != true) {
 		nav.wp_now.pos[0] = optitrack.pos_y; //XXX:ENU
 		nav.wp_now.pos[1] = optitrack.pos_x;
-		nav.wp_now.pos[2] = 0;
+		nav.wp_now.pos[2] = optitrack.pos_z;
 		desired_vel[0] = 0.0f;
 		desired_vel[1] = 0.0f;
 		desired_vel[2] = 0.0f;
@@ -447,10 +448,9 @@ void rc_mode_change_handler_geometry(radio_t *rc)
 		desired_accel[2] = 0.0f;
 	}
 
-	//if mode switched to navigation
-	if(rc->aux1_mode == RC_AUX_MODE3 && aux1_mode_last != RC_AUX_MODE3) {
-		nav.wp_now.pos[0] = optitrack.pos_y; //XXX:ENU
-		nav.wp_now.pos[1] = optitrack.pos_x;
+	if(rc->auto_flight == false) {
+		nav.wp_now.pos[0] = 0.0f;
+		nav.wp_now.pos[1] = 0.0f;
 		nav.wp_now.pos[2] = 0.0f;
 		desired_vel[0] = 0.0f;
 		desired_vel[1] = 0.0f;
@@ -460,11 +460,7 @@ void rc_mode_change_handler_geometry(radio_t *rc)
 		desired_accel[2] = 0.0f;
 	}
 
-	//if current mode if maunal
-	if(rc->aux1_mode == RC_AUX_MODE1) {
-	}
-
-	aux1_mode_last = rc->aux1_mode;
+	auto_flight_mode_last = rc->auto_flight;
 }
 
 void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desired_heading)
@@ -493,15 +489,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 
 	float control_moments[3] = {0.0f}, control_force = 0.0f;
 
-	switch(rc->aux1_mode) {
-	case RC_AUX_MODE2:
-	case RC_AUX_MODE3:
-		if(fabs(rc->roll) > 5.0f || fabs(rc->pitch) > 5.0f) {
-			//attitude_manual_height_auto = true;
-		} else {
-			attitude_manual_height_auto = false;
-		}
-
+	if(rc->auto_flight == true) {
 		if(optitrack_present == true) {
 			curr_pos[0] = optitrack.pos_x;
 			curr_pos[1] = optitrack.pos_y;
@@ -512,10 +500,8 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 			geometry_tracking_ctrl(&desired_attitude, ahrs->q, gyro, curr_pos,
 			                       curr_vel, desired_vel, curr_accel, desired_accel, control_moments,
 			                       &control_force, attitude_manual_height_auto);
-			break;
 		}
-	case RC_AUX_MODE1:
-	default:
+	} else {
 		geometry_manual_ctrl(&desired_attitude, ahrs->q, gyro, control_moments, optitrack_present);
 
 		/* generate total thrust for quadrotor using rc in manual mode */
@@ -524,14 +510,14 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 
 	/* lock motors if rc throttle < 10%, desired position < 25cm and nav.mode = motor lock mode */
 	bool halt_motor = false;
-	if(nav.wp_now.pos[2] < 25.0f && rc->throttle < 10.0f && nav.mode != NAV_MOTOR_LOCKED_MODE) {
+	if(((nav.wp_now.pos[2] < 25.0f) && (rc->throttle < 10.0f)) || (nav.mode == NAV_MOTOR_LOCKED_MODE)) {
 		halt_motor = true;
 	}
 
 	if(rc->safety == false) {
 		if(halt_motor == false) {
-			led_on(LED_R);
-			led_off(LED_B);
+			led_on(LED_B);
+			led_off(LED_R);
 			thrust_force_allocate_quadrotor(control_moments, control_force);
 		} else {
 			led_on(LED_B);
