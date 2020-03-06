@@ -77,9 +77,9 @@ void read_rc(radio_t *rc)
 		rc->safety = true; //armed
 	}
 
-	if(auto_flight > RC_AUTO_FLIGHT_THRESH) {
+	if(auto_flight < RC_AUTO_FLIGHT_THRESH) {
 		rc->auto_flight = false; //manual flight
-	} else if(auto_flight < RC_AUTO_FLIGHT_THRESH) {
+	} else if(auto_flight > RC_AUTO_FLIGHT_THRESH) {
 		rc->auto_flight = true; //auto flight
 	}
 
@@ -117,7 +117,7 @@ void read_rc(radio_t *rc)
 int rc_safety_check(radio_t *rc)
 {
 	if(rc->safety == false) return 1;
-	if(rc->auto_flight == false) return 1;
+	if(rc->auto_flight != false) return 1;
 	if(rc->aux1_mode != RC_AUX_MODE1) return 1;
 	if(rc->throttle > 10.0f) return 1;
 	if(rc->roll > 5.0f || rc->roll < -5.0f) return 1;
@@ -144,7 +144,7 @@ void debug_print_rc_val(void)
 {
 	/* debug message */
 	char s[100] = {0};
-	sprintf(s, "ch1:%d, ch2:%d ch3:%d, ch4:%d, ch5:%d, ch6:%d\n\r, ch7:%d\n\r",
+	sprintf(s, "ch1:%d, ch2:%d ch3:%d, ch4:%d, ch5:%d, ch6:%d, ch7:%d\n\r",
 	        rc_val[0], rc_val[1], rc_val[2], rc_val[3], rc_val[4], rc_val[5], rc_val[6]);
 	uart3_puts(s, strlen(s));
 	blocked_delay_ms(100);
@@ -170,8 +170,8 @@ void debug_print_rc_info(void)
 	char *aux1_mode2_s = "[aux1 mode2]";
 	char *aux1_mode3_s = "[aux1 mode3]";
 
-	if(rc.safety == true) safety_s = safety_disarmed_s;
-	else safety_s = safety_armed_s;
+	if(rc.safety == true) safety_s = safety_armed_s;
+	else safety_s = safety_disarmed_s;
 
 	if(rc.auto_flight == true) auto_flight_s = auto_flight_enabled_s;
 	else auto_flight_s = auto_flight_disabled_s;
