@@ -11,18 +11,25 @@
 void shell_cmd_help(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
 	char *s = "supported commands:\n\r"
+	          "clear"
+	          "disarm\n\r"
 	          "takeoff\n\r"
 	          "land\n\r"
 	          "fly x y z\n\r"
 	          "mission\n\r"
-                  "radio\n\r"
-                  "radio_raw\n\r"
-                  "acc_calib\n\r"
-                  "task\n\r";
+	          "radio\n\r"
+	          "radio_raw\n\r"
+	          "acc_calib\n\r"
+	          "task\n\r";
 	shell_puts(s);
 }
 
 void shell_cmd_clear(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
+	shell_cls();
+}
+
+void shell_cmd_disarm(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
 	shell_cls();
 }
