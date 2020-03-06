@@ -14,6 +14,10 @@ struct cmd_list_entry shell_cmd_list[] = {
 	DEF_SHELL_CMD(land)
 	DEF_SHELL_CMD(fly)
 	DEF_SHELL_CMD(mission)
+	DEF_SHELL_CMD(radio)
+	DEF_SHELL_CMD(radio_raw)
+	DEF_SHELL_CMD(acc_calib)
+	DEF_SHELL_CMD(task)
 };
 
 void shell_greeting(void)

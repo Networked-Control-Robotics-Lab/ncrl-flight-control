@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include "mpu6500.h"
+#include "uart.h"
+#include "sbus_receiver.h"
 #include "quadshell.h"
 #include "navigation.h"
 
@@ -11,7 +14,11 @@ void shell_cmd_help(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 	          "takeoff\n\r"
 	          "land\n\r"
 	          "fly x y z\n\r"
-	          "mission\n\r";
+	          "mission\n\r"
+                  "radio\n\r"
+                  "radio_raw\n\r"
+                  "acc_calib\n\r"
+                  "task\n\r";
 	shell_puts(s);
 }
 
@@ -177,4 +184,44 @@ void shell_cmd_mission(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int 
 			shell_puts("unknown mission command!\n\r");
 		}
 	}
+}
+
+void shell_cmd_radio(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
+	shell_puts("press [q] to stop.\n\r");
+	char c = '\0';
+	while(1) {
+		if(uart3_getc(&c, 0) == true) {
+			if(c == 'q') break;
+		}
+		debug_print_rc_info();
+	}
+}
+
+void shell_cmd_radio_raw(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
+	shell_puts("press [q] to stop.\n\r");
+	char c = '\0';
+	while(1) {
+		if(uart3_getc(&c, 0) == true) {
+			if(c == 'q') break;
+		}
+		debug_print_rc_val();
+	}
+}
+
+void shell_cmd_acc_calib(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
+	shell_puts("press [q] to stop.\n\r");
+	char c = '\0';
+	while(1) {
+		if(uart3_getc(&c, 0) == true) {
+			if(c == 'q') break;
+		}
+		debug_print_mpu6500_accel();
+	}
+}
+
+void shell_cmd_task(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
 }
