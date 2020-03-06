@@ -68,12 +68,19 @@ void read_rc(radio_t *rc)
 	float pitch_raw = (float)rc_val[1]; //channel 2
 	float yaw_raw = (float)rc_val[3]; //channel 4
 	float safety_raw = (float)rc_val[4]; //channel 5
-	float aux1_mode_raw = (float)rc_val[5]; //channel 6
+	float auto_flight = (float)rc_val[5]; //channel 6
+	float aux1_mode_raw = (float)rc_val[6]; //channel 7
 
 	if(safety_raw > RC_SAFETY_THRESH) {
 		rc->safety = false; //disarmed
 	} else if(safety_raw < RC_SAFETY_THRESH) {
 		rc->safety = true; //armed
+	}
+
+	if(auto_flight > RC_AUTO_FLIGHT_THRESH) {
+		rc->auto_flight = false; //manual flight
+	} else if(auto_flight < RC_AUTO_FLIGHT_THRESH) {
+		rc->auto_flight = true; //auto flight
 	}
 
 	rc->roll = (float)(roll_raw - RC_ROLL_MIN) / (RC_ROLL_MAX - RC_ROLL_MIN) *
@@ -88,7 +95,7 @@ void read_rc(radio_t *rc)
 	rc->throttle = (float)(throttle_raw - RC_THROTTLE_MIN) / (RC_THROTTLE_MAX - RC_THROTTLE_MIN) *
 	               (RC_THROTTLE_RANGE_MAX - RC_THROTTLE_RANGE_MIN);
 
-	/* flight mode */
+	/* aux-sw 1 mode */
 	float aux1_mode_up_thresh = (RC_FLIGHT_MODE_MAX + RC_FLIGHT_MODE_MID) / 2.0f;
 	float aux1_mode_low_thresh = (RC_FLIGHT_MODE_MID + RC_FLIGHT_MODE_MIN) / 2.0f;
 	if(aux1_mode_raw < aux1_mode_low_thresh) {
@@ -110,6 +117,7 @@ void read_rc(radio_t *rc)
 int rc_safety_check(radio_t *rc)
 {
 	if(rc->safety == false) return 1;
+	if(rc->auto_flight == false) return 1;
 	if(rc->aux1_mode != RC_AUX_MODE1) return 1;
 	if(rc->throttle > 10.0f) return 1;
 	if(rc->roll > 5.0f || rc->roll < -5.0f) return 1;
@@ -136,8 +144,8 @@ void debug_print_rc_val(void)
 {
 	/* debug message */
 	char s[100] = {0};
-	sprintf(s, "ch1:%d, ch2:%d ch3:%d, ch4:%d, ch5:%d, ch6:%d\n\r",
-	        rc_val[0], rc_val[1], rc_val[2], rc_val[3], rc_val[4], rc_val[5]);
+	sprintf(s, "ch1:%d, ch2:%d ch3:%d, ch4:%d, ch5:%d, ch6:%d\n\r, ch7:%d\n\r",
+	        rc_val[0], rc_val[1], rc_val[2], rc_val[3], rc_val[4], rc_val[5], rc_val[6]);
 	uart3_puts(s, strlen(s));
 	blocked_delay_ms(100);
 }
@@ -148,10 +156,25 @@ void debug_print_rc_info(void)
 	read_rc(&rc);
 
 	char s[300] = {0};
+
+	char *safety_s = 0;
+	char *safety_armed_s = "[armed]";
+	char *safety_disarmed_s = "[disarmed]";
+
+	char *auto_flight_s = 0;
+	char *auto_flight_enabled_s = "[auto-flight]";
+	char *auto_flight_disabled_s = "[manual-flight]";
+
+	char *aux1_mode_s = 0;
 	char *aux1_mode1_s = "[aux1 mode1]";
 	char *aux1_mode2_s = "[aux1 mode2]";
 	char *aux1_mode3_s = "[aux1 mode3]";
-	char *aux1_mode_s = 0;
+
+	if(rc.safety == true) safety_s = safety_disarmed_s;
+	else safety_s = safety_armed_s;
+
+	if(rc.auto_flight == true) auto_flight_s = auto_flight_enabled_s;
+	else auto_flight_s = auto_flight_disabled_s;
 
 	switch(rc.aux1_mode) {
 	case RC_AUX_MODE1:
@@ -165,13 +188,9 @@ void debug_print_rc_info(void)
 		break;
 	}
 
-	if(rc.safety == true) {
-		sprintf(s, "[disarmed]%s roll:%lf,pitch:%lf,yaw:%lf,throttle:%lf\n\r",
-		        aux1_mode_s, rc.roll, rc.pitch, rc.yaw, rc.throttle);
-	} else {
-		sprintf(s, "[armed]%s roll:%lf,pitch:%lf,yaw:%lf,throttle:%lf\n\r",
-		        aux1_mode_s, rc.roll, rc.pitch, rc.yaw, rc.throttle);
-	}
+	sprintf(s, "%s%s%s roll:%lf,pitch:%lf,yaw:%lf,throttle:%lf\n\r",
+	        safety_s, auto_flight_s, aux1_mode_s, rc.roll, rc.pitch, rc.yaw, rc.throttle);
+
 	uart3_puts(s, strlen(s));
 	blocked_delay_ms(100);
 }

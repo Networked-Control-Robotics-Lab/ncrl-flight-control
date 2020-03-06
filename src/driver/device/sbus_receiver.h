@@ -7,14 +7,25 @@
 /* calibrated rc signal */
 #define RC_THROTTLE_MAX 1680
 #define RC_THROTTLE_MIN 368
+
 #define RC_ROLL_MAX 1680
 #define RC_ROLL_MIN 366
+
 #define RC_PITCH_MAX 1680
 #define RC_PITCH_MIN 368
+
 #define RC_YAW_MAX 1680
 #define RC_YAW_MIN 371
+
 #define RC_SAFETY_MAX 1904
 #define RC_SAFETY_MIN 144
+
+#define RC_SAFETY_MAX 1904
+#define RC_SAFETY_MIN 144
+
+#define RC_AUTO_FLIGHT_MAX 1904
+#define RC_AUTO_FLIGHT_MIN 144
+
 #define RC_FLIGHT_MODE_MAX 1904
 #define RC_FLIGHT_MODE_MID 1024
 #define RC_FLIGHT_MODE_MIN 144
@@ -22,13 +33,18 @@
 /* define radio control range */
 #define RC_THROTTLE_RANGE_MAX 100.0f
 #define RC_THROTTLE_RANGE_MIN 0.0f
+
 #define RC_ROLL_RANGE_MAX +35.0f
 #define RC_ROLL_RANGE_MIN -35.0f
+
 #define RC_PITCH_RANGE_MAX +35.0f
 #define RC_PITCH_RANGE_MIN -35.0f
+
 #define RC_YAW_RANGE_MAX +35.0f
 #define RC_YAW_RANGE_MIN -35.0f
+
 #define RC_SAFETY_THRESH ((float)(RC_SAFETY_MAX - RC_SAFETY_MIN) / 2.0)
+#define RC_AUTO_FLIGHT_THRESH ((float)(RC_AUTO_FLIGHT_MAX - RC_AUTO_FLIGHT_MIN) / 2.0)
 
 enum {
 	RC_AUX_MODE1 = 0, /* first position of the switch from top */
@@ -42,6 +58,7 @@ typedef struct {
 	float pitch;
 	float yaw;
 	bool safety;
+	bool auto_flight;
 	int aux1_mode;
 } radio_t;
 
