@@ -1,7 +1,9 @@
+#include <stdio.h>
 #include <stdbool.h>
 #include "arm_math.h"
 #include "sys_time.h"
 #include "navigation.h"
+#include "uart.h"
 
 #define EARTH_RADIUS 6371 //[km]
 
@@ -224,5 +226,18 @@ void nav_waypoint_handler(void)
 		}
 		break;
 	}
+	}
+}
+
+void debug_print_waypoint_list(void)
+{
+	char s[200] = {0};
+	int i;
+	for(i = 0; i < nav_ptr->wp_num; i++) {
+		sprintf(s, "wp #%d: x=%f, y=%f, z=%f, stay_time=%f, radius=%f\n\r",
+		        i, nav_ptr->wp_list[i].pos[0], nav_ptr->wp_list[i].pos[1],
+		        nav_ptr->wp_list[i].pos[2], nav_ptr->wp_list[i].halt_time_sec,
+		        nav_ptr->wp_list[i].touch_radius);
+		uart3_puts(s, strlen(s));
 	}
 }

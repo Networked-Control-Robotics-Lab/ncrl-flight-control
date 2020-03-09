@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "stm32f4xx_conf.h"
 
 void uart1_init(int baudrate);
 void uart3_init(int baudrate);
