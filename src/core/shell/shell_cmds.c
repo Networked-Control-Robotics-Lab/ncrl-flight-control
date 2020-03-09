@@ -110,7 +110,7 @@ void shell_cmd_fly(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int para
 	char s[300] = {'\0'};
 
 	if(param_cnt != 4 && param_cnt != 3) {
-		shell_puts("wrong command format!\n\r"
+		shell_puts("abort, bad arguments!\n\r"
 		           "fly_enu x y z\n\r");
 		return;
 	}
@@ -118,13 +118,13 @@ void shell_cmd_fly(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int para
 	float pos[3] = {0.0f, 0.0f, 1.5f};
 
 	if (parse_float_from_str(param_list[1], &pos[0]) == false) {
-		shell_puts("bad command arguments!\n\r"
+		shell_puts("abort, bad arguments!\n\r"
 		           "fly_enu x y z\n\r");
 		return;
 	}
 
 	if (parse_float_from_str(param_list[2], &pos[1]) == false) {
-		shell_puts("bad command arguments!\n\r"
+		shell_puts("abort, bad arguments!\n\r"
 		           "fly_enu x y z\n\r");
 		return;
 	}
@@ -134,7 +134,7 @@ void shell_cmd_fly(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int para
 	if(param_cnt == 4) {
 		change_z = true;
 		if (parse_float_from_str(param_list[3], &pos[2]) == false) {
-			shell_puts("bad command arguments!\n\r"
+			shell_puts("abort, bad arguments!\n\r"
 			           "fly_enu x y z\n\r");
 			return;
 		}
@@ -168,46 +168,97 @@ void shell_cmd_fly(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int para
 	}
 }
 
+static void mission_add_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
+{
+	float pos[3] = {0.0f, 0.0f, 0.0f};
+	float heading = 0.0f;
+	float halt_time_sec = 1.0f;
+
+	if(parse_float_from_str(param_list[2], &pos[0]) == false) {
+		shell_puts("abort, bad arguments\n\r");
+		return;
+	}
+	if(parse_float_from_str(param_list[3], &pos[1]) == false) {
+		shell_puts("abort, bad arguments\n\r");
+		return;
+	}
+	if(parse_float_from_str(param_list[4], &pos[2]) == false) {
+		shell_puts("abort, bad arguments\n\r");
+		return;
+
+	}
+	if(parse_float_from_str(param_list[5], &halt_time_sec) == false) {
+		shell_puts("abort, bad arguments\n\r");
+		return;
+	}
+
+	int ret_val = nav_add_new_waypoint(pos, heading, halt_time_sec);
+	if(ret_val == NAV_SET_SUCCEED) {
+		shell_puts("successfully  added new waypoint.\n\r");
+	} else if(ret_val == NAV_WP_LIST_FULL) {
+		shell_puts("failed, waypoint list is full\n\r");
+	}
+}
+
+static void mission_start_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
+{
+	int ret_val = nav_waypoint_mission_start();
+	if(ret_val == NAV_SET_SUCCEED) {
+		shell_puts("successfully added new waypoint.\n\r");
+	} else if(ret_val == NAV_WP_LIST_EMPYT) {
+		shell_puts("failed, waypoint list is full\n\r");
+	}
+}
+
+static void mission_halt_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
+{
+	int ret_val = nav_halt_waypoint_mission();
+	if(ret_val == NAV_SET_SUCCEED) {
+		shell_puts("successfully halted the waypoint mission.\n\r");
+	} else if(ret_val == NAV_NO_EXECUTING_MISSION) {
+		shell_puts("failed, no executing mission!\n\r");
+	}
+}
+
+static void mission_resume_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
+{
+	int ret_val = nav_resume_waypoint_mission();
+	if(ret_val == NAV_SET_SUCCEED) {
+		shell_puts("successfully resumed the waypoint mission.\n\r");
+	} else if(ret_val == NAV_NO_EXECUTING_MISSION) {
+		shell_puts("failed, no halting mission!\n\r");
+	}
+}
+
+static void mission_clear_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
+{
+	int ret_val = nav_clear_waypoint_list();
+	if(ret_val == NAV_SET_SUCCEED) {
+		shell_puts("successfully cleared the waypoint list.\n\r");
+	} else if(ret_val == NAV_MISSION_EXECUTING) {
+		shell_puts("failed, waypoint list is empty!\n\r");
+	}
+}
+
 void shell_cmd_mission(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
-	int ret_val;
-
 	if(param_cnt != 2) {
-		shell_puts("mission add [x y z stay_time_sec]: add new waypoint\n\r"
+		shell_puts("mission add x y z stay_time_sec: add new waypoint\n\r"
 		           "mission start: start waypoint mission\n\r"
-		           "mission halt: halt the executing waypoint mission\n\r"
-		           "mission resume: resume the halting waypoint mission\n\r"
-		           "mission clear: clear the waypoint list\n\r");
+		           "mission halt: halt current executing waypoint mission\n\r"
+		           "mission resume: resume current halting waypoint mission\n\r"
+		           "mission clear: clear waypoint list\n\r");
 	} else if(param_cnt == 2) {
 		if(strcmp(param_list[1], "add") == 0) {
+			mission_add_cmd_handler(param_list);
 		} else if(strcmp(param_list[1], "start") == 0) {
-			ret_val = nav_waypoint_mission_start();
-			if(ret_val == NAV_SET_SUCCEED) {
-				shell_puts("succeeded adding new waypoint.\n\r");
-			} else if(ret_val == NAV_WP_LIST_FULL) {
-				shell_puts("failed, waypoint list is full\n\r");
-			}
+			mission_start_cmd_handler(param_list);
 		} else if(strcmp(param_list[1], "halt") == 0) {
-			ret_val = nav_halt_waypoint_mission();
-			if(ret_val == NAV_SET_SUCCEED) {
-				shell_puts("succeeded halting the waypoint mission.\n\r");
-			} else {
-				shell_puts("failed, no executing mission can be halted!\n\r");
-			}
+			mission_halt_cmd_handler(param_list);
 		} else if(strcmp(param_list[1], "resume") == 0) {
-			ret_val = nav_resume_waypoint_mission();
-			if(ret_val == NAV_SET_SUCCEED) {
-				shell_puts("succeeded resuming the waypoint mission.\n\r");
-			} else {
-				shell_puts("failed, no halting mission can be resumed!\n\r");
-			}
+			mission_resume_cmd_handler(param_list);
 		} else if(strcmp(param_list[1], "clear") == 0) {
-			ret_val = nav_clear_waypoint_list();
-			if(ret_val == NAV_SET_SUCCEED) {
-				shell_puts("succeeded to clear the waypoint list.\n\r");
-			} else {
-				shell_puts("failed, waypoint list is empty!\n\r");
-			}
+			mission_clear_cmd_handler(param_list);
 		} else {
 			shell_puts("unknown mission command!\n\r");
 		}
