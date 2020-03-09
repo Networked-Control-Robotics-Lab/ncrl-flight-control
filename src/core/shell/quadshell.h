@@ -1,18 +1,23 @@
 #ifndef __QUAD_SHELL_H__
 #define __QUAD_SHELL_H__
 
+#include <stdbool.h>
+
 #define CMD_LEN_MAX 50
 #define PROMPT_LEN_MAX 50
 
 #define PARAM_LIST_SIZE_MAX 10
 #define PARAM_LEN_MAX 10
 
+#define HISTORY_MAX_SIZE 5
+
 #define SIZE_OF_SHELL_CMD_LIST(list) (sizeof(list) / sizeof(struct cmd_list_entry))
 #define DEF_SHELL_CMD(cmd_name) {.handler = shell_cmd_ ## cmd_name, .name = #cmd_name},
 
 enum {
 	NULL_CH = 0,       /* null character */
-	CTRL_A = 1,        /* ctrl + a*/
+	CTRL_A = 1,        /* ctrl + a */
+	CTRL_B = 2,        /* ctrl + b */
 	CTRL_C = 3,        /* ctrl + c */
 	CTRL_D = 4,        /* ctrl + d */
 	CTRL_E = 5,        /* ctrl + e */
@@ -50,12 +55,27 @@ enum {
 	BACKSPACE = 127,   /* backspace */
 } KEYS;
 
+typedef struct shell_history_struct {
+	char cmd[CMD_LEN_MAX];
+	struct shell_history_struct *last;
+	struct shell_history_struct *next;
+} shell_history_t;
+
 struct shell_struct {
 	int cursor_pos;
 	int char_cnt;
 	int prompt_len;
 	char *buf;
 	char *prompt_msg;
+
+	shell_history_t history[HISTORY_MAX_SIZE];
+	shell_history_t *history_top;
+	shell_history_t *history_end;
+	shell_history_t *history_disp;
+	char typing_preserve[CMD_LEN_MAX]; //preserve user's typing while checking the history
+	int history_num;
+	int history_disp_curr;
+	bool read_history;
 };
 
 struct cmd_list_entry {
@@ -63,10 +83,10 @@ struct cmd_list_entry {
 	char name[PROMPT_LEN_MAX];
 };
 
+char shell_getc(void);
+void shell_puts(char *s);
 void shell_init_struct(struct shell_struct *_shell, char *prompt_msg, char *ret_cmd);
 void shell_cls(void);
-void shell_puts(char *s);
-char shell_getc(void);
 void shell_cli(struct shell_struct *_shell);
 void shell_cmd_exec(char *cmd, struct cmd_list_entry *cmd_list, int list_size);
 

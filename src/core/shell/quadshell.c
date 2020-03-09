@@ -24,9 +24,7 @@ static void shell_ctrl_c_handler(void)
 
 static void shell_unknown_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
-	char s[200];
-	sprintf(s, "unknown command: %s\n\r", param_list[0]);
-	shell_puts(s);
+	printf("unknown command: %s\n\r", param_list[0]);
 }
 
 void shell_cls(void)
@@ -44,12 +42,29 @@ void shell_init_struct(struct shell_struct *shell, char *prompt_msg, char *ret_c
 
 	shell->cursor_pos = 0;
 	memset(shell->buf, '\0', CMD_LEN_MAX);
+
+	shell->history_top = &shell->history[0];
+	int i;
+	for(i = 0; i < (HISTORY_MAX_SIZE - 1); i++) {
+		shell->history[i].cmd[0] = '\0';
+		shell->history[i].next = &shell->history[i + 1];
+	}
+	for(i = 1; i < HISTORY_MAX_SIZE; i++) {
+		shell->history[i].last = &shell->history[i - 1];
+	}
+
+	shell->history[HISTORY_MAX_SIZE - 1].cmd[0] = '\0';
+	shell->history[HISTORY_MAX_SIZE - 1].next = shell->history_top;
+	shell->history[0].last = &shell->history[HISTORY_MAX_SIZE - 1];
+	shell->history_num = 0;
+	shell->read_history = false;
 }
 
 static void shell_reset_struct(struct shell_struct *shell)
 {
 	shell->cursor_pos = 0;
 	shell->char_cnt = 0;
+	shell->read_history = false;
 }
 
 static void shell_remove_char(struct shell_struct *shell, int remove_pos)
@@ -91,6 +106,65 @@ static void shell_refresh_line(struct shell_struct *shell)
 	shell_puts(s);
 }
 
+static void shell_cursor_shift_one_left(struct shell_struct *shell)
+{
+	if(shell->cursor_pos > 0) {
+		shell_puts("\033[1D");
+		shell->cursor_pos--;
+	}
+}
+
+static void shell_cursor_shift_one_right(struct shell_struct *shell)
+{
+	if(shell->cursor_pos < shell->char_cnt) {
+		shell->cursor_pos++;
+		shell_puts("\033[1C");
+	}
+}
+
+static void shell_push_new_history(struct shell_struct *shell, char *cmd)
+{
+	/* the shell historys are stored in a circular linking list data
+	 * structure queue */
+
+	/* if history list is not full, fill in by inverse array order */
+	shell_history_t *curr_history;
+	if(shell->history_num < HISTORY_MAX_SIZE) {
+		curr_history = &shell->history[HISTORY_MAX_SIZE - shell->history_num - 1];
+		strcpy(curr_history->cmd, cmd);
+		shell->history_num++;
+		shell->history_top = curr_history;
+		return;
+	}
+
+	/* if history list is full, drop the oldest one */
+	shell_history_t *history_end = shell->history_top;
+	int i;
+	for(i = 0; i < (HISTORY_MAX_SIZE - 1); i++) {
+		if(history_end->cmd[0] == '\0') {
+			break;
+		}
+		history_end = history_end->next;
+	}
+	strcpy(history_end->cmd, shell->buf);
+	shell->history_top = history_end;
+}
+
+void print_history(struct shell_struct *shell)
+{
+	shell_puts("\n\r");
+	shell_history_t *history_print = shell->history_top;
+	int i;
+	for(i = 0; i < HISTORY_MAX_SIZE; i++) {
+		shell_puts(history_print->cmd);
+		if(history_print->cmd[0] == '\0' ||  i == (HISTORY_MAX_SIZE - 1)) {
+			break;
+		}
+		shell_puts("\n\r");
+		history_print = history_print->next;
+	}
+}
+
 void shell_cli(struct shell_struct *shell)
 {
 	shell_puts(shell->prompt_msg);
@@ -107,6 +181,9 @@ void shell_cli(struct shell_struct *shell)
 			shell->cursor_pos = 0;
 			shell_refresh_line(shell);
 			break;
+		case CTRL_B:
+			shell_cursor_shift_one_left(shell);
+			break;
 		case CTRL_C:
 			shell_ctrl_c_handler();
 			return;
@@ -120,6 +197,7 @@ void shell_cli(struct shell_struct *shell)
 			}
 			break;
 		case CTRL_F:
+			shell_cursor_shift_one_right(shell);
 			break;
 		case CTRL_G:
 			break;
@@ -133,6 +211,7 @@ void shell_cli(struct shell_struct *shell)
 			if(shell->char_cnt > 0) {
 				shell_puts("\n\r");
 				shell_reset_struct(shell);
+				shell_push_new_history(shell, shell->buf);
 				return;
 			} else {
 				shell_puts("\n\r");
@@ -158,6 +237,10 @@ void shell_cli(struct shell_struct *shell)
 		case CTRL_T:
 			break;
 		case CTRL_U:
+			shell->buf[0] = '\0';
+			shell->char_cnt = 0;
+			shell->cursor_pos = 0;
+			shell_refresh_line(shell);
 			break;
 		case CTRL_W:
 			break;
@@ -172,17 +255,53 @@ void shell_cli(struct shell_struct *shell)
 			seq[1] = shell_getc();
 			if(seq[0] == ESC_SEQ2) {
 				if(seq[1] == UP_ARROW) {
+					if(shell->history_num == 0) {
+						break;
+					}
+					if(shell->read_history == false) {
+						strcpy(shell->typing_preserve, shell->buf);
+						shell->history_disp = shell->history_top;
+						shell->history_disp_curr = 0;
+						shell->read_history = true;
+					} else {
+						shell->history_disp = shell->history_disp->next;
+					}
+					/* restore user's typing if finished traveling through the whole list */
+					if(shell->history_disp_curr < shell->history_num) {
+						strcpy(shell->buf, shell->history_disp->cmd);
+						shell->history_disp_curr++;
+					} else {
+						strcpy(shell->buf, shell->typing_preserve);
+						shell->history_disp = shell->history_top;
+						shell->history_disp_curr = 0;
+						shell->read_history = false;
+					}
+					shell->char_cnt = strlen(shell->buf);
+					shell->cursor_pos = shell->char_cnt;
+					shell_refresh_line(shell);
 				} else if(seq[1] == DOWN_ARROW) {
+					if(shell->read_history == false) {
+						break;
+					} else {
+						shell->history_disp = shell->history_disp->last;
+					}
+					/* restore user's typing if finished traveling through the whole list */
+					if(shell->history_disp_curr > 1) {
+						strcpy(shell->buf, shell->history_disp->cmd);
+						shell->history_disp_curr--;
+					} else {
+						strcpy(shell->buf, shell->typing_preserve);
+						shell->history_disp = shell->history_top;
+						shell->history_disp_curr = 0;
+						shell->read_history = false;
+					}
+					shell->char_cnt = strlen(shell->buf);
+					shell->cursor_pos = shell->char_cnt;
+					shell_refresh_line(shell);
 				} else if(seq[1] == RIGHT_ARROW) {
-					if(shell->cursor_pos < shell->char_cnt) {
-						shell->cursor_pos++;
-						shell_puts("\033[1C");
-					}
+					shell_cursor_shift_one_right(shell);
 				} else if(seq[1] == LEFT_ARROW) {
-					if(shell->cursor_pos > 0) {
-						shell_puts("\033[1D");
-						shell->cursor_pos--;
-					}
+					shell_cursor_shift_one_left(shell);
 				} else if(seq[1] == HOME) {
 					shell->cursor_pos = 0;
 					shell_refresh_line(shell);
@@ -209,6 +328,7 @@ void shell_cli(struct shell_struct *shell)
 		case SPACE:
 		default:
 			if(shell->char_cnt != (CMD_LEN_MAX - 1)) {
+				shell->read_history = false;
 				shell_insert_char(shell, c);
 				shell_refresh_line(shell);
 			}
@@ -219,6 +339,7 @@ void shell_cli(struct shell_struct *shell)
 
 static void shell_split_cmd_token(char *cmd, char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int *param_cnt)
 {
+	bool no_param_after_space = false;
 	int param_list_index = 0;
 	int i = 0, j = 0;
 
@@ -231,6 +352,8 @@ static void shell_split_cmd_token(char *cmd, char param_list[PARAM_LIST_SIZE_MAX
 
 	for(; i < cmd_s_len; i++) {
 		if(cmd[i] == ' ') {
+			no_param_after_space = true;
+
 			param_list[param_list_index][j] = '\0';
 			param_list_index++;
 			j = 0;
@@ -246,10 +369,16 @@ static void shell_split_cmd_token(char *cmd, char param_list[PARAM_LIST_SIZE_MAX
 				i++;
 			}
 		} else {
+			no_param_after_space = false;
 			param_list[param_list_index][j] = cmd[i];
 			j++;
 		}
 	}
+
+	if(no_param_after_space == true) {
+		param_list_index--;
+	}
+
 	*param_cnt = param_list_index + 1;
 }
 
