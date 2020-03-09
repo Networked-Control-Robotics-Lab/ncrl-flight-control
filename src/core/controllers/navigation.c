@@ -55,7 +55,7 @@ static bool nav_test_point_in_rectangular_fence(float p[3])
 	}
 }
 
-int nav_add_new_waypoint(float pos[3], float heading, float halt_time_sec)
+int nav_add_new_waypoint(float pos[3], float heading, float halt_time_sec, float radius)
 {
 	if(nav_ptr->wp_num <= WAYPOINT_NUM_MAX) {
 		nav_ptr->wp_list[nav_ptr->wp_num].pos[0] = pos[0];
@@ -231,13 +231,16 @@ void nav_waypoint_handler(void)
 
 void debug_print_waypoint_list(void)
 {
+	char *prompt = "waypoint list:\n\r";
+	uart3_puts(prompt, strlen(prompt));
+
 	char s[200] = {0};
 	int i;
 	for(i = 0; i < nav_ptr->wp_num; i++) {
-		sprintf(s, "wp #%d: x=%f, y=%f, z=%f, stay_time=%f, radius=%f\n\r",
+		sprintf(s, "wp #%d: x=%.1f, y=%.1f, z=%.1f, heading=%.1f,  stay_time=%.1f, radius=%.1f\n\r",
 		        i, nav_ptr->wp_list[i].pos[0], nav_ptr->wp_list[i].pos[1],
-		        nav_ptr->wp_list[i].pos[2], nav_ptr->wp_list[i].halt_time_sec,
-		        nav_ptr->wp_list[i].touch_radius);
+		        nav_ptr->wp_list[i].pos[2], nav_ptr->wp_list[i].heading,
+		        nav_ptr->wp_list[i].halt_time_sec, nav_ptr->wp_list[i].touch_radius);
 		uart3_puts(s, strlen(s));
 	}
 }

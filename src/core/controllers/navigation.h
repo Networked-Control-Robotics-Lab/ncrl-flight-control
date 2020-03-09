@@ -75,7 +75,7 @@ typedef struct {
 void nav_init(nav_t *_nav);
 void nav_update_uav_info(float pos[3], float vel[3]);
 void nav_set_enu_rectangular_fence(float origin[3], float lx, float ly, float height);
-int nav_add_new_waypoint(float pos[3], float heading, float halt_time_sec);
+int nav_add_new_waypoint(float pos[3], float heading, float halt_time_sec, float radius);
 int nav_clear_waypoint_list(void);
 int nav_goto_waypoint_now(float pos[3], bool change_height);
 int nav_halt_waypoint_mission(void);
@@ -84,5 +84,7 @@ int nav_waypoint_mission_start(void);
 int nav_trigger_auto_landing(void);
 int nav_trigger_auto_takeoff(void);
 void nav_waypoint_handler(void);
+
+void debug_print_waypoint_list(void);
 
 #endif

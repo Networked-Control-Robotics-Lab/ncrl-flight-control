@@ -60,7 +60,7 @@ int main(void)
 #elif (SELECT_TELEM == TELEM_MAVLINK)
 	xTaskCreate(mavlink_task, "mavlink", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
 #elif (SELECT_TELEM == TELEM_SHELL)
-	xTaskCreate(shell_task, "shell", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
+	xTaskCreate(shell_task, "shell", 1024, NULL, tskIDLE_PRIORITY + 1, NULL);
 #endif
 #endif
 
