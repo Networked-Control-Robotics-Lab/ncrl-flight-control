@@ -31,23 +31,38 @@ void shell_cmd_clear(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int pa
 
 void shell_cmd_disarm(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
-	shell_cls();
+	char user_agree[CMD_LEN_MAX];
+	struct shell_struct shell;
+	shell_init_struct(&shell, "confirm disarm command [y/n]: ", user_agree);
+	shell_cli(&shell);
+
+	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
+	} else {
+		shell_puts("abort.\n\r");
+	}
 }
 
 void shell_cmd_arm(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
-	shell_cls();
+	char user_agree[CMD_LEN_MAX];
+	struct shell_struct shell;
+	shell_init_struct(&shell, "confirm arm command [y/n]: ", user_agree);
+	shell_cli(&shell);
+
+	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
+	} else {
+		shell_puts("abort.\n\r");
+	}
 }
 
 void shell_cmd_takeoff(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
-	char s[100] = {'\0'};
-	shell_puts("confirm takeoff command [y/n]: ");
-	char c = shell_getc();
-	sprintf(s, "%c\n\r", c);
-	shell_puts(s);
+	char user_agree[CMD_LEN_MAX];
+	struct shell_struct shell;
+	shell_init_struct(&shell, "confirm takeoff command [y/n]: ", user_agree);
+	shell_cli(&shell);
 
-	if(c == 'Y' || c == 'y') {
+	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
 		int ret_val = nav_trigger_auto_takeoff();
 		if(ret_val == NAV_SET_SUCCEED) {
 			shell_puts("command accept.\n\r");
@@ -55,19 +70,18 @@ void shell_cmd_takeoff(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int 
 			shell_puts("failed, uav had already takeoff\n\r");
 		}
 	} else {
-		shell_puts("command aborted\n\r");
+		shell_puts("abort.\n\r");
 	}
 }
 
 void shell_cmd_land(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
-	char s[100] = {'\0'};
-	shell_puts("confirm landing command [y/n] ");
-	char c = shell_getc();
-	sprintf(s, "%c\n\r", c);
-	shell_puts(s);
+	char user_agree[CMD_LEN_MAX];
+	struct shell_struct shell;
+	shell_init_struct(&shell, "confirm landing command [y/n]: ", user_agree);
+	shell_cli(&shell);
 
-	if(c == 'Y' || c == 'y') {
+	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
 		int ret_val = nav_trigger_auto_landing();
 		if(ret_val == NAV_SET_SUCCEED) {
 			shell_puts("command accept.\n\r");
@@ -75,7 +89,7 @@ void shell_cmd_land(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 			shell_puts("failed, uav can only be landed while hovering at a point!\n\r");
 		}
 	} else {
-		shell_puts("command aborted\n\r");
+		shell_puts("abort.\n\r");
 	}
 }
 
@@ -122,19 +136,17 @@ void shell_cmd_fly(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int para
 			return;
 		}
 
-		sprintf(s, "east-north-up waypoint (x, y, z) = (%f, %f, %f)\n\r"
-		        "confirm fly-to command [y/n]: ", pos[0], pos[1], pos[2]);
+		sprintf(s, "east-north-up waypoint (x, y, z) = (%f, %f, %f)\n\r", pos[0], pos[1], pos[2]);
 	} else if(param_cnt == 3) {
-		sprintf(s, "east-north-up waypoint (x, y) = (%f, %f)\n\r"
-		        "confirm fly-to command [y/n]: ", pos[0], pos[1]);
+		sprintf(s, "east-north-up waypoint (x, y) = (%f, %f)\n\r", pos[0], pos[1]);
 	}
 
-	shell_puts(s);
-	char c = shell_getc();
-	sprintf(s, "%c\n\r", c);
-	shell_puts(s);
+	char user_agree[CMD_LEN_MAX];
+	struct shell_struct shell;
+	shell_init_struct(&shell, "confirm fly-to command [y/n]: ", user_agree);
+	shell_cli(&shell);
 
-	if(c == 'Y' || c == 'y') {
+	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
 		/* convert from [m] to [cm] */
 
 		pos[0] *= 100.0f;
@@ -148,7 +160,7 @@ void shell_cmd_fly(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int para
 			shell_puts("command accept.\n\r");
 		}
 	} else {
-		shell_puts("command aborted\n\r");
+		shell_puts("abort\n\r");
 	}
 }
 
