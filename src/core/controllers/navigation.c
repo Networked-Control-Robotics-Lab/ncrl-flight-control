@@ -198,7 +198,7 @@ void nav_waypoint_handler(void)
 		/* check if time is up */
 		if((curr_time - start_time) > nav_ptr->wp_list[nav_ptr->curr_wp].halt_time_sec) {
 			/* continue next waypoint if exist */
-			if(nav_ptr->curr_wp < (nav_ptr->wp_num - 1)) {
+			if(nav_ptr->curr_wp < nav_ptr->wp_num) {
 				nav_ptr->mode = NAV_FOLLOW_WAYPOINT_MODE;
 				nav_ptr->curr_wp++;
 			} else {
