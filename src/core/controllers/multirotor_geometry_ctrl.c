@@ -62,12 +62,15 @@ MAT_ALLOC(b3d, 3, 1);
 
 float pos_error[3];
 float vel_error[3];
+float tracking_error_integral[3];
 
 float krx, kry, krz;
 float kwx, kwy, kwz;
 float kpx, kpy, kpz;
 float kvx, kvy, kvz;
 float yaw_rate_ctrl_gain;
+float k_tracking_i_gain[3];
+
 float uav_weight;
 
 float uav_dynamics_m[3] = {0.0f}; //M = (J * W_dot) + (W X JW)
@@ -131,13 +134,13 @@ void geometry_ctrl_init(void)
 
 	/* attitude controller */
 	/* roll gains */
-	krx = 300.0f;
+	krx = 350.0f;
 	kwx = 40.25f;
 	/* pitch gains */
-	kry = 300.0f;
+	kry = 350.0f;
 	kwy = 40.25f;
 	/* yaw gains */
-	krz = 2400.0f;
+	krz = 2900.0f;
 	kwz = 200.0;
 	/* yaw rate gains
 	 * if heading sensor is not presented then switch to yaw rate control mode */
@@ -145,14 +148,18 @@ void geometry_ctrl_init(void)
 
 	/* tracking controller */
 	/* x-axis tracking gains  */
-	kpx = 2.0f;
-	kvx = 1.2f;
+	kpx = 2.4f;
+	kvx = 1.8f;
 	/* y-axis tracking gains */
-	kpy = 2.0f;
-	kvy = 1.2f;
+	kpy = 2.4f;
+	kvy = 1.8f;
 	/* z-axis tracking gains */
 	kpz = 10.0f;
 	kvz = 4.0f;
+
+	k_tracking_i_gain[0] = 0.0f;//0.1f;
+	k_tracking_i_gain[1] = 0.0f;//0.1f;
+	k_tracking_i_gain[0] = 0.0f;//3.0f;
 }
 
 void estimate_uav_dynamics(float *gyro, float *moments, float *m_rot_frame)
@@ -185,6 +192,13 @@ void estimate_uav_dynamics(float *gyro, float *moments, float *m_rot_frame)
 	moments[0] = _mat_(M)[0];
 	moments[1] = _mat_(M)[1];
 	moments[2] = _mat_(M)[2];
+}
+
+void reset_geometry_tracking_error_integral(void)
+{
+	tracking_error_integral[0] = 0.0f;
+	tracking_error_integral[1] = 0.0f;
+	tracking_error_integral[2] = 0.0f;
 }
 
 void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_moments, bool heading_present)
@@ -291,9 +305,13 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	//swap the order since we actually feed the positive altitude (or negative z of NED frame) here
 	vel_error[2] = desired_vel[2] - curr_vel[2];
 
-	_mat_(kxex_kvev_mge3_mxd_dot_dot)[0] = -kpx*pos_error[0] - kvx*vel_error[0];
-	_mat_(kxex_kvev_mge3_mxd_dot_dot)[1] = -kpy*pos_error[1] - kvy*vel_error[1];
-	_mat_(kxex_kvev_mge3_mxd_dot_dot)[2] = -kpz*pos_error[2] - kvz*vel_error[2] - uav_weight;
+	tracking_error_integral[0] += k_tracking_i_gain[0] * (pos_error[0]) * dt;
+	tracking_error_integral[1] += k_tracking_i_gain[1] * (pos_error[1]) * dt;
+	tracking_error_integral[2] += k_tracking_i_gain[2] * (pos_error[2]) * dt;
+
+	_mat_(kxex_kvev_mge3_mxd_dot_dot)[0] = -kpx*pos_error[0] - kvx*vel_error[0] - tracking_error_integral[0];
+	_mat_(kxex_kvev_mge3_mxd_dot_dot)[1] = -kpy*pos_error[1] - kvy*vel_error[1] - tracking_error_integral[1];
+	_mat_(kxex_kvev_mge3_mxd_dot_dot)[2] = -kpz*pos_error[2] - kvz*vel_error[2] - uav_weight - tracking_error_integral[2];
 
 	/* calculate the denominator of b3d */
 	float b3d_denominator; //caution: this term should not be 0
@@ -446,6 +464,7 @@ void rc_mode_change_handler_geometry(radio_t *rc)
 		desired_accel[0] = 0.0f;
 		desired_accel[1] = 0.0f;
 		desired_accel[2] = 0.0f;
+		reset_geometry_tracking_error_integral();
 	}
 
 	if(rc->auto_flight == false) {
@@ -458,6 +477,7 @@ void rc_mode_change_handler_geometry(radio_t *rc)
 		desired_accel[0] = 0.0f;
 		desired_accel[1] = 0.0f;
 		desired_accel[2] = 0.0f;
+		reset_geometry_tracking_error_integral();
 	}
 
 	auto_flight_mode_last = rc->auto_flight;
