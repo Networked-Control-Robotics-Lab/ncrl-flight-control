@@ -62,6 +62,8 @@ int nav_add_new_waypoint(float pos[3], float heading, float halt_time_sec, float
 		nav_ptr->wp_list[nav_ptr->wp_num].pos[1] = pos[1];
 		nav_ptr->wp_list[nav_ptr->wp_num].pos[2] = pos[2];
 		nav_ptr->wp_list[nav_ptr->wp_num].heading = heading;
+		nav_ptr->wp_list[nav_ptr->wp_num].halt_time_sec = halt_time_sec;
+		nav_ptr->wp_list[nav_ptr->wp_num].touch_radius = radius;
 		nav_ptr->wp_num++;
 		return NAV_SET_SUCCEED;
 	} else {
@@ -124,6 +126,9 @@ int nav_waypoint_mission_start(void)
 	if(nav_ptr->wp_num >= 1) {
 		nav_ptr->curr_wp = 0;
 		nav_ptr->mode = NAV_FOLLOW_WAYPOINT_MODE;
+		nav_ptr->wp_now.pos[0] = nav_ptr->wp_list[nav_ptr->curr_wp].pos[0];
+		nav_ptr->wp_now.pos[1] = nav_ptr->wp_list[nav_ptr->curr_wp].pos[1];
+		nav_ptr->wp_now.pos[2] = nav_ptr->wp_list[nav_ptr->curr_wp].pos[2];
 		return NAV_SET_SUCCEED;
 	} else {
 		return NAV_WP_LIST_EMPYT;
@@ -198,11 +203,12 @@ void nav_waypoint_handler(void)
 				nav_ptr->curr_wp++;
 			} else {
 				/* there is no more waypoints, hovering at the last one's position */
-				nav_ptr->wp_now.pos[0] = nav_ptr->wp_list[nav_ptr->curr_wp].pos[0];
-				nav_ptr->wp_now.pos[1] = nav_ptr->wp_list[nav_ptr->curr_wp].pos[1];
-				nav_ptr->wp_now.pos[2] = nav_ptr->wp_list[nav_ptr->curr_wp].pos[2];
 				nav_ptr->mode = NAV_HOVERING_MODE;
 			}
+
+			nav_ptr->wp_now.pos[0] = nav_ptr->wp_list[nav_ptr->curr_wp].pos[0];
+			nav_ptr->wp_now.pos[1] = nav_ptr->wp_list[nav_ptr->curr_wp].pos[1];
+			nav_ptr->wp_now.pos[2] = nav_ptr->wp_list[nav_ptr->curr_wp].pos[2];
 		}
 		break;
 	}
@@ -243,4 +249,21 @@ void debug_print_waypoint_list(void)
 		        nav_ptr->wp_list[i].halt_time_sec, nav_ptr->wp_list[i].touch_radius);
 		uart3_puts(s, strlen(s));
 	}
+}
+
+void debug_print_waypoint_status(void)
+{
+	if(nav_ptr->mode != NAV_WAIT_NEXT_WAYPOINT_MODE && nav_ptr->mode != NAV_FOLLOW_WAYPOINT_MODE) {
+		char *no_executing_s = "autopilot off, no executing waypoint mission.\n\r";
+		uart3_puts(no_executing_s, strlen(no_executing_s));
+		return;
+	}
+
+	char s[200] = {'\0'};
+	int curr_wp_num = nav_ptr->curr_wp;
+	sprintf(s, "current waypoint = #%d, x=%.1f, y=%.1f, z=%.1f, heading=%.1f, stay_time=%.1f, radius=%.1f\n\r",
+	        curr_wp_num, nav_ptr->wp_list[curr_wp_num].pos[0], nav_ptr->wp_list[curr_wp_num].pos[1],
+	        nav_ptr->wp_list[curr_wp_num].pos[2], nav_ptr->wp_list[curr_wp_num].heading,
+	        nav_ptr->wp_list[curr_wp_num].halt_time_sec, nav_ptr->wp_list[curr_wp_num].touch_radius);
+	uart3_puts(s, strlen(s));
 }

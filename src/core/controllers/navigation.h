@@ -86,5 +86,6 @@ int nav_trigger_auto_takeoff(void);
 void nav_waypoint_handler(void);
 
 void debug_print_waypoint_list(void);
+void debug_print_waypoint_status(void);
 
 #endif

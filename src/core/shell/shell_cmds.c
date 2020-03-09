@@ -201,6 +201,12 @@ static void mission_add_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_L
 		return;
 	}
 
+	//XXX
+	pos[0] *= 100.0f;
+	pos[1] *= 100.0f;
+	pos[2] *= 100.0f;
+	radius *= 100.0f;
+
 	char s[200] = {'\0'};
 	sprintf(s, "new waypoint: x=%.1f, y=%.1f, z=%.1f, heading=%.1f, stay_time=%.1f, radius=%.1f\n\r",
 	        pos[0], pos[1], pos[2], heading, stay_time_sec, radius);
@@ -268,6 +274,11 @@ static void mission_clear_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM
 	}
 }
 
+static void mission_status_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
+{
+	debug_print_waypoint_status();
+}
+
 void shell_cmd_mission(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
 	if(param_cnt == 8) {
@@ -285,6 +296,8 @@ void shell_cmd_mission(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int 
 			mission_resume_cmd_handler(param_list);
 		} else if(strcmp(param_list[1], "clear") == 0) {
 			mission_clear_cmd_handler(param_list);
+		} else if(strcmp(param_list[1], "status") == 0) {
+			mission_status_cmd_handler(param_list);
 		} else {
 			shell_puts("unknown mission command!\n\r");
 		}
@@ -294,7 +307,8 @@ void shell_cmd_mission(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int 
 		           "mission list: list current waypoint list\n\r"
 		           "mission halt: halt current executing waypoint mission\n\r"
 		           "mission resume: resume current halting waypoint mission\n\r"
-		           "mission clear: clear waypoint list\n\r");
+		           "mission clear: clear waypoint list\n\r"
+		           "mission status: show mission status\n\r");
 	}
 }
 
