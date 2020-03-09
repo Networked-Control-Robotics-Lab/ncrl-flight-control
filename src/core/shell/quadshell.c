@@ -24,7 +24,9 @@ static void shell_ctrl_c_handler(void)
 
 static void shell_unknown_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
-	printf("unknown command: %s\n\r", param_list[0]);
+	char s[200];
+	sprintf(s, "unknown command: %s\n\r", param_list[0]);
+	shell_puts(s);
 }
 
 void shell_cls(void)
