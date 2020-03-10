@@ -222,7 +222,7 @@ static void mission_add_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_L
 		if(ret_val == NAV_SET_SUCCEED) {
 			shell_puts("successfully  added new waypoint.\n\r");
 		} else if(ret_val == NAV_WP_LIST_FULL) {
-			shell_puts("failed, waypoint list is full\n\r");
+			shell_puts("failed, mission is executing!\n\r");
 		}
 	} else {
 		shell_puts("abort.\n\r");
@@ -242,6 +242,8 @@ static void mission_start_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM
 			shell_puts("successfully added new waypoint.\n\r");
 		} else if(ret_val == NAV_WP_LIST_EMPYT) {
 			shell_puts("failed, waypoint list is full\n\r");
+		} else if(ret_val == NAV_MISSION_EXECUTING) {
+			shell_puts("failed, mission is executing!\n\r");
 		}
 	} else {
 		shell_puts("abort.\n\r");

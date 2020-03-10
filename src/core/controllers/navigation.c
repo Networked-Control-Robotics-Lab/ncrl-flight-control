@@ -123,6 +123,11 @@ int nav_resume_waypoint_mission(void)
 
 int nav_waypoint_mission_start(void)
 {
+	if(nav_ptr->mode == NAV_FOLLOW_WAYPOINT_MODE ||
+	    nav_ptr->mode == NAV_WAIT_NEXT_WAYPOINT_MODE) {
+		return NAV_MISSION_EXECUTING;
+	}
+
 	if(nav_ptr->wp_num >= 1) {
 		nav_ptr->curr_wp = 0;
 		nav_ptr->mode = NAV_FOLLOW_WAYPOINT_MODE;
