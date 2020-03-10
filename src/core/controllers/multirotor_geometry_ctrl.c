@@ -130,7 +130,7 @@ void geometry_ctrl_init(void)
 	_mat_(J)[2*3 + 2] = 0.02848f; //Izz [kg*m^2]
 
 	/* uav weight */
-	uav_weight = 1000.0f; //[g]
+	uav_weight = 1150.0f; //[g]
 
 	/* attitude controller */
 	/* roll gains */
@@ -157,8 +157,8 @@ void geometry_ctrl_init(void)
 	kpz = 10.0f;
 	kvz = 4.0f;
 
-	k_tracking_i_gain[0] = 0.0f;//0.1f;
-	k_tracking_i_gain[1] = 0.0f;//0.1f;
+	k_tracking_i_gain[0] = 0.1f;
+	k_tracking_i_gain[1] = 0.1f;
 	k_tracking_i_gain[0] = 0.0f;//3.0f;
 }
 
@@ -290,8 +290,8 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	nav_waypoint_handler();
 
 	float pos_des_ned[3];
-	pos_des_ned[0] = 0.0f;//nav.wp_now.pos[1];
-	pos_des_ned[1] = 0.0f;//nav.wp_now.pos[0];
+	pos_des_ned[0] = nav.wp_now.pos[1];
+	pos_des_ned[1] = nav.wp_now.pos[0];
 	pos_des_ned[2] = -nav.wp_now.pos[2];
 
 	/* ex = x - xd */
