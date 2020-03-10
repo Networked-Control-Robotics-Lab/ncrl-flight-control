@@ -237,9 +237,30 @@ static void mission_start_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM
 	shell_cli(&shell);
 
 	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
-		int ret_val = nav_waypoint_mission_start();
+		int ret_val = nav_waypoint_mission_start(false);
 		if(ret_val == NAV_SET_SUCCEED) {
-			shell_puts("successfully added new waypoint.\n\r");
+			shell_puts("successfully started the mission.\n\r");
+		} else if(ret_val == NAV_WP_LIST_EMPYT) {
+			shell_puts("failed, waypoint list is full\n\r");
+		} else if(ret_val == NAV_MISSION_EXECUTING) {
+			shell_puts("failed, mission is executing!\n\r");
+		}
+	} else {
+		shell_puts("abort.\n\r");
+	}
+}
+
+static void mission_loop_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
+{
+	char user_agree[CMD_LEN_MAX];
+	struct shell_struct shell;
+	shell_init_struct(&shell, "confirm mission start command [y/n]: ", user_agree);
+	shell_cli(&shell);
+
+	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
+		int ret_val = nav_waypoint_mission_start(true);
+		if(ret_val == NAV_SET_SUCCEED) {
+			shell_puts("successfully started the mission.\n\r");
 		} else if(ret_val == NAV_WP_LIST_EMPYT) {
 			shell_puts("failed, waypoint list is full\n\r");
 		} else if(ret_val == NAV_MISSION_EXECUTING) {
@@ -326,6 +347,8 @@ void shell_cmd_mission(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int 
 	} else if(param_cnt == 2) {
 		if(strcmp(param_list[1], "start") == 0) {
 			mission_start_cmd_handler(param_list);
+		} else if(strcmp(param_list[1], "loop") == 0) {
+			mission_loop_cmd_handler(param_list);
 		} else if(strcmp(param_list[1], "list") == 0) {
 			mission_list_cmd_handler(param_list);
 		} else if(strcmp(param_list[1], "halt") == 0) {
@@ -342,6 +365,7 @@ void shell_cmd_mission(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int 
 	} else {
 		shell_puts("mission add x y z heading stay_time_sec radius: add new waypoint\n\r"
 		           "mission start: start waypoint mission\n\r"
+		           "mission loop: loop waypoint mission\n\r"
 		           "mission list: list current waypoint list\n\r"
 		           "mission halt: halt current executing waypoint mission\n\r"
 		           "mission resume: resume current halting waypoint mission\n\r"

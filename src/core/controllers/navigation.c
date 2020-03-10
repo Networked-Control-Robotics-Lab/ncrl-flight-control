@@ -121,7 +121,7 @@ int nav_resume_waypoint_mission(void)
 	}
 }
 
-int nav_waypoint_mission_start(void)
+int nav_waypoint_mission_start(bool loop_mission)
 {
 	if(nav_ptr->mode == NAV_FOLLOW_WAYPOINT_MODE ||
 	    nav_ptr->mode == NAV_WAIT_NEXT_WAYPOINT_MODE) {
@@ -134,6 +134,7 @@ int nav_waypoint_mission_start(void)
 		nav_ptr->wp_now.pos[0] = nav_ptr->wp_list[nav_ptr->curr_wp].pos[0];
 		nav_ptr->wp_now.pos[1] = nav_ptr->wp_list[nav_ptr->curr_wp].pos[1];
 		nav_ptr->wp_now.pos[2] = nav_ptr->wp_list[nav_ptr->curr_wp].pos[2];
+		nav_ptr->loop_mission = loop_mission;
 		return NAV_SET_SUCCEED;
 	} else {
 		return NAV_WP_LIST_EMPYT;
@@ -207,8 +208,15 @@ void nav_waypoint_handler(void)
 				nav_ptr->mode = NAV_FOLLOW_WAYPOINT_MODE;
 				nav_ptr->curr_wp++;
 			} else {
-				/* there is no more waypoints, hovering at the last one's position */
-				nav_ptr->mode = NAV_HOVERING_MODE;
+				/* check if user ask to loop the mission */
+				if(nav_ptr->loop_mission == true) {
+					/* start the mission again */
+					nav_ptr->mode = NAV_FOLLOW_WAYPOINT_MODE;
+					nav_ptr->curr_wp = 0;
+				} else {
+					/* end of the mission, hovering at the last one's position */
+					nav_ptr->mode = NAV_HOVERING_MODE;
+				}
 			}
 
 			nav_ptr->wp_now.pos[0] = nav_ptr->wp_list[nav_ptr->curr_wp].pos[0];

@@ -66,6 +66,7 @@ typedef struct {
 	
 	int mode;
 	bool halt_flag;
+	bool loop_mission;
 
 	struct waypoint_t wp_list[WAYPOINT_NUM_MAX]; //enu frame
 	int curr_wp;
@@ -80,7 +81,7 @@ int nav_clear_waypoint_list(void);
 int nav_goto_waypoint_now(float pos[3], bool change_height);
 int nav_halt_waypoint_mission(void);
 int nav_resume_waypoint_mission(void);
-int nav_waypoint_mission_start(void);
+int nav_waypoint_mission_start(bool loop_mission);
 int nav_trigger_auto_landing(void);
 int nav_trigger_auto_takeoff(void);
 void nav_waypoint_handler(void);
