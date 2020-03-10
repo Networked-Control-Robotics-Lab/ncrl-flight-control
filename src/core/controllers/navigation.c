@@ -103,7 +103,7 @@ int nav_goto_waypoint_now(float pos[3], bool change_height)
 
 int nav_halt_waypoint_mission(void)
 {
-	if(nav_ptr->mode == NAV_FOLLOW_WAYPOINT_MODE) {
+	if(nav_ptr->mode == NAV_FOLLOW_WAYPOINT_MODE || nav_ptr->mode == NAV_WAIT_NEXT_WAYPOINT_MODE) {
 		nav_ptr->halt_flag = true;
 		return NAV_SET_SUCCEED;
 	} else {

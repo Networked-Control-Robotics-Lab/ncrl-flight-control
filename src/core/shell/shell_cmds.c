@@ -231,11 +231,20 @@ static void mission_add_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_L
 
 static void mission_start_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
 {
-	int ret_val = nav_waypoint_mission_start();
-	if(ret_val == NAV_SET_SUCCEED) {
-		shell_puts("successfully added new waypoint.\n\r");
-	} else if(ret_val == NAV_WP_LIST_EMPYT) {
-		shell_puts("failed, waypoint list is full\n\r");
+	char user_agree[CMD_LEN_MAX];
+	struct shell_struct shell;
+	shell_init_struct(&shell, "confirm mission start command [y/n]: ", user_agree);
+	shell_cli(&shell);
+
+	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
+		int ret_val = nav_waypoint_mission_start();
+		if(ret_val == NAV_SET_SUCCEED) {
+			shell_puts("successfully added new waypoint.\n\r");
+		} else if(ret_val == NAV_WP_LIST_EMPYT) {
+			shell_puts("failed, waypoint list is full\n\r");
+		}
+	} else {
+		shell_puts("abort.\n\r");
 	}
 }
 
@@ -246,31 +255,58 @@ static void mission_list_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_
 
 static void mission_halt_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
 {
-	int ret_val = nav_halt_waypoint_mission();
-	if(ret_val == NAV_SET_SUCCEED) {
-		shell_puts("successfully halted the waypoint mission.\n\r");
-	} else if(ret_val == NAV_NO_EXECUTING_MISSION) {
-		shell_puts("failed, no executing mission!\n\r");
+	char user_agree[CMD_LEN_MAX];
+	struct shell_struct shell;
+	shell_init_struct(&shell, "confirm mission halt command [y/n]: ", user_agree);
+	shell_cli(&shell);
+
+	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
+		int ret_val = nav_halt_waypoint_mission();
+		if(ret_val == NAV_SET_SUCCEED) {
+			shell_puts("successfully halted the waypoint mission.\n\r");
+		} else if(ret_val == NAV_NO_EXECUTING_MISSION) {
+			shell_puts("failed, no executing mission!\n\r");
+		}
+	} else {
+		shell_puts("abort.\n\r");
 	}
 }
 
 static void mission_resume_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
 {
-	int ret_val = nav_resume_waypoint_mission();
-	if(ret_val == NAV_SET_SUCCEED) {
-		shell_puts("successfully resumed the waypoint mission.\n\r");
-	} else if(ret_val == NAV_NO_EXECUTING_MISSION) {
-		shell_puts("failed, no halting mission!\n\r");
+	char user_agree[CMD_LEN_MAX];
+	struct shell_struct shell;
+	shell_init_struct(&shell, "confirm mission resume command [y/n]: ", user_agree);
+	shell_cli(&shell);
+
+	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
+		int ret_val = nav_resume_waypoint_mission();
+		if(ret_val == NAV_SET_SUCCEED) {
+			shell_puts("successfully resumed the waypoint mission.\n\r");
+		} else if(ret_val == NAV_NO_EXECUTING_MISSION) {
+			shell_puts("failed, no halting mission!\n\r");
+		}
+	} else {
+		shell_puts("abort.\n\r");
 	}
 }
 
 static void mission_clear_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
 {
-	int ret_val = nav_clear_waypoint_list();
-	if(ret_val == NAV_SET_SUCCEED) {
-		shell_puts("successfully cleared the waypoint list.\n\r");
-	} else if(ret_val == NAV_MISSION_EXECUTING) {
-		shell_puts("failed, waypoint list is empty!\n\r");
+	char user_agree[CMD_LEN_MAX];
+	struct shell_struct shell;
+	shell_init_struct(&shell, "confirm mission clear command [y/n]: ", user_agree);
+	shell_cli(&shell);
+
+	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
+		int ret_val = nav_clear_waypoint_list();
+		if(ret_val == NAV_SET_SUCCEED) {
+			shell_puts("successfully cleared the waypoint list.\n\r");
+		} else if(ret_val == NAV_MISSION_EXECUTING) {
+			shell_puts("failed, waypoint list is empty!\n\r");
+		}
+	} else {
+		shell_puts("abort.\n\r");
 	}
 }
 
