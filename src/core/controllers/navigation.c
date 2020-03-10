@@ -24,7 +24,7 @@ void nav_init(nav_t *_nav)
 	nav_ptr->mode = NAV_MANUAL_FLIGHT_MODE;
 	nav_ptr->landing_speed = 0.13;
 	nav_ptr->takeoff_speed = 0.08;
-	nav_ptr->takeoff_height = 150;          //[cm]
+	nav_ptr->takeoff_height = 120;          //[cm]
 	nav_ptr->landing_accept_height = 20.0f; //[cm]
 }
 
