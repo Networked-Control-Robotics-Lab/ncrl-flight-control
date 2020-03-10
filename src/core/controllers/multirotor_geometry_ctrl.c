@@ -426,10 +426,18 @@ void thrust_force_allocate_quadrotor(float *moment, float total_force)
 
 	float distributed_force = total_force *= 0.25; //split force to 4 motors
 
-	motor_force[0] = l_div_4_neg * moment[0] + l_div_4_pos * moment[1] + b_div_4_neg * moment[2] + distributed_force;
-	motor_force[1] = l_div_4_pos * moment[0] + l_div_4_pos * moment[1] + b_div_4_pos * moment[2] + distributed_force;
-	motor_force[2] = l_div_4_pos * moment[0] + l_div_4_neg * moment[1] + b_div_4_neg * moment[2] + distributed_force;
-	motor_force[3] = l_div_4_neg * moment[0] + l_div_4_neg * moment[1] + b_div_4_pos * moment[2] + distributed_force;
+	const float lock_thresh = convert_motor_cmd_to_thrust(0.1);
+	if(distributed_force >= lock_thresh) {
+		motor_force[0] = l_div_4_neg * moment[0] + l_div_4_pos * moment[1] + b_div_4_neg * moment[2] + distributed_force;
+		motor_force[1] = l_div_4_pos * moment[0] + l_div_4_pos * moment[1] + b_div_4_pos * moment[2] + distributed_force;
+		motor_force[2] = l_div_4_pos * moment[0] + l_div_4_neg * moment[1] + b_div_4_neg * moment[2] + distributed_force;
+		motor_force[3] = l_div_4_neg * moment[0] + l_div_4_neg * moment[1] + b_div_4_pos * moment[2] + distributed_force;
+	} else {
+		motor_force[0] = 0.0f;
+		motor_force[1] = 0.0f;
+		motor_force[2] = 0.0f;
+		motor_force[3] = 0.0f;
+	}
 
 	/* convert force to pwm */
 	float percentage_to_pwm = (MOTOR_PULSE_MAX - MOTOR_PULSE_MIN);
@@ -528,23 +536,15 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 		control_force = 4.0f * convert_motor_cmd_to_thrust(rc->throttle / 100.0f); //FIXME
 	}
 
-	/* lock motors if rc throttle < 10%, desired position < 25cm and nav.mode = motor lock mode */
-	bool halt_motor = false;
-	if(((nav.wp_now.pos[2] < 25.0f) && (rc->throttle < 10.0f)) || (nav.mode == NAV_MOTOR_LOCKED_MODE)) {
-		halt_motor = true;
+	/* lock motor */
+	if((nav.mode == NAV_MOTOR_LOCKED_MODE) || ((rc->throttle < 10.0f) && (nav.wp_now.pos[2] < 25.0f))) {
+		control_force = 0.0f;
 	}
 
 	if(rc->safety == false) {
-		if(halt_motor == false) {
-			led_on(LED_B);
-			led_off(LED_R);
-			thrust_force_allocate_quadrotor(control_moments, control_force);
-		} else {
-			led_on(LED_B);
-			led_off(LED_R);
-			*desired_heading = ahrs->attitude.yaw;
-			motor_halt();
-		}
+		led_on(LED_B);
+		led_off(LED_R);
+		thrust_force_allocate_quadrotor(control_moments, control_force);
 	} else {
 		nav.mode = NAV_HOVERING_MODE;
 		led_on(LED_B);
