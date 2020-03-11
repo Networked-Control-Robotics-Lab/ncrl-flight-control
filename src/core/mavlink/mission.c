@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include "mavlink.h"
 #include "../mavlink/publisher.h"
-#include "navigation.h"
+#include "autopilot.h"
 
 static void mavlink_send_capability(void)
 {

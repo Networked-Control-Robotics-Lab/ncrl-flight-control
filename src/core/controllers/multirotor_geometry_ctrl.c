@@ -15,7 +15,7 @@
 #include "lpf.h"
 #include "imu.h"
 #include "ahrs.h"
-#include "navigation.h"
+#include "autopilot.h"
 #include "debug_link.h"
 
 #define dt 0.0025 //[s]
@@ -80,16 +80,16 @@ float curr_pos[3];
 float curr_vel[3], desired_vel[3];
 float curr_accel[3], desired_accel[3];
 
-nav_t nav;
+autopilot_t autopilot;
 
 bool attitude_manual_height_auto = false;
 
 void geometry_ctrl_init(void)
 {
-	nav_init(&nav);
+	autopilot_init(&autopilot);
 
 	float geo_fence_origin[3] = {0.0f, 0.0f, 0.0f};
-	nav_set_enu_rectangular_fence(geo_fence_origin, 2.5f, 1.3f, 3.0f);
+	autopilot_set_enu_rectangular_fence(geo_fence_origin, 2.5f, 1.3f, 3.0f);
 
 	MAT_INIT(J, 3, 3);
 	MAT_INIT(R, 3, 3);
@@ -286,13 +286,13 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
                             float *curr_vel, float *desired_vel, float *curr_accel, float *desired_accel,
                             float *output_moments, float *output_force, bool manual_flight)
 {
-	nav_update_uav_info(curr_pos, curr_vel);
-	nav_waypoint_handler();
+	autopilot_update_uav_info(curr_pos, curr_vel);
+	autopilot_waypoint_handler();
 
 	float pos_des_ned[3];
-	pos_des_ned[0] = nav.wp_now.pos[1];
-	pos_des_ned[1] = nav.wp_now.pos[0];
-	pos_des_ned[2] = -nav.wp_now.pos[2];
+	pos_des_ned[0] = autopilot.wp_now.pos[1];
+	pos_des_ned[1] = autopilot.wp_now.pos[0];
+	pos_des_ned[2] = -autopilot.wp_now.pos[2];
 
 	/* ex = x - xd */
 	pos_error[0] = curr_pos[0] - pos_des_ned[0];
@@ -463,9 +463,9 @@ void rc_mode_change_handler_geometry(radio_t *rc)
 
 	//if mode switched to auto-flight
 	if(rc->auto_flight == true && auto_flight_mode_last != true) {
-		nav.wp_now.pos[0] = optitrack.pos_y; //XXX:ENU
-		nav.wp_now.pos[1] = optitrack.pos_x;
-		nav.wp_now.pos[2] = optitrack.pos_z;
+		autopilot.wp_now.pos[0] = optitrack.pos_y; //XXX:ENU
+		autopilot.wp_now.pos[1] = optitrack.pos_x;
+		autopilot.wp_now.pos[2] = optitrack.pos_z;
 		desired_vel[0] = 0.0f;
 		desired_vel[1] = 0.0f;
 		desired_vel[2] = 0.0f;
@@ -476,9 +476,9 @@ void rc_mode_change_handler_geometry(radio_t *rc)
 	}
 
 	if(rc->auto_flight == false) {
-		nav.wp_now.pos[0] = 0.0f;
-		nav.wp_now.pos[1] = 0.0f;
-		nav.wp_now.pos[2] = 0.0f;
+		autopilot.wp_now.pos[0] = 0.0f;
+		autopilot.wp_now.pos[1] = 0.0f;
+		autopilot.wp_now.pos[2] = 0.0f;
 		desired_vel[0] = 0.0f;
 		desired_vel[1] = 0.0f;
 		desired_vel[2] = 0.0f;
@@ -537,7 +537,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	}
 
 	/* lock motor */
-	if((nav.mode == NAV_MOTOR_LOCKED_MODE) || ((rc->throttle < 10.0f) && (nav.wp_now.pos[2] < 25.0f))) {
+	if((autopilot.mode == AUTOPILOT_MOTOR_LOCKED_MODE) || ((rc->throttle < 10.0f) && (autopilot.wp_now.pos[2] < 25.0f))) {
 		control_force = 0.0f;
 	}
 
@@ -546,7 +546,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 		led_off(LED_R);
 		thrust_force_allocate_quadrotor(control_moments, control_force);
 	} else {
-		nav.mode = NAV_HOVERING_MODE;
+		autopilot.mode = AUTOPILOT_HOVERING_MODE;
 		led_on(LED_B);
 		led_off(LED_R);
 		*desired_heading = ahrs->attitude.yaw;

@@ -6,7 +6,7 @@
 #include "uart.h"
 #include "sbus_receiver.h"
 #include "quadshell.h"
-#include "navigation.h"
+#include "autopilot.h"
 
 static bool parse_float_from_str(char *str, float *value)
 {
@@ -75,8 +75,8 @@ void shell_cmd_takeoff(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int 
 	shell_cli(&shell);
 
 	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
-		int ret_val = nav_trigger_auto_takeoff();
-		if(ret_val == NAV_SET_SUCCEED) {
+		int ret_val = autopilot_trigger_auto_takeoff();
+		if(ret_val == AUTOPILOT_SET_SUCCEED) {
 			shell_puts("command accept.\n\r");
 		} else {
 			shell_puts("failed, uav had already takeoff\n\r");
@@ -94,8 +94,8 @@ void shell_cmd_land(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 	shell_cli(&shell);
 
 	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
-		int ret_val = nav_trigger_auto_landing();
-		if(ret_val == NAV_SET_SUCCEED) {
+		int ret_val = autopilot_trigger_auto_landing();
+		if(ret_val == AUTOPILOT_SET_SUCCEED) {
 			shell_puts("command accept.\n\r");
 		} else {
 			shell_puts("failed, uav can only be landed while hovering at a point!\n\r");
@@ -157,8 +157,8 @@ void shell_cmd_fly(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int para
 		pos[1] *= 100.0f;
 		pos[2] *= 100.0f;
 
-		int ret_val = nav_goto_waypoint_now(pos, change_z);
-		if(ret_val == NAV_WP_OUT_OF_FENCE) {
+		int ret_val = autopilot_goto_waypoint_now(pos, change_z);
+		if(ret_val == AUTOPILOT_WP_OUT_OF_FENCE) {
 			shell_puts("failed, waypoint out of geo-fence!\n\r");
 		} else {
 			shell_puts("command accept.\n\r");
@@ -218,10 +218,10 @@ static void mission_add_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_L
 	shell_cli(&shell);
 
 	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
-		int ret_val = nav_add_new_waypoint(pos, heading, stay_time_sec, radius);
-		if(ret_val == NAV_SET_SUCCEED) {
+		int ret_val = autopilot_add_new_waypoint(pos, heading, stay_time_sec, radius);
+		if(ret_val == AUTOPILOT_SET_SUCCEED) {
 			shell_puts("successfully  added new waypoint.\n\r");
-		} else if(ret_val == NAV_WP_LIST_FULL) {
+		} else if(ret_val == AUTOPILOT_WP_LIST_FULL) {
 			shell_puts("failed, mission is executing!\n\r");
 		}
 	} else {
@@ -237,12 +237,12 @@ static void mission_start_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM
 	shell_cli(&shell);
 
 	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
-		int ret_val = nav_waypoint_mission_start(false);
-		if(ret_val == NAV_SET_SUCCEED) {
+		int ret_val = autopilot_waypoint_mission_start(false);
+		if(ret_val == AUTOPILOT_SET_SUCCEED) {
 			shell_puts("successfully started the mission.\n\r");
-		} else if(ret_val == NAV_WP_LIST_EMPYT) {
+		} else if(ret_val == AUTOPILOT_WP_LIST_EMPYT) {
 			shell_puts("failed, waypoint list is full\n\r");
-		} else if(ret_val == NAV_MISSION_EXECUTING) {
+		} else if(ret_val == AUTOPILOT_MISSION_EXECUTING) {
 			shell_puts("failed, mission is executing!\n\r");
 		}
 	} else {
@@ -258,12 +258,12 @@ static void mission_loop_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_
 	shell_cli(&shell);
 
 	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
-		int ret_val = nav_waypoint_mission_start(true);
-		if(ret_val == NAV_SET_SUCCEED) {
+		int ret_val = autopilot_waypoint_mission_start(true);
+		if(ret_val == AUTOPILOT_SET_SUCCEED) {
 			shell_puts("successfully started the mission.\n\r");
-		} else if(ret_val == NAV_WP_LIST_EMPYT) {
+		} else if(ret_val == AUTOPILOT_WP_LIST_EMPYT) {
 			shell_puts("failed, waypoint list is full\n\r");
-		} else if(ret_val == NAV_MISSION_EXECUTING) {
+		} else if(ret_val == AUTOPILOT_MISSION_EXECUTING) {
 			shell_puts("failed, mission is executing!\n\r");
 		}
 	} else {
@@ -284,10 +284,10 @@ static void mission_halt_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_
 	shell_cli(&shell);
 
 	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
-		int ret_val = nav_halt_waypoint_mission();
-		if(ret_val == NAV_SET_SUCCEED) {
+		int ret_val = autopilot_halt_waypoint_mission();
+		if(ret_val == AUTOPILOT_SET_SUCCEED) {
 			shell_puts("successfully halted the waypoint mission.\n\r");
-		} else if(ret_val == NAV_NO_EXECUTING_MISSION) {
+		} else if(ret_val == AUTOPILOT_NO_EXECUTING_MISSION) {
 			shell_puts("failed, no executing mission!\n\r");
 		}
 	} else {
@@ -303,10 +303,10 @@ static void mission_resume_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARA
 	shell_cli(&shell);
 
 	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
-		int ret_val = nav_resume_waypoint_mission();
-		if(ret_val == NAV_SET_SUCCEED) {
+		int ret_val = autopilot_resume_waypoint_mission();
+		if(ret_val == AUTOPILOT_SET_SUCCEED) {
 			shell_puts("successfully resumed the waypoint mission.\n\r");
-		} else if(ret_val == NAV_NO_EXECUTING_MISSION) {
+		} else if(ret_val == AUTOPILOT_NO_EXECUTING_MISSION) {
 			shell_puts("failed, no halting mission!\n\r");
 		}
 	} else {
@@ -322,10 +322,10 @@ static void mission_clear_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM
 	shell_cli(&shell);
 
 	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
-		int ret_val = nav_clear_waypoint_list();
-		if(ret_val == NAV_SET_SUCCEED) {
+		int ret_val = autopilot_clear_waypoint_list();
+		if(ret_val == AUTOPILOT_SET_SUCCEED) {
 			shell_puts("successfully cleared the waypoint list.\n\r");
-		} else if(ret_val == NAV_MISSION_EXECUTING) {
+		} else if(ret_val == AUTOPILOT_MISSION_EXECUTING) {
 			shell_puts("failed, waypoint list is empty!\n\r");
 		}
 	} else {
