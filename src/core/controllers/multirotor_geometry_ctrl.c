@@ -154,7 +154,7 @@ void geometry_ctrl_init(void)
 	kpy = 1.75f;
 	kvy = 1.6f;
 	/* z-axis tracking gains */
-	kpz = 10.0f;
+	kpz = 8.5f;
 	kvz = 4.0f;
 
 	k_tracking_i_gain[0] = 0.5f;
@@ -426,18 +426,18 @@ void thrust_force_allocate_quadrotor(float *moment, float total_force)
 
 	float distributed_force = total_force *= 0.25; //split force to 4 motors
 
-	const float lock_thresh = convert_motor_cmd_to_thrust(0.1);
-	if(distributed_force >= lock_thresh) {
-		motor_force[0] = l_div_4_neg * moment[0] + l_div_4_pos * moment[1] + b_div_4_neg * moment[2] + distributed_force;
-		motor_force[1] = l_div_4_pos * moment[0] + l_div_4_pos * moment[1] + b_div_4_pos * moment[2] + distributed_force;
-		motor_force[2] = l_div_4_pos * moment[0] + l_div_4_neg * moment[1] + b_div_4_neg * moment[2] + distributed_force;
-		motor_force[3] = l_div_4_neg * moment[0] + l_div_4_neg * moment[1] + b_div_4_pos * moment[2] + distributed_force;
-	} else {
-		motor_force[0] = 0.0f;
-		motor_force[1] = 0.0f;
-		motor_force[2] = 0.0f;
-		motor_force[3] = 0.0f;
-	}
+	//const float lock_thresh = convert_motor_cmd_to_thrust(0.1);
+	//if(distributed_force >= lock_thresh) {
+	motor_force[0] = l_div_4_neg * moment[0] + l_div_4_pos * moment[1] + b_div_4_neg * moment[2] + distributed_force;
+	motor_force[1] = l_div_4_pos * moment[0] + l_div_4_pos * moment[1] + b_div_4_pos * moment[2] + distributed_force;
+	motor_force[2] = l_div_4_pos * moment[0] + l_div_4_neg * moment[1] + b_div_4_neg * moment[2] + distributed_force;
+	motor_force[3] = l_div_4_neg * moment[0] + l_div_4_neg * moment[1] + b_div_4_pos * moment[2] + distributed_force;
+	//} else {
+	//	motor_force[0] = 0.0f;
+	//	motor_force[1] = 0.0f;
+	//	motor_force[2] = 0.0f;
+	//	motor_force[3] = 0.0f;
+	//}
 
 	/* convert force to pwm */
 	float percentage_to_pwm = (MOTOR_PULSE_MAX - MOTOR_PULSE_MIN);
@@ -536,17 +536,29 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 		control_force = 4.0f * convert_motor_cmd_to_thrust(rc->throttle / 100.0f); //FIXME
 	}
 
-	/* lock motor */
-	if((autopilot.mode == AUTOPILOT_MOTOR_LOCKED_MODE) || ((rc->throttle < 10.0f) && (autopilot.wp_now.pos[2] < 25.0f))) {
-		control_force = 0.0f;
+	bool halt_motor;
+
+	if((rc->throttle < 10.0f && autopilot.mode == AUTOPILOT_MANUAL_FLIGHT_MODE) ||
+	    (autopilot.wp_now.pos[2] < 15.0f && autopilot.mode == AUTOPILOT_TAKEOFF_MODE) ||
+	    autopilot.mode == AUTOPILOT_MOTOR_LOCKED_MODE) {
+		halt_motor = true;
+	} else {
+		halt_motor = false;
 	}
 
 	if(rc->safety == false) {
-		led_on(LED_B);
-		led_off(LED_R);
-		thrust_force_allocate_quadrotor(control_moments, control_force);
+		if(halt_motor == false) {
+			led_on(LED_B);
+			led_off(LED_R);
+			thrust_force_allocate_quadrotor(control_moments, control_force);
+		} else {
+			led_on(LED_B);
+			led_off(LED_R);
+			*desired_heading = ahrs->attitude.yaw;
+			motor_halt();
+		}
 	} else {
-		autopilot.mode = AUTOPILOT_HOVERING_MODE;
+		autopilot.mode = AUTOPILOT_MANUAL_FLIGHT_MODE;
 		led_on(LED_B);
 		led_off(LED_R);
 		*desired_heading = ahrs->attitude.yaw;

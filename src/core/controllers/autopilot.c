@@ -25,7 +25,7 @@ void autopilot_init(autopilot_t *_autopilot)
 	autopilot_ptr->landing_speed = 0.13;
 	autopilot_ptr->takeoff_speed = 0.08;
 	autopilot_ptr->takeoff_height = 120;          //[cm]
-	autopilot_ptr->landing_accept_height = 5.0f; //[cm]
+	autopilot_ptr->landing_accept_height = 15.0f; //[cm]
 }
 
 void autopilot_update_uav_info(float pos[3], float vel[3])
