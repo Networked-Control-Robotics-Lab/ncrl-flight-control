@@ -149,10 +149,10 @@ void geometry_ctrl_init(void)
 	/* tracking controller */
 	/* x-axis tracking gains  */
 	kpx = 1.75f;
-	kvx = 1.6f;
+	kvx = 1.65f;
 	/* y-axis tracking gains */
 	kpy = 1.75f;
-	kvy = 1.6f;
+	kvy = 1.65f;
 	/* z-axis tracking gains */
 	kpz = 8.5f;
 	kvz = 4.0f;
