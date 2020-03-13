@@ -89,9 +89,9 @@ void optitrack_numerical_vel_calc(void)
 	float received_period = (optitrack.time_now - optitrack.time_last) * 0.001;
 	optitrack.recv_freq = 1.0f / received_period;
 
-	lpf(optitrack.vel_raw_x, &(optitrack.vel_lpf_x), 0.3);
-	lpf(optitrack.vel_raw_y, &(optitrack.vel_lpf_y), 0.3);
-	lpf(optitrack.vel_raw_z, &(optitrack.vel_lpf_z), 0.3);
+	lpf(optitrack.vel_raw_x, &(optitrack.vel_lpf_x), 0.8);
+	lpf(optitrack.vel_raw_y, &(optitrack.vel_lpf_y), 0.8);
+	lpf(optitrack.vel_raw_z, &(optitrack.vel_lpf_z), 0.7);
 }
 
 int optitrack_serial_decoder(uint8_t *buf)
