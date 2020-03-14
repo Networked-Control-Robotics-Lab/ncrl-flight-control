@@ -15,13 +15,13 @@ CFLAGS+=-D USE_STDPERIPH_DRIVER \
 	-D __FPU_PRESENT=1 \
 	#-D __FPU_USED=1
 
-CFLAGS+=-Wl,-T,./sys_startup/stm32f427vi_flash.ld
+CFLAGS+=-Wl,-T,./platform/stm32f427vi_flash.ld
 
 LDFLAGS+=-Wl,--start-group -lm -Wl,--end-group
 
 SRC=
 
-SRC+=./sys_startup/system_stm32f4xx.c
+SRC+=./platform/system_stm32f4xx.c
 
 SRC+=lib/CMSIS/DSP_Lib/Source/CommonTables/arm_common_tables.c \
 	lib/CMSIS/DSP_Lib/Source/FastMathFunctions/arm_cos_f32.c \
@@ -81,14 +81,14 @@ SRC+=./core/main.c \
 	./core/mavlink/publisher.c \
 	./core/mavlink/parser.c \
 	./core/mavlink/mission.c \
-	./core/mavlink/param.c
+	./core/mavlink/param.c \
+	./core/perf/perf.c
 
 SRC+=./common/delay.c \
 	./common/bound.c \
 	./common/vector.c \
 	./common/matrix.c \
 	./common/se3_math.c \
-	./common/perf.c
 
 SRC+=./driver/periph/led.c \
 	./driver/periph/uart.c \
@@ -106,7 +106,7 @@ SRC+=./driver/periph/led.c \
 	./driver/device/sys_time.c \
 
 CFLAGS+=-I./
-CFLAGS+=-I./sys_startup
+CFLAGS+=-I./platform
 CFLAGS+=-I./core
 CFLAGS+=-I./core/estimators
 CFLAGS+=-I./core/controllers
@@ -114,6 +114,7 @@ CFLAGS+=-I./core/debug_link
 CFLAGS+=-I./core/tasks
 CFLAGS+=-I./core/mavlink
 CFLAGS+=-I./core/shell
+CFLAGS+=-I./core/perf
 CFLAGS+=-I./common
 CFLAGS+=-I./driver/periph
 CFLAGS+=-I./driver/device
@@ -127,8 +128,8 @@ CFLAGS+=-I./lib/mavlink_v2/common
 
 OBJS=$(SRC:.c=.o)
 
-STARTUP=./sys_startup/startup_stm32f427.s
-STARTUP_OBJ=./sys_startup/startup_stm32f427.s
+STARTUP=./platform/startup_stm32f427.s
+STARTUP_OBJ=./platform/startup_stm32f427.s
 
 all:$(EXECUTABLE)
 
@@ -166,6 +167,6 @@ gdbauto:
 	cgdb -d $(GDB) -x ./gdb/openocd_gdb.gdb
 
 astyle:
-	astyle -r --exclude=lib --exclude=sys_startup --style=linux --suffix=none --indent=tab=8  *.c *.h
+	astyle -r --exclude=lib --exclude=platform --style=linux --suffix=none --indent=tab=8  *.c *.h
 
 .PHONY:all clean flash openocd gdbauto

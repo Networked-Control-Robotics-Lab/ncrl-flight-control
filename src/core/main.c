@@ -24,8 +24,12 @@
 #include "proj_config.h"
 #include "mavlink_task.h"
 #include "debug_link_task.h"
+#include "perf.h"
+#include "perf_list.h"
 
 extern SemaphoreHandle_t flight_ctl_semphr;
+
+perf_t perf_counter[PERF_LIST_SIZE];
 
 int main(void)
 {
