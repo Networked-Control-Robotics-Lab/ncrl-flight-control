@@ -87,7 +87,8 @@ SRC+=./common/delay.c \
 	./common/bound.c \
 	./common/vector.c \
 	./common/matrix.c \
-	./common/se3_math.c
+	./common/se3_math.c \
+	./common/perf.c
 
 SRC+=./driver/periph/led.c \
 	./driver/periph/uart.c \
