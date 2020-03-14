@@ -58,14 +58,12 @@ int main(void)
 
 	xTaskCreate(task_flight_ctrl, "flight control", 4096, NULL, tskIDLE_PRIORITY + 3, NULL);
 
-#if(DO_CALIBRATION == 0)
 #if (SELECT_TELEM == TELEM_DEBUG_LINK)
 	xTaskCreate(task_debug_link, "debug link", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
 #elif (SELECT_TELEM == TELEM_MAVLINK)
 	xTaskCreate(mavlink_task, "mavlink", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
 #elif (SELECT_TELEM == TELEM_SHELL)
 	xTaskCreate(shell_task, "shell", 1024, NULL, tskIDLE_PRIORITY + 1, NULL);
-#endif
 #endif
 
 	/* start freertos scheduler */
