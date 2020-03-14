@@ -23,6 +23,8 @@
 #include "sys_time.h"
 #include "proj_config.h"
 #include "debug_link.h"
+#include "perf.h"
+#include "perf_list.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 10
 
@@ -103,13 +105,17 @@ void task_flight_ctrl(void *param)
 		read_rc(&rc);
 		rc_yaw_setpoint_handler(&desired_yaw, -rc.yaw, 0.0025);
 
+		perf_start(AHRS);
 		ahrs_estimate(&ahrs, imu.accel_lpf, imu.gyro_lpf);
+		perf_end(AHRS);
 
+		perf_start(FLIGHT_CONTROL);
 #if (SELECT_CONTROLLER == QUADROTOR_USE_PID)
 		multirotor_pid_control(&imu, &ahrs, &rc, &desired_yaw);
 #elif (SELECT_CONTROLLER == QUADROTOR_USE_GEOMETRY)
 		multirotor_geometry_control(&imu, &ahrs, &rc, &desired_yaw);
 #endif
+		perf_end(FLIGHT_CONTROL);
 
 		taskYIELD();
 	}

@@ -7,6 +7,7 @@
 #include "sbus_receiver.h"
 #include "quadshell.h"
 #include "autopilot.h"
+#include "perf.h"
 
 static bool parse_float_from_str(char *str, float *value)
 {
@@ -410,6 +411,12 @@ void shell_cmd_acc_calib(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], in
 	}
 }
 
-void shell_cmd_task(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+void shell_cmd_perf(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
+	char s[100];
+	shell_puts("perf_list:\n\r");
+	int i;
+	for(i = 0; i < perf_get_list_size(); i++) {
+		sprintf(s, "%s: %fms\n\r", perf_get_name(i), perf_get_time_ms(i));
+	}
 }

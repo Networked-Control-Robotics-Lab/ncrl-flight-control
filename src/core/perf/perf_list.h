@@ -3,9 +3,8 @@
 
 /* enumerate performace counter id for executuin time profiling */
 enum {
-	MADGWICK_FILTER,
-	MR_GEOMETRY_CTRL,
-	PERF_LIST_SIZE
+	AHRS,
+	FLIGHT_CONTROL,
 } PERF_LIST;
 
 #endif

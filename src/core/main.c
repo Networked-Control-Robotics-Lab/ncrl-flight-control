@@ -29,10 +29,15 @@
 
 extern SemaphoreHandle_t flight_ctl_semphr;
 
-perf_t perf_counter[PERF_LIST_SIZE];
+perf_t perf_list[] = {
+	DEF_PERF(FLIGHT_CONTROL, "flight controller")
+	DEF_PERF(AHRS, "ahrs")
+};
 
 int main(void)
 {
+	perf_init(perf_list, SIZE_OF_PERF_LIST(perf_list));
+
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 
 	/* freertos initialization */
