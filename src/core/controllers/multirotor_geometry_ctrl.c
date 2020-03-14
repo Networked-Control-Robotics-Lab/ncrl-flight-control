@@ -149,10 +149,10 @@ void geometry_ctrl_init(void)
 	/* tracking controller */
 	/* x-axis tracking gains  */
 	kpx = 3.5f;
-	kvx = 2.1f;
+	kvx = 2.2f;
 	/* y-axis tracking gains */
 	kpy = 3.5f;
-	kvy = 2.1f;
+	kvy = 2.2f;
 	/* z-axis tracking gains */
 	kpz = 8.5f;
 	kvz = 4.0f;
@@ -311,6 +311,7 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 
 	bound_float(&tracking_error_integral[0], 150, -150);
 	bound_float(&tracking_error_integral[1], 150, -150);
+	bound_float(&tracking_error_integral[2], 50, -50);
 
 	_mat_(kxex_kvev_mge3_mxd_dot_dot)[0] = -kpx*pos_error[0] - kvx*vel_error[0] - tracking_error_integral[0];
 	_mat_(kxex_kvev_mge3_mxd_dot_dot)[1] = -kpy*pos_error[1] - kvy*vel_error[1] - tracking_error_integral[1];

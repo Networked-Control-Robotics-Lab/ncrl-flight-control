@@ -66,6 +66,7 @@ SRC+=./core/main.c \
 	./core/estimators/ahrs.c \
 	./core/estimators/madgwick_ahrs.c \
 	./core/estimators/free_fall.c \
+	./core/estimators/navigation.c \
 	./core/controllers/multirotor_pid_ctrl.c \
 	./core/controllers/multirotor_geometry_ctrl.c \
 	./core/controllers/motor_thrust.c \
