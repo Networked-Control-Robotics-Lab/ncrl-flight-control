@@ -206,21 +206,20 @@ void ahrs_complementary_filter_estimate(float *accel, float *gyro)
 	convert_gravity_to_quat(accel, q_gravity);
 
 	/* fuse gyroscope and acceleromter using LERP algorithm */
-	float q_roll_pitch[4];
 	float a = 0.995f;
-	q_roll_pitch[0] = (_mat_(x_priori)[0] * a) + (q_gravity[0]* (1.0 - a));
-	q_roll_pitch[1] = (_mat_(x_priori)[1] * a) + (q_gravity[1]* (1.0 - a));
-	q_roll_pitch[2] = (_mat_(x_priori)[2] * a) + (q_gravity[2]* (1.0 - a));
-	q_roll_pitch[3] = (_mat_(x_priori)[3] * a) + (q_gravity[3]* (1.0 - a));
+	_mat_(x_posteriori)[0] = (_mat_(x_priori)[0] * a) + (q_gravity[0]* (1.0 - a));
+	_mat_(x_posteriori)[1] = (_mat_(x_priori)[1] * a) + (q_gravity[1]* (1.0 - a));
+	_mat_(x_posteriori)[2] = (_mat_(x_priori)[2] * a) + (q_gravity[2]* (1.0 - a));
+	_mat_(x_posteriori)[3] = (_mat_(x_priori)[3] * a) + (q_gravity[3]* (1.0 - a));
 	//it is crucial to renormalize the quaternion since LERP don't maintain
 	//the unit length propertety of the quaternion
-	quat_normalize(q_roll_pitch);
+	quat_normalize(_mat_(x_posteriori));
 
 	/* update state variables for rate gyro */
-	_mat_(x_priori)[0] = q_roll_pitch[0];
-	_mat_(x_priori)[1] = q_roll_pitch[1];
-	_mat_(x_priori)[2] = q_roll_pitch[2];
-	_mat_(x_priori)[3] = q_roll_pitch[3];
+	_mat_(x_priori)[0] = _mat_(x_posteriori)[0];
+	_mat_(x_priori)[1] = _mat_(x_posteriori)[1];
+	_mat_(x_priori)[2] = _mat_(x_posteriori)[2];
+	_mat_(x_priori)[3] = _mat_(x_posteriori)[3];
 }
 
 void reset_quaternion_yaw_angle(float *q)

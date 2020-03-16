@@ -13,7 +13,18 @@
 #define MPU6500_ACCEL_SCALE MPU6500A_16g
 #define MPU6500_GYRO_SCALE MPU6500G_2000dps
 
-#define IMU_CALIB_SAMPLE_CNT 10000;
+#define IMU_CALIB_SAMPLE_CNT 10000
+
+/* acceleromter calibration */
+#define GX_MAX (+2020.0f)
+#define GX_MIN (-2111.0f)
+#define GY_MAX (+2079.0f)
+#define GY_MIN (-2043.0f)
+#define GZ_MAX (+2558.0f)
+#define GZ_MIN (-2048.0f)
+#define ACC_RESCALE_X  (4096.0f / (GX_MAX - GX_MIN))
+#define ACC_RESCALE_Y  (4096.0f / (GY_MAX - GY_MIN))
+#define ACC_RESCALE_Z  (4096.0f / (GZ_MAX - GZ_MIN))
 
 int16_t gyro_bias[3] = {0, 0, 0};
 int16_t accel_z_bias = 0;
@@ -64,14 +75,14 @@ static void mpu6500_bias_calc(int16_t *gyro, int16_t *accel)
 	_gyro_bias[0] += (float)gyro[0] / (float)IMU_CALIB_SAMPLE_CNT;
 	_gyro_bias[1] += (float)gyro[1] / (float)IMU_CALIB_SAMPLE_CNT;
 	_gyro_bias[2] += (float)gyro[2] / (float)IMU_CALIB_SAMPLE_CNT;
-	_accel_z_bias += (float)accel[2] / (float)IMU_CALIB_SAMPLE_CNT;
+	_accel_z_bias += ((float)accel[2] * ACC_RESCALE_Z) / (float)IMU_CALIB_SAMPLE_CNT;
 
 	imu_bias_sampling_cnt--;
 	if(imu_bias_sampling_cnt == 0) {
 		gyro_bias[0] = (int16_t)_gyro_bias[0];
 		gyro_bias[1] = (int16_t)_gyro_bias[1];
 		gyro_bias[2] = (int16_t)_gyro_bias[2];
-		accel_z_bias = (int16_t)_accel_z_bias - (9.8 / MPU6500_GYRO_SCALE);
+		accel_z_bias = (int16_t)_accel_z_bias - (9.8 / MPU6500_ACCEL_SCALE);
 		mpu6500_init_finished = true;
 	}
 }
@@ -99,22 +110,13 @@ void mpu6500_init(imu_t *imu)
 
 static void mpu6500_apply_calibration(int16_t *accel_unscaled, int16_t *gyro_unscaled)
 {
-	/* use max/min gravity value to correct the slope rate of accerometer  */
-	float gx_max = +2020.0f, gx_min = -2111.0f;
-	float gy_max = +2079.0f, gy_min = -2043.0f;
-	float gz_max = +2558.0f, gz_min = -2048.0f;
-
 	/* accelerometer bias */
 	float accel_bx = +750.0f;  //trim this for pitch angle, + sign for - angle compensation
 	float accel_by = -410.0f;  //trim this for roll angle, + sign for + angle compensation
 
-	float rescale_x = 4096.0f / (gx_max - gx_min);
-	float rescale_y = 4096.0f / (gy_max - gy_min);
-	float rescale_z = 4096.0f / (gz_max - gz_min);
-
-	accel_unscaled[0] = ((float)accel_unscaled[0] - accel_bx) * rescale_x;
-	accel_unscaled[1] = ((float)accel_unscaled[1] - accel_by) * rescale_y;
-	accel_unscaled[2] = ((float)accel_unscaled[2] - accel_z_bias) * rescale_z;
+	accel_unscaled[0] = ((float)accel_unscaled[0] - accel_bx) * ACC_RESCALE_X;
+	accel_unscaled[1] = ((float)accel_unscaled[1] - accel_by) * ACC_RESCALE_Y;
+	accel_unscaled[2] = ((float)accel_unscaled[2] - accel_z_bias) * ACC_RESCALE_Z;
 
 	gyro_unscaled[0] -= gyro_bias[0];
 	gyro_unscaled[1] -= gyro_bias[1];

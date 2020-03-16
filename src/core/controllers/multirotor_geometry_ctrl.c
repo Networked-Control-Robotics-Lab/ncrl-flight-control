@@ -424,18 +424,10 @@ void thrust_force_allocate_quadrotor(float *moment, float total_force)
 
 	float distributed_force = total_force *= 0.25; //split force to 4 motors
 
-	//const float lock_thresh = convert_motor_cmd_to_thrust(0.1);
-	//if(distributed_force >= lock_thresh) {
 	motor_force[0] = l_div_4_neg * moment[0] + l_div_4_pos * moment[1] + b_div_4_neg * moment[2] + distributed_force;
 	motor_force[1] = l_div_4_pos * moment[0] + l_div_4_pos * moment[1] + b_div_4_pos * moment[2] + distributed_force;
 	motor_force[2] = l_div_4_pos * moment[0] + l_div_4_neg * moment[1] + b_div_4_neg * moment[2] + distributed_force;
 	motor_force[3] = l_div_4_neg * moment[0] + l_div_4_neg * moment[1] + b_div_4_pos * moment[2] + distributed_force;
-	//} else {
-	//	motor_force[0] = 0.0f;
-	//	motor_force[1] = 0.0f;
-	//	motor_force[2] = 0.0f;
-	//	motor_force[3] = 0.0f;
-	//}
 
 	/* convert force to pwm */
 	float percentage_to_pwm = (MOTOR_PULSE_MAX - MOTOR_PULSE_MIN);
