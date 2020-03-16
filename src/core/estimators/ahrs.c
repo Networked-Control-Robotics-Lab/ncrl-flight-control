@@ -22,27 +22,10 @@ MAT_ALLOC(x_posteriori, 4, 1);
 MAT_ALLOC(dx, 4, 1);
 MAT_ALLOC(w, 3, 1);
 MAT_ALLOC(f, 4, 3);
-MAT_ALLOC(y, 4, 1);
-MAT_ALLOC(resid, 4, 1);
-MAT_ALLOC(F, 4, 4);
-MAT_ALLOC(P, 4, 4);
-MAT_ALLOC(Ft, 4, 4);
-MAT_ALLOC(FP, 4, 4);
-MAT_ALLOC(PFt, 4, 4);
-MAT_ALLOC(FP_PFt_Q, 4, 4);
-MAT_ALLOC(dP, 4, 4);
-MAT_ALLOC(R, 4, 4);
-MAT_ALLOC(Q, 4, 4);
-MAT_ALLOC(K, 4, 4);
-MAT_ALLOC(dt_4x4, 4, 4) = {dt, 0, 0,0,
-                           0, dt, 0, 0,
-                           0, 0, dt, 0,
-                           0, 0, 0, dt
-                          };
 
 madgwick_t madgwick_ahrs;
 
-void ahrs_ekf_init(vector3d_f_t init_accel)
+void ahrs_init(vector3d_f_t init_accel)
 {
 	//initialize matrices
 	MAT_INIT(x_priori, 4, 1);
@@ -50,22 +33,6 @@ void ahrs_ekf_init(vector3d_f_t init_accel)
 	MAT_INIT(dx, 4, 1);
 	MAT_INIT(w, 3, 1);
 	MAT_INIT(f, 4, 3);
-	MAT_INIT(y, 4, 1);
-	MAT_INIT(resid, 4, 1);
-	MAT_INIT(F, 4, 4);
-	MAT_INIT(P, 4, 4);
-	MAT_INIT(Ft, 4, 4);
-	MAT_INIT(FP, 4, 4);
-	MAT_INIT(PFt, 4, 4);
-	MAT_INIT(FP_PFt_Q, 4, 4);
-	MAT_INIT(dP, 4, 4);
-	MAT_INIT(R, 4, 4);
-	MAT_INIT(Q, 4, 4);
-	MAT_INIT(dt_4x4, 4, 4);
-
-	_mat_(P)[0] = _mat_(P)[5] = _mat_(P)[10] = _mat_(P)[15] =  100.0f;
-	_mat_(Q)[0] = _mat_(Q)[5] = _mat_(Q)[10] = _mat_(Q)[15] = 0.1f;
-	_mat_(R)[0] = _mat_(R)[5] = _mat_(R)[10] = _mat_(R)[15] = 0.001;
 
 	euler_t att_init = {0.0f, 0.0f, 0.0f};
 	vector3d_normalize(&init_accel);
@@ -191,109 +158,6 @@ void align_ahrs_with_optitrack_yaw(float *q_ahrs)
 	}
 }
 
-void ahrs_ekf_state_predict(vector3d_f_t accel, vector3d_f_t gyro)
-{
-	float half_q0_dt = 0.5f * _mat_(x_priori)[0] * dt;
-	float half_q1_dt = 0.5f * _mat_(x_priori)[1] * dt;
-	float half_q2_dt = 0.5f * _mat_(x_priori)[2] * dt;
-	float half_q3_dt = 0.5f * _mat_(x_priori)[3] * dt;
-	_mat_(f)[0] = -half_q1_dt;
-	_mat_(f)[1] = -half_q2_dt;
-	_mat_(f)[2] = -half_q3_dt;
-	_mat_(f)[3] = +half_q0_dt;
-	_mat_(f)[4] = -half_q3_dt;
-	_mat_(f)[5] = +half_q2_dt;
-	_mat_(f)[6] = +half_q3_dt;
-	_mat_(f)[7] = +half_q0_dt;
-	_mat_(f)[8] = -half_q1_dt;
-	_mat_(f)[9] = -half_q2_dt;
-	_mat_(f)[10] = +half_q1_dt;
-	_mat_(f)[11] = +half_q0_dt;
-
-	_mat_(w)[0] = deg_to_rad(gyro.x);
-	_mat_(w)[1] = deg_to_rad(gyro.y);
-	_mat_(w)[2] = deg_to_rad(gyro.z);
-
-	MAT_MULT(&f, &w, &dx); //calculate dx = f * w
-	MAT_ADD(&x_priori, &dx, &x_priori);  //calculate x = x + dx
-
-	quat_normalize(&_mat_(x_priori)[0]);
-
-	//P = P + dt * (FP + PF' + Q)
-	float wx = _mat_(w)[0];
-	float wy = _mat_(w)[1];
-	float wz = _mat_(w)[2];
-
-	_mat_(F)[0] = 0.0;
-	_mat_(F)[1] = -0.5 * wx;
-	_mat_(F)[2] = -0.5 * wy;
-	_mat_(F)[3] = -0.5 * wz;
-	_mat_(F)[4] = 0.5 * wx;
-	_mat_(F)[5] = 0.0;
-	_mat_(F)[6] = 0.5 * wz;
-	_mat_(F)[7] = -0.5 * wy;
-	_mat_(F)[8] = 0.5 * wy;
-	_mat_(F)[9] = -0.5 * wz;
-	_mat_(F)[10] = 0.0;
-	_mat_(F)[11] = 0.5 * wx;
-	_mat_(F)[12] = 0.5 * wz;
-	_mat_(F)[13] = 0.5 * wy;
-	_mat_(F)[14] = -0.5 * wx;
-	_mat_(F)[15] = 0.0;
-
-	MAT_TRANS(&F, &Ft);                     //calculate F'
-	MAT_MULT(&F, &P, &FP);                  //calculate F*P
-	MAT_MULT(&P, &Ft, &PFt);                //calculate P*F'
-	MAT_ADD(&FP, &PFt, &FP_PFt_Q);          //calculate F*P + P*F'
-	MAT_ADD(&FP_PFt_Q, &Q, &FP_PFt_Q);      //calculate F*P + P*F + Q
-	MAT_MULT(&dt_4x4, &FP_PFt_Q, &FP_PFt_Q) //calculate dt * (F*P + P*F + Q)
-	MAT_ADD(&P, &FP_PFt_Q, &P);             //calculate P = P + dt * (F*P + P*F + Q)
-}
-
-void ahrs_ekf_state_update(vector3d_f_t accel, vector3d_f_t gyro)
-{
-	/* convert gravity vector to quaternion */
-	vector3d_normalize(&accel); //normalize acceleromter
-	convert_gravity_to_quat(&accel, &_mat_(y)[0]);
-
-	/* calculate residual */
-	_mat_(resid)[0] = _mat_(y)[0] - _mat_(x_priori)[0];
-	_mat_(resid)[1] = _mat_(y)[1] - _mat_(x_priori)[1];
-	_mat_(resid)[2] = _mat_(y)[2] - _mat_(x_priori)[2];
-	_mat_(resid)[3] = _mat_(y)[3] - _mat_(x_priori)[3];
-
-	/* calculate kalman gain */
-	_mat_(K)[0] = _mat_(P)[0] / (_mat_(P)[0] + _mat_(R)[0]);
-	_mat_(K)[5] = _mat_(P)[5] / (_mat_(P)[5] + _mat_(R)[5]);
-	_mat_(K)[10] = _mat_(P)[10] / (_mat_(P)[10] + _mat_(R)[10]);
-	_mat_(K)[15] = _mat_(P)[15] / (_mat_(P)[15] + _mat_(R)[15]);
-
-	/* caluclate innovation */
-	_mat_(x_posteriori)[0] += (_mat_(K)[0] * _mat_(resid)[0]);
-	_mat_(x_posteriori)[1] += (_mat_(K)[5] * _mat_(resid)[1]);
-	_mat_(x_posteriori)[2] += (_mat_(K)[10] * _mat_(resid)[2]);
-	_mat_(x_posteriori)[3] += (_mat_(K)[15] * _mat_(resid)[3]);
-	quat_normalize(&_mat_(x_posteriori)[0]); //renormalize quaternion
-
-	/* update old state variable */
-	_mat_(x_priori)[0] = _mat_(x_posteriori)[0];
-	_mat_(x_priori)[1] = _mat_(x_posteriori)[1];
-	_mat_(x_priori)[2] = _mat_(x_posteriori)[2];
-	_mat_(x_priori)[3] = _mat_(x_posteriori)[3];
-
-	/* update covariance matrix */
-	_mat_(P)[0] *= (1.0f - _mat_(K)[0]);
-	_mat_(P)[5] *= (1.0f - _mat_(K)[5]);
-	_mat_(P)[10] *= (1.0f - _mat_(K)[10]);
-	_mat_(P)[15] *= (1.0f - _mat_(K)[15]);
-}
-
-void ahrs_ekf_estimate(vector3d_f_t accel, vector3d_f_t gyro)
-{
-	ahrs_ekf_state_predict(accel, gyro);
-	ahrs_ekf_state_update(accel, gyro);
-}
-
 void ahrs_complementary_filter_estimate(vector3d_f_t accel, vector3d_f_t gyro)
 {
 	/* check the paper: Keeping a Good Attitude: A Quaternion-Based Orientation Filter for IMUs and MARGs
@@ -371,16 +235,9 @@ void reset_quaternion_yaw_angle(float *q)
 	quaternion_mult(q_negative_yaw, q_original, q);
 }
 
-void ahrs_init(vector3d_f_t init_accel)
-{
-	ahrs_ekf_init(init_accel);
-}
-
 void ahrs_estimate(ahrs_t *ahrs, vector3d_f_t accel, vector3d_f_t gyro)
 {
-#if (SELECT_AHRS == AHRS_EKF)
-	ahrs_ekf_estimate(accel, gyro);
-#elif (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
+#if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
 	ahrs_complementary_filter_estimate(accel, gyro);
 #elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
 	madgwick_imu_ahrs(&madgwick_ahrs, -accel.x, -accel.y, accel.z,

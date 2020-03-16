@@ -17,8 +17,6 @@ typedef struct {
 	float q[4];
 } ahrs_t;
 
-void imu_read(vector3d_f_t *accel, vector3d_f_t *gyro);
-
 void ahrs_init(vector3d_f_t init_accel);
 void ahrs_estimate(ahrs_t *ahrs, vector3d_f_t accel, vector3d_f_t gyro);
 
