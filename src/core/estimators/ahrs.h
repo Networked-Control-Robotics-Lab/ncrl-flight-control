@@ -17,14 +17,8 @@ typedef struct {
 	float q[4];
 } ahrs_t;
 
-void ahrs_init(vector3d_f_t init_accel);
-void ahrs_estimate(ahrs_t *ahrs, vector3d_f_t accel, vector3d_f_t gyro);
+void ahrs_init(float *init_accel);
+void ahrs_estimate(ahrs_t *ahrs, float *_accel, float *_gyro);
 
-void quat_normalize(float *q);
-
-void euler_to_quat(euler_t *euler, float *q);
-void quat_to_euler(float *q, euler_t *euler);
-
-void calc_attitude_use_accel(euler_t *att_estimated, vector3d_f_t *accel);
 
 #endif

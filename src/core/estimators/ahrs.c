@@ -25,8 +25,13 @@ MAT_ALLOC(f, 4, 3);
 
 madgwick_t madgwick_ahrs;
 
-void ahrs_init(vector3d_f_t init_accel)
+void ahrs_init(float *init_accel)
 {
+	float gravity_normal[3];
+	gravity_normal[0] = init_accel[0];
+	gravity_normal[1] = init_accel[1];
+	gravity_normal[2] = init_accel[2];
+
 	//initialize matrices
 	MAT_INIT(x_priori, 4, 1);
 	MAT_INIT(x_posteriori, 4, 1);
@@ -35,8 +40,8 @@ void ahrs_init(vector3d_f_t init_accel)
 	MAT_INIT(f, 4, 3);
 
 	euler_t att_init = {0.0f, 0.0f, 0.0f};
-	vector3d_normalize(&init_accel);
-	calc_attitude_use_accel(&att_init, &init_accel);
+	vector3d_normalize(gravity_normal);
+	calc_attitude_use_accel(&att_init, gravity_normal);
 	euler_to_quat(&att_init, &_mat_(x_priori)[0]);
 	quat_normalize(&_mat_(x_priori)[0]);
 
@@ -80,43 +85,43 @@ void quat_to_euler(float *q, euler_t *euler)
 	euler->yaw = atan2(2.0*(q[0]*q[3] + q[1]*q[2]), 1.0-2.0*(q[2]*q[2] + q[3]*q[3]));
 }
 
-void convert_gravity_to_quat(vector3d_f_t *a, float *q)
+void convert_gravity_to_quat(float *a, float *q)
 {
 	float _sqrt;
 
-	if(a->z >= 0.0f) {
+	if(a[2] >= 0.0f) {
 		//q0
-		arm_sqrt_f32(0.5f * (a->z + 1.0f), &_sqrt);
+		arm_sqrt_f32(0.5f * (a[2] + 1.0f), &_sqrt);
 		q[0] = _sqrt;
 		//q1
-		arm_sqrt_f32(2.0f * (a->z + 1.0f), &_sqrt);
-		q[1] = -a->y / _sqrt;
+		arm_sqrt_f32(2.0f * (a[2] + 1.0f), &_sqrt);
+		q[1] = -a[1] / _sqrt;
 		//q2
-		arm_sqrt_f32(2.0f * (a->z + 1.0f), &_sqrt);
-		q[2] = +a->x / _sqrt;
+		arm_sqrt_f32(2.0f * (a[2] + 1.0f), &_sqrt);
+		q[2] = +a[0] / _sqrt;
 		//q3
 		q[3] = 0.0f;
 	} else {
 		//q0
-		arm_sqrt_f32(2.0f * (1.0f - a->z), &_sqrt);
-		q[0] = -a->y / _sqrt;
+		arm_sqrt_f32(2.0f * (1.0f - a[2]), &_sqrt);
+		q[0] = -a[1] / _sqrt;
 		//q1
-		arm_sqrt_f32((1.0f - a->z) * 0.5f, &_sqrt);
+		arm_sqrt_f32((1.0f - a[2]) * 0.5f, &_sqrt);
 		q[1] = +_sqrt;
 		//q2
 		q[2] = 0.0f;
 		//q3
-		arm_sqrt_f32(2.0f * (1.0f - a->z), &_sqrt);
-		q[3] = +a->x / _sqrt;
+		arm_sqrt_f32(2.0f * (1.0f - a[2]), &_sqrt);
+		q[3] = +a[0] / _sqrt;
 	}
 
 	quat_normalize(q);
 }
 
-void calc_attitude_use_accel(euler_t *att_estimated, vector3d_f_t *accel)
+void calc_attitude_use_accel(euler_t *att_estimated, float *accel)
 {
-	att_estimated->roll = asin(accel->x);
-	att_estimated->pitch = atan2(-accel->y, accel->z);
+	att_estimated->roll = asin(accel[0]);
+	att_estimated->pitch = atan2(-accel[1], accel[2]);
 }
 
 void quaternion_mult(float *q1, float *q2, float *q_mult)
@@ -158,7 +163,7 @@ void align_ahrs_with_optitrack_yaw(float *q_ahrs)
 	}
 }
 
-void ahrs_complementary_filter_estimate(vector3d_f_t accel, vector3d_f_t gyro)
+void ahrs_complementary_filter_estimate(float *accel, float *gyro)
 {
 	/* check the paper: Keeping a Good Attitude: A Quaternion-Based Orientation Filter for IMUs and MARGs
 	 * by Roberto G. Valenti, Ivan Dryanovski and Jizhong Xiao */
@@ -182,9 +187,9 @@ void ahrs_complementary_filter_estimate(vector3d_f_t accel, vector3d_f_t gyro)
 	_mat_(f)[11] = +half_q0_dt;
 
 	/* angular rate from rate gyro */
-	_mat_(w)[0] = deg_to_rad(gyro.x);
-	_mat_(w)[1] = deg_to_rad(gyro.y);
-	_mat_(w)[2] = deg_to_rad(gyro.z);
+	_mat_(w)[0] = deg_to_rad(gyro[0]);
+	_mat_(w)[1] = deg_to_rad(gyro[1]);
+	_mat_(w)[2] = deg_to_rad(gyro[2]);
 
 	/* rate gyro integration */
 	MAT_MULT(&f, &w, &dx); //calculate dx = f * w
@@ -235,13 +240,23 @@ void reset_quaternion_yaw_angle(float *q)
 	quaternion_mult(q_negative_yaw, q_original, q);
 }
 
-void ahrs_estimate(ahrs_t *ahrs, vector3d_f_t accel, vector3d_f_t gyro)
+void ahrs_estimate(ahrs_t *ahrs, float *_accel, float *_gyro)
 {
+	float accel[3];
+	accel[0] = _accel[0];
+	accel[1] = _accel[1];
+	accel[2] = _accel[2];
+
+	float gyro[3];
+	gyro[0] = _gyro[0];
+	gyro[1] = _gyro[1];
+	gyro[2] = _gyro[2];
+
 #if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
 	ahrs_complementary_filter_estimate(accel, gyro);
 #elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
-	madgwick_imu_ahrs(&madgwick_ahrs, -accel.x, -accel.y, accel.z,
-	                  deg_to_rad(gyro.x), deg_to_rad(gyro.y), deg_to_rad(gyro.z));
+	madgwick_imu_ahrs(&madgwick_ahrs, -accel[0], -accel[1], accel[2],
+	                  deg_to_rad(gyro[0]), deg_to_rad(gyro[1]), deg_to_rad(gyro[2]));
 	_mat_(x_posteriori)[0] = madgwick_ahrs.q[0];
 	_mat_(x_posteriori)[1] = madgwick_ahrs.q[1];
 	_mat_(x_posteriori)[2] = madgwick_ahrs.q[2];

@@ -4,18 +4,18 @@
 #include "vector.h"
 
 typedef struct {
-	vector3d_16_t accel_unscaled;
-	vector3d_16_t gyro_unscaled;
+	int16_t accel_unscaled[3];
+	int16_t gyro_unscaled[3];
 	int16_t temp_unscaled;
 
-	vector3d_f_t accel_raw;
-	vector3d_f_t gyro_raw;
-	vector3d_f_t mag_raw;
+	float accel_raw[3];
+	float gyro_raw[3];
+	float mag_raw[3];
 	float temp;
 
-	vector3d_f_t accel_lpf;
-	vector3d_f_t gyro_lpf;
-	vector3d_f_t mag_lpf;
+	float accel_lpf[3];
+	float gyro_lpf[3];
+	float mag_lpf[3];
 } imu_t;
 
 #endif

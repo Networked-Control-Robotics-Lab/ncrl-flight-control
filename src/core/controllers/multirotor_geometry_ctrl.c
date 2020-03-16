@@ -508,9 +508,9 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	}
 
 	float gyro[3];
-	gyro[0] = deg_to_rad(imu->gyro_lpf.x);
-	gyro[1] = deg_to_rad(imu->gyro_lpf.y);
-	gyro[2] = deg_to_rad(imu->gyro_lpf.z);
+	gyro[0] = deg_to_rad(imu->gyro_lpf[0]);
+	gyro[1] = deg_to_rad(imu->gyro_lpf[1]);
+	gyro[2] = deg_to_rad(imu->gyro_lpf[2]);
 
 #if 0
 	estimate_uav_dynamics(gyro, uav_dynamics_m, uav_dynamics_m_rot_frame);
@@ -520,9 +520,9 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	quat_to_rotation_matrix(ahrs->q, _mat_(R), _mat_(Rt));
 
 	float acc[3];
-	acc[0] = imu->accel_lpf.x;
-	acc[1] = imu->accel_lpf.y;
-	acc[2] = imu->accel_lpf.z;
+	acc[0] = imu->accel_lpf[0];
+	acc[1] = imu->accel_lpf[1];
+	acc[2] = imu->accel_lpf[2];
 	nav_velocity_predict(_mat_(Rt), acc);
 
 	float control_moments[3] = {0.0f}, control_force = 0.0f;

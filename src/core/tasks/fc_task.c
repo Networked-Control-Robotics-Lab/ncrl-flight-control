@@ -124,18 +124,18 @@ void task_flight_ctrl(void *param)
 void send_imu_debug_message(debug_msg_t *payload)
 {
 	pack_debug_debug_message_header(payload, MESSAGE_ID_IMU);
-	pack_debug_debug_message_float(&imu.accel_raw.x, payload);
-	pack_debug_debug_message_float(&imu.accel_raw.y, payload);
-	pack_debug_debug_message_float(&imu.accel_raw.z, payload);
-	pack_debug_debug_message_float(&imu.accel_lpf.x, payload);
-	pack_debug_debug_message_float(&imu.accel_lpf.y, payload);
-	pack_debug_debug_message_float(&imu.accel_lpf.z, payload);
-	pack_debug_debug_message_float(&imu.gyro_raw.x, payload);
-	pack_debug_debug_message_float(&imu.gyro_raw.y, payload);
-	pack_debug_debug_message_float(&imu.gyro_raw.z, payload);
-	pack_debug_debug_message_float(&imu.gyro_lpf.x, payload);
-	pack_debug_debug_message_float(&imu.gyro_lpf.y, payload);
-	pack_debug_debug_message_float(&imu.gyro_lpf.z, payload);
+	pack_debug_debug_message_float(&imu.accel_raw[0], payload);
+	pack_debug_debug_message_float(&imu.accel_raw[1], payload);
+	pack_debug_debug_message_float(&imu.accel_raw[2], payload);
+	pack_debug_debug_message_float(&imu.accel_lpf[0], payload);
+	pack_debug_debug_message_float(&imu.accel_lpf[1], payload);
+	pack_debug_debug_message_float(&imu.accel_lpf[2], payload);
+	pack_debug_debug_message_float(&imu.gyro_raw[0], payload);
+	pack_debug_debug_message_float(&imu.gyro_raw[1], payload);
+	pack_debug_debug_message_float(&imu.gyro_raw[2], payload);
+	pack_debug_debug_message_float(&imu.gyro_lpf[0], payload);
+	pack_debug_debug_message_float(&imu.gyro_lpf[1], payload);
+	pack_debug_debug_message_float(&imu.gyro_lpf[2], payload);
 }
 
 void send_attitude_euler_debug_message(debug_msg_t *payload)
@@ -161,10 +161,10 @@ void send_attitude_imu_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_float(&ahrs.attitude.roll, payload);
 	pack_debug_debug_message_float(&ahrs.attitude.pitch, payload);
 	pack_debug_debug_message_float(&ahrs.attitude.yaw, payload);
-	pack_debug_debug_message_float(&imu.accel_lpf.x, payload);
-	pack_debug_debug_message_float(&imu.accel_lpf.y, payload);
-	pack_debug_debug_message_float(&imu.accel_lpf.z, payload);
-	pack_debug_debug_message_float(&imu.gyro_lpf.x, payload);
-	pack_debug_debug_message_float(&imu.gyro_lpf.y, payload);
-	pack_debug_debug_message_float(&imu.gyro_lpf.z, payload);
+	pack_debug_debug_message_float(&imu.accel_lpf[0], payload);
+	pack_debug_debug_message_float(&imu.accel_lpf[1], payload);
+	pack_debug_debug_message_float(&imu.accel_lpf[2], payload);
+	pack_debug_debug_message_float(&imu.gyro_lpf[0], payload);
+	pack_debug_debug_message_float(&imu.gyro_lpf[1], payload);
+	pack_debug_debug_message_float(&imu.gyro_lpf[2], payload);
 }

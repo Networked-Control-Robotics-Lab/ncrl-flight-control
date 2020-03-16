@@ -21,9 +21,9 @@ bool free_fall_detect(float *g, float *g_norm)
 void send_free_fall_debug_message(debug_msg_t *payload)
 {
 	float accel[3], g_norm;
-	accel[0] = imu.accel_raw.x;
-	accel[1] = imu.accel_raw.y;
-	accel[2] = imu.accel_raw.z;
+	accel[0] = imu.accel_raw[0];
+	accel[1] = imu.accel_raw[1];
+	accel[2] = imu.accel_raw[2];
 
 	float free_fall_state;
 	if(free_fall_detect(accel, &g_norm) == true) {
