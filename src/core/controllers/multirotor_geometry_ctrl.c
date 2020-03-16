@@ -17,6 +17,7 @@
 #include "ahrs.h"
 #include "autopilot.h"
 #include "debug_link.h"
+#include "navigation.h"
 
 #define dt 0.0025 //[s]
 #define MOTOR_TO_CG_LENGTH 16.25f //[cm]
@@ -203,9 +204,6 @@ void reset_geometry_tracking_error_integral(void)
 
 void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_moments, bool heading_present)
 {
-	/* convert attitude (quaternion) to rotation matrix */
-	quat_to_rotation_matrix(&attitude_q[0], _mat_(R), _mat_(Rt));
-
 	/* convert radio command (euler angle) to rotation matrix */
 	euler_to_rotation_matrix(rc, _mat_(Rd), _mat_(Rtd));
 
@@ -321,9 +319,6 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	float b3d_denominator; //caution: this term should not be 0
 	norm_3x1(_mat_(kxex_kvev_mge3_mxd_dot_dot), &b3d_denominator);
 	b3d_denominator = -1.0f / b3d_denominator;
-
-	/* convert attitude (quaternion) to rotation matrix */
-	quat_to_rotation_matrix(&attitude_q[0], _mat_(R), _mat_(Rt));
 
 	if(manual_flight == true) {
 		/* enable altitude control only, control roll and pitch manually */
@@ -517,22 +512,30 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	gyro[1] = deg_to_rad(imu->gyro_lpf.y);
 	gyro[2] = deg_to_rad(imu->gyro_lpf.z);
 
-	//estimate_uav_dynamics(gyro, uav_dynamics_m, uav_dynamics_m_rot_frame);
+#if 0
+	estimate_uav_dynamics(gyro, uav_dynamics_m, uav_dynamics_m_rot_frame);
+#endif
+
+	/* convert attitude (quaternion) to rotation matrix */
+	quat_to_rotation_matrix(ahrs->q, _mat_(R), _mat_(Rt));
+
+	float acc[3];
+	acc[0] = imu->accel_lpf.x;
+	acc[1] = imu->accel_lpf.y;
+	acc[2] = imu->accel_lpf.z;
+	nav_velocity_predict(_mat_(Rt), acc);
 
 	float control_moments[3] = {0.0f}, control_force = 0.0f;
-
-	if(rc->auto_flight == true) {
-		if(optitrack_present == true) {
-			curr_pos[0] = optitrack.pos_x;
-			curr_pos[1] = optitrack.pos_y;
-			curr_pos[2] = optitrack.pos_z;
-			curr_vel[0] = optitrack.vel_lpf_x;
-			curr_vel[1] = optitrack.vel_lpf_y;
-			curr_vel[2] = optitrack.vel_lpf_z;
-			geometry_tracking_ctrl(&desired_attitude, ahrs->q, gyro, curr_pos,
-			                       curr_vel, desired_vel, curr_accel, desired_accel, control_moments,
-			                       &control_force, attitude_manual_height_auto);
-		}
+	if(rc->auto_flight == true && optitrack_present == true) {
+		curr_pos[0] = optitrack.pos_x;
+		curr_pos[1] = optitrack.pos_y;
+		curr_pos[2] = optitrack.pos_z;
+		curr_vel[0] = optitrack.vel_lpf_x;
+		curr_vel[1] = optitrack.vel_lpf_y;
+		curr_vel[2] = optitrack.vel_lpf_z;
+		geometry_tracking_ctrl(&desired_attitude, ahrs->q, gyro, curr_pos,
+		                       curr_vel, desired_vel, curr_accel, desired_accel, control_moments,
+		                       &control_force, attitude_manual_height_auto);
 	} else {
 		geometry_manual_ctrl(&desired_attitude, ahrs->q, gyro, control_moments, optitrack_present);
 

@@ -1,6 +1,10 @@
-void nav_velocity_predict(float *dcm_b2i, float *imu_acc, float *vel_last, float *vel_predict, float dt)
+float vel_last[3] = {0.0f, 0.0f, 0.0f};
+float vel_predict[3] = {0.0f, 0.0f, 0.0f};
+
+void nav_velocity_predict(float *dcm_b2i, float *imu_acc)
 {
 	float acc_i_frame[3];
+	const float dt = 0.0025; //XXX
 	acc_i_frame[0] = dcm_b2i[0*3 + 0]*imu_acc[0] + dcm_b2i[0*3 + 1]*imu_acc[1] + dcm_b2i[0*3 + 2]*imu_acc[2];
 	acc_i_frame[1] = dcm_b2i[1*3 + 0]*imu_acc[0] + dcm_b2i[1*3 + 1]*imu_acc[1] + dcm_b2i[1*3 + 2]*imu_acc[2];
 	acc_i_frame[2] = dcm_b2i[2*3 + 0]*imu_acc[0] + dcm_b2i[2*3 + 1]*imu_acc[1] + dcm_b2i[2*3 + 2]*imu_acc[2];
