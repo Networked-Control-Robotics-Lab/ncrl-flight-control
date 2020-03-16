@@ -86,7 +86,6 @@ SRC+=./core/main.c \
 
 SRC+=./common/delay.c \
 	./common/bound.c \
-	./common/vector.c \
 	./common/matrix.c \
 	./common/se3_math.c \
 

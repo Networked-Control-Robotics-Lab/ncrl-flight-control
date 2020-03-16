@@ -1,8 +1,6 @@
 #ifndef __IMU_H__
 #define __IMU_H__
 
-#include "vector.h"
-
 typedef struct {
 	int16_t accel_unscaled[3];
 	int16_t gyro_unscaled[3];

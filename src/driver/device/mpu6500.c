@@ -7,7 +7,6 @@
 #include "uart.h"
 #include "led.h"
 #include "mpu6500.h"
-#include "vector.h"
 #include "lpf.h"
 #include "imu.h"
 

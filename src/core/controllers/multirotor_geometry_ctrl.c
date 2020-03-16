@@ -6,7 +6,6 @@
 #include "sbus_receiver.h"
 #include "optitrack.h"
 #include "ahrs.h"
-#include "vector.h"
 #include "matrix.h"
 #include "motor_thrust.h"
 #include "motor.h"

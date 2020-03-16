@@ -6,7 +6,6 @@
 #include "uart.h"
 #include "led.h"
 #include "optitrack.h"
-#include "vector.h"
 #include "sys_time.h"
 #include "lpf.h"
 #include "debug_link.h"

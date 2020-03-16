@@ -4,7 +4,6 @@
 #include "led.h"
 #include "mpu6500.h"
 #include "optitrack.h"
-#include "vector.h"
 #include "ahrs.h"
 #include "madgwick_ahrs.h"
 #include "lpf.h"
@@ -12,6 +11,7 @@
 #include "matrix.h"
 #include "delay.h"
 #include "proj_config.h"
+#include "se3_math.h"
 
 #define dt 0.0025 //0.0025s = 400Hz
 
@@ -44,7 +44,7 @@ void ahrs_init(float *init_accel)
 	MAT_INIT(f, 4, 3);
 
 	euler_t att_init = {0.0f, 0.0f, 0.0f};
-	vector3d_normalize(gravity_normal);
+	normalize_3x1(gravity_normal);
 	calc_attitude_use_accel(&att_init, gravity_normal);
 	euler_to_quat(&att_init, &_mat_(x_priori)[0]);
 	quat_normalize(&_mat_(x_priori)[0]);
@@ -202,7 +202,7 @@ void ahrs_complementary_filter_estimate(float *accel, float *gyro)
 
 	/* convert gravity vector to quaternion */
 	float q_gravity[4] = {0};
-	vector3d_normalize(accel); //normalize acceleromter
+	normalize_3x1(accel); //normalize acceleromter
 	convert_gravity_to_quat(accel, q_gravity);
 
 	/* fuse gyroscope and acceleromter using LERP algorithm */

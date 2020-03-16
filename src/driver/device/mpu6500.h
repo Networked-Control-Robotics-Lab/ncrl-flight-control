@@ -3,7 +3,6 @@
 
 #include "stm32f4xx_conf.h"
 #include "spi.h"
-#include "vector.h"
 #include "imu.h"
 
 #define mpu6500_chip_select() GPIO_ResetBits(GPIOA, GPIO_Pin_4)
