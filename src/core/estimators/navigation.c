@@ -3,6 +3,8 @@ float vel_predict[3] = {0.0f, 0.0f, 0.0f};
 
 void nav_velocity_predict(float *dcm_b2i, float *imu_acc)
 {
+	imu_acc[2] -= 9.8; //cancel acceleration caused by gravity
+
 	float acc_i_frame[3];
 	const float dt = 0.0025; //XXX
 	acc_i_frame[0] = dcm_b2i[0*3 + 0]*imu_acc[0] + dcm_b2i[0*3 + 1]*imu_acc[1] + dcm_b2i[0*3 + 2]*imu_acc[2];
