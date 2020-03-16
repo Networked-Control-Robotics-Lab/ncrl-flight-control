@@ -167,18 +167,18 @@ void mpu6500_int_handler(void)
 	mpu6500_chip_deselect();
 
 	if(mpu6500_init_finished == false) {
-		mpu6500_gyro_bias_calc(&mpu6500->gyro_unscaled);
+		mpu6500_gyro_bias_calc(mpu6500->gyro_unscaled);
 		return;
 	}
 
 #if (DO_CALIBRATION == 0)
 	/* cancel sensor bias and fix slope */
-	mpu6500_accel_apply_correction(&mpu6500->accel_unscaled, &mpu6500->gyro_unscaled);
+	mpu6500_accel_apply_correction(mpu6500->accel_unscaled, mpu6500->gyro_unscaled);
 #endif
 
 	/* sensor data unit conversion */
-	mpu6500_accel_convert_to_scale(&mpu6500->accel_unscaled, &mpu6500->accel_raw);
-	mpu6500_gyro_convert_to_scale(&mpu6500->gyro_unscaled, &mpu6500->gyro_raw);
+	mpu6500_accel_convert_to_scale(mpu6500->accel_unscaled, mpu6500->accel_raw);
+	mpu6500_gyro_convert_to_scale(mpu6500->gyro_unscaled, mpu6500->gyro_raw);
 
 	/* low pass filtering for accelerometer, gyroscope do not require this process */
 	lpf(mpu6500->accel_raw[0], &(mpu6500->accel_lpf[0]), 0.03);

@@ -15,6 +15,10 @@
 
 #define dt 0.0025 //0.0025s = 400Hz
 
+void calc_attitude_use_accel(euler_t *att_estimated, float *accel);
+void quat_normalize(float *q);
+void euler_to_quat(euler_t *euler, float *q);
+
 extern optitrack_t optitrack;
 
 MAT_ALLOC(x_priori, 4, 1);
@@ -198,8 +202,8 @@ void ahrs_complementary_filter_estimate(float *accel, float *gyro)
 
 	/* convert gravity vector to quaternion */
 	float q_gravity[4] = {0};
-	vector3d_normalize(&accel); //normalize acceleromter
-	convert_gravity_to_quat(&accel, q_gravity);
+	vector3d_normalize(accel); //normalize acceleromter
+	convert_gravity_to_quat(accel, q_gravity);
 
 	/* fuse gyroscope and acceleromter using LERP algorithm */
 	float q_roll_pitch[4];
