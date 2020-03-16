@@ -9,6 +9,7 @@
 #include "sys_time.h"
 #include "lpf.h"
 #include "debug_link.h"
+#include "navigation.h"
 
 #define OPTITRACK_SERIAL_MSG_SIZE 32
 
@@ -81,16 +82,17 @@ static uint8_t generate_optitrack_checksum_byte(uint8_t *payload, int payload_co
 void optitrack_numerical_vel_calc(void)
 {
 	const float dt = 1.0f / 30.0f; //fixed dt (30Hz)
-	optitrack.vel_raw_x = (optitrack.pos_x - pos_last[0]) / dt;
-	optitrack.vel_raw_y = (optitrack.pos_y - pos_last[1]) / dt;
-	optitrack.vel_raw_z = (optitrack.pos_z - pos_last[2]) / dt;
+	optitrack.vel_raw[0] = (optitrack.pos_x - pos_last[0]) / dt;
+	optitrack.vel_raw[1] = (optitrack.pos_y - pos_last[1]) / dt;
+	optitrack.vel_raw[2] = (optitrack.pos_z - pos_last[2]) / dt;
 
 	float received_period = (optitrack.time_now - optitrack.time_last) * 0.001;
 	optitrack.recv_freq = 1.0f / received_period;
 
-	lpf(optitrack.vel_raw_x, &(optitrack.vel_lpf_x), 0.8);
-	lpf(optitrack.vel_raw_y, &(optitrack.vel_lpf_y), 0.8);
-	lpf(optitrack.vel_raw_z, &(optitrack.vel_lpf_z), 0.7);
+	lpf(optitrack.vel_raw[0], &(optitrack.vel_filtered[0]), 0.8);
+	lpf(optitrack.vel_raw[1], &(optitrack.vel_filtered[1]), 0.8);
+	lpf(optitrack.vel_raw[2], &(optitrack.vel_filtered[2]), 0.7);
+	nav_velocity_correct(optitrack.vel_raw, optitrack.vel_filtered);
 }
 
 int optitrack_serial_decoder(uint8_t *buf)
@@ -122,9 +124,9 @@ int optitrack_serial_decoder(uint8_t *buf)
 		pos_last[0] = optitrack.pos_x;
 		pos_last[1] = optitrack.pos_y;
 		pos_last[2] = optitrack.pos_z;
-		optitrack.vel_raw_x = 0.0f;
-		optitrack.vel_raw_y = 0.0f;
-		optitrack.vel_raw_z = 0.0f;
+		optitrack.vel_raw[0] = 0.0f;
+		optitrack.vel_raw[1] = 0.0f;
+		optitrack.vel_raw[2] = 0.0f;
 		vel_init_ready = true;
 		return 0;
 	}
@@ -162,10 +164,10 @@ void send_optitrack_quaternion_debug_message(debug_msg_t *payload)
 void send_optitrack_velocity_debug_message(debug_msg_t *payload)
 {
 	pack_debug_debug_message_header(payload, MESSAGE_ID_OPTITRACK_VELOCITY);
-	pack_debug_debug_message_float(&optitrack.vel_raw_x, payload);
-	pack_debug_debug_message_float(&optitrack.vel_raw_y, payload);
-	pack_debug_debug_message_float(&optitrack.vel_raw_z, payload);
-	pack_debug_debug_message_float(&optitrack.vel_lpf_x, payload);
-	pack_debug_debug_message_float(&optitrack.vel_lpf_y, payload);
-	pack_debug_debug_message_float(&optitrack.vel_lpf_z, payload);
+	pack_debug_debug_message_float(&optitrack.vel_raw[0], payload);
+	pack_debug_debug_message_float(&optitrack.vel_raw[1], payload);
+	pack_debug_debug_message_float(&optitrack.vel_raw[2], payload);
+	pack_debug_debug_message_float(&optitrack.vel_filtered[0], payload);
+	pack_debug_debug_message_float(&optitrack.vel_filtered[1], payload);
+	pack_debug_debug_message_float(&optitrack.vel_filtered[2], payload);
 }

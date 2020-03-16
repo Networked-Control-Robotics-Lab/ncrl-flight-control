@@ -289,11 +289,11 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desire
 	rc_mode_change_handler_pid(rc);
 
 	/* altitude control */
-	altitude_control(optitrack.pos_z, optitrack.vel_lpf_z, &pid_alt_vel, &pid_alt);
+	altitude_control(optitrack.pos_z, optitrack.vel_filtered[2], &pid_alt_vel, &pid_alt);
 
 	/* position control (in ned configuration) */
-	position_2d_control(optitrack.pos_x, optitrack.vel_lpf_x, &pid_pos_x);
-	position_2d_control(optitrack.pos_y, optitrack.vel_lpf_y, &pid_pos_y);
+	position_2d_control(optitrack.pos_x, optitrack.vel_filtered[0], &pid_pos_x);
+	position_2d_control(optitrack.pos_y, optitrack.vel_filtered[1], &pid_pos_y);
 	angle_control_cmd_i2b_frame_tramsform(ahrs->attitude.yaw, pid_pos_x.output, pid_pos_y.output,
 	                                      &nav_ctl_pitch_command, &nav_ctl_roll_command);
 

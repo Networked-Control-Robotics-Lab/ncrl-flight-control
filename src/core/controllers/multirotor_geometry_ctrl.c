@@ -529,9 +529,9 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 		curr_pos[0] = optitrack.pos_x;
 		curr_pos[1] = optitrack.pos_y;
 		curr_pos[2] = optitrack.pos_z;
-		curr_vel[0] = optitrack.vel_lpf_x;
-		curr_vel[1] = optitrack.vel_lpf_y;
-		curr_vel[2] = optitrack.vel_lpf_z;
+		curr_vel[0] = optitrack.vel_filtered[0];
+		curr_vel[1] = optitrack.vel_filtered[1];
+		curr_vel[2] = optitrack.vel_filtered[2];
 		geometry_tracking_ctrl(&desired_attitude, ahrs->q, gyro, curr_pos,
 		                       curr_vel, desired_vel, curr_accel, desired_accel, control_moments,
 		                       &control_force, attitude_manual_height_auto);
