@@ -25,7 +25,7 @@ void nav_velocity_predict(float *dcm_b2i, float *imu_acc)
 void nav_velocity_correct(float *vel_ref, float *vel_filtered)
 {
 	/* complementary filter */
-	const float a = 0.01f;
+	const float a = 0.1f;
 	vel_filtered[0] = a * vel_predict[0] + (1.0f - a) * vel_ref[0];
 	vel_filtered[1] = a * vel_predict[1] + (1.0f - a) * vel_ref[1];
 	vel_filtered[2] = a * vel_predict[2] + (1.0f - a) * vel_ref[2];

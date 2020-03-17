@@ -81,7 +81,7 @@ static uint8_t generate_optitrack_checksum_byte(uint8_t *payload, int payload_co
 
 void optitrack_numerical_vel_calc(void)
 {
-	const float dt = 1.0f / 30.0f; //fixed dt (30Hz)
+	const float dt = 1.0f / 120.0f; //fixed dt (30Hz)
 	optitrack.vel_raw[0] = (optitrack.pos_x - pos_last[0]) / dt;
 	optitrack.vel_raw[1] = (optitrack.pos_y - pos_last[1]) / dt;
 	optitrack.vel_raw[2] = (optitrack.pos_z - pos_last[2]) / dt;
@@ -89,10 +89,13 @@ void optitrack_numerical_vel_calc(void)
 	float received_period = (optitrack.time_now - optitrack.time_last) * 0.001;
 	optitrack.recv_freq = 1.0f / received_period;
 
+	optitrack.vel_filtered[0] = optitrack.vel_raw[0];
+	optitrack.vel_filtered[1] = optitrack.vel_raw[1];
+	optitrack.vel_filtered[2] = optitrack.vel_raw[2];
 	//lpf(optitrack.vel_raw[0], &(optitrack.vel_filtered[0]), 0.8);
 	//lpf(optitrack.vel_raw[1], &(optitrack.vel_filtered[1]), 0.8);
-	//lpf(optitrack.vel_raw[2], &(optitrack.vel_filtered[2]), 0.7);
-	nav_velocity_correct(optitrack.vel_raw, optitrack.vel_filtered);
+	//lpf(optitrack.vel_raw[2], &(optitrack.vel_filtered[2]), 0.8);
+	//nav_velocity_correct(optitrack.vel_raw, optitrack.vel_filtered);
 }
 
 int optitrack_serial_decoder(uint8_t *buf)

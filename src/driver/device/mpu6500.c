@@ -115,11 +115,11 @@ void mpu6500_init(imu_t *imu)
 static void mpu6500_apply_calibration(int16_t *accel_unscaled, int16_t *gyro_unscaled)
 {
 	/* accelerometer bias */
-	//float accel_bx = +750.0f;
-	//float accel_by = -410.0f;
+	float accel_bx = +750.0f;
+	float accel_by = -410.0f;
 
-	accel_unscaled[0] = ((float)accel_unscaled[0] - accel_bias[0]);
-	accel_unscaled[1] = ((float)accel_unscaled[1] - accel_bias[1]);
+	accel_unscaled[0] = ((float)accel_unscaled[0] - accel_bx) * ACC_RESCALE_X;
+	accel_unscaled[1] = ((float)accel_unscaled[1] - accel_by) * ACC_RESCALE_Y;
 	accel_unscaled[2] = ((float)accel_unscaled[2] - accel_bias[2]);
 
 	gyro_unscaled[0] -= gyro_bias[0];
