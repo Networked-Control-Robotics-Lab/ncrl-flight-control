@@ -9,7 +9,6 @@
 #include "sys_time.h"
 #include "lpf.h"
 #include "debug_link.h"
-#include "navigation.h"
 
 #define OPTITRACK_SERIAL_MSG_SIZE 32
 
@@ -95,7 +94,6 @@ void optitrack_numerical_vel_calc(void)
 	//lpf(optitrack.vel_raw[0], &(optitrack.vel_filtered[0]), 0.8);
 	//lpf(optitrack.vel_raw[1], &(optitrack.vel_filtered[1]), 0.8);
 	//lpf(optitrack.vel_raw[2], &(optitrack.vel_filtered[2]), 0.8);
-	//nav_velocity_correct(optitrack.vel_raw, optitrack.vel_filtered);
 }
 
 int optitrack_serial_decoder(uint8_t *buf)
