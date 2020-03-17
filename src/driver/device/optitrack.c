@@ -89,9 +89,9 @@ void optitrack_numerical_vel_calc(void)
 	float received_period = (optitrack.time_now - optitrack.time_last) * 0.001;
 	optitrack.recv_freq = 1.0f / received_period;
 
-	lpf(optitrack.vel_raw[0], &(optitrack.vel_filtered[0]), 0.8);
-	lpf(optitrack.vel_raw[1], &(optitrack.vel_filtered[1]), 0.8);
-	lpf(optitrack.vel_raw[2], &(optitrack.vel_filtered[2]), 0.7);
+	//lpf(optitrack.vel_raw[0], &(optitrack.vel_filtered[0]), 0.8);
+	//lpf(optitrack.vel_raw[1], &(optitrack.vel_filtered[1]), 0.8);
+	//lpf(optitrack.vel_raw[2], &(optitrack.vel_filtered[2]), 0.7);
 	nav_velocity_correct(optitrack.vel_raw, optitrack.vel_filtered);
 }
 

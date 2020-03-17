@@ -27,7 +27,7 @@
 #define ACC_RESCALE_Z  (4096.0f / (GZ_MAX - GZ_MIN))
 
 int16_t gyro_bias[3] = {0, 0, 0};
-int16_t accel_z_bias = 0;
+int16_t accel_bias[3] = {0, 0, 0};
 
 volatile bool mpu6500_init_finished = false;
 imu_t *mpu6500;
@@ -70,19 +70,23 @@ static void mpu6500_bias_calc(int16_t *gyro, int16_t *accel)
 	static int imu_bias_sampling_cnt = IMU_CALIB_SAMPLE_CNT;
 
 	static float _gyro_bias[3] = {0.0f, 0.0f, 0.0f};
-	static float _accel_z_bias = 0.0f;
+	static float _accel_bias[3] = {0.0f, 0.0f, 0.0f};
 
 	_gyro_bias[0] += (float)gyro[0] / (float)IMU_CALIB_SAMPLE_CNT;
 	_gyro_bias[1] += (float)gyro[1] / (float)IMU_CALIB_SAMPLE_CNT;
 	_gyro_bias[2] += (float)gyro[2] / (float)IMU_CALIB_SAMPLE_CNT;
-	_accel_z_bias += (float)accel[2] / (float)IMU_CALIB_SAMPLE_CNT;
+	_accel_bias[0] += (float)accel[0] / (float)IMU_CALIB_SAMPLE_CNT;
+	_accel_bias[1] += (float)accel[1] / (float)IMU_CALIB_SAMPLE_CNT;
+	_accel_bias[2] += (float)accel[2] / (float)IMU_CALIB_SAMPLE_CNT;
 
 	imu_bias_sampling_cnt--;
 	if(imu_bias_sampling_cnt == 0) {
 		gyro_bias[0] = (int16_t)_gyro_bias[0];
 		gyro_bias[1] = (int16_t)_gyro_bias[1];
 		gyro_bias[2] = (int16_t)_gyro_bias[2];
-		accel_z_bias = (int16_t)(_accel_z_bias - (9.8f / MPU6500_ACCEL_SCALE));
+		accel_bias[0] = (int16_t)_accel_bias[0];
+		accel_bias[1] = (int16_t)_accel_bias[1];
+		accel_bias[2] = (int16_t)(_accel_bias[2] - (9.8f / MPU6500_ACCEL_SCALE));
 		mpu6500_init_finished = true;
 	}
 }
@@ -111,12 +115,12 @@ void mpu6500_init(imu_t *imu)
 static void mpu6500_apply_calibration(int16_t *accel_unscaled, int16_t *gyro_unscaled)
 {
 	/* accelerometer bias */
-	float accel_bx = +750.0f;  //trim this for pitch angle, + sign for - angle compensation
-	float accel_by = -410.0f;  //trim this for roll angle, + sign for + angle compensation
+	//float accel_bx = +750.0f;
+	//float accel_by = -410.0f;
 
-	accel_unscaled[0] = ((float)accel_unscaled[0] - accel_bx) * ACC_RESCALE_X;
-	accel_unscaled[1] = ((float)accel_unscaled[1] - accel_by) * ACC_RESCALE_Y;
-	accel_unscaled[2] = ((float)accel_unscaled[2] - accel_z_bias);
+	accel_unscaled[0] = ((float)accel_unscaled[0] - accel_bias[0]);
+	accel_unscaled[1] = ((float)accel_unscaled[1] - accel_bias[1]);
+	accel_unscaled[2] = ((float)accel_unscaled[2] - accel_bias[2]);
 
 	gyro_unscaled[0] -= gyro_bias[0];
 	gyro_unscaled[1] -= gyro_bias[1];
