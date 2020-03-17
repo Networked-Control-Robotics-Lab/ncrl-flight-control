@@ -75,14 +75,14 @@ static void mpu6500_bias_calc(int16_t *gyro, int16_t *accel)
 	_gyro_bias[0] += (float)gyro[0] / (float)IMU_CALIB_SAMPLE_CNT;
 	_gyro_bias[1] += (float)gyro[1] / (float)IMU_CALIB_SAMPLE_CNT;
 	_gyro_bias[2] += (float)gyro[2] / (float)IMU_CALIB_SAMPLE_CNT;
-	_accel_z_bias += ((float)accel[2] * ACC_RESCALE_Z) / (float)IMU_CALIB_SAMPLE_CNT;
+	_accel_z_bias += (float)accel[2] / (float)IMU_CALIB_SAMPLE_CNT;
 
 	imu_bias_sampling_cnt--;
 	if(imu_bias_sampling_cnt == 0) {
 		gyro_bias[0] = (int16_t)_gyro_bias[0];
 		gyro_bias[1] = (int16_t)_gyro_bias[1];
 		gyro_bias[2] = (int16_t)_gyro_bias[2];
-		accel_z_bias = (int16_t)_accel_z_bias - (9.8 / MPU6500_ACCEL_SCALE);
+		accel_z_bias = (int16_t)(_accel_z_bias - (9.8f / MPU6500_ACCEL_SCALE));
 		mpu6500_init_finished = true;
 	}
 }
@@ -116,7 +116,7 @@ static void mpu6500_apply_calibration(int16_t *accel_unscaled, int16_t *gyro_uns
 
 	accel_unscaled[0] = ((float)accel_unscaled[0] - accel_bx) * ACC_RESCALE_X;
 	accel_unscaled[1] = ((float)accel_unscaled[1] - accel_by) * ACC_RESCALE_Y;
-	accel_unscaled[2] = ((float)accel_unscaled[2] - accel_z_bias) * ACC_RESCALE_Z;
+	accel_unscaled[2] = ((float)accel_unscaled[2] - accel_z_bias);
 
 	gyro_unscaled[0] -= gyro_bias[0];
 	gyro_unscaled[1] -= gyro_bias[1];
