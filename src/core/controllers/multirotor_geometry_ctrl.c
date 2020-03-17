@@ -16,7 +16,6 @@
 #include "ahrs.h"
 #include "autopilot.h"
 #include "debug_link.h"
-#include "navigation.h"
 
 #define dt 0.0025 //[s]
 #define MOTOR_TO_CG_LENGTH 16.25f //[cm]
@@ -509,12 +508,6 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 
 	/* convert attitude (quaternion) to rotation matrix */
 	quat_to_rotation_matrix(ahrs->q, _mat_(R), _mat_(Rt));
-
-	float acc[3];
-	acc[0] = imu->accel_lpf[0];
-	acc[1] = imu->accel_lpf[1];
-	acc[2] = imu->accel_lpf[2];
-	nav_velocity_predict(_mat_(Rt), acc);
 
 	float control_moments[3] = {0.0f}, control_force = 0.0f;
 	if(rc->auto_flight == true && optitrack_present == true) {
