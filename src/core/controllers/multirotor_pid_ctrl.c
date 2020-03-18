@@ -93,6 +93,7 @@ void multirotor_pid_controller_init(void)
 	pid_alt_vel.kp = 0.09f;
 	pid_alt_vel.ki = 0.0f;
 	pid_alt_vel.kd = 0.0f;
+	pid_alt_vel.feedfoward = 45.0f; //% of basis throttle power against the gravity
 	pid_alt_vel.output_min = -100.0f;
 	pid_alt_vel.output_max = +100.0f;
 }
@@ -173,7 +174,7 @@ void altitude_control(float alt, float alt_vel, pid_control_t *alt_vel_pid, pid_
 	float alt_vel_set = alt_pid->output;
 	alt_vel_pid->error_current = alt_vel_set - alt_vel;
 	alt_vel_pid->p_final = alt_vel_pid->kp * alt_vel_pid->error_current;
-	alt_vel_pid->output = alt_vel_pid->p_final;
+	alt_vel_pid->output = alt_vel_pid->p_final + alt_vel_pid->feedfoward;
 	bound_float(&alt_vel_pid->output, alt_vel_pid->output_max, alt_vel_pid->output_min);
 }
 
@@ -203,17 +204,15 @@ void position_2d_control(float current_pos, float current_vel, pid_control_t *po
 	bound_float(&pos_pid->output, pos_pid->output_max, pos_pid->output_min);
 }
 
-void thrust_pwm_allocate_quadrotor(volatile float throttle_percentage, float throttle_ctrl_precentage, float roll_ctrl_precentage,
+void thrust_pwm_allocate_quadrotor(float throttle_ctrl_precentage, float roll_ctrl_precentage,
                                    float pitch_ctrl_precentage, float yaw_ctrl_precentage)
 {
 	float percentage_to_pwm = 0.01 * (MOTOR_PULSE_MAX - MOTOR_PULSE_MIN);
 
-	float power_basis = throttle_percentage * percentage_to_pwm + MOTOR_PULSE_MIN;
-
 	float roll_pwm = roll_ctrl_precentage * (float)percentage_to_pwm;
 	float pitch_pwm = pitch_ctrl_precentage * (float)percentage_to_pwm;
 	float yaw_pwm = yaw_ctrl_precentage * (float)percentage_to_pwm;
-	float throttle_ctrl_pwm = throttle_ctrl_precentage * (float)percentage_to_pwm;
+	float throttle_ctrl_pwm = throttle_ctrl_precentage * (float)percentage_to_pwm + MOTOR_PULSE_MIN;
 
 	float m1_pwm, m2_pwm, m3_pwm, m4_pwm;
 
@@ -222,10 +221,10 @@ void thrust_pwm_allocate_quadrotor(volatile float throttle_percentage, float thr
 	         x
 	    m3       m4
 	   (cw)    (ccw) */
-	m1_pwm = power_basis + throttle_ctrl_pwm - roll_pwm + pitch_pwm - yaw_pwm;
-	m2_pwm = power_basis + throttle_ctrl_pwm + roll_pwm + pitch_pwm + yaw_pwm;
-	m3_pwm = power_basis + throttle_ctrl_pwm + roll_pwm - pitch_pwm - yaw_pwm;
-	m4_pwm = power_basis + throttle_ctrl_pwm - roll_pwm - pitch_pwm + yaw_pwm;
+	m1_pwm = throttle_ctrl_pwm - roll_pwm + pitch_pwm - yaw_pwm;
+	m2_pwm = throttle_ctrl_pwm + roll_pwm + pitch_pwm + yaw_pwm;
+	m3_pwm = throttle_ctrl_pwm + roll_pwm - pitch_pwm - yaw_pwm;
+	m4_pwm = throttle_ctrl_pwm - roll_pwm - pitch_pwm + yaw_pwm;
 	bound_float(&m1_pwm, MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
 	bound_float(&m2_pwm, MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
 	bound_float(&m3_pwm, MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
@@ -301,12 +300,25 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desire
 	angle_control_cmd_i2b_frame_tramsform(ahrs->attitude.yaw, pid_pos_x.output, pid_pos_y.output,
 	                                      &nav_ctl_pitch_command, &nav_ctl_roll_command);
 
-	float final_roll_cmd = -rc->roll;
-	float final_pitch_cmd = -rc->pitch;
+	float final_roll_cmd;
+	float final_pitch_cmd;
 	if(pid_pos_x.enable == true && pid_pos_y.enable == true && optitrack_available() == true) {
-		//FIXME: direction sign
-		final_roll_cmd += nav_ctl_roll_command; //y directional control
-		final_pitch_cmd -= nav_ctl_pitch_command; //x directional control
+		/* auto-flight */
+		final_roll_cmd = nav_ctl_roll_command; //y directional control
+		final_pitch_cmd = -nav_ctl_pitch_command; //x directional control XXX:fix sign!
+	} else {
+		/* manual flight */
+		final_roll_cmd = -rc->roll;
+		final_pitch_cmd = -rc->pitch;
+	}
+
+	float throttle_cmd;
+	if(pid_alt_vel.enable == true) {
+		/* auto-flight */
+		throttle_cmd = pid_alt_vel.output;
+	} else {
+		/* manual flight */
+		throttle_cmd = rc->throttle;
 	}
 
 	/* attitude control */
@@ -335,8 +347,7 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desire
 		if(halt_motor == false) {
 			led_on(LED_R);
 			led_off(LED_B);
-			thrust_pwm_allocate_quadrotor(rc->throttle, pid_alt_vel.output, pid_roll.output,
-			                              pid_pitch.output, yaw_ctrl_output);
+			thrust_pwm_allocate_quadrotor(throttle_cmd, pid_roll.output, pid_pitch.output, yaw_ctrl_output);
 		} else {
 			led_on(LED_B);
 			led_off(LED_R);
