@@ -23,6 +23,7 @@
 #include "sys_time.h"
 #include "proj_config.h"
 #include "debug_link.h"
+#include "autopilot.h"
 
 extern optitrack_t optitrack;
 
@@ -35,6 +36,8 @@ pid_control_t pid_pos_y;
 pid_control_t pid_alt;
 pid_control_t pid_alt_vel;
 
+autopilot_t autopilot;
+
 //the output command from position_2d_control() have to be converted to body frame
 float nav_ctl_roll_command; //body frame x direction control
 float nav_ctl_pitch_command; //body frame y direction control
@@ -43,6 +46,11 @@ float motor1, motor2, motor3, motor4;
 
 void multirotor_pid_controller_init(void)
 {
+	autopilot_init(&autopilot);
+
+	float geo_fence_origin[3] = {0.0f, 0.0f, 0.0f};
+	autopilot_set_enu_rectangular_fence(geo_fence_origin, 2.5f, 1.3f, 3.0f);
+
 	/* attitude controllers */
 	pid_roll.kp = 0.41f;
 	pid_roll.ki = 0.0f;
@@ -245,24 +253,27 @@ void rc_mode_change_handler_pid(radio_t *rc)
 
 	//if mode switched to auto-flight
 	if(rc->auto_flight == true && auto_flight_mode_last != true) {
-		pid_alt.enable = true;
+		autopilot.wp_now.pos[0] = optitrack.pos[1]; //XXX:ENU
+		autopilot.wp_now.pos[1] = optitrack.pos[0];
+		autopilot.wp_now.pos[2] = optitrack.pos[2];
+
 		pid_alt_vel.enable = true;
-		pid_alt.setpoint = optitrack.pos[2];
 		pid_pos_x.enable = true;
 		pid_pos_y.enable = true;
-		pid_pos_x.setpoint = optitrack.pos[0];
-		pid_pos_y.setpoint = optitrack.pos[1];
+		pid_alt.enable = true;
 		reset_position_2d_control_integral(&pid_pos_x);
 		reset_position_2d_control_integral(&pid_pos_y);
 	}
 
 	if(rc->auto_flight == false) {
-		pid_alt_vel.enable = false;
+		autopilot.wp_now.pos[0] = optitrack.pos[1]; //XXX:ENU
+		autopilot.wp_now.pos[1] = optitrack.pos[0];
+		autopilot.wp_now.pos[2] = optitrack.pos[2];
+
 		pid_pos_x.enable = false;
 		pid_pos_y.enable = false;
+		pid_alt_vel.enable = false;
 		reset_altitude_control_integral(&pid_alt);
-		pid_pos_x.setpoint = optitrack.pos[0];
-		pid_pos_y.setpoint = optitrack.pos[1];
 		reset_position_2d_control_integral(&pid_pos_x);
 		reset_position_2d_control_integral(&pid_pos_y);
 	}
@@ -276,6 +287,12 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desire
 
 	/* altitude control */
 	altitude_control(optitrack.pos[2], optitrack.vel_filtered[2], &pid_alt_vel, &pid_alt);
+
+	autopilot_update_uav_info(optitrack.pos, optitrack.vel_filtered);
+	autopilot_waypoint_handler();
+	pid_pos_x.setpoint = autopilot.wp_now.pos[1]; //XXX
+	pid_pos_y.setpoint = autopilot.wp_now.pos[0];
+	pid_alt.setpoint = -autopilot.wp_now.pos[2];
 
 	/* position control (in ned configuration) */
 	position_2d_control(optitrack.pos[0], optitrack.vel_filtered[0], &pid_pos_x);
@@ -304,12 +321,29 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desire
 		pid_alt_vel.output = 0.0f;
 	}
 
-	if(rc->safety == false) {
-		led_on(LED_R);
-		led_off(LED_B);
-		thrust_pwm_allocate_quadrotor(rc->throttle, pid_alt_vel.output, pid_roll.output,
-		                              pid_pitch.output, yaw_ctrl_output);
+	bool halt_motor;
+	if((rc->throttle < 10.0f && autopilot.mode == AUTOPILOT_MANUAL_FLIGHT_MODE) ||
+	    (autopilot.wp_now.pos[2] < 15.0f && autopilot.mode == AUTOPILOT_TAKEOFF_MODE) ||
+	    autopilot.mode == AUTOPILOT_MOTOR_LOCKED_MODE) {
+		halt_motor = true;
 	} else {
+		halt_motor = false;
+	}
+
+	if(rc->safety == false) {
+		if(halt_motor == false) {
+			led_on(LED_R);
+			led_off(LED_B);
+			thrust_pwm_allocate_quadrotor(rc->throttle, pid_alt_vel.output, pid_roll.output,
+			                              pid_pitch.output, yaw_ctrl_output);
+		} else {
+			led_on(LED_B);
+			led_off(LED_R);
+			set_yaw_pd_setpoint(&pid_yaw, ahrs->attitude.yaw);
+			motor_halt();
+		}
+	} else {
+		autopilot.mode = AUTOPILOT_MANUAL_FLIGHT_MODE;
 		led_on(LED_B);
 		led_off(LED_R);
 		set_yaw_pd_setpoint(&pid_yaw, ahrs->attitude.yaw);
