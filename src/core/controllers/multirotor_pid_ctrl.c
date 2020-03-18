@@ -257,9 +257,9 @@ void rc_mode_change_handler_pid(radio_t *rc)
 		autopilot.wp_now.pos[1] = optitrack.pos[0];
 		autopilot.wp_now.pos[2] = optitrack.pos[2];
 
-		pid_alt_vel.enable = true;
 		pid_pos_x.enable = true;
 		pid_pos_y.enable = true;
+		pid_alt_vel.enable = true;
 		pid_alt.enable = true;
 		reset_position_2d_control_integral(&pid_pos_x);
 		reset_position_2d_control_integral(&pid_pos_y);
@@ -272,6 +272,7 @@ void rc_mode_change_handler_pid(radio_t *rc)
 
 		pid_pos_x.enable = false;
 		pid_pos_y.enable = false;
+		pid_alt.enable = false;
 		pid_alt_vel.enable = false;
 		reset_altitude_control_integral(&pid_alt);
 		reset_position_2d_control_integral(&pid_pos_x);
@@ -292,7 +293,7 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desire
 	autopilot_waypoint_handler();
 	pid_pos_x.setpoint = autopilot.wp_now.pos[1]; //XXX
 	pid_pos_y.setpoint = autopilot.wp_now.pos[0];
-	pid_alt.setpoint = -autopilot.wp_now.pos[2];
+	pid_alt.setpoint = autopilot.wp_now.pos[2];
 
 	/* position control (in ned configuration) */
 	position_2d_control(optitrack.pos[0], optitrack.vel_filtered[0], &pid_pos_x);
