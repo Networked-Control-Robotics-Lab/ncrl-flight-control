@@ -9,9 +9,7 @@ typedef struct {
 	uint8_t id;
 
 	/* position [cm] */
-	float pos_x;
-	float pos_y;
-	float pos_z;
+	float pos[3];
 
 	/* velocity (numerical onboard calcuation) */
 	float vel_raw[3];

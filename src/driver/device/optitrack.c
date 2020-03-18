@@ -81,9 +81,9 @@ static uint8_t generate_optitrack_checksum_byte(uint8_t *payload, int payload_co
 void optitrack_numerical_vel_calc(void)
 {
 	const float dt = 1.0f / 120.0f; //fixed dt (30Hz)
-	optitrack.vel_raw[0] = (optitrack.pos_x - pos_last[0]) / dt;
-	optitrack.vel_raw[1] = (optitrack.pos_y - pos_last[1]) / dt;
-	optitrack.vel_raw[2] = (optitrack.pos_z - pos_last[2]) / dt;
+	optitrack.vel_raw[0] = (optitrack.pos[0] - pos_last[0]) / dt;
+	optitrack.vel_raw[1] = (optitrack.pos[1] - pos_last[1]) / dt;
+	optitrack.vel_raw[2] = (optitrack.pos[2] - pos_last[2]) / dt;
 
 	float received_period = (optitrack.time_now - optitrack.time_last) * 0.001;
 	optitrack.recv_freq = 1.0f / received_period;
@@ -112,9 +112,9 @@ int optitrack_serial_decoder(uint8_t *buf)
 	memcpy(&ned_pos_x, &buf[3], sizeof(float)); //in ned coordinate system
 	memcpy(&ned_pos_y, &buf[7], sizeof(float));
 	memcpy(&ned_pos_z, &buf[11], sizeof(float));
-	optitrack.pos_x = ned_pos_x;
-	optitrack.pos_y = ned_pos_y;
-	optitrack.pos_z = -ned_pos_z;
+	optitrack.pos[0] = ned_pos_x;
+	optitrack.pos[1] = ned_pos_y;
+	optitrack.pos[2] = -ned_pos_z;
 	memcpy(&optitrack.q[1], &buf[15], sizeof(float)); //in ned coordinate system
 	memcpy(&optitrack.q[2], &buf[19], sizeof(float));
 	memcpy(&optitrack.q[3], &buf[23], sizeof(float));
@@ -122,9 +122,9 @@ int optitrack_serial_decoder(uint8_t *buf)
 
 	if(vel_init_ready == false) {
 		optitrack.time_last = get_sys_time_ms();
-		pos_last[0] = optitrack.pos_x;
-		pos_last[1] = optitrack.pos_y;
-		pos_last[2] = optitrack.pos_z;
+		pos_last[0] = optitrack.pos[0];
+		pos_last[1] = optitrack.pos[1];
+		pos_last[2] = optitrack.pos[2];
 		optitrack.vel_raw[0] = 0.0f;
 		optitrack.vel_raw[1] = 0.0f;
 		optitrack.vel_raw[2] = 0.0f;
@@ -135,9 +135,9 @@ int optitrack_serial_decoder(uint8_t *buf)
 	static int vel_calc_counter = 0;
 	if((vel_calc_counter++) == 1) {
 		optitrack_numerical_vel_calc();
-		pos_last[0] = optitrack.pos_x; //save for next iteration
-		pos_last[1] = optitrack.pos_y;
-		pos_last[2] = optitrack.pos_z;
+		pos_last[0] = optitrack.pos[0]; //save for next iteration
+		pos_last[1] = optitrack.pos[1];
+		pos_last[2] = optitrack.pos[2];
 		optitrack.time_last = optitrack.time_now;
 		vel_calc_counter = 0;
 	}
@@ -148,9 +148,9 @@ int optitrack_serial_decoder(uint8_t *buf)
 void send_optitrack_position_debug_message(debug_msg_t *payload)
 {
 	pack_debug_debug_message_header(payload, MESSAGE_ID_OPTITRACK_POSITION);
-	pack_debug_debug_message_float(&optitrack.pos_x, payload);
-	pack_debug_debug_message_float(&optitrack.pos_y, payload);
-	pack_debug_debug_message_float(&optitrack.pos_z, payload);
+	pack_debug_debug_message_float(&optitrack.pos[0], payload);
+	pack_debug_debug_message_float(&optitrack.pos[1], payload);
+	pack_debug_debug_message_float(&optitrack.pos[2], payload);
 }
 
 void send_optitrack_quaternion_debug_message(debug_msg_t *payload)

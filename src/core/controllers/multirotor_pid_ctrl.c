@@ -247,11 +247,11 @@ void rc_mode_change_handler_pid(radio_t *rc)
 	if(rc->aux1_mode == RC_AUX_MODE2 && aux1_mode_last != RC_AUX_MODE2) {
 		pid_alt.enable = true;
 		pid_alt_vel.enable = true;
-		pid_alt.setpoint = optitrack.pos_z;
+		pid_alt.setpoint = optitrack.pos[2];
 		pid_pos_x.enable = true;
 		pid_pos_y.enable = true;
-		pid_pos_x.setpoint = optitrack.pos_x;
-		pid_pos_y.setpoint = optitrack.pos_y;
+		pid_pos_x.setpoint = optitrack.pos[0];
+		pid_pos_y.setpoint = optitrack.pos[1];
 		reset_position_2d_control_integral(&pid_pos_x);
 		reset_position_2d_control_integral(&pid_pos_y);
 	}
@@ -260,7 +260,7 @@ void rc_mode_change_handler_pid(radio_t *rc)
 	if(rc->aux1_mode == RC_AUX_MODE3 && aux1_mode_last != RC_AUX_MODE3) {
 		pid_alt.enable = true;
 		pid_alt_vel.enable = true;
-		pid_alt.setpoint = optitrack.pos_z;
+		pid_alt.setpoint = optitrack.pos[2];
 		pid_pos_x.enable = true;
 		pid_pos_y.enable = true;
 		pid_pos_x.setpoint = 0.0f; //XXX: currently we feed origin as navigation waypoint
@@ -275,8 +275,8 @@ void rc_mode_change_handler_pid(radio_t *rc)
 		pid_pos_x.enable = false;
 		pid_pos_y.enable = false;
 		reset_altitude_control_integral(&pid_alt);
-		pid_pos_x.setpoint = optitrack.pos_x;
-		pid_pos_y.setpoint = optitrack.pos_y;
+		pid_pos_x.setpoint = optitrack.pos[0];
+		pid_pos_y.setpoint = optitrack.pos[1];
 		reset_position_2d_control_integral(&pid_pos_x);
 		reset_position_2d_control_integral(&pid_pos_y);
 	}
@@ -289,11 +289,11 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desire
 	rc_mode_change_handler_pid(rc);
 
 	/* altitude control */
-	altitude_control(optitrack.pos_z, optitrack.vel_filtered[2], &pid_alt_vel, &pid_alt);
+	altitude_control(optitrack.pos[2], optitrack.vel_filtered[2], &pid_alt_vel, &pid_alt);
 
 	/* position control (in ned configuration) */
-	position_2d_control(optitrack.pos_x, optitrack.vel_filtered[0], &pid_pos_x);
-	position_2d_control(optitrack.pos_y, optitrack.vel_filtered[1], &pid_pos_y);
+	position_2d_control(optitrack.pos[0], optitrack.vel_filtered[0], &pid_pos_x);
+	position_2d_control(optitrack.pos[1], optitrack.vel_filtered[1], &pid_pos_y);
 	angle_control_cmd_i2b_frame_tramsform(ahrs->attitude.yaw, pid_pos_x.output, pid_pos_y.output,
 	                                      &nav_ctl_pitch_command, &nav_ctl_roll_command);
 

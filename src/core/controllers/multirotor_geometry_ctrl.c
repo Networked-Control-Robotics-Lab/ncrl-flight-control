@@ -452,9 +452,9 @@ void rc_mode_change_handler_geometry(radio_t *rc)
 
 	//if mode switched to auto-flight
 	if(rc->auto_flight == true && auto_flight_mode_last != true) {
-		autopilot.wp_now.pos[0] = optitrack.pos_y; //XXX:ENU
-		autopilot.wp_now.pos[1] = optitrack.pos_x;
-		autopilot.wp_now.pos[2] = optitrack.pos_z;
+		autopilot.wp_now.pos[0] = optitrack.pos[1]; //XXX:ENU
+		autopilot.wp_now.pos[1] = optitrack.pos[0];
+		autopilot.wp_now.pos[2] = optitrack.pos[2];
 		desired_vel[0] = 0.0f;
 		desired_vel[1] = 0.0f;
 		desired_vel[2] = 0.0f;
@@ -511,9 +511,9 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 
 	float control_moments[3] = {0.0f}, control_force = 0.0f;
 	if(rc->auto_flight == true && optitrack_present == true) {
-		curr_pos[0] = optitrack.pos_x;
-		curr_pos[1] = optitrack.pos_y;
-		curr_pos[2] = optitrack.pos_z;
+		curr_pos[0] = optitrack.pos[0];
+		curr_pos[1] = optitrack.pos[1];
+		curr_pos[2] = optitrack.pos[2];
 		curr_vel[0] = optitrack.vel_filtered[0];
 		curr_vel[1] = optitrack.vel_filtered[1];
 		curr_vel[2] = optitrack.vel_filtered[2];
