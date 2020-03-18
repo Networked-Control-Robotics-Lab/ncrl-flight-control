@@ -241,10 +241,10 @@ void thrust_pwm_allocate_quadrotor(volatile float throttle_percentage, float thr
 
 void rc_mode_change_handler_pid(radio_t *rc)
 {
-	static int aux1_mode_last = RC_AUX_MODE1;
+	static bool auto_flight_mode_last = false;
 
-	//if mode switched to hovering
-	if(rc->aux1_mode == RC_AUX_MODE2 && aux1_mode_last != RC_AUX_MODE2) {
+	//if mode switched to auto-flight
+	if(rc->auto_flight == true && auto_flight_mode_last != true) {
 		pid_alt.enable = true;
 		pid_alt_vel.enable = true;
 		pid_alt.setpoint = optitrack.pos[2];
@@ -256,21 +256,7 @@ void rc_mode_change_handler_pid(radio_t *rc)
 		reset_position_2d_control_integral(&pid_pos_y);
 	}
 
-	//if mode switched to navigation
-	if(rc->aux1_mode == RC_AUX_MODE3 && aux1_mode_last != RC_AUX_MODE3) {
-		pid_alt.enable = true;
-		pid_alt_vel.enable = true;
-		pid_alt.setpoint = optitrack.pos[2];
-		pid_pos_x.enable = true;
-		pid_pos_y.enable = true;
-		pid_pos_x.setpoint = 0.0f; //XXX: currently we feed origin as navigation waypoint
-		pid_pos_y.setpoint = 0.0f;
-		reset_position_2d_control_integral(&pid_pos_x);
-		reset_position_2d_control_integral(&pid_pos_y);
-	}
-
-	//if current mode if maunal
-	if(rc->aux1_mode == RC_AUX_MODE1) {
+	if(rc->auto_flight == false) {
 		pid_alt_vel.enable = false;
 		pid_pos_x.enable = false;
 		pid_pos_y.enable = false;
@@ -281,7 +267,7 @@ void rc_mode_change_handler_pid(radio_t *rc)
 		reset_position_2d_control_integral(&pid_pos_y);
 	}
 
-	aux1_mode_last = rc->aux1_mode;
+	auto_flight_mode_last = rc->auto_flight;
 }
 
 void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desired_heading)
