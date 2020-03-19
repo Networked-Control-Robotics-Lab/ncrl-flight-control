@@ -107,15 +107,16 @@ int optitrack_serial_decoder(uint8_t *buf)
 
 	optitrack.time_now = get_sys_time_ms();
 
-	float ned_pos_x, ned_pos_y, ned_pos_z;
+	float enu_pos_x, enu_pos_y, enu_pos_z;
 
-	memcpy(&ned_pos_x, &buf[3], sizeof(float)); //in ned coordinate system
-	memcpy(&ned_pos_y, &buf[7], sizeof(float));
-	memcpy(&ned_pos_z, &buf[11], sizeof(float));
-	optitrack.pos[0] = ned_pos_x;
-	optitrack.pos[1] = ned_pos_y;
-	optitrack.pos[2] = -ned_pos_z;
-	memcpy(&optitrack.q[1], &buf[15], sizeof(float)); //in ned coordinate system
+	memcpy(&enu_pos_x, &buf[3], sizeof(float)); //in ned coordinate system
+	memcpy(&enu_pos_y, &buf[7], sizeof(float));
+	memcpy(&enu_pos_z, &buf[11], sizeof(float));
+	optitrack.pos[0] = enu_pos_x; //east
+	optitrack.pos[1] = enu_pos_y; //north
+	optitrack.pos[2] = enu_pos_z; //up
+	/* swap the order of quaternion to make the frame consistent with ahrs' rotation order */
+	memcpy(&optitrack.q[1], &buf[15], sizeof(float));
 	memcpy(&optitrack.q[2], &buf[19], sizeof(float));
 	memcpy(&optitrack.q[3], &buf[23], sizeof(float));
 	memcpy(&optitrack.q[0], &buf[27], sizeof(float));

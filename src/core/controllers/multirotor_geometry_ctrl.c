@@ -286,9 +286,7 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	autopilot_waypoint_handler();
 
 	float pos_des_ned[3];
-	pos_des_ned[0] = autopilot.wp_now.pos[1];
-	pos_des_ned[1] = autopilot.wp_now.pos[0];
-	pos_des_ned[2] = -autopilot.wp_now.pos[2];
+	assign_vector_3x1_eun_to_ned(pos_des_ned, autopilot.wp_now.pos);
 
 	/* ex = x - xd */
 	pos_error[0] = curr_pos[0] - pos_des_ned[0];
@@ -452,8 +450,9 @@ void rc_mode_change_handler_geometry(radio_t *rc)
 
 	//if mode switched to auto-flight
 	if(rc->auto_flight == true && auto_flight_mode_last != true) {
-		autopilot.wp_now.pos[0] = optitrack.pos[1]; //XXX:ENU
-		autopilot.wp_now.pos[1] = optitrack.pos[0];
+		/* set position setpoint to current position (enu) */
+		autopilot.wp_now.pos[0] = optitrack.pos[0];
+		autopilot.wp_now.pos[1] = optitrack.pos[1];
 		autopilot.wp_now.pos[2] = optitrack.pos[2];
 		desired_vel[0] = 0.0f;
 		desired_vel[1] = 0.0f;

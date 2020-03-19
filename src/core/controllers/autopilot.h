@@ -86,6 +86,8 @@ int autopilot_trigger_auto_landing(void);
 int autopilot_trigger_auto_takeoff(void);
 void autopilot_waypoint_handler(void);
 
+void assign_vector_3x1_eun_to_ned(float *ned, float *enu);
+
 void debug_print_waypoint_list(void);
 void debug_print_waypoint_status(void);
 

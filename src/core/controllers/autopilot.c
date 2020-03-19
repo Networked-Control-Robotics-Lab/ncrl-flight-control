@@ -18,6 +18,13 @@ void latitude_longitude_to_cartesian(float latitude, float longitude, float *x, 
 	//*z = EARTH_RADIUS * arm_sin_f32(latitude);
 }
 
+void assign_vector_3x1_eun_to_ned(float *ned, float *enu)
+{
+	ned[0] = enu[1];
+	ned[1] = enu[0];
+	ned[2] = -enu[2];
+}
+
 void autopilot_init(autopilot_t *_autopilot)
 {
 	autopilot_ptr = _autopilot;

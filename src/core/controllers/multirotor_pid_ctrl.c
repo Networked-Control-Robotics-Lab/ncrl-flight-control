@@ -252,8 +252,9 @@ void rc_mode_change_handler_pid(radio_t *rc)
 
 	//if mode switched to auto-flight
 	if(rc->auto_flight == true && auto_flight_mode_last != true) {
-		autopilot.wp_now.pos[0] = optitrack.pos[1]; //XXX:ENU
-		autopilot.wp_now.pos[1] = optitrack.pos[0];
+		/* set position setpoint to current position (enu) */
+		autopilot.wp_now.pos[0] = optitrack.pos[0];
+		autopilot.wp_now.pos[1] = optitrack.pos[1];
 		autopilot.wp_now.pos[2] = optitrack.pos[2];
 
 		pid_pos_x.enable = true;
@@ -265,9 +266,9 @@ void rc_mode_change_handler_pid(radio_t *rc)
 	}
 
 	if(rc->auto_flight == false) {
-		autopilot.wp_now.pos[0] = optitrack.pos[1]; //XXX:ENU
-		autopilot.wp_now.pos[1] = optitrack.pos[0];
-		autopilot.wp_now.pos[2] = optitrack.pos[2];
+		autopilot.wp_now.pos[0] = 0.0f;
+		autopilot.wp_now.pos[1] = 0.0f;
+		autopilot.wp_now.pos[2] = 0.0f;
 
 		pid_pos_x.enable = false;
 		pid_pos_y.enable = false;
@@ -290,11 +291,12 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desire
 
 	autopilot_update_uav_info(optitrack.pos, optitrack.vel_filtered);
 	autopilot_waypoint_handler();
-	pid_pos_x.setpoint = autopilot.wp_now.pos[1]; //XXX
-	pid_pos_y.setpoint = autopilot.wp_now.pos[0];
+	/* feed position controller setpoint from autopilot (enu) */
+	pid_pos_x.setpoint = autopilot.wp_now.pos[0];
+	pid_pos_y.setpoint = autopilot.wp_now.pos[1];
 	pid_alt.setpoint = autopilot.wp_now.pos[2];
 
-	/* position control (in ned configuration) */
+	/* position control (in enu frame) */
 	position_2d_control(optitrack.pos[0], optitrack.vel_filtered[0], &pid_pos_x);
 	position_2d_control(optitrack.pos[1], optitrack.vel_filtered[1], &pid_pos_y);
 	angle_control_cmd_i2b_frame_tramsform(ahrs->attitude.yaw, pid_pos_x.output, pid_pos_y.output,
@@ -304,8 +306,8 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desire
 	float final_pitch_cmd;
 	if(pid_pos_x.enable == true && pid_pos_y.enable == true && optitrack_available() == true) {
 		/* auto-flight */
-		final_roll_cmd = nav_ctl_roll_command; //y directional control
-		final_pitch_cmd = -nav_ctl_pitch_command; //x directional control XXX:fix sign!
+		final_roll_cmd = nav_ctl_pitch_command; //enu-y direction (north) control
+		final_pitch_cmd = -nav_ctl_roll_command; //enu-x direction (east) controll  XXX:fix sign!
 	} else {
 		/* manual flight */
 		final_roll_cmd = -rc->roll;
