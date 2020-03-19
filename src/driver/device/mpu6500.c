@@ -86,7 +86,7 @@ static void mpu6500_bias_calc(int16_t *gyro, int16_t *accel)
 		gyro_bias[2] = (int16_t)_gyro_bias[2];
 		accel_bias[0] = (int16_t)_accel_bias[0];
 		accel_bias[1] = (int16_t)_accel_bias[1];
-		accel_bias[2] = (int16_t)(_accel_bias[2] - (9.8f / MPU6500_ACCEL_SCALE));
+		accel_bias[2] = 0;//(int16_t)(_accel_bias[2] - (9.8f / MPU6500_ACCEL_SCALE));
 		mpu6500_init_finished = true;
 	}
 }
@@ -166,7 +166,7 @@ void mpu6500_int_handler(void)
 	/* composite sensor data */
 	mpu6500->accel_unscaled[0] = -((int16_t)buffer[0] << 8) | (int16_t)buffer[1];
 	mpu6500->accel_unscaled[1] = -((int16_t)buffer[2] << 8) | (int16_t)buffer[3];
-	mpu6500->accel_unscaled[2] = -((int16_t)buffer[4] << 8) | (int16_t)buffer[5];
+	mpu6500->accel_unscaled[2] = +((int16_t)buffer[4] << 8) | (int16_t)buffer[5];
 	mpu6500->temp_unscaled = ((int16_t)buffer[6] << 8) | (int16_t)buffer[7];
 	mpu6500->gyro_unscaled[0] = -((int16_t)buffer[8] << 8) | (int16_t)buffer[9];
 	mpu6500->gyro_unscaled[1] = -((int16_t)buffer[10] << 8) | (int16_t)buffer[11];

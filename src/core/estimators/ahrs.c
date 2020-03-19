@@ -258,7 +258,12 @@ void ahrs_estimate(ahrs_t *ahrs, float *_accel, float *_gyro)
 #if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
 	ahrs_complementary_filter_estimate(accel, gyro);
 #elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
-	madgwick_imu_ahrs(&madgwick_ahrs, -accel[0], -accel[1], accel[2],
+	/* note that acceleromter senses the negative gravity acceleration (normal force) */
+	float gravity[3];
+	gravity[0] = -accel[0];
+	gravity[1] = -accel[1];
+	gravity[2] = -accel[2];
+	madgwick_imu_ahrs(&madgwick_ahrs, gravity[0], gravity[1], gravity[2],
 	                  deg_to_rad(gyro[0]), deg_to_rad(gyro[1]), deg_to_rad(gyro[2]));
 	_mat_(x_posteriori)[0] = madgwick_ahrs.q[0];
 	_mat_(x_posteriori)[1] = madgwick_ahrs.q[1];
