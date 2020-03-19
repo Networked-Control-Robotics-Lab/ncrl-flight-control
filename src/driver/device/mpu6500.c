@@ -20,8 +20,8 @@
 #define GX_MIN (-2111.0f)
 #define GY_MAX (+2079.0f)
 #define GY_MIN (-2043.0f)
-#define GZ_MAX (+2558.0f)
-#define GZ_MIN (-2048.0f)
+#define GZ_MAX (+2048.0f)
+#define GZ_MIN (-2558.0f)
 #define ACC_RESCALE_X  (4096.0f / (GX_MAX - GX_MIN))
 #define ACC_RESCALE_Y  (4096.0f / (GY_MAX - GY_MIN))
 #define ACC_RESCALE_Z  (4096.0f / (GZ_MAX - GZ_MIN))
@@ -86,7 +86,7 @@ static void mpu6500_bias_calc(int16_t *gyro, int16_t *accel)
 		gyro_bias[2] = (int16_t)_gyro_bias[2];
 		accel_bias[0] = (int16_t)_accel_bias[0];
 		accel_bias[1] = (int16_t)_accel_bias[1];
-		accel_bias[2] = 0;//(int16_t)(_accel_bias[2] - (9.8f / MPU6500_ACCEL_SCALE));
+		accel_bias[2] = (int16_t)(_accel_bias[2] - (-9.8f / MPU6500_ACCEL_SCALE));
 		mpu6500_init_finished = true;
 	}
 }

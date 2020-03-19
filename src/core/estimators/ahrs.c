@@ -15,7 +15,6 @@
 
 #define dt 0.0025 //0.0025s = 400Hz
 
-void calc_attitude_use_accel(euler_t *att_estimated, float *accel);
 void quat_normalize(float *q);
 void euler_to_quat(euler_t *euler, float *q);
 
@@ -31,11 +30,6 @@ madgwick_t madgwick_ahrs;
 
 void ahrs_init(float *init_accel)
 {
-	float gravity_normal[3];
-	gravity_normal[0] = init_accel[0];
-	gravity_normal[1] = init_accel[1];
-	gravity_normal[2] = init_accel[2];
-
 	//initialize matrices
 	MAT_INIT(x_priori, 4, 1);
 	MAT_INIT(x_posteriori, 4, 1);
@@ -43,11 +37,10 @@ void ahrs_init(float *init_accel)
 	MAT_INIT(w, 3, 1);
 	MAT_INIT(f, 4, 3);
 
-	euler_t att_init = {0.0f, 0.0f, 0.0f};
-	normalize_3x1(gravity_normal);
-	calc_attitude_use_accel(&att_init, gravity_normal);
-	euler_to_quat(&att_init, &_mat_(x_priori)[0]);
-	quat_normalize(&_mat_(x_priori)[0]);
+	_mat_(x_priori)[0] = 1.0f;
+	_mat_(x_priori)[1] = 0.0f;
+	_mat_(x_priori)[2] = 0.0f;
+	_mat_(x_priori)[3] = 0.0f;
 
 	/* initialize madgwick filter */
 	madgwick_init(&madgwick_ahrs, 400, 0.3);
@@ -99,10 +92,10 @@ void convert_gravity_to_quat(float *a, float *q)
 		q[0] = _sqrt;
 		//q1
 		arm_sqrt_f32(2.0f * (a[2] + 1.0f), &_sqrt);
-		q[1] = -a[1] / _sqrt;
+		q[1] = +a[1] / _sqrt;
 		//q2
 		arm_sqrt_f32(2.0f * (a[2] + 1.0f), &_sqrt);
-		q[2] = +a[0] / _sqrt;
+		q[2] = -a[0] / _sqrt;
 		//q3
 		q[3] = 0.0f;
 	} else {
@@ -120,12 +113,6 @@ void convert_gravity_to_quat(float *a, float *q)
 	}
 
 	quat_normalize(q);
-}
-
-void calc_attitude_use_accel(euler_t *att_estimated, float *accel)
-{
-	att_estimated->roll = asin(accel[0]);
-	att_estimated->pitch = atan2(-accel[1], accel[2]);
 }
 
 void quaternion_mult(float *q1, float *q2, float *q_mult)
@@ -191,9 +178,9 @@ void ahrs_complementary_filter_estimate(float *accel, float *gyro)
 	_mat_(f)[11] = +half_q0_dt;
 
 	/* angular rate from rate gyro */
-	_mat_(w)[0] = deg_to_rad(gyro[0]);
-	_mat_(w)[1] = deg_to_rad(gyro[1]);
-	_mat_(w)[2] = deg_to_rad(gyro[2]);
+	_mat_(w)[0] = gyro[0];
+	_mat_(w)[1] = gyro[1];
+	_mat_(w)[2] = gyro[2];
 
 	/* rate gyro integration */
 	MAT_MULT(&f, &w, &dx); //calculate dx = f * w
@@ -243,28 +230,26 @@ void reset_quaternion_yaw_angle(float *q)
 	quaternion_mult(q_negative_yaw, q_original, q);
 }
 
-void ahrs_estimate(ahrs_t *ahrs, float *_accel, float *_gyro)
+void ahrs_estimate(ahrs_t *ahrs, float *accel, float *gyro)
 {
-	float accel[3];
-	accel[0] = _accel[0];
-	accel[1] = _accel[1];
-	accel[2] = _accel[2];
-
-	float gyro[3];
-	gyro[0] = _gyro[0];
-	gyro[1] = _gyro[1];
-	gyro[2] = _gyro[2];
-
-#if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
-	ahrs_complementary_filter_estimate(accel, gyro);
-#elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
-	/* note that acceleromter senses the negative gravity acceleration (normal force) */
+	/* note that acceleromter senses the negative gravity acceleration (normal force)
+	 * a_imu = (R(phi, theta, psi) * a_translation) - (R(phi, theta, psi) * g) */
 	float gravity[3];
 	gravity[0] = -accel[0];
 	gravity[1] = -accel[1];
 	gravity[2] = -accel[2];
+
+	float gyro_rad[3];
+	gyro_rad[0] = deg_to_rad(gyro[0]);
+	gyro_rad[1] = deg_to_rad(gyro[1]);
+	gyro_rad[2] = deg_to_rad(gyro[2]);
+
+#if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
+	ahrs_complementary_filter_estimate(gravity, gyro_rad);
+#elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
+	/* note that acceleromter senses the negative gravity acceleration (normal force) */
 	madgwick_imu_ahrs(&madgwick_ahrs, gravity[0], gravity[1], gravity[2],
-	                  deg_to_rad(gyro[0]), deg_to_rad(gyro[1]), deg_to_rad(gyro[2]));
+	                  gyro_rad[0], gyro_rad[1], gyro_rad[2]);
 	_mat_(x_posteriori)[0] = madgwick_ahrs.q[0];
 	_mat_(x_posteriori)[1] = madgwick_ahrs.q[1];
 	_mat_(x_posteriori)[2] = madgwick_ahrs.q[2];
