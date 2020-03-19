@@ -120,6 +120,7 @@ int optitrack_serial_decoder(uint8_t *buf)
 	memcpy(&optitrack.q[2], &buf[19], sizeof(float));
 	memcpy(&optitrack.q[3], &buf[23], sizeof(float));
 	memcpy(&optitrack.q[0], &buf[27], sizeof(float));
+	optitrack.q[3] *= -1;
 
 	if(vel_init_ready == false) {
 		optitrack.time_last = get_sys_time_ms();

@@ -282,22 +282,18 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
                             float *curr_vel, float *desired_vel, float *curr_accel, float *desired_accel,
                             float *output_moments, float *output_force, bool manual_flight)
 {
-	autopilot_update_uav_info(curr_pos, curr_vel);
-	autopilot_waypoint_handler();
-
 	float pos_des_ned[3];
 	assign_vector_3x1_eun_to_ned(pos_des_ned, autopilot.wp_now.pos);
 
 	/* ex = x - xd */
 	pos_error[0] = curr_pos[0] - pos_des_ned[0];
 	pos_error[1] = curr_pos[1] - pos_des_ned[1];
-	pos_error[2] = -curr_pos[2] - pos_des_ned[2];
+	pos_error[2] = curr_pos[2] - pos_des_ned[2];
 
 	/* ev = v - vd */
 	vel_error[0] = curr_vel[0] - desired_vel[0];
 	vel_error[1] = curr_vel[1] - desired_vel[1];
-	//swap the order since we actually feed the positive altitude (or negative z of NED frame) here
-	vel_error[2] = desired_vel[2] - curr_vel[2];
+	vel_error[2] = curr_vel[2] - desired_vel[2];
 
 	tracking_error_integral[0] += k_tracking_i_gain[0] * (pos_error[0]) * dt;
 	tracking_error_integral[1] += k_tracking_i_gain[1] * (pos_error[1]) * dt;
@@ -510,12 +506,11 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 
 	float control_moments[3] = {0.0f}, control_force = 0.0f;
 	if(rc->auto_flight == true && optitrack_present == true) {
-		curr_pos[0] = optitrack.pos[0];
-		curr_pos[1] = optitrack.pos[1];
-		curr_pos[2] = optitrack.pos[2];
-		curr_vel[0] = optitrack.vel_filtered[0];
-		curr_vel[1] = optitrack.vel_filtered[1];
-		curr_vel[2] = optitrack.vel_filtered[2];
+		autopilot_update_uav_info(optitrack.pos, optitrack.vel_filtered);
+		autopilot_waypoint_handler();
+
+		assign_vector_3x1_eun_to_ned(curr_pos, optitrack.pos);
+		assign_vector_3x1_eun_to_ned(curr_vel, optitrack.vel_filtered);
 		geometry_tracking_ctrl(&desired_attitude, ahrs->q, gyro, curr_pos,
 		                       curr_vel, desired_vel, curr_accel, desired_accel, control_moments,
 		                       &control_force, attitude_manual_height_auto);

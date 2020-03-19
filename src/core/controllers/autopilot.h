@@ -74,7 +74,7 @@ typedef struct {
 } autopilot_t;
 
 void autopilot_init(autopilot_t *_autopilot);
-void autopilot_update_uav_info(float pos[3], float vel[3]);
+void autopilot_update_uav_info(float pos_enu[3], float vel_enu[3]);
 void autopilot_set_enu_rectangular_fence(float origin[3], float lx, float ly, float height);
 int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec, float radius);
 int autopilot_clear_waypoint_list(void);

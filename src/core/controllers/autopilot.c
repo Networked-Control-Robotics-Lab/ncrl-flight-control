@@ -35,11 +35,11 @@ void autopilot_init(autopilot_t *_autopilot)
 	autopilot_ptr->landing_accept_height = 15.0f; //[cm]
 }
 
-void autopilot_update_uav_info(float pos[3], float vel[3])
+void autopilot_update_uav_info(float pos_enu[3], float vel_enu[3])
 {
-	autopilot_ptr->uav_info.pos[0] = pos[1];
-	autopilot_ptr->uav_info.pos[1] = pos[0];
-	autopilot_ptr->uav_info.pos[2] = pos[2]; //FIXME
+	autopilot_ptr->uav_info.pos[0] = pos_enu[0];
+	autopilot_ptr->uav_info.pos[1] = pos_enu[1];
+	autopilot_ptr->uav_info.pos[2] = pos_enu[2];
 }
 
 void autopilot_set_enu_rectangular_fence(float origin[3], float lx, float ly, float height)
