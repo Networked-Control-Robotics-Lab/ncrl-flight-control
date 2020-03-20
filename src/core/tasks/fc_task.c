@@ -101,7 +101,7 @@ void task_flight_ctrl(void *param)
 		perf_start(FLIGHT_CONTROL_TASK);
 		while(xSemaphoreTake(flight_ctl_semphr, 9) == pdFALSE);
 
-		//gpio_toggle(MOTOR7_FREQ_TEST);
+		gpio_on(MOTOR7_FREQ_TEST);
 
 		read_rc(&rc);
 		rc_yaw_setpoint_handler(&desired_yaw, -rc.yaw, 0.0025);
@@ -116,6 +116,8 @@ void task_flight_ctrl(void *param)
 #elif (SELECT_CONTROLLER == QUADROTOR_USE_GEOMETRY)
 		multirotor_geometry_control(&imu, &ahrs, &rc, &desired_yaw);
 #endif
+		gpio_off(MOTOR7_FREQ_TEST);
+
 		perf_end(FLIGHT_CONTROLLER);
 
 		perf_end(FLIGHT_CONTROL_TASK);
