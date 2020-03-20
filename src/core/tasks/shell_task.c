@@ -55,6 +55,7 @@ void shell_task(void *param)
 	while(1) {
 		shell_cli(&shell);
 		shell_cmd_exec(ret_shell_cmd, shell_cmd_list, shell_cmd_cnt);
+		shell_reset_struct(&shell);
 		taskYIELD();
 	}
 }

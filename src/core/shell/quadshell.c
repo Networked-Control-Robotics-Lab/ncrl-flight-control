@@ -17,9 +17,11 @@ void shell_puts(char *s)
 	usart_puts(USART3, s, strlen(s));
 }
 
-static void shell_ctrl_c_handler(void)
+static void shell_ctrl_c_handler(struct shell_struct *shell)
 {
 	shell_puts("^C\n\r");
+	shell_puts(shell->prompt_msg);
+	shell_reset_struct(shell);
 }
 
 static void shell_unknown_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
@@ -62,7 +64,7 @@ void shell_init_struct(struct shell_struct *shell, char *prompt_msg, char *ret_c
 	shell->read_history = false;
 }
 
-static void shell_reset_struct(struct shell_struct *shell)
+void shell_reset_struct(struct shell_struct *shell)
 {
 	shell->cursor_pos = 0;
 	shell->char_cnt = 0;
@@ -187,8 +189,7 @@ void shell_cli(struct shell_struct *shell)
 			shell_cursor_shift_one_left(shell);
 			break;
 		case CTRL_C:
-			shell_ctrl_c_handler();
-			return;
+			shell_ctrl_c_handler(shell);
 			break;
 		case CTRL_D:
 			break;
