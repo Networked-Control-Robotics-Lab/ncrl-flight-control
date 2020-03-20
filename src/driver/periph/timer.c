@@ -7,7 +7,7 @@
 #include "fc_task.h"
 #include "sys_time.h"
 
-#define FLIGHT_CTL_PRESCALER_RELOAD 10
+#define FLIGHT_CTL_PRESCALER_RELOAD 1000
 
 extern SemaphoreHandle_t flight_ctl_semphr;
 
@@ -15,10 +15,10 @@ void timer12_init(void)
 {
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM12, ENABLE);
 
-	/* 90MHz / (2250 * 10) = 4000Hz */
+	/* 90MHz / (225 * 10) = 40000Hz */
 	TIM_TimeBaseInitTypeDef TimeBaseInitStruct = {
-		.TIM_Period = 2250 - 1,
-		.TIM_Prescaler = 10 - 1,
+		.TIM_Period = 225 - 1,
+		.TIM_Prescaler = 1 - 1,
 		.TIM_CounterMode = TIM_CounterMode_Up
 	};
 	TIM_TimeBaseInit(TIM12, &TimeBaseInitStruct);

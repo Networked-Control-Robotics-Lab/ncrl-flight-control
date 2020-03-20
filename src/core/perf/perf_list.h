@@ -4,7 +4,8 @@
 /* enumerate performace counter id for executuin time profiling */
 enum {
 	AHRS,
-	FLIGHT_CONTROL,
+	FLIGHT_CONTROLLER,
+	FLIGHT_CONTROL_TASK
 } PERF_LIST;
 
 #endif

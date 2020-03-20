@@ -30,8 +30,9 @@
 extern SemaphoreHandle_t flight_ctl_semphr;
 
 perf_t perf_list[] = {
-	DEF_PERF(FLIGHT_CONTROL, "flight controller")
 	DEF_PERF(AHRS, "ahrs")
+	DEF_PERF(FLIGHT_CONTROLLER, "flight controller")
+	DEF_PERF(FLIGHT_CONTROL_TASK, "flight control task")
 };
 
 int main(void)

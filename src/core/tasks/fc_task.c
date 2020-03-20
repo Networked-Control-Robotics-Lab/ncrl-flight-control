@@ -98,6 +98,7 @@ void task_flight_ctrl(void *param)
 	float desired_yaw = 0.0f;
 
 	while(1) {
+		perf_start(FLIGHT_CONTROL_TASK);
 		while(xSemaphoreTake(flight_ctl_semphr, 9) == pdFALSE);
 
 		//gpio_toggle(MOTOR7_FREQ_TEST);
@@ -109,14 +110,15 @@ void task_flight_ctrl(void *param)
 		ahrs_estimate(&ahrs, imu.accel_lpf, imu.gyro_lpf);
 		perf_end(AHRS);
 
-		perf_start(FLIGHT_CONTROL);
+		perf_start(FLIGHT_CONTROLLER);
 #if (SELECT_CONTROLLER == QUADROTOR_USE_PID)
 		multirotor_pid_control(&imu, &ahrs, &rc, &desired_yaw);
 #elif (SELECT_CONTROLLER == QUADROTOR_USE_GEOMETRY)
 		multirotor_geometry_control(&imu, &ahrs, &rc, &desired_yaw);
 #endif
-		perf_end(FLIGHT_CONTROL);
+		perf_end(FLIGHT_CONTROLLER);
 
+		perf_end(FLIGHT_CONTROL_TASK);
 		taskYIELD();
 	}
 }

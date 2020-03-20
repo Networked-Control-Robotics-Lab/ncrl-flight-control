@@ -7,8 +7,8 @@
 
 sys_time_t sys_tim;
 
-#define SYS_TIM_TICK_PERIOD 0.00025f
-#define SYS_TIM_TICK_FREQ   4000
+#define SYS_TIM_TICK_PERIOD 0.0000025f
+#define SYS_TIM_TICK_FREQ   400000
 
 void sys_time_update_handler(void)
 {

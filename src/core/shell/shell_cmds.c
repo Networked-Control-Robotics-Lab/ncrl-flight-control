@@ -413,16 +413,16 @@ void shell_cmd_acc_calib(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], in
 
 void shell_cmd_perf(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
-	float exec_time_ms;
+	float exec_time_s;
 	float exec_freq_hz;
 
 	char s[100];
 	shell_puts("perf_list:\n\r");
 	int i;
 	for(i = 0; i < perf_get_list_size(); i++) {
-		exec_time_ms = perf_get_time_ms(i);
-		exec_freq_hz = 1.0f / (exec_time_ms/ 1000.0f);
-		sprintf(s, "%s: %fms (%fHz)\n\r", perf_get_name(i), exec_time_ms, exec_freq_hz);
+		exec_time_s = perf_get_time_s(i);
+		exec_freq_hz = 1.0f / (exec_time_s);
+		sprintf(s, "%s: %fms (%fHz)\n\r", perf_get_name(i), exec_time_s, exec_freq_hz);
 		shell_puts(s);
 	}
 }

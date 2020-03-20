@@ -14,7 +14,7 @@ typedef struct {
 void perf_init(perf_t *perf_list, int list_size);
 void perf_start(int id);
 void perf_end(int id);
-float perf_get_time_ms(int id);
+float perf_get_time_s(int id);
 char *perf_get_name(int id);
 int perf_get_list_size(void);
 
