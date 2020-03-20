@@ -305,14 +305,24 @@ void shell_cli(struct shell_struct *shell)
 					shell_cursor_shift_one_right(shell);
 				} else if(seq[1] == LEFT_ARROW) {
 					shell_cursor_shift_one_left(shell);
-				} else if(seq[1] == HOME) {
+				} else if(seq[1] == HOME_XTERM) {
 					shell->cursor_pos = 0;
 					shell_refresh_line(shell);
-				} else if(seq[1] == END) {
+				} else if(seq[1] == HOME_VT100) {
+					shell->cursor_pos = 0;
+					shell_refresh_line(shell);
+					shell_getc();
+				} else if(seq[1] == END_XTERM) {
 					if(shell->char_cnt > 0) {
 						shell->cursor_pos = shell->char_cnt;
 						shell_refresh_line(shell);
 					}
+				} else if(seq[1] == END_VT100) {
+					if(shell->char_cnt > 0) {
+						shell->cursor_pos = shell->char_cnt;
+						shell_refresh_line(shell);
+					}
+					shell_getc();
 				} else if(seq[1] == DELETE && shell_getc() == ESC_SEQ4) {
 					if(shell->char_cnt != 0 && shell->cursor_pos != shell->char_cnt) {
 						shell_remove_char(shell, shell->cursor_pos + 1);

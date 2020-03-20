@@ -41,17 +41,19 @@ enum {
 	CTRL_X = 24,       /* ctrl + x */
 	CTRL_Y = 25,       /* ctrl + y */
 	CTRL_Z = 26,       /* ctrl + z */
-	ESC_SEQ1 = 27,     /* first byte of the vt escape sequence */
+	ESC_SEQ1 = 27,     /* first byte of the vt100/xterm escape sequence */
 	SPACE = 32,        /* space */
-	DELETE = 51,       /* delete, third byte of the vt escape sequence */
+	DELETE = 51,       /* delete, third byte of the xterm escape sequence */
 	UP_ARROW = 65,     /* up arrow, third byte of the xterm escape sequence */
 	DOWN_ARROW = 66,   /* down arrow, third byte of the xterm escape sequence */
 	RIGHT_ARROW = 67,  /* right arrow, third byte of the xterm escape sequence */
 	LEFT_ARROW = 68,   /* left arrow, third byte of the xterm escape sequence */
-	END = 70,          /* end, third byte of the escape sequence */
-	HOME = 72,         /* home, third byte of the escape sequence */
+	END_XTERM = 70,    /* end, third byte of the xterm escape sequence */
+	END_VT100 = 52,    /* end, third byte of the vt100 escape sequence */
+	HOME_XTERM = 72,   /* home, third byte of the escape sequence */
+	HOME_VT100 = 49,   /* home, third byte of the vt100 escape sequence */
 	ESC_SEQ2 = 91,     /* second byte of the escape sequence */
-	ESC_SEQ4 = 126,    /* fourth byte of the escape sequence */
+	ESC_SEQ4 = 126,    /* fourth byte of the vt100 escape sequence */
 	BACKSPACE = 127,   /* backspace */
 } KEYS;
 
