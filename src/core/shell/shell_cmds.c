@@ -422,7 +422,7 @@ void shell_cmd_perf(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 	for(i = 0; i < perf_get_list_size(); i++) {
 		exec_time_s = perf_get_time_s(i);
 		exec_freq_hz = 1.0f / (exec_time_s);
-		sprintf(s, "%s: %fms (%fHz)\n\r", perf_get_name(i), exec_time_s, exec_freq_hz);
+		sprintf(s, "%s: %fms (%fHz)\n\r", perf_get_name(i), exec_time_s * 1000.0f, exec_freq_hz);
 		shell_puts(s);
 	}
 }
