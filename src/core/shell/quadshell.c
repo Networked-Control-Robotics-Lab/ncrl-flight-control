@@ -5,6 +5,8 @@
 #include "uart.h"
 #include "quadshell.h"
 
+void shell_reset_struct(struct shell_struct *shell);
+
 char shell_getc(void)
 {
 	char c;
@@ -395,21 +397,23 @@ static void shell_split_cmd_token(char *cmd, char param_list[PARAM_LIST_SIZE_MAX
 	*param_cnt = param_list_index + 1;
 }
 
-void shell_cmd_exec(char *cmd, struct cmd_list_entry *cmd_list, int list_size)
+void shell_cmd_exec(struct shell_struct *shell, struct cmd_list_entry *cmd_list, int list_size)
 {
 	char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX] = {0};
 	int param_cnt;
-	shell_split_cmd_token(cmd, param_list, &param_cnt);
+	shell_split_cmd_token(shell->buf, param_list, &param_cnt);
 
 	int i;
 	for(i = 0; i < list_size; i++) {
 		if(strcmp(param_list[0], cmd_list[i].name) == 0) {
 			cmd_list[i].handler(param_list, param_cnt);
-			cmd[0] = '\0';
+			shell->buf[0] = '\0';
+			shell_reset_struct(shell);
 			return;
 		}
 	}
 
 	shell_unknown_cmd_handler(param_list, param_cnt);
-	cmd[0] = '\0';
+	shell->buf[0] = '\0';
+	shell_reset_struct(shell);
 }
