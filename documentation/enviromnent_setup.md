@@ -23,9 +23,9 @@ sudo make install
 
 ### 3. Install GCC toolchain
 
-**gcc version: 9**
+gcc version: 9
 
-**architecture: arm-none-eabi**
+architecture: arm-none-eabi
 
 ```
 wget https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2019q4/gcc-arm-none-eabi-9-2019-q4-major-x86_64-linux.tar.bz2
