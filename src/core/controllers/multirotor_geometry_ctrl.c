@@ -525,7 +525,6 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	}
 
 	bool halt_motor;
-
 	if((rc->throttle < 10.0f && autopilot_get_mode() == AUTOPILOT_MANUAL_FLIGHT_MODE) ||
 	    (autopilot.wp_now.pos[2] < 15.0f && autopilot_get_mode() != AUTOPILOT_MANUAL_FLIGHT_MODE) ||
 	    autopilot_get_mode() == AUTOPILOT_MOTOR_LOCKED_MODE) {

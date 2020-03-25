@@ -252,6 +252,7 @@ void rc_mode_change_handler_pid(radio_t *rc)
 
 	//if mode switched to auto-flight
 	if(rc->auto_flight == true && auto_flight_mode_last != true) {
+		autopilot_set_mode(AUTOPILOT_HOVERING_MODE);
 		/* set position setpoint to current position (enu) */
 		autopilot.wp_now.pos[0] = optitrack.pos[0];
 		autopilot.wp_now.pos[1] = optitrack.pos[1];
@@ -266,6 +267,8 @@ void rc_mode_change_handler_pid(radio_t *rc)
 	}
 
 	if(rc->auto_flight == false) {
+		autopilot_set_mode(AUTOPILOT_MANUAL_FLIGHT_MODE);
+		autopilot_mission_reset();
 		autopilot.wp_now.pos[0] = 0.0f;
 		autopilot.wp_now.pos[1] = 0.0f;
 		autopilot.wp_now.pos[2] = 0.0f;
@@ -337,9 +340,9 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desire
 	}
 
 	bool halt_motor;
-	if((rc->throttle < 10.0f && autopilot.mode == AUTOPILOT_MANUAL_FLIGHT_MODE) ||
-	    (autopilot.wp_now.pos[2] < 15.0f && autopilot.mode == AUTOPILOT_TAKEOFF_MODE) ||
-	    autopilot.mode == AUTOPILOT_MOTOR_LOCKED_MODE) {
+	if((rc->throttle < 10.0f && autopilot_get_mode() == AUTOPILOT_MANUAL_FLIGHT_MODE) ||
+	    (autopilot.wp_now.pos[2] < 15.0f && autopilot_get_mode() != AUTOPILOT_MANUAL_FLIGHT_MODE) ||
+	    autopilot_get_mode() == AUTOPILOT_MOTOR_LOCKED_MODE) {
 		halt_motor = true;
 	} else {
 		halt_motor = false;
@@ -357,7 +360,11 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desire
 			motor_halt();
 		}
 	} else {
-		autopilot.mode = AUTOPILOT_MANUAL_FLIGHT_MODE;
+		if(rc->auto_flight == true) {
+			autopilot_set_mode(AUTOPILOT_HOVERING_MODE);
+		} else {
+			autopilot_set_mode(AUTOPILOT_MANUAL_FLIGHT_MODE);
+		}
 		led_on(LED_B);
 		led_off(LED_R);
 		set_yaw_pd_setpoint(&pid_yaw, ahrs->attitude.yaw);
