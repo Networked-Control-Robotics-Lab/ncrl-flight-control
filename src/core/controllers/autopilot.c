@@ -62,6 +62,21 @@ static bool autopilot_test_point_in_rectangular_fence(float p[3])
 	}
 }
 
+void autopilot_set_mode(int new_mode)
+{
+	autopilot_ptr->mode = new_mode;
+}
+
+int autopilot_get_mode(void)
+{
+	return autopilot_ptr->mode;
+}
+
+void autopilot_mission_reset(void)
+{
+	autopilot_ptr->curr_wp = 0;
+}
+
 int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec, float radius)
 {
 	if(autopilot_ptr->wp_num <= WAYPOINT_NUM_MAX) {
