@@ -4,6 +4,7 @@
 #include "stm32f4xx.h"
 #include "uart.h"
 #include "quadshell.h"
+#include "delay.h"
 
 void shell_reset_struct(struct shell_struct *shell);
 
@@ -115,8 +116,8 @@ static void shell_refresh_line(struct shell_struct *shell)
 static void shell_cursor_shift_one_left(struct shell_struct *shell)
 {
 	if(shell->cursor_pos > 0) {
-		shell_puts("\033[1D");
 		shell->cursor_pos--;
+		shell_refresh_line(shell);
 	}
 }
 
@@ -124,7 +125,7 @@ static void shell_cursor_shift_one_right(struct shell_struct *shell)
 {
 	if(shell->cursor_pos < shell->char_cnt) {
 		shell->cursor_pos++;
-		shell_puts("\033[1C");
+		shell_refresh_line(shell);
 	}
 }
 
@@ -342,12 +343,14 @@ void shell_cli(struct shell_struct *shell)
 			break;
 		case SPACE:
 		default:
+		{
 			if(shell->char_cnt != (CMD_LEN_MAX - 1)) {
 				shell->read_history = false;
 				shell_insert_char(shell, c);
 				shell_refresh_line(shell);
 			}
 			break;
+		}
 		}
 	}
 }
