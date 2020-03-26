@@ -465,7 +465,7 @@ void shell_cmd_acc_calib(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], in
 void shell_cmd_perf(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
 	char s[100];
-	shell_puts("performance analysis:\n\r");
+	shell_puts("performance analysis:\n\r---------------------\n\r");
 
 	float flight_control_trigger_time = perf_get_time_s(PERF_FLIGHT_CONTROL_TRIGGER_TIME);
 	float flight_loop_time = perf_get_time_s(PERF_FLIGHT_CONTROL_LOOP);
@@ -475,16 +475,17 @@ void shell_cmd_perf(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 	float controller_cpu_percentage = controller_time / flight_control_trigger_time * 100;
 	float flight_loop_cpu_percentage = flight_loop_time / flight_control_trigger_time * 100;
 
-	sprintf(s, "[%s] %.2fms (%.0f%%)\n\r", perf_get_name(PERF_AHRS),
+	sprintf(s, "[flight controller task] executing frequency: %.0fHz\n\r",
+	        1.0 / flight_control_trigger_time);
+	shell_puts(s);
+
+	sprintf(s, "* [AHRS] %.2fms (%.0f%%)\n\r",
 	        ahrs_time * 1000.0f, ahrs_cpu_percentage);
 	shell_puts(s);
-	sprintf(s, "[%s] %.2fms (%.0f%%)\n\r", perf_get_name(PERF_CONTROLLER),
+	sprintf(s, "* [controller] %.2fms (%.0f%%)\n\r",
 	        controller_time * 1000.0f, controller_cpu_percentage);
 	shell_puts(s);
-	sprintf(s, "[%s] %.2fms (%.0f%%)\n\r", perf_get_name(PERF_FLIGHT_CONTROL_LOOP),
+	sprintf(s, "* [total] %.2fms (%.0f%%)\n\r",
 	        flight_loop_time * 1000.0f, flight_loop_cpu_percentage);
-	shell_puts(s);
-	sprintf(s, "[%s] %.2fms (%.0fHz)\n\r", perf_get_name(PERF_FLIGHT_CONTROL_TRIGGER_TIME),
-	        flight_control_trigger_time * 1000.0f, 1.0 / flight_control_trigger_time);
 	shell_puts(s);
 }
