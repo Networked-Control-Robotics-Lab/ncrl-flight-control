@@ -88,13 +88,13 @@ SRC+=./common/delay.c \
 	./common/matrix.c \
 	./common/se3_math.c \
 
-SRC+=./driver/periph/led.c \
-	./driver/periph/uart.c \
+SRC+=./driver/periph/uart.c \
 	./driver/periph/spi.c \
 	./driver/periph/pwm.c \
 	./driver/periph/timer.c \
 	./driver/periph/isr.c \
 	./driver/periph/exti.c \
+	./driver/periph/gpio.c \
 	./driver/device/mpu6500.c \
 	./driver/device/ms5611.c \
 	./driver/device/sbus_receiver.c \

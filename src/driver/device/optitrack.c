@@ -4,7 +4,7 @@
 #include <string.h>
 #include "stm32f4xx_conf.h"
 #include "uart.h"
-#include "led.h"
+#include "gpio.h"
 #include "optitrack.h"
 #include "sys_time.h"
 #include "lpf.h"

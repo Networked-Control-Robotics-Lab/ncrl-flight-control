@@ -342,8 +342,7 @@ void shell_cli(struct shell_struct *shell)
 			}
 			break;
 		case SPACE:
-		default:
-		{
+		default: {
 			if(shell->char_cnt != (CMD_LEN_MAX - 1)) {
 				shell->read_history = false;
 				shell_insert_char(shell, c);

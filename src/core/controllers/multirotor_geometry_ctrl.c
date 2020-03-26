@@ -2,7 +2,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
-#include "led.h"
+#include "gpio.h"
 #include "sbus_receiver.h"
 #include "optitrack.h"
 #include "ahrs.h"

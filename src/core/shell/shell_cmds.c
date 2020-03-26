@@ -8,6 +8,7 @@
 #include "quadshell.h"
 #include "autopilot.h"
 #include "perf.h"
+#include "perf_list.h"
 
 static bool parse_float_from_str(char *str, float *value)
 {
@@ -463,16 +464,27 @@ void shell_cmd_acc_calib(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], in
 
 void shell_cmd_perf(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
-	float exec_time_s;
-	float exec_freq_hz;
-
 	char s[100];
-	shell_puts("perf_list:\n\r");
-	int i;
-	for(i = 0; i < perf_get_list_size(); i++) {
-		exec_time_s = perf_get_time_s(i);
-		exec_freq_hz = 1.0f / (exec_time_s);
-		sprintf(s, "%s: %fms (%fHz)\n\r", perf_get_name(i), exec_time_s * 1000.0f, exec_freq_hz);
-		shell_puts(s);
-	}
+	shell_puts("performance analysis:\n\r");
+
+	float flight_control_trigger_time = perf_get_time_s(PERF_FLIGHT_CONTROL_TRIGGER_TIME);
+	float flight_loop_time = perf_get_time_s(PERF_FLIGHT_CONTROL_LOOP);
+	float ahrs_time = perf_get_time_s(PERF_AHRS);
+	float controller_time = perf_get_time_s(PERF_CONTROLLER);
+	float ahrs_cpu_percentage = ahrs_time / flight_control_trigger_time * 100;
+	float controller_cpu_percentage = controller_time / flight_control_trigger_time * 100;
+	float flight_loop_cpu_percentage = flight_loop_time / flight_control_trigger_time * 100;
+
+	sprintf(s, "[%s] %.2fms (%.0f%%)\n\r", perf_get_name(PERF_AHRS),
+	        ahrs_time * 1000.0f, ahrs_cpu_percentage);
+	shell_puts(s);
+	sprintf(s, "[%s] %.2fms (%.0f%%)\n\r", perf_get_name(PERF_CONTROLLER),
+	        controller_time * 1000.0f, controller_cpu_percentage);
+	shell_puts(s);
+	sprintf(s, "[%s] %.2fms (%.0f%%)\n\r", perf_get_name(PERF_FLIGHT_CONTROL_LOOP),
+	        flight_loop_time * 1000.0f, flight_loop_cpu_percentage);
+	shell_puts(s);
+	sprintf(s, "[%s] %.2fms (%.0fHz)\n\r", perf_get_name(PERF_FLIGHT_CONTROL_TRIGGER_TIME),
+	        flight_control_trigger_time * 1000.0f, 1.0 / flight_control_trigger_time);
+	shell_puts(s);
 }

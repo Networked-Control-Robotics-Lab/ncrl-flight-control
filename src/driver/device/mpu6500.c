@@ -5,7 +5,6 @@
 #include "stm32f4xx_conf.h"
 #include "delay.h"
 #include "uart.h"
-#include "led.h"
 #include "mpu6500.h"
 #include "lpf.h"
 #include "imu.h"

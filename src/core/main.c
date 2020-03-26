@@ -6,7 +6,7 @@
 #include "semphr.h"
 #include "freertos_config.h"
 #include "delay.h"
-#include "led.h"
+#include "gpio.h"
 #include "uart.h"
 #include "spi.h"
 #include "timer.h"
@@ -30,9 +30,10 @@
 extern SemaphoreHandle_t flight_ctl_semphr;
 
 perf_t perf_list[] = {
-	DEF_PERF(AHRS, "ahrs")
-	DEF_PERF(FLIGHT_CONTROLLER, "flight controller")
-	DEF_PERF(FLIGHT_CONTROL_TASK, "flight control task")
+	DEF_PERF(PERF_AHRS, "ahrs")
+	DEF_PERF(PERF_CONTROLLER, "controller")
+	DEF_PERF(PERF_FLIGHT_CONTROL_LOOP, "flight control loop")
+	DEF_PERF(PERF_FLIGHT_CONTROL_TRIGGER_TIME, "flight control trigger time")
 };
 
 int main(void)
@@ -48,6 +49,7 @@ int main(void)
 
 	/* driver initialization */
 	led_init();
+	ext_switch_init();
 	uart1_init(115200);
 	uart3_init(115200); //telem
 	uart4_init(100000); //s-bus

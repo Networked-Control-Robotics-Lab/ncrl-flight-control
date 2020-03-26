@@ -2,6 +2,7 @@
 #define __MATRIX_H__
 
 #include "arm_math.h"
+#include "gpio.h"
 
 #define MAT_ALLOC(mat, row, col) \
 	arm_matrix_instance_f32 mat; \

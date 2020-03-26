@@ -5,7 +5,7 @@
 #include "semphr.h"
 #include "delay.h"
 #include "bound.h"
-#include "led.h"
+#include "gpio.h"
 #include "uart.h"
 #include "pwm.h"
 #include "sbus_receiver.h"
@@ -98,29 +98,31 @@ void task_flight_ctrl(void *param)
 	float desired_yaw = 0.0f;
 
 	while(1) {
-		perf_start(FLIGHT_CONTROL_TASK);
+		perf_start(PERF_FLIGHT_CONTROL_TRIGGER_TIME);
 		while(xSemaphoreTake(flight_ctl_semphr, 9) == pdFALSE);
 
-		gpio_on(MOTOR7_FREQ_TEST);
+		//gpio_on(EXT_SW);
+		perf_start(PERF_FLIGHT_CONTROL_LOOP);
 
 		read_rc(&rc);
 		rc_yaw_setpoint_handler(&desired_yaw, -rc.yaw, 0.0025);
 
-		perf_start(AHRS);
+		perf_start(PERF_AHRS);
 		ahrs_estimate(&ahrs, imu.accel_lpf, imu.gyro_lpf);
-		perf_end(AHRS);
+		perf_end(PERF_AHRS);
 
-		perf_start(FLIGHT_CONTROLLER);
+		perf_start(PERF_CONTROLLER);
 #if (SELECT_CONTROLLER == QUADROTOR_USE_PID)
 		multirotor_pid_control(&imu, &ahrs, &rc, &desired_yaw);
 #elif (SELECT_CONTROLLER == QUADROTOR_USE_GEOMETRY)
 		multirotor_geometry_control(&imu, &ahrs, &rc, &desired_yaw);
 #endif
-		gpio_off(MOTOR7_FREQ_TEST);
+		perf_end(PERF_CONTROLLER);
 
-		perf_end(FLIGHT_CONTROLLER);
+		perf_end(PERF_FLIGHT_CONTROL_LOOP);
+		perf_end(PERF_FLIGHT_CONTROL_TRIGGER_TIME);
+		//gpio_off(EXT_SW);
 
-		perf_end(FLIGHT_CONTROL_TASK);
 		taskYIELD();
 	}
 }
