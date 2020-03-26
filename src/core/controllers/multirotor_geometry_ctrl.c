@@ -534,7 +534,6 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	}
 
 	if(rc->safety == false) {
-		autopilot_set_disarmed();
 		if(halt_motor == false) {
 			led_on(LED_B);
 			led_off(LED_R);
@@ -546,7 +545,6 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 			motor_halt();
 		}
 	} else {
-		autopilot_set_armed();
 		if(rc->auto_flight == true) {
 			autopilot_set_mode(AUTOPILOT_HOVERING_MODE);
 		} else {

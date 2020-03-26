@@ -29,7 +29,7 @@ void shell_cmd_help(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 	          "disarm\n\r"
 	          "takeoff\n\r"
 	          "land\n\r"
-	          "fly x y z\n\r"
+	          "fly\n\r"
 	          "mission\n\r"
 	          "radio\n\r"
 	          "radio_raw\n\r"
@@ -52,6 +52,7 @@ void shell_cmd_arm(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int para
 
 	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
 		autopilot_set_armed();
+		shell_puts("armed.\n\r");
 	} else {
 		shell_puts("abort.\n\r");
 	}
@@ -66,6 +67,7 @@ void shell_cmd_disarm(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int p
 
 	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
 		autopilot_set_disarmed();
+		shell_puts("disarmed.\n\r");
 	} else {
 		shell_puts("abort.\n\r");
 	}
@@ -127,9 +129,14 @@ void shell_cmd_fly(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int para
 	}
 	char s[300] = {'\0'};
 
+	if(param_cnt == 1) {
+		shell_puts("fly x y z\n\r"
+		           "fly x y\n\r");
+	}
 	if(param_cnt != 4 && param_cnt != 3) {
 		shell_puts("abort, bad arguments!\n\r"
-		           "fly_enu x y z\n\r");
+		           "fly x y z\n\r"
+		           "fly x y\n\r");
 		return;
 	}
 
@@ -137,13 +144,15 @@ void shell_cmd_fly(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int para
 
 	if (parse_float_from_str(param_list[1], &pos[0]) == false) {
 		shell_puts("abort, bad arguments!\n\r"
-		           "fly_enu x y z\n\r");
+		           "fly x y z\n\r"
+		           "fly x y\n\r");
 		return;
 	}
 
 	if (parse_float_from_str(param_list[2], &pos[1]) == false) {
 		shell_puts("abort, bad arguments!\n\r"
-		           "fly_enu x y z\n\r");
+		           "fly x y z\n\r"
+		           "fly x y\n\r");
 		return;
 	}
 
@@ -153,7 +162,8 @@ void shell_cmd_fly(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int para
 		change_z = true;
 		if (parse_float_from_str(param_list[3], &pos[2]) == false) {
 			shell_puts("abort, bad arguments!\n\r"
-			           "fly_enu x y z\n\r");
+			           "fly x y z\n\r"
+			           "fly x y\n\r");
 			return;
 		}
 
@@ -239,7 +249,7 @@ static void mission_add_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_L
 	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
 		int ret_val = autopilot_add_new_waypoint(pos, heading, stay_time_sec, radius);
 		if(ret_val == AUTOPILOT_SET_SUCCEED) {
-			shell_puts("successfully  added new waypoint.\n\r");
+			shell_puts("successfully added new waypoint.\n\r");
 		} else if(ret_val == AUTOPILOT_WP_LIST_FULL) {
 			shell_puts("failed, mission is executing!\n\r");
 		} else if(ret_val == AUTOPILOT_WP_OUT_OF_FENCE) {
@@ -267,7 +277,7 @@ static void mission_start_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM
 		if(ret_val == AUTOPILOT_SET_SUCCEED) {
 			shell_puts("successfully started the mission.\n\r");
 		} else if(ret_val == AUTOPILOT_WP_LIST_EMPYT) {
-			shell_puts("failed, waypoint list is full\n\r");
+			shell_puts("failed, waypoint list is empyt!\n\r");
 		} else if(ret_val == AUTOPILOT_MISSION_EXECUTING) {
 			shell_puts("failed, mission is executing!\n\r");
 		}
@@ -293,7 +303,7 @@ static void mission_loop_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_
 		if(ret_val == AUTOPILOT_SET_SUCCEED) {
 			shell_puts("successfully started the mission.\n\r");
 		} else if(ret_val == AUTOPILOT_WP_LIST_EMPYT) {
-			shell_puts("failed, waypoint list is full\n\r");
+			shell_puts("failed, waypoint list is empty!\n\r");
 		} else if(ret_val == AUTOPILOT_MISSION_EXECUTING) {
 			shell_puts("failed, mission is executing!\n\r");
 		}
