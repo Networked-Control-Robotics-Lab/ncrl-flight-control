@@ -4,6 +4,7 @@
 #include "sys_time.h"
 #include "autopilot.h"
 #include "uart.h"
+#include "delay.h"
 
 #define EARTH_RADIUS 6371 //[km]
 
@@ -95,7 +96,9 @@ void autopilot_mission_reset(void)
 
 int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec, float radius)
 {
-	if(autopilot_ptr->wp_num <= WAYPOINT_NUM_MAX) {
+	if(autopilot_test_point_in_rectangular_fence(pos) == false) {
+		return AUTOPILOT_WP_OUT_OF_FENCE;
+	} else if(autopilot_ptr->wp_num <= WAYPOINT_NUM_MAX) {
 		autopilot_ptr->wp_list[autopilot_ptr->wp_num].pos[0] = pos[0];
 		autopilot_ptr->wp_list[autopilot_ptr->wp_num].pos[1] = pos[1];
 		autopilot_ptr->wp_list[autopilot_ptr->wp_num].pos[2] = pos[2];
@@ -312,9 +315,15 @@ void debug_print_waypoint_status(void)
 
 	char s[200] = {'\0'};
 	int curr_wp_num = autopilot_ptr->curr_wp;
-	sprintf(s, "current waypoint = #%d, x=%.1f, y=%.1f, z=%.1f, heading=%.1f, stay_time=%.1f, radius=%.1f\n\r",
-	        curr_wp_num, autopilot_ptr->wp_list[curr_wp_num].pos[0], autopilot_ptr->wp_list[curr_wp_num].pos[1],
-	        autopilot_ptr->wp_list[curr_wp_num].pos[2], autopilot_ptr->wp_list[curr_wp_num].heading,
-	        autopilot_ptr->wp_list[curr_wp_num].halt_time_sec, autopilot_ptr->wp_list[curr_wp_num].touch_radius);
+	sprintf(s, "current waypoint = #%d, x=%.1fm, y=%.1fm, z=%.1fm,"
+	        " heading=%.1f, stay_time=%.1f, radius=%.1fm\n\r",
+	        curr_wp_num,
+	        autopilot_ptr->wp_list[curr_wp_num].pos[0] * 0.01,
+	        autopilot_ptr->wp_list[curr_wp_num].pos[1] * 0.01,
+	        autopilot_ptr->wp_list[curr_wp_num].pos[2] * 0.01,
+	        autopilot_ptr->wp_list[curr_wp_num].heading,
+	        autopilot_ptr->wp_list[curr_wp_num].halt_time_sec,
+	        autopilot_ptr->wp_list[curr_wp_num].touch_radius * 0.01);
 	uart3_puts(s, strlen(s));
+	freertos_task_delay(1);
 }

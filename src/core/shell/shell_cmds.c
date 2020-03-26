@@ -25,6 +25,7 @@ void shell_cmd_help(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 {
 	char *s = "supported commands:\n\r"
 	          "clear\n\r"
+	          "arm\n\r"
 	          "disarm\n\r"
 	          "takeoff\n\r"
 	          "land\n\r"
@@ -156,9 +157,10 @@ void shell_cmd_fly(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int para
 			return;
 		}
 
-		sprintf(s, "east-north-up waypoint (x, y, z) = (%f, %f, %f)\n\r", pos[0], pos[1], pos[2]);
+		sprintf(s, "east-north-up waypoint (x, y, z) = (%fm, %fm, %fm)\n\r",
+		        pos[0], pos[1], pos[2]);
 	} else if(param_cnt == 3) {
-		sprintf(s, "east-north-up waypoint (x, y) = (%f, %f)\n\r", pos[0], pos[1]);
+		sprintf(s, "east-north-up waypoint (x, y) = (%fm, %fm)\n\r", pos[0], pos[1]);
 	}
 	shell_puts(s);
 
@@ -168,8 +170,7 @@ void shell_cmd_fly(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int para
 	shell_cli(&shell);
 
 	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
-		/* convert from [m] to [cm] */
-
+		/* convert from to [cm] for controller */
 		pos[0] *= 100.0f;
 		pos[1] *= 100.0f;
 		pos[2] *= 100.0f;
@@ -218,16 +219,17 @@ static void mission_add_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_L
 		return;
 	}
 
-	//XXX
+	char s[200] = {'\0'};
+	sprintf(s, "new waypoint: x=%.1fm, y=%.1fm, z=%.1fm, heading=%.1f, "
+	        "stay_time=%.1f, radius=%.1fm\n\r",
+	        pos[0], pos[1], pos[2], heading, stay_time_sec, radius);
+	shell_puts(s);
+
+	//convert to [cm] for controller
 	pos[0] *= 100.0f;
 	pos[1] *= 100.0f;
 	pos[2] *= 100.0f;
 	radius *= 100.0f;
-
-	char s[200] = {'\0'};
-	sprintf(s, "new waypoint: x=%.1f, y=%.1f, z=%.1f, heading=%.1f, stay_time=%.1f, radius=%.1f\n\r",
-	        pos[0], pos[1], pos[2], heading, stay_time_sec, radius);
-	shell_puts(s);
 
 	char user_agree[CMD_LEN_MAX];
 	struct shell_struct shell;
@@ -240,6 +242,8 @@ static void mission_add_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_L
 			shell_puts("successfully  added new waypoint.\n\r");
 		} else if(ret_val == AUTOPILOT_WP_LIST_FULL) {
 			shell_puts("failed, mission is executing!\n\r");
+		} else if(ret_val == AUTOPILOT_WP_OUT_OF_FENCE) {
+			shell_puts("failed, waypoint out of geo-fence!\n\r");
 		}
 	} else {
 		shell_puts("abort.\n\r");
