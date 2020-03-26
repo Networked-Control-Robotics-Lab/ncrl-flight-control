@@ -29,6 +29,7 @@ void autopilot_init(autopilot_t *_autopilot)
 {
 	autopilot_ptr = _autopilot;
 	autopilot_ptr->mode = AUTOPILOT_MANUAL_FLIGHT_MODE;
+	autopilot_ptr->armed = false;
 	autopilot_ptr->landing_speed = 0.13;
 	autopilot_ptr->takeoff_speed = 0.08;
 	autopilot_ptr->takeoff_height = 100;          //[cm]
@@ -70,6 +71,21 @@ void autopilot_set_mode(int new_mode)
 int autopilot_get_mode(void)
 {
 	return autopilot_ptr->mode;
+}
+
+void autopilot_set_armed(void)
+{
+	autopilot_ptr->armed = true;
+}
+
+void autopilot_set_disarmed(void)
+{
+	autopilot_ptr->armed = false;
+}
+
+bool autopilot_get_is_armed(void)
+{
+	return autopilot_ptr->armed;
 }
 
 void autopilot_mission_reset(void)

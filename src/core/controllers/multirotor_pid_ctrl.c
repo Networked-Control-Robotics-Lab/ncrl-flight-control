@@ -349,6 +349,7 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desire
 	}
 
 	if(rc->safety == false) {
+		autopilot_set_disarmed();
 		if(halt_motor == false) {
 			led_on(LED_R);
 			led_off(LED_B);
@@ -360,6 +361,7 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desire
 			motor_halt();
 		}
 	} else {
+		autopilot_set_armed();
 		if(rc->auto_flight == true) {
 			autopilot_set_mode(AUTOPILOT_HOVERING_MODE);
 		} else {

@@ -42,19 +42,6 @@ void shell_cmd_clear(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int pa
 	shell_cls();
 }
 
-void shell_cmd_disarm(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
-{
-	char user_agree[CMD_LEN_MAX];
-	struct shell_struct shell;
-	shell_init_struct(&shell, "confirm disarm command [y/n]: ", user_agree);
-	shell_cli(&shell);
-
-	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
-	} else {
-		shell_puts("abort.\n\r");
-	}
-}
-
 void shell_cmd_arm(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
 	char user_agree[CMD_LEN_MAX];
@@ -63,6 +50,21 @@ void shell_cmd_arm(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int para
 	shell_cli(&shell);
 
 	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
+		autopilot_set_armed();
+	} else {
+		shell_puts("abort.\n\r");
+	}
+}
+
+void shell_cmd_disarm(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
+	char user_agree[CMD_LEN_MAX];
+	struct shell_struct shell;
+	shell_init_struct(&shell, "confirm disarm command [y/n]: ", user_agree);
+	shell_cli(&shell);
+
+	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
+		autopilot_set_disarmed();
 	} else {
 		shell_puts("abort.\n\r");
 	}
@@ -70,6 +72,11 @@ void shell_cmd_arm(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int para
 
 void shell_cmd_takeoff(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
+	if(autopilot_get_is_armed() == false) {
+		shell_puts("failed, uav not armed!\n\r");
+		return;
+	}
+
 	char user_agree[CMD_LEN_MAX];
 	struct shell_struct shell;
 	shell_init_struct(&shell, "confirm takeoff command [y/n]: ", user_agree);
@@ -80,7 +87,7 @@ void shell_cmd_takeoff(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int 
 		if(ret_val == AUTOPILOT_SET_SUCCEED) {
 			shell_puts("command accept.\n\r");
 		} else {
-			shell_puts("failed, uav had already takeoff\n\r");
+			shell_puts("failed, uav had already takeoff!\n\r");
 		}
 	} else {
 		shell_puts("abort.\n\r");
@@ -89,6 +96,11 @@ void shell_cmd_takeoff(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int 
 
 void shell_cmd_land(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
+	if(autopilot_get_is_armed() == false) {
+		shell_puts("failed, uav not armed!\n\r");
+		return;
+	}
+
 	char user_agree[CMD_LEN_MAX];
 	struct shell_struct shell;
 	shell_init_struct(&shell, "confirm landing command [y/n]: ", user_agree);
@@ -108,6 +120,10 @@ void shell_cmd_land(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 
 void shell_cmd_fly(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
+	if(autopilot_get_is_armed() == false) {
+		shell_puts("failed, uav not armed!\n\r");
+		return;
+	}
 	char s[300] = {'\0'};
 
 	if(param_cnt != 4 && param_cnt != 3) {
@@ -232,6 +248,11 @@ static void mission_add_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_L
 
 static void mission_start_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
 {
+	if(autopilot_get_is_armed() == false) {
+		shell_puts("failed, uav not armed!\n\r");
+		return;
+	}
+
 	char user_agree[CMD_LEN_MAX];
 	struct shell_struct shell;
 	shell_init_struct(&shell, "confirm mission start command [y/n]: ", user_agree);
@@ -253,6 +274,11 @@ static void mission_start_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM
 
 static void mission_loop_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
 {
+	if(autopilot_get_is_armed() == false) {
+		shell_puts("failed, uav not armed!\n\r");
+		return;
+	}
+
 	char user_agree[CMD_LEN_MAX];
 	struct shell_struct shell;
 	shell_init_struct(&shell, "confirm mission start command [y/n]: ", user_agree);
@@ -279,6 +305,11 @@ static void mission_list_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_
 
 static void mission_halt_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
 {
+	if(autopilot_get_is_armed() == false) {
+		shell_puts("failed, uav not armed!\n\r");
+		return;
+	}
+
 	char user_agree[CMD_LEN_MAX];
 	struct shell_struct shell;
 	shell_init_struct(&shell, "confirm mission halt command [y/n]: ", user_agree);
@@ -298,6 +329,11 @@ static void mission_halt_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_
 
 static void mission_resume_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
 {
+	if(autopilot_get_is_armed() == false) {
+		shell_puts("failed, uav not armed!\n\r");
+		return;
+	}
+
 	char user_agree[CMD_LEN_MAX];
 	struct shell_struct shell;
 	shell_init_struct(&shell, "confirm mission resume command [y/n]: ", user_agree);
