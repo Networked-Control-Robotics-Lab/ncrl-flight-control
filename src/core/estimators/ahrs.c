@@ -104,8 +104,7 @@ void ahrs_estimate(ahrs_t *ahrs, float *accel, float *gyro)
 #if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
 	ahrs_complementary_filter_estimate(ahrs->q, gravity, gyro_rad);
 #elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
-	madgwick_imu_ahrs(&madgwick_ahrs, gravity[0], gravity[1], gravity[2],
-	                  gyro_rad[0], gyro_rad[1], gyro_rad[2]);
+	madgwick_imu_ahrs(&madgwick_ahrs, gravity, gyro_rad);
 	quaternion_copy(ahrs->q, madgwick_ahrs.q);
 #endif
 
