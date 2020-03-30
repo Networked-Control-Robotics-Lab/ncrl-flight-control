@@ -106,10 +106,7 @@ void ahrs_estimate(ahrs_t *ahrs, float *accel, float *gyro)
 #elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
 	madgwick_imu_ahrs(&madgwick_ahrs, gravity[0], gravity[1], gravity[2],
 	                  gyro_rad[0], gyro_rad[1], gyro_rad[2]);
-	ahrs->q[0] = madgwick_ahrs.q[0];
-	ahrs->q[1] = madgwick_ahrs.q[1];
-	ahrs->q[2] = madgwick_ahrs.q[2];
-	ahrs->q[3] = madgwick_ahrs.q[3];
+	quaternion_copy(ahrs->q, madgwick_ahrs.q);
 #endif
 
 #if (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)

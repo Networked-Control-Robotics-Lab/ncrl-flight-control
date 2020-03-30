@@ -1,6 +1,14 @@
 #include "arm_math.h"
 #include "se3_math.h"
 
+void quaternion_copy(float *q_dest, float *q_src)
+{
+	q_dest[0] = q_src[0];
+	q_dest[1] = q_src[1];
+	q_dest[2] = q_src[2];
+	q_dest[3] = q_src[3];
+}
+
 void quaternion_mult(float *q1, float *q2, float *q_mult)
 {
 	q_mult[0] = q1[0]*q2[0] - q1[1]*q2[1] - q1[2]*q2[2] - q1[3]*q2[3];

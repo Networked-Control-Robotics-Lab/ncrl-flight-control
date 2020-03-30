@@ -1,6 +1,7 @@
 #ifndef __QUATERNION_H__
 #define __QUATERNION_H__
 
+void quaternion_copy(float *q_dest, float *q_src);
 void quaternion_mult(float *q1, float *q2, float *q_mult);
 void quaternion_conj(float *q, float *q_conj);
 void quat_normalize(float *q);
