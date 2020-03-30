@@ -10,8 +10,8 @@
 
 #define dt 0.0025 //0.0025s = 400Hz
 
-MAT_ALLOC(q_last, 4, 1);
-MAT_ALLOC(q_now, 4, 1);
+MAT_ALLOC(q_gyro, 4, 1);
+MAT_ALLOC(q, 4, 1);
 MAT_ALLOC(dq, 4, 1);
 MAT_ALLOC(w, 3, 1);
 MAT_ALLOC(f, 4, 3);
@@ -19,16 +19,16 @@ MAT_ALLOC(f, 4, 3);
 void complementary_ahrs_init(void)
 {
 	//initialize matrices
-	MAT_INIT(q_last, 4, 1);
-	MAT_INIT(q_now, 4, 1);
+	MAT_INIT(q_gyro, 4, 1);
+	MAT_INIT(q, 4, 1);
 	MAT_INIT(dq, 4, 1);
 	MAT_INIT(w, 3, 1);
 	MAT_INIT(f, 4, 3);
 
-	_mat_(q_last)[0] = 1.0f;
-	_mat_(q_last)[1] = 0.0f;
-	_mat_(q_last)[2] = 0.0f;
-	_mat_(q_last)[3] = 0.0f;
+	_mat_(q)[0] = 1.0f;
+	_mat_(q)[1] = 0.0f;
+	_mat_(q)[2] = 0.0f;
+	_mat_(q)[3] = 0.0f;
 }
 
 void convert_gravity_to_quat(float *a, float *q)
@@ -70,10 +70,10 @@ void ahrs_complementary_filter_estimate(float *q_out, float *accel, float *gyro)
 	 * by Roberto G. Valenti, Ivan Dryanovski and Jizhong Xiao */
 
 	/* construct system transition function f */
-	float half_q0_dt = 0.5f * _mat_(q_last)[0] * dt;
-	float half_q1_dt = 0.5f * _mat_(q_last)[1] * dt;
-	float half_q2_dt = 0.5f * _mat_(q_last)[2] * dt;
-	float half_q3_dt = 0.5f * _mat_(q_last)[3] * dt;
+	float half_q0_dt = 0.5f * _mat_(q)[0] * dt;
+	float half_q1_dt = 0.5f * _mat_(q)[1] * dt;
+	float half_q2_dt = 0.5f * _mat_(q)[2] * dt;
+	float half_q3_dt = 0.5f * _mat_(q)[3] * dt;
 	_mat_(f)[0] = -half_q1_dt;
 	_mat_(f)[1] = -half_q2_dt;
 	_mat_(f)[2] = -half_q3_dt;
@@ -94,8 +94,8 @@ void ahrs_complementary_filter_estimate(float *q_out, float *accel, float *gyro)
 
 	/* rate gyro integration */
 	MAT_MULT(&f, &w, &dq); //calculate dq = f * w
-	MAT_ADD(&q_last, &dq, &q_last);  //calculate x = x + dq
-	quat_normalize(&_mat_(q_last)[0]); //renormalization
+	MAT_ADD(&q, &dq, &q_gyro);  //calculate x = x + dq
+	quat_normalize(_mat_(q_gyro)); //renormalization
 
 	/* convert gravity vector to quaternion */
 	float q_gravity[4] = {0};
@@ -104,23 +104,17 @@ void ahrs_complementary_filter_estimate(float *q_out, float *accel, float *gyro)
 
 	/* fuse gyroscope and acceleromter using LERP algorithm */
 	float a = 0.995f;
-	_mat_(q_now)[0] = (_mat_(q_last)[0] * a) + (q_gravity[0]* (1.0 - a));
-	_mat_(q_now)[1] = (_mat_(q_last)[1] * a) + (q_gravity[1]* (1.0 - a));
-	_mat_(q_now)[2] = (_mat_(q_last)[2] * a) + (q_gravity[2]* (1.0 - a));
-	_mat_(q_now)[3] = (_mat_(q_last)[3] * a) + (q_gravity[3]* (1.0 - a));
+	_mat_(q)[0] = (_mat_(q_gyro)[0] * a) + (q_gravity[0]* (1.0 - a));
+	_mat_(q)[1] = (_mat_(q_gyro)[1] * a) + (q_gravity[1]* (1.0 - a));
+	_mat_(q)[2] = (_mat_(q_gyro)[2] * a) + (q_gravity[2]* (1.0 - a));
+	_mat_(q)[3] = (_mat_(q_gyro)[3] * a) + (q_gravity[3]* (1.0 - a));
 	//it is crucial to renormalize the quaternion since LERP don't maintain
 	//the unit length propertety of the quaternion
-	quat_normalize(_mat_(q_now));
+	quat_normalize(_mat_(q));
 
-	/* update state variables for rate gyro */
-	_mat_(q_last)[0] = _mat_(q_now)[0];
-	_mat_(q_last)[1] = _mat_(q_now)[1];
-	_mat_(q_last)[2] = _mat_(q_now)[2];
-	_mat_(q_last)[3] = _mat_(q_now)[3];
-
-	q_out[0] = _mat_(q_now)[0];
-	q_out[1] = _mat_(q_now)[1];
-	q_out[2] = _mat_(q_now)[2];
-	q_out[3] = _mat_(q_now)[3];
+	q_out[0] = _mat_(q)[0];
+	q_out[1] = _mat_(q)[1];
+	q_out[2] = _mat_(q)[2];
+	q_out[3] = _mat_(q)[3];
 }
 
