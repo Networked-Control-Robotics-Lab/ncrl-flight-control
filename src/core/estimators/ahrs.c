@@ -19,9 +19,9 @@ void euler_to_quat(euler_t *euler, float *q);
 
 extern optitrack_t optitrack;
 
-MAT_ALLOC(x_priori, 4, 1);
-MAT_ALLOC(x_posteriori, 4, 1);
-MAT_ALLOC(dx, 4, 1);
+MAT_ALLOC(q_last, 4, 1);
+MAT_ALLOC(q_now, 4, 1);
+MAT_ALLOC(dq, 4, 1);
 MAT_ALLOC(w, 3, 1);
 MAT_ALLOC(f, 4, 3);
 
@@ -30,16 +30,16 @@ madgwick_t madgwick_ahrs;
 void ahrs_init(float *init_accel)
 {
 	//initialize matrices
-	MAT_INIT(x_priori, 4, 1);
-	MAT_INIT(x_posteriori, 4, 1);
-	MAT_INIT(dx, 4, 1);
+	MAT_INIT(q_last, 4, 1);
+	MAT_INIT(q_now, 4, 1);
+	MAT_INIT(dq, 4, 1);
 	MAT_INIT(w, 3, 1);
 	MAT_INIT(f, 4, 3);
 
-	_mat_(x_priori)[0] = 1.0f;
-	_mat_(x_priori)[1] = 0.0f;
-	_mat_(x_priori)[2] = 0.0f;
-	_mat_(x_priori)[3] = 0.0f;
+	_mat_(q_last)[0] = 1.0f;
+	_mat_(q_last)[1] = 0.0f;
+	_mat_(q_last)[2] = 0.0f;
+	_mat_(q_last)[3] = 0.0f;
 
 	/* initialize madgwick filter */
 	madgwick_init(&madgwick_ahrs, 400, 0.3);
@@ -159,10 +159,10 @@ void ahrs_complementary_filter_estimate(float *accel, float *gyro)
 	 * by Roberto G. Valenti, Ivan Dryanovski and Jizhong Xiao */
 
 	/* construct system transition function f */
-	float half_q0_dt = 0.5f * _mat_(x_priori)[0] * dt;
-	float half_q1_dt = 0.5f * _mat_(x_priori)[1] * dt;
-	float half_q2_dt = 0.5f * _mat_(x_priori)[2] * dt;
-	float half_q3_dt = 0.5f * _mat_(x_priori)[3] * dt;
+	float half_q0_dt = 0.5f * _mat_(q_last)[0] * dt;
+	float half_q1_dt = 0.5f * _mat_(q_last)[1] * dt;
+	float half_q2_dt = 0.5f * _mat_(q_last)[2] * dt;
+	float half_q3_dt = 0.5f * _mat_(q_last)[3] * dt;
 	_mat_(f)[0] = -half_q1_dt;
 	_mat_(f)[1] = -half_q2_dt;
 	_mat_(f)[2] = -half_q3_dt;
@@ -182,9 +182,9 @@ void ahrs_complementary_filter_estimate(float *accel, float *gyro)
 	_mat_(w)[2] = gyro[2];
 
 	/* rate gyro integration */
-	MAT_MULT(&f, &w, &dx); //calculate dx = f * w
-	MAT_ADD(&x_priori, &dx, &x_priori);  //calculate x = x + dx
-	quat_normalize(&_mat_(x_priori)[0]); //renormalization
+	MAT_MULT(&f, &w, &dq); //calculate dq = f * w
+	MAT_ADD(&q_last, &dq, &q_last);  //calculate x = x + dq
+	quat_normalize(&_mat_(q_last)[0]); //renormalization
 
 	/* convert gravity vector to quaternion */
 	float q_gravity[4] = {0};
@@ -193,19 +193,19 @@ void ahrs_complementary_filter_estimate(float *accel, float *gyro)
 
 	/* fuse gyroscope and acceleromter using LERP algorithm */
 	float a = 0.995f;
-	_mat_(x_posteriori)[0] = (_mat_(x_priori)[0] * a) + (q_gravity[0]* (1.0 - a));
-	_mat_(x_posteriori)[1] = (_mat_(x_priori)[1] * a) + (q_gravity[1]* (1.0 - a));
-	_mat_(x_posteriori)[2] = (_mat_(x_priori)[2] * a) + (q_gravity[2]* (1.0 - a));
-	_mat_(x_posteriori)[3] = (_mat_(x_priori)[3] * a) + (q_gravity[3]* (1.0 - a));
+	_mat_(q_now)[0] = (_mat_(q_last)[0] * a) + (q_gravity[0]* (1.0 - a));
+	_mat_(q_now)[1] = (_mat_(q_last)[1] * a) + (q_gravity[1]* (1.0 - a));
+	_mat_(q_now)[2] = (_mat_(q_last)[2] * a) + (q_gravity[2]* (1.0 - a));
+	_mat_(q_now)[3] = (_mat_(q_last)[3] * a) + (q_gravity[3]* (1.0 - a));
 	//it is crucial to renormalize the quaternion since LERP don't maintain
 	//the unit length propertety of the quaternion
-	quat_normalize(_mat_(x_posteriori));
+	quat_normalize(_mat_(q_now));
 
 	/* update state variables for rate gyro */
-	_mat_(x_priori)[0] = _mat_(x_posteriori)[0];
-	_mat_(x_priori)[1] = _mat_(x_posteriori)[1];
-	_mat_(x_priori)[2] = _mat_(x_posteriori)[2];
-	_mat_(x_priori)[3] = _mat_(x_posteriori)[3];
+	_mat_(q_last)[0] = _mat_(q_now)[0];
+	_mat_(q_last)[1] = _mat_(q_now)[1];
+	_mat_(q_last)[2] = _mat_(q_now)[2];
+	_mat_(q_last)[3] = _mat_(q_now)[3];
 }
 
 void reset_quaternion_yaw_angle(float *q)
@@ -249,25 +249,25 @@ void ahrs_estimate(ahrs_t *ahrs, float *accel, float *gyro)
 	/* note that acceleromter senses the negative gravity acceleration (normal force) */
 	madgwick_imu_ahrs(&madgwick_ahrs, gravity[0], gravity[1], gravity[2],
 	                  gyro_rad[0], gyro_rad[1], gyro_rad[2]);
-	_mat_(x_posteriori)[0] = madgwick_ahrs.q[0];
-	_mat_(x_posteriori)[1] = madgwick_ahrs.q[1];
-	_mat_(x_posteriori)[2] = madgwick_ahrs.q[2];
-	_mat_(x_posteriori)[3] = madgwick_ahrs.q[3];
+	_mat_(q_now)[0] = madgwick_ahrs.q[0];
+	_mat_(q_now)[1] = madgwick_ahrs.q[1];
+	_mat_(q_now)[2] = madgwick_ahrs.q[2];
+	_mat_(q_now)[3] = madgwick_ahrs.q[3];
 #endif
 
 #if (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
-	reset_quaternion_yaw_angle(_mat_(x_posteriori));
-	align_ahrs_with_optitrack_yaw(_mat_(x_posteriori));
+	reset_quaternion_yaw_angle(_mat_(q_now));
+	align_ahrs_with_optitrack_yaw(_mat_(q_now));
 #endif
 
 	euler_t euler;
-	quat_to_euler(&_mat_(x_posteriori)[0], &euler);
+	quat_to_euler(&_mat_(q_now)[0], &euler);
 	ahrs->attitude.roll = rad_to_deg(euler.roll);
 	ahrs->attitude.pitch = rad_to_deg(euler.pitch);
 	ahrs->attitude.yaw = rad_to_deg(euler.yaw);
 
-	ahrs->q[0] = _mat_(x_posteriori)[0];
-	ahrs->q[1] = _mat_(x_posteriori)[1];
-	ahrs->q[2] = _mat_(x_posteriori)[2];
-	ahrs->q[3] = _mat_(x_posteriori)[3];
+	ahrs->q[0] = _mat_(q_now)[0];
+	ahrs->q[1] = _mat_(q_now)[1];
+	ahrs->q[2] = _mat_(q_now)[2];
+	ahrs->q[3] = _mat_(q_now)[3];
 }
