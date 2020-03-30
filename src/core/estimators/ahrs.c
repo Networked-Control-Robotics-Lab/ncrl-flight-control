@@ -25,7 +25,7 @@ void ahrs_init(void)
 	madgwick_init(&madgwick_ahrs, 400, 0.3);
 }
 
-void ahrs_gyro_integration(float *q_out, float *q_in, float *gyro, float time)
+void ahrs_gyro_integration(float *q, float *gyro, float time)
 {
 	float w[4];
 	w[0] = 0.0f;
@@ -34,13 +34,13 @@ void ahrs_gyro_integration(float *q_out, float *q_in, float *gyro, float time)
 	w[3] = gyro[3];
 
 	float q_dot[4];
-	quaternion_mult(q_in, w, q_dot);
+	quaternion_mult(q, w, q_dot);
 
-	q_out[0] = q_in[0] + q_dot[0] * 0.5 * time;
-	q_out[1] = q_in[1] + q_dot[1] * 0.5 * time;
-	q_out[2] = q_in[2] + q_dot[2] * 0.5 * time;
-	q_out[3] = q_in[3] + q_dot[3] * 0.5 * time;
-	quat_normalize(q_out);
+	q[0] += q_dot[0] * 0.5 * time;
+	q[1] += q_dot[1] * 0.5 * time;
+	q[2] += q_dot[2] * 0.5 * time;
+	q[3] += q_dot[3] * 0.5 * time;
+	quat_normalize(q);
 }
 
 void align_ahrs_with_optitrack_yaw(float *q_ahrs)
