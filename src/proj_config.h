@@ -21,6 +21,9 @@
 #define AHRS_MADGWICK_FILTER 1
 #define SELECT_AHRS AHRS_MADGWICK_FILTER
 
+/* use gyroscope estimate attitude only during free fall */
+#define AHRS_FREE_FALL_GYRO_INTEGRATION 0
+
 /* quadrotor parameters */
 #define QUADROTOR_USE_PID 0
 #define QUADROTOR_USE_GEOMETRY 1

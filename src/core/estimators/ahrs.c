@@ -13,6 +13,7 @@
 #include "proj_config.h"
 #include "se3_math.h"
 #include "quaternion.h"
+#include "free_fall.h"
 
 extern optitrack_t optitrack;
 
@@ -87,6 +88,25 @@ void reset_quaternion_yaw_angle(float *q)
 	quaternion_mult(q_negative_yaw, q_original, q);
 }
 
+void ahrs_selector(float *q, float *gravity, float *gyro_rad)
+{
+#if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
+	ahrs_complementary_filter_estimate(q, gravity, gyro_rad);
+#elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
+	madgwick_imu_ahrs(&madgwick_ahrs, gravity, gyro_rad);
+	quaternion_copy(q, madgwick_ahrs.q);
+#endif
+}
+
+void update_ahrs_from_gyro_integration(float *q_gyro)
+{
+#if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
+	ahrs_complementary_filter_set_quat(q_gyro);
+#elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
+	ahrs_madgwick_filter_set_quat(&madgwick_ahrs, q_gyro);
+#endif
+}
+
 void ahrs_estimate(ahrs_t *ahrs, float *accel, float *gyro)
 {
 	/* note that acceleromter senses the negative gravity acceleration (normal force)
@@ -101,11 +121,16 @@ void ahrs_estimate(ahrs_t *ahrs, float *accel, float *gyro)
 	gyro_rad[1] = deg_to_rad(gyro[1]);
 	gyro_rad[2] = deg_to_rad(gyro[2]);
 
-#if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
-	ahrs_complementary_filter_estimate(ahrs->q, gravity, gyro_rad);
-#elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
-	madgwick_imu_ahrs(&madgwick_ahrs, gravity, gyro_rad);
-	quaternion_copy(ahrs->q, madgwick_ahrs.q);
+#if (AHRS_FREE_FALL_GYRO_INTEGRATION != 0)
+	float g_norm;
+	if(free_fall_detect(gravity, &g_norm) == true) {
+		ahrs_gyro_integration(ahrs->q, gyro_rad, 0.0025);
+		update_ahrs_from_gyro_integration(ahrs->q);
+	} else {
+		ahrs_selector(ahrs->q, gravity, gyro_rad);
+	}
+#else
+	ahrs_selector(ahrs->q, gravity, gyro_rad);
 #endif
 
 #if (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
