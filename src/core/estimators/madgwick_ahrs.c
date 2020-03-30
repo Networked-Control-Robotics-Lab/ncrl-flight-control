@@ -1,7 +1,8 @@
 #include "madgwick_ahrs.h"
 #include "arm_math.h"
+#include "quaternion.h"
 
-void madgwick_init(madgwick_t* madgwick, float sample_rate, float beta)
+void madgwick_init(madgwick_t *madgwick, float sample_rate, float beta)
 {
 	madgwick->beta = beta;
 	madgwick->dt = 1.0f / sample_rate;
@@ -11,7 +12,12 @@ void madgwick_init(madgwick_t* madgwick, float sample_rate, float beta)
 	madgwick->q[3] = 0.0f;
 }
 
-void madgwick_imu_ahrs(madgwick_t* madgwick, float *accel, float *gyro)
+void ahrs_madgwick_filter_set_quat(madgwick_t* madgwick, float *q)
+{
+	quaternion_copy(madgwick->q, q);
+}
+
+void madgwick_imu_ahrs(madgwick_t *madgwick, float *accel, float *gyro)
 {
 	float q0_dot = 0.5f * (-madgwick->q[1] * gyro[0] - madgwick->q[2] * gyro[1] - madgwick->q[3] * gyro[2]);
 	float q1_dot = 0.5f * (madgwick->q[0] * gyro[0] + madgwick->q[2] * gyro[2] - madgwick->q[3] * gyro[1]);
@@ -73,7 +79,7 @@ void madgwick_imu_ahrs(madgwick_t* madgwick, float *accel, float *gyro)
 	madgwick->q[3] *= q_norm;
 }
 
-void madgwick_margs_ahrs(madgwick_t* madgwick, float *accel, float *gyro, float *mag)
+void madgwick_margs_ahrs(madgwick_t *madgwick, float *accel, float *gyro, float *mag)
 {
 	if((mag[0] == 0.0f) && (mag[1] == 0.0f) && (mag[2] == 0.0f)) {
 		madgwick_imu_ahrs(madgwick, accel, gyro);
