@@ -8,22 +8,23 @@
 #include "se3_math.h"
 #include "quaternion.h"
 
-#define dt 0.0025 //0.0025s = 400Hz
-
 MAT_ALLOC(q_gyro, 4, 1);
 MAT_ALLOC(q, 4, 1);
 MAT_ALLOC(dq, 4, 1);
 MAT_ALLOC(w, 3, 1);
 MAT_ALLOC(f, 4, 3);
 
-void complementary_ahrs_init(void)
+float comp_ahrs_dt = 0.0f;
+
+void complementary_ahrs_init(float ahrs_dt)
 {
-	//initialize matrices
 	MAT_INIT(q_gyro, 4, 1);
 	MAT_INIT(q, 4, 1);
 	MAT_INIT(dq, 4, 1);
 	MAT_INIT(w, 3, 1);
 	MAT_INIT(f, 4, 3);
+
+	comp_ahrs_dt = ahrs_dt;
 
 	_mat_(q)[0] = 1.0f;
 	_mat_(q)[1] = 0.0f;
@@ -76,10 +77,10 @@ void ahrs_complementary_filter_estimate(float *q_out, float *accel, float *gyro)
 	 * by Roberto G. Valenti, Ivan Dryanovski and Jizhong Xiao */
 
 	/* construct system transition function f */
-	float half_q0_dt = 0.5f * _mat_(q)[0] * dt;
-	float half_q1_dt = 0.5f * _mat_(q)[1] * dt;
-	float half_q2_dt = 0.5f * _mat_(q)[2] * dt;
-	float half_q3_dt = 0.5f * _mat_(q)[3] * dt;
+	float half_q0_dt = 0.5f * _mat_(q)[0] * comp_ahrs_dt;
+	float half_q1_dt = 0.5f * _mat_(q)[1] * comp_ahrs_dt;
+	float half_q2_dt = 0.5f * _mat_(q)[2] * comp_ahrs_dt;
+	float half_q3_dt = 0.5f * _mat_(q)[3] * comp_ahrs_dt;
 	_mat_(f)[0] = -half_q1_dt;
 	_mat_(f)[1] = -half_q2_dt;
 	_mat_(f)[2] = -half_q3_dt;
