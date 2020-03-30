@@ -1,14 +1,7 @@
 #ifndef __AHRS__
 #define __AHRS__
 
-#define deg_to_rad(angle) (angle * 0.01745329252)
-#define rad_to_deg(radian) (radian * 57.2957795056)
-
-typedef struct {
-	float roll;
-	float pitch;
-	float yaw;
-} euler_t;
+#include "se3_math.h"
 
 typedef struct {
 	euler_t attitude;
