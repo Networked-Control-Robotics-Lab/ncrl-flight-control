@@ -64,6 +64,12 @@ void convert_gravity_to_quat(float *a, float *q)
 	quat_normalize(q);
 }
 
+/* directly assign new quaternion to complementary filter */
+void ahrs_complementary_filter_set_quat(float *_q)
+{
+	quaternion_copy(_mat_(q), _q);
+}
+
 void ahrs_complementary_filter_estimate(float *q_out, float *accel, float *gyro)
 {
 	/* check the paper: Keeping a Good Attitude: A Quaternion-Based Orientation Filter for IMUs and MA
