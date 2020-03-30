@@ -8,7 +8,7 @@ typedef struct {
 	float q[4];
 } ahrs_t;
 
-void ahrs_init(float *init_accel);
+void ahrs_init(void);
 void ahrs_estimate(ahrs_t *ahrs, float *_accel, float *_gyro);
 
 #endif

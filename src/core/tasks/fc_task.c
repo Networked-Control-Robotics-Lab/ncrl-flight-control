@@ -84,7 +84,7 @@ void task_flight_ctrl(void *param)
 	ms5611_init();
 	motor_init();
 
-	ahrs_init(imu.accel_raw);
+	ahrs_init();
 
 	multirotor_pid_controller_init();
 	geometry_ctrl_init();
