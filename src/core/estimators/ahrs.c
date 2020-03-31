@@ -28,27 +28,46 @@ void ahrs_init(void)
 
 void ahrs_gyro_integration(float *q, float *gyro, float time)
 {
-	/* accurate method of quaternion integration */
-	float q_last[4];
-	quaternion_copy(q_last, q);
+#if 0
+	float w[4];
+	w[0] = 0.0f;
+	w[1] = gyro[0];
+	w[2] = gyro[1];
+	w[3] = gyro[2];
+	
+	float q_dot[4];
+	quaternion_mult(q, w, q_dot);
+	q[0] += q_dot[0] * 0.5 * time;
+	q[1] += q_dot[1] * 0.5 * time;
+	q[2] += q_dot[2] * 0.5 * time;
+	q[3] += q_dot[3] * 0.5 * time;
+#else
+	float w[3];
+	w[0] = gyro[0] * time;
+	w[1] = gyro[1] * time;
+	w[2] = gyro[2] * time;
 
-	float half_time = 0.5f * time;
+	float w_norm; 
+	arm_sqrt_f32((w[0]*w[0]) + (w[1]*w[1]) + (w[2]*w[2]), &w_norm);
 
-	float w_norm;
-	arm_sqrt_f32(gyro[0]*gyro[0] + gyro[1]*gyro[1] + gyro[2]*gyro[2], &w_norm);
+	/* reciprocal of w_norm is unstable when w_norm is ~0 */
+	if(w_norm > 1.0e-12) {
+		float q_last[4];
+		quaternion_copy(q_last, q);
 
-	float w_norm_half_time = w_norm * half_time;
-	float half_recip_w_norm = 0.5f / w_norm;
+		float half_w_norm = 0.5f * w_norm;
+		float recip_w_norm = 1.0f / w_norm;
 
-	float q_rot[4];
+		float q_rot[4];
+		q_rot[0] = arm_cos_f32(half_w_norm);
+		q_rot[1] = arm_sin_f32(half_w_norm) * w[0] * recip_w_norm;
+		q_rot[2] = arm_sin_f32(half_w_norm) * w[1] * recip_w_norm;
+		q_rot[3] = arm_sin_f32(half_w_norm) * w[2] * recip_w_norm;
 
-	q_rot[0] = arm_cos_f32(w_norm) * 0.5f;
-	q_rot[1] = arm_sin_f32(w_norm) * gyro[0] * half_recip_w_norm;
-	q_rot[2] = arm_sin_f32(w_norm) * gyro[1] * half_recip_w_norm;
-	q_rot[3] = arm_sin_f32(w_norm) * gyro[2] * half_recip_w_norm;
-
-	quaternion_mult(q_last, q_rot, q);
-	quat_normalize(q);
+		quaternion_mult(q_last, q_rot, q);
+		quat_normalize(q);
+	}
+#endif
 }
 
 void align_ahrs_with_optitrack_yaw(float *q_ahrs)
@@ -128,17 +147,8 @@ void ahrs_estimate(ahrs_t *ahrs, float *accel, float *gyro)
 	gyro_rad[1] = deg_to_rad(gyro[1]);
 	gyro_rad[2] = deg_to_rad(gyro[2]);
 
-#if (AHRS_GYRO_ONLY_IF_FREE_FALL != 0)
-	float g_norm;
-	if(free_fall_detect(gravity, &g_norm) == true) {
-		ahrs_gyro_integration(ahrs->q, gyro_rad, 0.0025);
-		update_ahrs_from_gyro_integration(ahrs->q);
-	} else {
-		ahrs_selector(ahrs->q, gravity, gyro_rad);
-	}
-#else
-	ahrs_selector(ahrs->q, gravity, gyro_rad);
-#endif
+	ahrs_gyro_integration(ahrs->q, gyro_rad, 0.0025);
+	update_ahrs_from_gyro_integration(ahrs->q);
 
 #if (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
 	reset_quaternion_yaw_angle(ahrs->q);
