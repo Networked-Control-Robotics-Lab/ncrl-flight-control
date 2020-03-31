@@ -121,7 +121,7 @@ void ahrs_estimate(ahrs_t *ahrs, float *accel, float *gyro)
 	gyro_rad[1] = deg_to_rad(gyro[1]);
 	gyro_rad[2] = deg_to_rad(gyro[2]);
 
-#if (AHRS_FREE_FALL_GYRO_INTEGRATION != 0)
+#if (AHRS_GYRO_ONLY_IF_FREE_FALL != 0)
 	float g_norm;
 	if(free_fall_detect(gravity, &g_norm) == true) {
 		ahrs_gyro_integration(ahrs->q, gyro_rad, 0.0025);
