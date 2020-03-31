@@ -30,9 +30,9 @@ void ahrs_gyro_integration(float *q, float *gyro, float time)
 {
 	float w[4];
 	w[0] = 0.0f;
-	w[1] = gyro[1];
-	w[2] = gyro[2];
-	w[3] = gyro[3];
+	w[1] = gyro[0];
+	w[2] = gyro[1];
+	w[3] = gyro[2];
 
 	float q_dot[4];
 	quaternion_mult(q, w, q_dot);
