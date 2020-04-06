@@ -34,7 +34,7 @@ void ahrs_gyro_integration(float *q, float *gyro, float time)
 	w[1] = gyro[0];
 	w[2] = gyro[1];
 	w[3] = gyro[2];
-	
+
 	float q_dot[4];
 	quaternion_mult(q, w, q_dot);
 	q[0] += q_dot[0] * 0.5 * time;
@@ -47,7 +47,7 @@ void ahrs_gyro_integration(float *q, float *gyro, float time)
 	w[1] = gyro[1] * time;
 	w[2] = gyro[2] * time;
 
-	float w_norm; 
+	float w_norm;
 	arm_sqrt_f32((w[0]*w[0]) + (w[1]*w[1]) + (w[2]*w[2]), &w_norm);
 
 	/* reciprocal of w_norm is unstable when w_norm is ~0 */
@@ -124,15 +124,6 @@ void ahrs_selector(float *q, float *gravity, float *gyro_rad)
 #endif
 }
 
-void update_ahrs_from_gyro_integration(float *q_gyro)
-{
-#if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
-	ahrs_complementary_filter_set_quat(q_gyro);
-#elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
-	ahrs_madgwick_filter_set_quat(&madgwick_ahrs, q_gyro);
-#endif
-}
-
 void ahrs_estimate(ahrs_t *ahrs, float *accel, float *gyro)
 {
 	/* note that acceleromter senses the negative gravity acceleration (normal force)
@@ -147,8 +138,12 @@ void ahrs_estimate(ahrs_t *ahrs, float *accel, float *gyro)
 	gyro_rad[1] = deg_to_rad(gyro[1]);
 	gyro_rad[2] = deg_to_rad(gyro[2]);
 
-	ahrs_gyro_integration(ahrs->q, gyro_rad, 0.0025);
-	update_ahrs_from_gyro_integration(ahrs->q);
+#if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
+	ahrs_complementary_filter_estimate(ahrs->q, gravity, gyro_rad);
+#elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
+	madgwick_imu_ahrs(&madgwick_ahrs, gravity, gyro_rad);
+	quaternion_copy(ahrs->q, madgwick_ahrs.q);
+#endif
 
 #if (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
 	reset_quaternion_yaw_angle(ahrs->q);
