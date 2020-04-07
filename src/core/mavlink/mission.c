@@ -26,6 +26,18 @@ static void mavlink_send_capability(void)
 	send_mavlink_msg_to_uart(&msg);
 }
 
+static void mav_cmd_long_takeoff(void)
+{
+}
+
+static void mav_cmd_long_land(void)
+{
+}
+
+static void mav_cmd_long_override_goto(mavlink_command_long_t *cmd_long)
+{
+}
+
 void mav_command_long(mavlink_message_t *received_msg)
 {
 	mavlink_command_long_t mav_command_long;
@@ -36,6 +48,15 @@ void mav_command_long(mavlink_message_t *received_msg)
 		mavlink_send_capability();
 		break;
 	case MAV_CMD_COMPONENT_ARM_DISARM:
+		break;
+	case MAV_CMD_NAV_TAKEOFF:
+		mav_cmd_long_takeoff();
+		break;
+	case MAV_CMD_NAV_LAND:
+		mav_cmd_long_land();
+		break;
+	case MAV_CMD_OVERRIDE_GOTO:
+		mav_cmd_long_override_goto(&mav_command_long);
 		break;
 	}
 }
@@ -49,22 +70,8 @@ void mav_mission_request_list(mavlink_message_t *received_msg)
 	send_mavlink_msg_to_uart(&msg);
 }
 
-void mav_set_position_target_local_ned(mavlink_message_t *received_msg)
+void mav_trajectory_representation_waypoints(mavlink_message_t *received_msg)
 {
-#if 0
-	mavlink_set_position_target_local_ned_t ned_target_cmd;
-	mavlink_msg_set_position_target_local_ned_decode(received_msg, &ned_target_cmd);
-
-	float pos_d[3], vel_d[3], accel_d[3], yaw;
-	pos_d[0] = ned_target_cmd.x;
-	pos_d[1] = ned_target_cmd.y;
-	pos_d[2] = ned_target_cmd.z;
-	vel_d[0] = ned_target_cmd.vx;
-	vel_d[1] = ned_target_cmd.vy;
-	vel_d[2] = ned_target_cmd.vz;
-	accel_d[0] = ned_target_cmd.afx;
-	accel_d[1] = ned_target_cmd.afy;
-	accel_d[2] = ned_target_cmd.afz;
-	yaw = ned_target_cmd.yaw;
-#endif
+	mavlink_trajectory_representation_waypoints_t traj_wp;
+	mavlink_msg_trajectory_representation_waypoints_decode(received_msg, &traj_wp);
 }
