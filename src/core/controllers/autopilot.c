@@ -182,6 +182,18 @@ int autopilot_waypoint_mission_start(bool loop_mission)
 	}
 }
 
+int autopilot_trajectory_following_start(void)
+{
+	/* trajectory following mode can only be triggered if uav is hovering at a
+	 * fixed point */
+	if(autopilot_ptr->mode == AUTOPILOT_HOVERING_MODE) {
+		autopilot_ptr->mode = AUTOPILOT_TRAJECTORY_FOLLOWING_MODE;
+		return AUTOPILOT_SET_SUCCEED;
+	} else {
+		return AUTOPILOT_NOT_IN_HOVERING_MODE;
+	}
+}
+
 int autopilot_trigger_auto_landing(void)
 {
 	if(autopilot_ptr->mode == AUTOPILOT_HOVERING_MODE) {

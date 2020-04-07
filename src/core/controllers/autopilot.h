@@ -32,7 +32,8 @@ enum {
 	AUTOPILOT_NO_EXECUTING_MISSION,
 	AUTOPILOT_WP_LIST_EMPYT,
 	AUTOPILOT_POSITION_NOT_FIXED,
-	AUTOPILOT_UAV_ALREADY_TAKEOFF
+	AUTOPILOT_UAV_ALREADY_TAKEOFF,
+	AUTOPILOT_NOT_IN_HOVERING_MODE
 } AUTOPILOT_SET_RETVAL;
 
 struct waypoint_t {
@@ -89,6 +90,7 @@ int autopilot_goto_waypoint_now(float pos[3], bool change_height);
 int autopilot_halt_waypoint_mission(void);
 int autopilot_resume_waypoint_mission(void);
 int autopilot_waypoint_mission_start(bool loop_mission);
+int autopilot_trajectory_following_start(void);
 int autopilot_trigger_auto_landing(void);
 int autopilot_trigger_auto_takeoff(void);
 void autopilot_waypoint_handler(void);
