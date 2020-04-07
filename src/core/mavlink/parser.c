@@ -5,6 +5,7 @@
 
 /* enumerate mavlink handler function */
 enum ENUM_MAV_CMDS {
+	ENUM_HANDLER_FUNC(mav_do_set_mode),
 	ENUM_HANDLER_FUNC(mav_trajectory_representation_waypoints),
 	ENUM_HANDLER_FUNC(mav_mission_request_list),
 	//ENUM_HANDLER_FUNC(mav_mission_count),
@@ -19,6 +20,7 @@ enum ENUM_MAV_CMDS {
 
 /* register mavlink msg id to the handler function */
 struct mavlink_parser_item cmd_list[] = {
+	MAV_CMD_DEF(mav_do_set_mode, 176),
 	MAV_CMD_DEF(mav_trajectory_representation_waypoints, 332),
 	MAV_CMD_DEF(mav_mission_request_list, 43),
 	//MAV_CMD_DEF(mav_mission_count, 44),

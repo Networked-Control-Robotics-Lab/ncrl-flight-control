@@ -75,3 +75,9 @@ void mav_trajectory_representation_waypoints(mavlink_message_t *received_msg)
 	mavlink_trajectory_representation_waypoints_t traj_wp;
 	mavlink_msg_trajectory_representation_waypoints_decode(received_msg, &traj_wp);
 }
+
+void mav_do_set_mode(mavlink_message_t *received_msg)
+{
+	mavlink_set_mode_t mavlink_mode;
+	mavlink_msg_set_mode_decode(received_msg, &mavlink_mode);
+}
