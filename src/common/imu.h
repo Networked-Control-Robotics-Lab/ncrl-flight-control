@@ -9,7 +9,7 @@ typedef struct {
 	float accel_raw[3];
 	float gyro_raw[3];
 	float mag_raw[3];
-	float temp;
+	float temp_raw;
 
 	float accel_lpf[3];
 	float gyro_lpf[3];

@@ -142,6 +142,8 @@ void send_imu_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_float(&imu.gyro_lpf[0], payload);
 	pack_debug_debug_message_float(&imu.gyro_lpf[1], payload);
 	pack_debug_debug_message_float(&imu.gyro_lpf[2], payload);
+	pack_debug_debug_message_float(&imu.temp_raw, payload);
+
 }
 
 void send_attitude_euler_debug_message(debug_msg_t *payload)

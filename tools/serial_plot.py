@@ -63,7 +63,7 @@ class serial_plotter_class:
 
     def set_figure(self, message_id):
         if(message_id == 0):
-        	plt.subplot(411)
+        	plt.subplot(511)
         	plt.ylabel('accel [m/s^2]')
         	plt.ylim([-30, 30])
         	self.create_curve('x (raw)', 'red')		
@@ -71,7 +71,7 @@ class serial_plotter_class:
         	self.create_curve('z (raw)', 'green')		
         	self.show_subplot()
 
-                plt.subplot(412)
+                plt.subplot(512)
         	plt.ylabel('accel [m/s^2]')
         	plt.ylim([-30, 30])
         	self.create_curve('x (lpf)', 'red')		
@@ -79,7 +79,7 @@ class serial_plotter_class:
         	self.create_curve('z (lpf)', 'green')		
         	self.show_subplot()
 
-        	plt.subplot(413)
+        	plt.subplot(513)
         	plt.ylabel('gyro [deg/s]')
         	plt.ylim([-450, 450])
         	self.create_curve('x (raw)', 'red')		
@@ -87,12 +87,18 @@ class serial_plotter_class:
         	self.create_curve('z (raw)', 'green')		
         	self.show_subplot()
 
-                plt.subplot(414)
+                plt.subplot(514)
         	plt.ylabel('gyro [deg/s]')
         	plt.ylim([-450, 450])
         	self.create_curve('x (lpf)', 'red')		
         	self.create_curve('y (lpf)', 'blue')		
         	self.create_curve('z (lpf)', 'green')		
+        	self.show_subplot()
+
+                plt.subplot(515)
+        	plt.ylabel('temperature')
+        	plt.ylim([-25, 100])
+        	self.create_curve('temperature', 'red')		
         	self.show_subplot()
         elif (message_id == 1):
                 plt.subplot(111)

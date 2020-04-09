@@ -140,6 +140,11 @@ void mpu6500_gyro_convert_to_scale(int16_t *gyro_unscaled, float *gyro_scaled)
 	gyro_scaled[2] = gyro_unscaled[2] * MPU6500_GYRO_SCALE;
 }
 
+void mpu6500_temp_convert_to_scale(int16_t *temp_unscaled, float *temp_scaled)
+{
+	*temp_scaled = *temp_unscaled * MPU6500T_85degC + 21.0f;
+}
+
 void mpu6500_int_handler(void)
 {
 	uint8_t buffer[14];
@@ -183,6 +188,7 @@ void mpu6500_int_handler(void)
 	/* sensor data unit conversion */
 	mpu6500_accel_convert_to_scale(mpu6500->accel_unscaled, mpu6500->accel_raw);
 	mpu6500_gyro_convert_to_scale(mpu6500->gyro_unscaled, mpu6500->gyro_raw);
+	mpu6500_temp_convert_to_scale(&mpu6500->temp_unscaled, &mpu6500->temp_raw);
 
 	/* low pass filtering for accelerometer, gyroscope do not require this process */
 	lpf(mpu6500->accel_raw[0], &(mpu6500->accel_lpf[0]), 0.03);
