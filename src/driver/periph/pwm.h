@@ -5,5 +5,6 @@
 
 void pwm_timer1_init(void);
 void pwm_timer4_init(void);
+void pwm_timer8_init(void);
 
 #endif
