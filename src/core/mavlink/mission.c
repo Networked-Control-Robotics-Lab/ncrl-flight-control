@@ -28,10 +28,12 @@ static void mavlink_send_capability(void)
 
 static void mav_cmd_long_takeoff(void)
 {
+	autopilot_trigger_auto_takeoff();
 }
 
 static void mav_cmd_long_land(void)
 {
+	autopilot_trigger_auto_landing();
 }
 
 static void mav_cmd_long_override_goto(mavlink_command_long_t *cmd_long)
