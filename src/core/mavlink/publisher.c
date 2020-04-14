@@ -3,6 +3,7 @@
 #include "uart.h"
 #include "ahrs.h"
 #include "sys_time.h"
+#include "optitrack.h"
 
 extern ahrs_t ahrs;
 
@@ -45,6 +46,22 @@ void send_mavlink_attitude(void)
 	send_mavlink_msg_to_uart(&msg);
 }
 
+void send_mavlink_attitude_quaternion(void)
+{
+	float roll_speed = 0.0f;
+	float pitch_speed = 0.0f;
+	float yaw_speed = 0.0f;
+	float *repr_offset_q = 0;
+
+	uint32_t curr_time_ms = (uint32_t)get_sys_time_ms();
+
+	mavlink_message_t msg;
+	mavlink_msg_attitude_quaternion_pack(1, 1, &msg, curr_time_ms,
+	                                     ahrs.q[0], ahrs.q[1], ahrs.q[2], ahrs.q[3],
+	                                     roll_speed, pitch_speed, yaw_speed, repr_offset_q);
+	send_mavlink_msg_to_uart(&msg);
+}
+
 void send_mavlink_gps(void)
 {
 	float latitude = 0.0f, longitude = 0.0f, altitude = 0.0f;
@@ -55,6 +72,28 @@ void send_mavlink_gps(void)
 	mavlink_message_t msg;
 	mavlink_msg_global_position_int_pack(1, 1, &msg, curr_time_ms, latitude, longitude, altitude, 0,
 	                                     gps_vel_x, gps_vel_y, altitude, heading);
+	send_mavlink_msg_to_uart(&msg);
+}
+
+void send_mavlink_local_position_ned(void)
+{
+	float pos[3];
+	float vel[3];
+	optitrack_read(pos, vel);
+
+	pos[0] *= 0.01f;
+	pos[1] *= 0.01f;
+	pos[2] *= 0.01f;
+	vel[0] *= 0.01f;
+	vel[1] *= 0.01f;
+	vel[2] *= 0.01f;
+
+	uint32_t curr_time_ms = (uint32_t)get_sys_time_ms();
+
+	mavlink_message_t msg;
+	mavlink_msg_local_position_ned_pack(1, 1, &msg, curr_time_ms,
+	                                    pos[0], pos[1], pos[2],
+	                                    vel[0], vel[1], vel[2]);
 	send_mavlink_msg_to_uart(&msg);
 }
 

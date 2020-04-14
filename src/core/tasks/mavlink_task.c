@@ -27,16 +27,22 @@ void mavlink_task(void *param)
 		if(prescaling_counter == 50) {
 			send_mavlink_heartbeat();
 			send_mavlink_system_status();
+#if (SELECT_LOCALIZATION == LOCALIZATION_USE_GPS_MAG)
 			send_mavlink_gps();
+#endif
 			prescaling_counter = 0;
 		}
 		prescaling_counter++;
 
 		/* send the following mavlink message with 50Hz */
-		send_mavlink_attitude();
+		send_mavlink_attitude_quaternion();
+#if (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
+		send_mavlink_local_position_ned();
+#endif
+
+		//send_mavlink_attitude();
 		//send_mavlink_current_waypoint();
 		//send_mavlink_reached_waypoint();
-
 
 		/* receive mavlink message */
 		if(uart3_getc(&c, 0) == true) {
