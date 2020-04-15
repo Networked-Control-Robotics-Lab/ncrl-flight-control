@@ -197,6 +197,12 @@ int autopilot_trajectory_following_start(void)
 
 int autopilot_trajectory_following_halt(void)
 {
+	return AUTOPILOT_SET_SUCCEED;
+}
+
+int autopilot_set_trajectory_following_waypoint(float pos[3], float vel[3], float yaw)
+{
+	return AUTOPILOT_SET_SUCCEED;
 }
 
 int autopilot_trigger_auto_landing(void)
