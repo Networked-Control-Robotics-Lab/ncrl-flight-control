@@ -164,6 +164,7 @@ int autopilot_resume_waypoint_mission(void)
 
 int autopilot_waypoint_mission_start(bool loop_mission)
 {
+	//FIXME: detect hovering mode instrad!
 	if(autopilot_ptr->mode == AUTOPILOT_FOLLOW_WAYPOINT_MODE ||
 	    autopilot_ptr->mode == AUTOPILOT_WAIT_NEXT_WAYPOINT_MODE) {
 		return AUTOPILOT_MISSION_EXECUTING;
@@ -192,6 +193,10 @@ int autopilot_trajectory_following_start(void)
 	} else {
 		return AUTOPILOT_NOT_IN_HOVERING_MODE;
 	}
+}
+
+int autopilot_trajectory_following_halt(void)
+{
 }
 
 int autopilot_trigger_auto_landing(void)
