@@ -40,6 +40,10 @@ static void mav_cmd_long_override_goto(mavlink_command_long_t *cmd_long)
 {
 }
 
+static void mav_cmd_long_guided_enable(mavlink_command_long_t *cmd_long)
+{
+}
+
 void mav_command_long(mavlink_message_t *received_msg)
 {
 	mavlink_command_long_t mav_command_long;
@@ -60,6 +64,8 @@ void mav_command_long(mavlink_message_t *received_msg)
 	case MAV_CMD_OVERRIDE_GOTO:
 		mav_cmd_long_override_goto(&mav_command_long);
 		break;
+	case MAV_CMD_NAV_GUIDED_ENABLE:
+		mav_cmd_long_guided_enable(&mav_command_long);
 	}
 }
 
