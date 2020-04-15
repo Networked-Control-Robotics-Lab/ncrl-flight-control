@@ -72,10 +72,10 @@ void mav_mission_request_list(mavlink_message_t *received_msg)
 	send_mavlink_msg_to_uart(&msg);
 }
 
-void mav_trajectory_representation_waypoints(mavlink_message_t *received_msg)
+void mav_position_target_local_ned(mavlink_message_t *received_msg)
 {
-	mavlink_trajectory_representation_waypoints_t traj_wp;
-	mavlink_msg_trajectory_representation_waypoints_decode(received_msg, &traj_wp);
+	mavlink_set_position_target_local_ned_t new_target;
+	mavlink_msg_set_position_target_local_ned_decode(received_msg, &new_target);
 }
 
 void mav_do_set_mode(mavlink_message_t *received_msg)
