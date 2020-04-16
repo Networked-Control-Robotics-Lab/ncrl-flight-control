@@ -79,7 +79,8 @@ void mav_mission_request_list(mavlink_message_t *received_msg)
 	mavlink_message_t msg;
 
 	uint16_t waypoint_cnt = 0;
-	mavlink_msg_mission_count_pack_chan(1, 1, MAVLINK_COMM_1, &msg, 255, 0, waypoint_cnt, MAV_MISSION_TYPE_MISSION);
+	mavlink_msg_mission_count_pack_chan(1, 1, MAVLINK_COMM_1, &msg, 255, 0,
+                                            waypoint_cnt, MAV_MISSION_TYPE_MISSION);
 	send_mavlink_msg_to_uart(&msg);
 }
 
