@@ -85,12 +85,20 @@ void mav_mission_request_list(mavlink_message_t *received_msg)
 
 void mav_position_target_local_ned(mavlink_message_t *received_msg)
 {
+	float pos[3];
+	float vel[3];
+	float yaw;
+
 	mavlink_set_position_target_local_ned_t new_target;
 	mavlink_msg_set_position_target_local_ned_decode(received_msg, &new_target);
-}
 
-void mav_do_set_mode(mavlink_message_t *received_msg)
-{
-	mavlink_set_mode_t mavlink_mode;
-	mavlink_msg_set_mode_decode(received_msg, &mavlink_mode);
+	pos[0] = new_target.x;
+	pos[1] = new_target.y;
+	pos[2] = new_target.z;
+	vel[0] = new_target.vx;
+	vel[1] = new_target.vy;
+	vel[2] = new_target.vz;
+	yaw = new_target.yaw;
+
+	autopilot_set_trajectory_following_waypoint(pos, vel, yaw);
 }

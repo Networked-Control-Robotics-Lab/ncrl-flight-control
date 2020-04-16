@@ -144,7 +144,8 @@ int autopilot_goto_waypoint_now(float pos[3], bool change_height)
 
 int autopilot_halt_waypoint_mission(void)
 {
-	if(autopilot_ptr->mode == AUTOPILOT_FOLLOW_WAYPOINT_MODE || autopilot_ptr->mode == AUTOPILOT_WAIT_NEXT_WAYPOINT_MODE) {
+	if(autopilot_ptr->mode == AUTOPILOT_FOLLOW_WAYPOINT_MODE ||
+	    autopilot_ptr->mode == AUTOPILOT_WAIT_NEXT_WAYPOINT_MODE) {
 		autopilot_ptr->halt_flag = true;
 		return AUTOPILOT_SET_SUCCEED;
 	} else {
@@ -164,10 +165,8 @@ int autopilot_resume_waypoint_mission(void)
 
 int autopilot_waypoint_mission_start(bool loop_mission)
 {
-	//FIXME: detect hovering mode instrad!
-	if(autopilot_ptr->mode == AUTOPILOT_FOLLOW_WAYPOINT_MODE ||
-	    autopilot_ptr->mode == AUTOPILOT_WAIT_NEXT_WAYPOINT_MODE) {
-		return AUTOPILOT_MISSION_EXECUTING;
+	if(autopilot_ptr->mode != AUTOPILOT_HOVERING_MODE) {
+		return AUTOPILOT_NOT_IN_HOVERING_MODE;
 	}
 
 	if(autopilot_ptr->wp_num >= 1) {
@@ -197,12 +196,26 @@ int autopilot_trajectory_following_start(void)
 
 int autopilot_trajectory_following_halt(void)
 {
-	return AUTOPILOT_SET_SUCCEED;
+	if(autopilot_ptr->mode == AUTOPILOT_TRAJECTORY_FOLLOWING_MODE) {
+		autopilot_ptr->mode = AUTOPILOT_HOVERING_MODE;
+		return AUTOPILOT_SET_SUCCEED;
+	} else {
+		return AUTOPILOT_NOT_IN_TRAJECTORY_MODE;
+	}
 }
 
 int autopilot_set_trajectory_following_waypoint(float pos[3], float vel[3], float yaw)
 {
-	return AUTOPILOT_SET_SUCCEED;
+	if(autopilot_ptr->mode == AUTOPILOT_TRAJECTORY_FOLLOWING_MODE) {
+		autopilot_ptr->wp_now.pos[0] = pos[0];
+		autopilot_ptr->wp_now.pos[1] = pos[1];
+		autopilot_ptr->wp_now.pos[2] = pos[2];
+		autopilot_ptr->trajectory_update_time = get_sys_time_s();
+		//TODO: update the setpoint of velocity and yaw
+		return AUTOPILOT_SET_SUCCEED;
+	} else {
+		return AUTOPILOT_NOT_IN_TRAJECTORY_MODE;
+	}
 }
 
 int autopilot_trigger_auto_landing(void)
@@ -243,9 +256,16 @@ void autopilot_waypoint_handler(void)
 
 	switch(autopilot_ptr->mode) {
 	case AUTOPILOT_MANUAL_FLIGHT_MODE:
-	case AUTOPILOT_TRAJECTORY_FOLLOWING_MODE:
 	case AUTOPILOT_HOVERING_MODE:
 		return;
+	case AUTOPILOT_TRAJECTORY_FOLLOWING_MODE:
+		/* hovering at current waypoint if receive no new trajectory waypoint */
+		if(get_sys_time_s() - autopilot_ptr->trajectory_update_time > 0.5f) {
+			autopilot_ptr->wp_now.vel[0] = 0.0f;
+			autopilot_ptr->wp_now.vel[1] = 0.0f;
+			autopilot_ptr->wp_now.vel[2] = 0.0f;
+		}
+		break;
 	case AUTOPILOT_LANDING_MODE: {
 		/* slowly change the height setpoint to indicate uav to the sky */
 		autopilot_ptr->wp_now.pos[2] -= autopilot_ptr->landing_speed;

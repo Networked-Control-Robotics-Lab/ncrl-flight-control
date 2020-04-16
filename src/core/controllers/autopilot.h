@@ -33,11 +33,13 @@ enum {
 	AUTOPILOT_WP_LIST_EMPYT,
 	AUTOPILOT_POSITION_NOT_FIXED,
 	AUTOPILOT_UAV_ALREADY_TAKEOFF,
-	AUTOPILOT_NOT_IN_HOVERING_MODE
+	AUTOPILOT_NOT_IN_HOVERING_MODE,
+	AUTOPILOT_NOT_IN_TRAJECTORY_MODE
 } AUTOPILOT_SET_RETVAL;
 
 struct waypoint_t {
 	float pos[3];        //[m]
+	float vel[3];        //[m/s]
 	float heading;       //[deg]
 	float halt_time_sec; //[s]
 	float touch_radius;  //[m]
@@ -69,6 +71,8 @@ typedef struct {
 	bool halt_flag;
 	bool loop_mission;
 	bool armed;
+
+	float trajectory_update_time;
 
 	struct waypoint_t wp_list[WAYPOINT_NUM_MAX]; //enu frame
 	int curr_wp;

@@ -279,8 +279,8 @@ static void mission_start_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM
 			shell_puts("successfully started the mission.\n\r");
 		} else if(ret_val == AUTOPILOT_WP_LIST_EMPYT) {
 			shell_puts("failed, waypoint list is empyt!\n\r");
-		} else if(ret_val == AUTOPILOT_MISSION_EXECUTING) {
-			shell_puts("failed, mission is executing!\n\r");
+		} else if(ret_val == AUTOPILOT_NOT_IN_HOVERING_MODE) {
+			shell_puts("failed, uav is not in hovering mode!\n\r");
 		}
 	} else {
 		shell_puts("abort.\n\r");
@@ -305,8 +305,8 @@ static void mission_loop_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_
 			shell_puts("successfully started the mission.\n\r");
 		} else if(ret_val == AUTOPILOT_WP_LIST_EMPYT) {
 			shell_puts("failed, waypoint list is empty!\n\r");
-		} else if(ret_val == AUTOPILOT_MISSION_EXECUTING) {
-			shell_puts("failed, mission is executing!\n\r");
+		} else if(ret_val == AUTOPILOT_NOT_IN_HOVERING_MODE) {
+			shell_puts("failed, uav is not in hovering mode!\n\r");
 		}
 	} else {
 		shell_puts("abort.\n\r");
