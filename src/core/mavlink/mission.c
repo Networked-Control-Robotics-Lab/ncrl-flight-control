@@ -80,7 +80,7 @@ void mav_mission_request_list(mavlink_message_t *received_msg)
 
 	uint16_t waypoint_cnt = 0;
 	mavlink_msg_mission_count_pack_chan(1, 1, MAVLINK_COMM_1, &msg, 255, 0,
-                                            waypoint_cnt, MAV_MISSION_TYPE_MISSION);
+	                                    waypoint_cnt, MAV_MISSION_TYPE_MISSION);
 	send_mavlink_msg_to_uart(&msg);
 }
 
@@ -102,4 +102,16 @@ void mav_position_target_local_ned(mavlink_message_t *received_msg)
 	yaw = new_target.yaw;
 
 	autopilot_set_trajectory_following_waypoint(pos, vel, yaw);
+}
+
+void mav_polynomial_trajectory_write(mavlink_message_t *received_msg)
+{
+}
+
+void mav_polynomial_trajectory_cmd(mavlink_message_t *received_msg)
+{
+}
+
+void mav_polynomial_trajectory_item(mavlink_message_t *received_msg)
+{
 }
