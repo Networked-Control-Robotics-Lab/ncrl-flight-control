@@ -2,11 +2,11 @@
 #include "../mavlink/parser.h"
 #include "../mavlink/mission.h"
 #include "../mavlink/param.h"
+#include "../mavlink/trajectory.h"
 
 /* enumerate mavlink handler function */
 enum ENUM_MAV_CMDS {
 	/* common mavlink messages */
-	ENUM_HANDLER_FUNC(mav_position_target_local_ned),
 	ENUM_HANDLER_FUNC(mav_mission_request_list),
 	//ENUM_HANDLER_FUNC(mav_mission_count),
 	//ENUM_HANDLER_FUNC(mav_mission_clear_all),
@@ -15,19 +15,16 @@ enum ENUM_MAV_CMDS {
 	ENUM_HANDLER_FUNC(mav_param_request_list),
 	//ENUM_HANDLER_FUNC(mav_param_request_read),
 	//ENUM_HANDLER_FUNC(mav_param_set),
-
 	/* extended mavlink messages */
 	ENUM_HANDLER_FUNC(mav_polynomial_trajectory_write),
 	ENUM_HANDLER_FUNC(mav_polynomial_trajectory_cmd),
 	ENUM_HANDLER_FUNC(mav_polynomial_trajectory_item),
-
 	MAV_CMD_CNT
 };
 
 /* register mavlink msg id to the handler function */
 struct mavlink_parser_item cmd_list[] = {
 	/* common mavlink messages */
-	MAV_CMD_DEF(mav_position_target_local_ned, 84),
 	MAV_CMD_DEF(mav_mission_request_list, 43),
 	//MAV_CMD_DEF(mav_mission_count, 44),
 	//MAV_CMD_DEF(mav_mission_clear_all, 45),
@@ -36,7 +33,6 @@ struct mavlink_parser_item cmd_list[] = {
 	MAV_CMD_DEF(mav_param_request_list, 21),
 	//MAV_CMD_DEF(mav_param_request_read, 20),
 	//MAV_CMD_DEF(mav_param_set, 23),
-
 	/* extended mavlink messages */
 	MAV_CMD_DEF(mav_polynomial_trajectory_write, 11000),
 	MAV_CMD_DEF(mav_polynomial_trajectory_cmd, 11001),

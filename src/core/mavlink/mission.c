@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "mavlink.h"
+#include "ncrl.h"
 #include "../mavlink/publisher.h"
 #include "autopilot.h"
 
@@ -84,42 +85,6 @@ void mav_mission_request_list(mavlink_message_t *received_msg)
 	send_mavlink_msg_to_uart(&msg);
 }
 
-void mav_position_target_local_ned(mavlink_message_t *received_msg)
-{
-	float pos[3];
-	float vel[3];
-	float yaw;
-
-	mavlink_set_position_target_local_ned_t new_target;
-	mavlink_msg_set_position_target_local_ned_decode(received_msg, &new_target);
-
-	pos[0] = new_target.x;
-	pos[1] = new_target.y;
-	pos[2] = new_target.z;
-	vel[0] = new_target.vx;
-	vel[1] = new_target.vy;
-	vel[2] = new_target.vz;
-	yaw = new_target.yaw;
-
-	autopilot_set_trajectory_following_waypoint(pos, vel, yaw);
-}
-
-void mav_polynomial_trajectory_write(mavlink_message_t *received_msg)
-{
-}
-
-void mav_polynomial_trajectory_cmd(mavlink_message_t *received_msg)
-{
-}
-
-void mav_polynomial_trajectory_item(mavlink_message_t *received_msg)
-{
-}
-
 void mission_waypoint_ack_handler(void)
-{
-}
-
-void polynomial_trajectory_ack_handler(void)
 {
 }

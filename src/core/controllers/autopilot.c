@@ -238,20 +238,6 @@ int autopilot_trajectory_following_halt(void)
 	}
 }
 
-int autopilot_set_trajectory_following_waypoint(float pos[3], float vel[3], float yaw)
-{
-	if(autopilot_ptr->mode == AUTOPILOT_TRAJECTORY_FOLLOWING_MODE) {
-		autopilot_ptr->wp_now.pos[0] = pos[0] * 100.0f; //TODO: unify the unit!
-		autopilot_ptr->wp_now.pos[1] = pos[1] * 100.0f;
-		autopilot_ptr->wp_now.pos[2] = pos[2] * 100.0f;
-		autopilot_ptr->trajectory_update_time = get_sys_time_s();
-		//TODO: update the setpoint of velocity and yaw
-		return AUTOPILOT_SET_SUCCEED;
-	} else {
-		return AUTOPILOT_NOT_IN_TRAJECTORY_MODE;
-	}
-}
-
 int autopilot_trigger_auto_landing(void)
 {
 	if(autopilot_ptr->mode == AUTOPILOT_HOVERING_MODE) {

@@ -82,6 +82,7 @@ SRC+=./core/main.c \
 	./core/mavlink/parser.c \
 	./core/mavlink/mission.c \
 	./core/mavlink/param.c \
+	./core/mavlink/trajectory.c \
 	./core/perf/perf.c
 
 SRC+=./common/delay.c \

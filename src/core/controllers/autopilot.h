@@ -123,7 +123,6 @@ int autopilot_resume_waypoint_mission(void);
 int autopilot_waypoint_mission_start(bool loop_mission);
 int autopilot_trajectory_following_start(void);
 int autopilot_trajectory_following_halt(void);
-int autopilot_set_trajectory_following_waypoint(float pos[3], float vel[3], float yaw);
 int autopilot_trigger_auto_landing(void);
 int autopilot_trigger_auto_takeoff(void);
 void autopilot_waypoint_handler(void);
