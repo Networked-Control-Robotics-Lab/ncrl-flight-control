@@ -19,7 +19,7 @@ void latitude_longitude_to_cartesian(float latitude, float longitude, float *x, 
 	//*z = EARTH_RADIUS * arm_sin_f32(latitude);
 }
 
-float calc_7th_polynomial(double *c, double t)
+float calc_7th_polynomial(float *c, float t)
 {
 	float t_powers[8];
 	t_powers[0] = 1;
@@ -49,6 +49,7 @@ void autopilot_init(autopilot_t *_autopilot)
 	autopilot_ptr->takeoff_speed = 0.08;
 	autopilot_ptr->takeoff_height = 100;          //[cm]
 	autopilot_ptr->landing_accept_height = 15.0f; //[cm]
+	autopilot_ptr->traj_update_time_last = 0.0f;
 }
 
 void autopilot_update_uav_info(float pos_enu[3], float vel_enu[3])
@@ -56,6 +57,19 @@ void autopilot_update_uav_info(float pos_enu[3], float vel_enu[3])
 	autopilot_ptr->uav_info.pos[0] = pos_enu[0];
 	autopilot_ptr->uav_info.pos[1] = pos_enu[1];
 	autopilot_ptr->uav_info.pos[2] = pos_enu[2];
+}
+
+void autopilot_assign_trajactory_waypoint(float time)
+{
+	int curr_traj = autopilot_ptr->curr_traj;
+	autopilot_ptr->wp_now.pos[0] = 100.0f * //TODO: unifiy the unit
+	                               calc_7th_polynomial(autopilot_ptr->trajectory_segments[curr_traj].x_poly_coeff, time);
+	autopilot_ptr->wp_now.pos[1] = 100.0f *
+	                               calc_7th_polynomial(autopilot_ptr->trajectory_segments[curr_traj].y_poly_coeff, time);
+	autopilot_ptr->wp_now.pos[2] = 0.6f;
+
+	//TODO: altitude fixed mode
+	//TODO: yaw motion planning
 }
 
 void autopilot_set_enu_rectangular_fence(float origin[3], float lx, float ly, float height)
@@ -198,9 +212,15 @@ int autopilot_waypoint_mission_start(bool loop_mission)
 
 int autopilot_trajectory_following_start(void)
 {
+	/* return error if trajectory list is empty */
+	if(autopilot_ptr->traj_num <= 0) {
+		return AUTOPILOT_TRAJ_LIST_EMPTY;
+	}
+
 	/* trajectory following mode can only be triggered if uav is hovering at a
 	 * fixed point */
 	if(autopilot_ptr->mode == AUTOPILOT_HOVERING_MODE) {
+		autopilot_ptr->traj_start_time = get_sys_time_s();
 		autopilot_ptr->mode = AUTOPILOT_TRAJECTORY_FOLLOWING_MODE;
 		return AUTOPILOT_SET_SUCCEED;
 	} else {
@@ -272,14 +292,39 @@ void autopilot_waypoint_handler(void)
 	case AUTOPILOT_MANUAL_FLIGHT_MODE:
 	case AUTOPILOT_HOVERING_MODE:
 		return;
-	case AUTOPILOT_TRAJECTORY_FOLLOWING_MODE:
-		/* hovering at current waypoint if receive no new trajectory waypoint */
-		if(get_sys_time_s() - autopilot_ptr->trajectory_update_time > 0.5f) {
-			autopilot_ptr->wp_now.vel[0] = 0.0f;
-			autopilot_ptr->wp_now.vel[1] = 0.0f;
-			autopilot_ptr->wp_now.vel[2] = 0.0f;
+	case AUTOPILOT_TRAJECTORY_FOLLOWING_MODE: {
+		/* converting trajectory polynomial to waypoint according to the update frequency*/
+		float current_time = get_sys_time_s();
+		if((current_time - autopilot_ptr->traj_update_time_last) < TRAJECTORY_WP_UPDATE_TIME) {
+			break;
+		} else {
+			autopilot_ptr->traj_update_time_last = current_time;
 		}
+
+		float elapsed_time = current_time - autopilot_ptr->traj_start_time;
+		if(elapsed_time >=
+		    autopilot_ptr->trajectory_segments[autopilot_ptr->curr_traj].flight_time) {
+			/* continue next trajectory if exist */
+			if(autopilot_ptr->curr_traj < (autopilot_ptr->traj_num - 1)) {
+				autopilot_ptr->curr_traj++;
+				autopilot_ptr->traj_start_time = current_time;
+			} else {
+				/* check if user ask to loop the mission */
+				if(autopilot_ptr->loop_mission == true) {
+					/* start trajectory mission again */
+					autopilot_ptr->curr_traj = 0;
+					autopilot_ptr->traj_start_time = get_sys_time_s();
+				} else {
+					/* end of the mission, do hovering */
+					autopilot_ptr->mode = AUTOPILOT_HOVERING_MODE;
+				}
+			}
+		}
+
+		autopilot_assign_trajactory_waypoint(elapsed_time); //update setpoint
+
 		break;
+	}
 	case AUTOPILOT_LANDING_MODE: {
 		/* slowly change the height setpoint to indicate uav to the sky */
 		autopilot_ptr->wp_now.pos[2] -= autopilot_ptr->landing_speed;
@@ -308,11 +353,11 @@ void autopilot_waypoint_handler(void)
 			} else {
 				/* check if user ask to loop the mission */
 				if(autopilot_ptr->loop_mission == true) {
-					/* start the mission again */
+					/* start waypointmission again */
 					autopilot_ptr->mode = AUTOPILOT_FOLLOW_WAYPOINT_MODE;
 					autopilot_ptr->curr_wp = 0;
 				} else {
-					/* end of the mission, hovering at the last one's position */
+					/* end of the mission, do hovering */
 					autopilot_ptr->mode = AUTOPILOT_HOVERING_MODE;
 				}
 			}

@@ -5,6 +5,9 @@
 
 #define WAYPOINT_NUM_MAX 50
 
+#define TRAJECTORY_WP_UPDATE_FREQ 100
+#define TRAJECTORY_WP_UPDATE_TIME (1.0f / TRAJECTORY_WP_UPDATE_FREQ)
+
 enum {
 	/* user manual flight mode */
 	AUTOPILOT_MANUAL_FLIGHT_MODE,
@@ -31,11 +34,27 @@ enum {
 	AUTOPILOT_MISSION_EXECUTING,
 	AUTOPILOT_NO_EXECUTING_MISSION,
 	AUTOPILOT_WP_LIST_EMPYT,
+	AUTOPILOT_TRAJ_LIST_EMPTY,
 	AUTOPILOT_POSITION_NOT_FIXED,
 	AUTOPILOT_UAV_ALREADY_TAKEOFF,
 	AUTOPILOT_NOT_IN_HOVERING_MODE,
 	AUTOPILOT_NOT_IN_TRAJECTORY_MODE
 } AUTOPILOT_SET_RETVAL;
+
+struct trajectory_segment_t
+{
+	float x_poly_coeff[8];
+	float y_poly_coeff[8];
+	float z_poly_coeff[8];
+
+	float vx_poly_coeff[8];
+	float vy_poly_coeff[8];
+	float vz_poly_coeff[8];
+
+	float yaw_poly_coeff[8];
+
+	float flight_time;
+};
 
 struct waypoint_t {
 	float pos[3];        //[m]
@@ -74,9 +93,17 @@ typedef struct {
 
 	float trajectory_update_time;
 
+	/* for waypoint following (representing setpoint with waypoints) */
 	struct waypoint_t wp_list[WAYPOINT_NUM_MAX]; //enu frame
 	int curr_wp;
 	int wp_num;
+
+	/* for trajectory following (representing setpoint with 7th ordered polynomials) */
+	struct trajectory_segment_t trajectory_segments[WAYPOINT_NUM_MAX];
+	int curr_traj;
+	int traj_num;
+	float traj_start_time;
+	float traj_update_time_last;
 } autopilot_t;
 
 void autopilot_init(autopilot_t *_autopilot);
