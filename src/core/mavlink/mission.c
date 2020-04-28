@@ -115,3 +115,11 @@ void mav_polynomial_trajectory_cmd(mavlink_message_t *received_msg)
 void mav_polynomial_trajectory_item(mavlink_message_t *received_msg)
 {
 }
+
+void mission_waypoint_ack_handler(void)
+{
+}
+
+void polynomial_trajectory_ack_handler(void)
+{
+}

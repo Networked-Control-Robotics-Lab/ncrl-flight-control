@@ -16,3 +16,7 @@ void mav_param_request_list(mavlink_message_t *received_msg)
 	                                  param_cnt, param_index);
 	send_mavlink_msg_to_uart(&msg);
 }
+
+void parameter_ack_handler(void)
+{
+}

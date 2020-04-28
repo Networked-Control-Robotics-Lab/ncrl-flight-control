@@ -5,6 +5,8 @@
 #include "mavlink.h"
 #include "../mavlink/publisher.h"
 #include "../mavlink/parser.h"
+#include "../mavlink/param.h"
+#include "../mavlink/mission.h"
 #include "delay.h"
 #include "uart.h"
 
@@ -55,6 +57,11 @@ void mavlink_task(void *param)
 			parse_mavlink_received_msg(&mavlink_recpt_msg);
 			received_mavlink_msg = 0;
 		}
+
+		/* microservice handlers */
+		parameter_ack_handler();
+		mission_waypoint_ack_handler();
+		polynomial_trajectory_ack_handler();
 
 		freertos_task_delay(delay_time_ms);
 	}
