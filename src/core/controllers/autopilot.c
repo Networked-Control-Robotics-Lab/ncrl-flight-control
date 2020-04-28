@@ -19,6 +19,20 @@ void latitude_longitude_to_cartesian(float latitude, float longitude, float *x, 
 	//*z = EARTH_RADIUS * arm_sin_f32(latitude);
 }
 
+float calc_7th_polynomial(double *c, double t)
+{
+	float t_powers[8];
+	t_powers[0] = 1;
+	float ret_poly = c[0] * t_powers[0];
+
+	for(int i = 1; i < 8; i++) {
+		t_powers[i] = t_powers[i - 1] * t;
+		ret_poly += c[i] * t_powers[i];
+	}
+
+	return ret_poly;
+}
+
 void assign_vector_3x1_eun_to_ned(float *ned, float *enu)
 {
 	ned[0] = enu[1];
