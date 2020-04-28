@@ -240,7 +240,7 @@ int autopilot_waypoint_mission_start(bool loop_mission)
 	}
 }
 
-int autopilot_trajectory_following_start(void)
+int autopilot_trajectory_following_start(bool loop_trajectory)
 {
 	/* return error if trajectory list is empty */
 	if(autopilot_ptr->traj_num <= 0) {
@@ -250,6 +250,8 @@ int autopilot_trajectory_following_start(void)
 	/* trajectory following mode can only be triggered if uav is hovering at a
 	 * fixed point */
 	if(autopilot_ptr->mode == AUTOPILOT_HOVERING_MODE) {
+		autopilot_ptr->loop_mission = loop_trajectory;
+		autopilot_ptr->curr_traj = 0;
 		autopilot_ptr->traj_start_time = get_sys_time_s();
 		autopilot_ptr->mode = AUTOPILOT_TRAJECTORY_FOLLOWING_MODE;
 		return AUTOPILOT_SET_SUCCEED;
@@ -258,7 +260,7 @@ int autopilot_trajectory_following_start(void)
 	}
 }
 
-int autopilot_trajectory_following_halt(void)
+int autopilot_trajectory_following_stop(void)
 {
 	if(autopilot_ptr->mode == AUTOPILOT_TRAJECTORY_FOLLOWING_MODE) {
 		autopilot_ptr->mode = AUTOPILOT_HOVERING_MODE;
