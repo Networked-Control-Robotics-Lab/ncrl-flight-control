@@ -91,8 +91,6 @@ typedef struct {
 	bool loop_mission;
 	bool armed;
 
-	float trajectory_update_time;
-
 	/* for waypoint following (representing setpoint with waypoints) */
 	struct waypoint_t wp_list[WAYPOINT_NUM_MAX]; //enu frame
 	int curr_wp;
@@ -100,6 +98,7 @@ typedef struct {
 
 	/* for trajectory following (representing setpoint with 7th ordered polynomials) */
 	struct trajectory_segment_t trajectory_segments[WAYPOINT_NUM_MAX];
+	float trajectory_update_time;
 	int curr_traj;
 	int traj_num;
 	float traj_start_time;
@@ -116,6 +115,8 @@ bool autopilot_get_is_armed(void);
 void autopilot_mission_reset(void);
 int autopilot_get_mode(void);
 int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec, float radius);
+int autopilot_add_write_trajectory(int index, float *x_traj_coeff, float *y_traj_coeff,
+                                   float *z_traj_coeff, float *yaw_traj_coeff);
 int autopilot_clear_waypoint_list(void);
 int autopilot_goto_waypoint_now(float pos[3], bool change_height);
 int autopilot_halt_waypoint_mission(void);

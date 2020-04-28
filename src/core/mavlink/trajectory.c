@@ -1,6 +1,7 @@
 #include "mavlink.h"
 #include "ncrl.h"
 #include "../mavlink/publisher.h"
+#include "autopilot.h"
 
 uint8_t traj_ack_val;
 bool traj_do_ack = false;
@@ -50,5 +51,18 @@ void mav_polynomial_trajectory_item(mavlink_message_t *received_msg)
 	mavlink_polynomial_trajectory_item_t poly_traj_item;
 	mavlink_msg_polynomial_trajectory_item_decode(received_msg, &poly_traj_item);
 
-	//TODO: trajectory index
+	int index = 0; //TODO: trajectory index
+
+	int ret_val = autopilot_add_write_trajectory(index, poly_traj_item.x_coeff,
+	                poly_traj_item.y_coeff,
+	                poly_traj_item.z_coeff,
+	                poly_traj_item.yaw_coeff);
+
+	uint8_t ack_val;
+	if(ret_val == AUTOPILOT_SET_SUCCEED) {
+		ack_val = TRAJECTORY_ACK_OK;
+	} else {
+		ack_val = TRAJECTORY_ACK_ERROR; //TODO: more error codes?
+	}
+	trigger_polynomial_trajectory_ack_sending(ack_val);
 }
