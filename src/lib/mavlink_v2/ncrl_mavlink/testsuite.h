@@ -37,13 +37,15 @@ static void mavlink_test_polynomial_trajectory_write(uint8_t system_id, uint8_t 
         uint8_t buffer[MAVLINK_MAX_PACKET_LEN];
         uint16_t i;
     mavlink_polynomial_trajectory_write_t packet_in = {
-        5,72,139
+        5,72,139,206,17
     };
     mavlink_polynomial_trajectory_write_t packet1, packet2;
         memset(&packet1, 0, sizeof(packet1));
         packet1.target_system = packet_in.target_system;
         packet1.target_component = packet_in.target_component;
         packet1.list_size = packet_in.list_size;
+        packet1.z_enabled = packet_in.z_enabled;
+        packet1.yaw_enabled = packet_in.yaw_enabled;
         
         
 #ifdef MAVLINK_STATUS_FLAG_OUT_MAVLINK1
@@ -58,12 +60,12 @@ static void mavlink_test_polynomial_trajectory_write(uint8_t system_id, uint8_t 
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 
         memset(&packet2, 0, sizeof(packet2));
-    mavlink_msg_polynomial_trajectory_write_pack(system_id, component_id, &msg , packet1.target_system , packet1.target_component , packet1.list_size );
+    mavlink_msg_polynomial_trajectory_write_pack(system_id, component_id, &msg , packet1.target_system , packet1.target_component , packet1.list_size , packet1.z_enabled , packet1.yaw_enabled );
     mavlink_msg_polynomial_trajectory_write_decode(&msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 
         memset(&packet2, 0, sizeof(packet2));
-    mavlink_msg_polynomial_trajectory_write_pack_chan(system_id, component_id, MAVLINK_COMM_0, &msg , packet1.target_system , packet1.target_component , packet1.list_size );
+    mavlink_msg_polynomial_trajectory_write_pack_chan(system_id, component_id, MAVLINK_COMM_0, &msg , packet1.target_system , packet1.target_component , packet1.list_size , packet1.z_enabled , packet1.yaw_enabled );
     mavlink_msg_polynomial_trajectory_write_decode(&msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 
@@ -76,7 +78,7 @@ static void mavlink_test_polynomial_trajectory_write(uint8_t system_id, uint8_t 
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
         
         memset(&packet2, 0, sizeof(packet2));
-    mavlink_msg_polynomial_trajectory_write_send(MAVLINK_COMM_1 , packet1.target_system , packet1.target_component , packet1.list_size );
+    mavlink_msg_polynomial_trajectory_write_send(MAVLINK_COMM_1 , packet1.target_system , packet1.target_component , packet1.list_size , packet1.z_enabled , packet1.yaw_enabled );
     mavlink_msg_polynomial_trajectory_write_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 }
@@ -206,18 +208,16 @@ static void mavlink_test_polynomial_trajectory_item(uint8_t system_id, uint8_t c
         uint8_t buffer[MAVLINK_MAX_PACKET_LEN];
         uint16_t i;
     mavlink_polynomial_trajectory_item_t packet_in = {
-        { 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0 },{ 241.0, 242.0, 243.0, 244.0, 245.0, 246.0, 247.0, 248.0 },{ 465.0, 466.0, 467.0, 468.0, 469.0, 470.0, 471.0, 472.0 },{ 689.0, 690.0, 691.0, 692.0, 693.0, 694.0, 695.0, 696.0 },133,200,11
+        { 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0 },101,168,235,46
     };
     mavlink_polynomial_trajectory_item_t packet1, packet2;
         memset(&packet1, 0, sizeof(packet1));
         packet1.target_system = packet_in.target_system;
         packet1.target_component = packet_in.target_component;
+        packet1.type = packet_in.type;
         packet1.index = packet_in.index;
         
-        mav_array_memcpy(packet1.x_coeff, packet_in.x_coeff, sizeof(float)*8);
-        mav_array_memcpy(packet1.y_coeff, packet_in.y_coeff, sizeof(float)*8);
-        mav_array_memcpy(packet1.z_coeff, packet_in.z_coeff, sizeof(float)*8);
-        mav_array_memcpy(packet1.yaw_coeff, packet_in.yaw_coeff, sizeof(float)*8);
+        mav_array_memcpy(packet1.coeff, packet_in.coeff, sizeof(float)*8);
         
 #ifdef MAVLINK_STATUS_FLAG_OUT_MAVLINK1
         if (status->flags & MAVLINK_STATUS_FLAG_OUT_MAVLINK1) {
@@ -231,12 +231,12 @@ static void mavlink_test_polynomial_trajectory_item(uint8_t system_id, uint8_t c
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 
         memset(&packet2, 0, sizeof(packet2));
-    mavlink_msg_polynomial_trajectory_item_pack(system_id, component_id, &msg , packet1.target_system , packet1.target_component , packet1.index , packet1.x_coeff , packet1.y_coeff , packet1.z_coeff , packet1.yaw_coeff );
+    mavlink_msg_polynomial_trajectory_item_pack(system_id, component_id, &msg , packet1.target_system , packet1.target_component , packet1.type , packet1.index , packet1.coeff );
     mavlink_msg_polynomial_trajectory_item_decode(&msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 
         memset(&packet2, 0, sizeof(packet2));
-    mavlink_msg_polynomial_trajectory_item_pack_chan(system_id, component_id, MAVLINK_COMM_0, &msg , packet1.target_system , packet1.target_component , packet1.index , packet1.x_coeff , packet1.y_coeff , packet1.z_coeff , packet1.yaw_coeff );
+    mavlink_msg_polynomial_trajectory_item_pack_chan(system_id, component_id, MAVLINK_COMM_0, &msg , packet1.target_system , packet1.target_component , packet1.type , packet1.index , packet1.coeff );
     mavlink_msg_polynomial_trajectory_item_decode(&msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 
@@ -249,7 +249,7 @@ static void mavlink_test_polynomial_trajectory_item(uint8_t system_id, uint8_t c
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
         
         memset(&packet2, 0, sizeof(packet2));
-    mavlink_msg_polynomial_trajectory_item_send(MAVLINK_COMM_1 , packet1.target_system , packet1.target_component , packet1.index , packet1.x_coeff , packet1.y_coeff , packet1.z_coeff , packet1.yaw_coeff );
+    mavlink_msg_polynomial_trajectory_item_send(MAVLINK_COMM_1 , packet1.target_system , packet1.target_component , packet1.type , packet1.index , packet1.coeff );
     mavlink_msg_polynomial_trajectory_item_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 }

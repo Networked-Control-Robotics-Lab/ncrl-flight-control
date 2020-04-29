@@ -5,53 +5,44 @@
 
 MAVPACKED(
 typedef struct __mavlink_polynomial_trajectory_item_t {
- float x_coeff[8]; /*< [m] Coefficients of x trajectory*/
- float y_coeff[8]; /*< [m] Coefficients of y trajectory*/
- float z_coeff[8]; /*< [m] Coefficients of z trajectory*/
- float yaw_coeff[8]; /*< [m] Coefficients of yaw trajectory*/
+ float coeff[8]; /*<  Coefficients of the trajectory*/
  uint8_t target_system; /*<  System ID*/
  uint8_t target_component; /*<  Component ID*/
+ uint8_t type; /*<  Type (x, y, z or yaw)*/
  uint8_t index; /*<  Index of trajectory segment*/
 }) mavlink_polynomial_trajectory_item_t;
 
-#define MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_LEN 131
-#define MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_MIN_LEN 131
-#define MAVLINK_MSG_ID_11003_LEN 131
-#define MAVLINK_MSG_ID_11003_MIN_LEN 131
+#define MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_LEN 36
+#define MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_MIN_LEN 36
+#define MAVLINK_MSG_ID_11003_LEN 36
+#define MAVLINK_MSG_ID_11003_MIN_LEN 36
 
-#define MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_CRC 30
-#define MAVLINK_MSG_ID_11003_CRC 30
+#define MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_CRC 122
+#define MAVLINK_MSG_ID_11003_CRC 122
 
-#define MAVLINK_MSG_POLYNOMIAL_TRAJECTORY_ITEM_FIELD_X_COEFF_LEN 8
-#define MAVLINK_MSG_POLYNOMIAL_TRAJECTORY_ITEM_FIELD_Y_COEFF_LEN 8
-#define MAVLINK_MSG_POLYNOMIAL_TRAJECTORY_ITEM_FIELD_Z_COEFF_LEN 8
-#define MAVLINK_MSG_POLYNOMIAL_TRAJECTORY_ITEM_FIELD_YAW_COEFF_LEN 8
+#define MAVLINK_MSG_POLYNOMIAL_TRAJECTORY_ITEM_FIELD_COEFF_LEN 8
 
 #if MAVLINK_COMMAND_24BIT
 #define MAVLINK_MESSAGE_INFO_POLYNOMIAL_TRAJECTORY_ITEM { \
     11003, \
     "POLYNOMIAL_TRAJECTORY_ITEM", \
-    7, \
-    {  { "target_system", NULL, MAVLINK_TYPE_UINT8_T, 0, 128, offsetof(mavlink_polynomial_trajectory_item_t, target_system) }, \
-         { "target_component", NULL, MAVLINK_TYPE_UINT8_T, 0, 129, offsetof(mavlink_polynomial_trajectory_item_t, target_component) }, \
-         { "index", NULL, MAVLINK_TYPE_UINT8_T, 0, 130, offsetof(mavlink_polynomial_trajectory_item_t, index) }, \
-         { "x_coeff", NULL, MAVLINK_TYPE_FLOAT, 8, 0, offsetof(mavlink_polynomial_trajectory_item_t, x_coeff) }, \
-         { "y_coeff", NULL, MAVLINK_TYPE_FLOAT, 8, 32, offsetof(mavlink_polynomial_trajectory_item_t, y_coeff) }, \
-         { "z_coeff", NULL, MAVLINK_TYPE_FLOAT, 8, 64, offsetof(mavlink_polynomial_trajectory_item_t, z_coeff) }, \
-         { "yaw_coeff", NULL, MAVLINK_TYPE_FLOAT, 8, 96, offsetof(mavlink_polynomial_trajectory_item_t, yaw_coeff) }, \
+    5, \
+    {  { "target_system", NULL, MAVLINK_TYPE_UINT8_T, 0, 32, offsetof(mavlink_polynomial_trajectory_item_t, target_system) }, \
+         { "target_component", NULL, MAVLINK_TYPE_UINT8_T, 0, 33, offsetof(mavlink_polynomial_trajectory_item_t, target_component) }, \
+         { "type", NULL, MAVLINK_TYPE_UINT8_T, 0, 34, offsetof(mavlink_polynomial_trajectory_item_t, type) }, \
+         { "index", NULL, MAVLINK_TYPE_UINT8_T, 0, 35, offsetof(mavlink_polynomial_trajectory_item_t, index) }, \
+         { "coeff", NULL, MAVLINK_TYPE_FLOAT, 8, 0, offsetof(mavlink_polynomial_trajectory_item_t, coeff) }, \
          } \
 }
 #else
 #define MAVLINK_MESSAGE_INFO_POLYNOMIAL_TRAJECTORY_ITEM { \
     "POLYNOMIAL_TRAJECTORY_ITEM", \
-    7, \
-    {  { "target_system", NULL, MAVLINK_TYPE_UINT8_T, 0, 128, offsetof(mavlink_polynomial_trajectory_item_t, target_system) }, \
-         { "target_component", NULL, MAVLINK_TYPE_UINT8_T, 0, 129, offsetof(mavlink_polynomial_trajectory_item_t, target_component) }, \
-         { "index", NULL, MAVLINK_TYPE_UINT8_T, 0, 130, offsetof(mavlink_polynomial_trajectory_item_t, index) }, \
-         { "x_coeff", NULL, MAVLINK_TYPE_FLOAT, 8, 0, offsetof(mavlink_polynomial_trajectory_item_t, x_coeff) }, \
-         { "y_coeff", NULL, MAVLINK_TYPE_FLOAT, 8, 32, offsetof(mavlink_polynomial_trajectory_item_t, y_coeff) }, \
-         { "z_coeff", NULL, MAVLINK_TYPE_FLOAT, 8, 64, offsetof(mavlink_polynomial_trajectory_item_t, z_coeff) }, \
-         { "yaw_coeff", NULL, MAVLINK_TYPE_FLOAT, 8, 96, offsetof(mavlink_polynomial_trajectory_item_t, yaw_coeff) }, \
+    5, \
+    {  { "target_system", NULL, MAVLINK_TYPE_UINT8_T, 0, 32, offsetof(mavlink_polynomial_trajectory_item_t, target_system) }, \
+         { "target_component", NULL, MAVLINK_TYPE_UINT8_T, 0, 33, offsetof(mavlink_polynomial_trajectory_item_t, target_component) }, \
+         { "type", NULL, MAVLINK_TYPE_UINT8_T, 0, 34, offsetof(mavlink_polynomial_trajectory_item_t, type) }, \
+         { "index", NULL, MAVLINK_TYPE_UINT8_T, 0, 35, offsetof(mavlink_polynomial_trajectory_item_t, index) }, \
+         { "coeff", NULL, MAVLINK_TYPE_FLOAT, 8, 0, offsetof(mavlink_polynomial_trajectory_item_t, coeff) }, \
          } \
 }
 #endif
@@ -64,35 +55,29 @@ typedef struct __mavlink_polynomial_trajectory_item_t {
  *
  * @param target_system  System ID
  * @param target_component  Component ID
+ * @param type  Type (x, y, z or yaw)
  * @param index  Index of trajectory segment
- * @param x_coeff [m] Coefficients of x trajectory
- * @param y_coeff [m] Coefficients of y trajectory
- * @param z_coeff [m] Coefficients of z trajectory
- * @param yaw_coeff [m] Coefficients of yaw trajectory
+ * @param coeff  Coefficients of the trajectory
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_polynomial_trajectory_item_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
-                               uint8_t target_system, uint8_t target_component, uint8_t index, const float *x_coeff, const float *y_coeff, const float *z_coeff, const float *yaw_coeff)
+                               uint8_t target_system, uint8_t target_component, uint8_t type, uint8_t index, const float *coeff)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_LEN];
-    _mav_put_uint8_t(buf, 128, target_system);
-    _mav_put_uint8_t(buf, 129, target_component);
-    _mav_put_uint8_t(buf, 130, index);
-    _mav_put_float_array(buf, 0, x_coeff, 8);
-    _mav_put_float_array(buf, 32, y_coeff, 8);
-    _mav_put_float_array(buf, 64, z_coeff, 8);
-    _mav_put_float_array(buf, 96, yaw_coeff, 8);
+    _mav_put_uint8_t(buf, 32, target_system);
+    _mav_put_uint8_t(buf, 33, target_component);
+    _mav_put_uint8_t(buf, 34, type);
+    _mav_put_uint8_t(buf, 35, index);
+    _mav_put_float_array(buf, 0, coeff, 8);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_LEN);
 #else
     mavlink_polynomial_trajectory_item_t packet;
     packet.target_system = target_system;
     packet.target_component = target_component;
+    packet.type = type;
     packet.index = index;
-    mav_array_memcpy(packet.x_coeff, x_coeff, sizeof(float)*8);
-    mav_array_memcpy(packet.y_coeff, y_coeff, sizeof(float)*8);
-    mav_array_memcpy(packet.z_coeff, z_coeff, sizeof(float)*8);
-    mav_array_memcpy(packet.yaw_coeff, yaw_coeff, sizeof(float)*8);
+    mav_array_memcpy(packet.coeff, coeff, sizeof(float)*8);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_LEN);
 #endif
 
@@ -108,36 +93,30 @@ static inline uint16_t mavlink_msg_polynomial_trajectory_item_pack(uint8_t syste
  * @param msg The MAVLink message to compress the data into
  * @param target_system  System ID
  * @param target_component  Component ID
+ * @param type  Type (x, y, z or yaw)
  * @param index  Index of trajectory segment
- * @param x_coeff [m] Coefficients of x trajectory
- * @param y_coeff [m] Coefficients of y trajectory
- * @param z_coeff [m] Coefficients of z trajectory
- * @param yaw_coeff [m] Coefficients of yaw trajectory
+ * @param coeff  Coefficients of the trajectory
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_polynomial_trajectory_item_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
                                mavlink_message_t* msg,
-                                   uint8_t target_system,uint8_t target_component,uint8_t index,const float *x_coeff,const float *y_coeff,const float *z_coeff,const float *yaw_coeff)
+                                   uint8_t target_system,uint8_t target_component,uint8_t type,uint8_t index,const float *coeff)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_LEN];
-    _mav_put_uint8_t(buf, 128, target_system);
-    _mav_put_uint8_t(buf, 129, target_component);
-    _mav_put_uint8_t(buf, 130, index);
-    _mav_put_float_array(buf, 0, x_coeff, 8);
-    _mav_put_float_array(buf, 32, y_coeff, 8);
-    _mav_put_float_array(buf, 64, z_coeff, 8);
-    _mav_put_float_array(buf, 96, yaw_coeff, 8);
+    _mav_put_uint8_t(buf, 32, target_system);
+    _mav_put_uint8_t(buf, 33, target_component);
+    _mav_put_uint8_t(buf, 34, type);
+    _mav_put_uint8_t(buf, 35, index);
+    _mav_put_float_array(buf, 0, coeff, 8);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_LEN);
 #else
     mavlink_polynomial_trajectory_item_t packet;
     packet.target_system = target_system;
     packet.target_component = target_component;
+    packet.type = type;
     packet.index = index;
-    mav_array_memcpy(packet.x_coeff, x_coeff, sizeof(float)*8);
-    mav_array_memcpy(packet.y_coeff, y_coeff, sizeof(float)*8);
-    mav_array_memcpy(packet.z_coeff, z_coeff, sizeof(float)*8);
-    mav_array_memcpy(packet.yaw_coeff, yaw_coeff, sizeof(float)*8);
+    mav_array_memcpy(packet.coeff, coeff, sizeof(float)*8);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_LEN);
 #endif
 
@@ -155,7 +134,7 @@ static inline uint16_t mavlink_msg_polynomial_trajectory_item_pack_chan(uint8_t 
  */
 static inline uint16_t mavlink_msg_polynomial_trajectory_item_encode(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg, const mavlink_polynomial_trajectory_item_t* polynomial_trajectory_item)
 {
-    return mavlink_msg_polynomial_trajectory_item_pack(system_id, component_id, msg, polynomial_trajectory_item->target_system, polynomial_trajectory_item->target_component, polynomial_trajectory_item->index, polynomial_trajectory_item->x_coeff, polynomial_trajectory_item->y_coeff, polynomial_trajectory_item->z_coeff, polynomial_trajectory_item->yaw_coeff);
+    return mavlink_msg_polynomial_trajectory_item_pack(system_id, component_id, msg, polynomial_trajectory_item->target_system, polynomial_trajectory_item->target_component, polynomial_trajectory_item->type, polynomial_trajectory_item->index, polynomial_trajectory_item->coeff);
 }
 
 /**
@@ -169,7 +148,7 @@ static inline uint16_t mavlink_msg_polynomial_trajectory_item_encode(uint8_t sys
  */
 static inline uint16_t mavlink_msg_polynomial_trajectory_item_encode_chan(uint8_t system_id, uint8_t component_id, uint8_t chan, mavlink_message_t* msg, const mavlink_polynomial_trajectory_item_t* polynomial_trajectory_item)
 {
-    return mavlink_msg_polynomial_trajectory_item_pack_chan(system_id, component_id, chan, msg, polynomial_trajectory_item->target_system, polynomial_trajectory_item->target_component, polynomial_trajectory_item->index, polynomial_trajectory_item->x_coeff, polynomial_trajectory_item->y_coeff, polynomial_trajectory_item->z_coeff, polynomial_trajectory_item->yaw_coeff);
+    return mavlink_msg_polynomial_trajectory_item_pack_chan(system_id, component_id, chan, msg, polynomial_trajectory_item->target_system, polynomial_trajectory_item->target_component, polynomial_trajectory_item->type, polynomial_trajectory_item->index, polynomial_trajectory_item->coeff);
 }
 
 /**
@@ -178,35 +157,29 @@ static inline uint16_t mavlink_msg_polynomial_trajectory_item_encode_chan(uint8_
  *
  * @param target_system  System ID
  * @param target_component  Component ID
+ * @param type  Type (x, y, z or yaw)
  * @param index  Index of trajectory segment
- * @param x_coeff [m] Coefficients of x trajectory
- * @param y_coeff [m] Coefficients of y trajectory
- * @param z_coeff [m] Coefficients of z trajectory
- * @param yaw_coeff [m] Coefficients of yaw trajectory
+ * @param coeff  Coefficients of the trajectory
  */
 #ifdef MAVLINK_USE_CONVENIENCE_FUNCTIONS
 
-static inline void mavlink_msg_polynomial_trajectory_item_send(mavlink_channel_t chan, uint8_t target_system, uint8_t target_component, uint8_t index, const float *x_coeff, const float *y_coeff, const float *z_coeff, const float *yaw_coeff)
+static inline void mavlink_msg_polynomial_trajectory_item_send(mavlink_channel_t chan, uint8_t target_system, uint8_t target_component, uint8_t type, uint8_t index, const float *coeff)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_LEN];
-    _mav_put_uint8_t(buf, 128, target_system);
-    _mav_put_uint8_t(buf, 129, target_component);
-    _mav_put_uint8_t(buf, 130, index);
-    _mav_put_float_array(buf, 0, x_coeff, 8);
-    _mav_put_float_array(buf, 32, y_coeff, 8);
-    _mav_put_float_array(buf, 64, z_coeff, 8);
-    _mav_put_float_array(buf, 96, yaw_coeff, 8);
+    _mav_put_uint8_t(buf, 32, target_system);
+    _mav_put_uint8_t(buf, 33, target_component);
+    _mav_put_uint8_t(buf, 34, type);
+    _mav_put_uint8_t(buf, 35, index);
+    _mav_put_float_array(buf, 0, coeff, 8);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM, buf, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_MIN_LEN, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_LEN, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_CRC);
 #else
     mavlink_polynomial_trajectory_item_t packet;
     packet.target_system = target_system;
     packet.target_component = target_component;
+    packet.type = type;
     packet.index = index;
-    mav_array_memcpy(packet.x_coeff, x_coeff, sizeof(float)*8);
-    mav_array_memcpy(packet.y_coeff, y_coeff, sizeof(float)*8);
-    mav_array_memcpy(packet.z_coeff, z_coeff, sizeof(float)*8);
-    mav_array_memcpy(packet.yaw_coeff, yaw_coeff, sizeof(float)*8);
+    mav_array_memcpy(packet.coeff, coeff, sizeof(float)*8);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM, (const char *)&packet, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_MIN_LEN, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_LEN, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_CRC);
 #endif
 }
@@ -219,7 +192,7 @@ static inline void mavlink_msg_polynomial_trajectory_item_send(mavlink_channel_t
 static inline void mavlink_msg_polynomial_trajectory_item_send_struct(mavlink_channel_t chan, const mavlink_polynomial_trajectory_item_t* polynomial_trajectory_item)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
-    mavlink_msg_polynomial_trajectory_item_send(chan, polynomial_trajectory_item->target_system, polynomial_trajectory_item->target_component, polynomial_trajectory_item->index, polynomial_trajectory_item->x_coeff, polynomial_trajectory_item->y_coeff, polynomial_trajectory_item->z_coeff, polynomial_trajectory_item->yaw_coeff);
+    mavlink_msg_polynomial_trajectory_item_send(chan, polynomial_trajectory_item->target_system, polynomial_trajectory_item->target_component, polynomial_trajectory_item->type, polynomial_trajectory_item->index, polynomial_trajectory_item->coeff);
 #else
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM, (const char *)polynomial_trajectory_item, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_MIN_LEN, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_LEN, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_CRC);
 #endif
@@ -233,27 +206,23 @@ static inline void mavlink_msg_polynomial_trajectory_item_send_struct(mavlink_ch
   is usually the receive buffer for the channel, and allows a reply to an
   incoming message with minimum stack space usage.
  */
-static inline void mavlink_msg_polynomial_trajectory_item_send_buf(mavlink_message_t *msgbuf, mavlink_channel_t chan,  uint8_t target_system, uint8_t target_component, uint8_t index, const float *x_coeff, const float *y_coeff, const float *z_coeff, const float *yaw_coeff)
+static inline void mavlink_msg_polynomial_trajectory_item_send_buf(mavlink_message_t *msgbuf, mavlink_channel_t chan,  uint8_t target_system, uint8_t target_component, uint8_t type, uint8_t index, const float *coeff)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char *buf = (char *)msgbuf;
-    _mav_put_uint8_t(buf, 128, target_system);
-    _mav_put_uint8_t(buf, 129, target_component);
-    _mav_put_uint8_t(buf, 130, index);
-    _mav_put_float_array(buf, 0, x_coeff, 8);
-    _mav_put_float_array(buf, 32, y_coeff, 8);
-    _mav_put_float_array(buf, 64, z_coeff, 8);
-    _mav_put_float_array(buf, 96, yaw_coeff, 8);
+    _mav_put_uint8_t(buf, 32, target_system);
+    _mav_put_uint8_t(buf, 33, target_component);
+    _mav_put_uint8_t(buf, 34, type);
+    _mav_put_uint8_t(buf, 35, index);
+    _mav_put_float_array(buf, 0, coeff, 8);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM, buf, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_MIN_LEN, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_LEN, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_CRC);
 #else
     mavlink_polynomial_trajectory_item_t *packet = (mavlink_polynomial_trajectory_item_t *)msgbuf;
     packet->target_system = target_system;
     packet->target_component = target_component;
+    packet->type = type;
     packet->index = index;
-    mav_array_memcpy(packet->x_coeff, x_coeff, sizeof(float)*8);
-    mav_array_memcpy(packet->y_coeff, y_coeff, sizeof(float)*8);
-    mav_array_memcpy(packet->z_coeff, z_coeff, sizeof(float)*8);
-    mav_array_memcpy(packet->yaw_coeff, yaw_coeff, sizeof(float)*8);
+    mav_array_memcpy(packet->coeff, coeff, sizeof(float)*8);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM, (const char *)packet, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_MIN_LEN, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_LEN, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_CRC);
 #endif
 }
@@ -271,7 +240,7 @@ static inline void mavlink_msg_polynomial_trajectory_item_send_buf(mavlink_messa
  */
 static inline uint8_t mavlink_msg_polynomial_trajectory_item_get_target_system(const mavlink_message_t* msg)
 {
-    return _MAV_RETURN_uint8_t(msg,  128);
+    return _MAV_RETURN_uint8_t(msg,  32);
 }
 
 /**
@@ -281,7 +250,17 @@ static inline uint8_t mavlink_msg_polynomial_trajectory_item_get_target_system(c
  */
 static inline uint8_t mavlink_msg_polynomial_trajectory_item_get_target_component(const mavlink_message_t* msg)
 {
-    return _MAV_RETURN_uint8_t(msg,  129);
+    return _MAV_RETURN_uint8_t(msg,  33);
+}
+
+/**
+ * @brief Get field type from polynomial_trajectory_item message
+ *
+ * @return  Type (x, y, z or yaw)
+ */
+static inline uint8_t mavlink_msg_polynomial_trajectory_item_get_type(const mavlink_message_t* msg)
+{
+    return _MAV_RETURN_uint8_t(msg,  34);
 }
 
 /**
@@ -291,47 +270,17 @@ static inline uint8_t mavlink_msg_polynomial_trajectory_item_get_target_componen
  */
 static inline uint8_t mavlink_msg_polynomial_trajectory_item_get_index(const mavlink_message_t* msg)
 {
-    return _MAV_RETURN_uint8_t(msg,  130);
+    return _MAV_RETURN_uint8_t(msg,  35);
 }
 
 /**
- * @brief Get field x_coeff from polynomial_trajectory_item message
+ * @brief Get field coeff from polynomial_trajectory_item message
  *
- * @return [m] Coefficients of x trajectory
+ * @return  Coefficients of the trajectory
  */
-static inline uint16_t mavlink_msg_polynomial_trajectory_item_get_x_coeff(const mavlink_message_t* msg, float *x_coeff)
+static inline uint16_t mavlink_msg_polynomial_trajectory_item_get_coeff(const mavlink_message_t* msg, float *coeff)
 {
-    return _MAV_RETURN_float_array(msg, x_coeff, 8,  0);
-}
-
-/**
- * @brief Get field y_coeff from polynomial_trajectory_item message
- *
- * @return [m] Coefficients of y trajectory
- */
-static inline uint16_t mavlink_msg_polynomial_trajectory_item_get_y_coeff(const mavlink_message_t* msg, float *y_coeff)
-{
-    return _MAV_RETURN_float_array(msg, y_coeff, 8,  32);
-}
-
-/**
- * @brief Get field z_coeff from polynomial_trajectory_item message
- *
- * @return [m] Coefficients of z trajectory
- */
-static inline uint16_t mavlink_msg_polynomial_trajectory_item_get_z_coeff(const mavlink_message_t* msg, float *z_coeff)
-{
-    return _MAV_RETURN_float_array(msg, z_coeff, 8,  64);
-}
-
-/**
- * @brief Get field yaw_coeff from polynomial_trajectory_item message
- *
- * @return [m] Coefficients of yaw trajectory
- */
-static inline uint16_t mavlink_msg_polynomial_trajectory_item_get_yaw_coeff(const mavlink_message_t* msg, float *yaw_coeff)
-{
-    return _MAV_RETURN_float_array(msg, yaw_coeff, 8,  96);
+    return _MAV_RETURN_float_array(msg, coeff, 8,  0);
 }
 
 /**
@@ -343,12 +292,10 @@ static inline uint16_t mavlink_msg_polynomial_trajectory_item_get_yaw_coeff(cons
 static inline void mavlink_msg_polynomial_trajectory_item_decode(const mavlink_message_t* msg, mavlink_polynomial_trajectory_item_t* polynomial_trajectory_item)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
-    mavlink_msg_polynomial_trajectory_item_get_x_coeff(msg, polynomial_trajectory_item->x_coeff);
-    mavlink_msg_polynomial_trajectory_item_get_y_coeff(msg, polynomial_trajectory_item->y_coeff);
-    mavlink_msg_polynomial_trajectory_item_get_z_coeff(msg, polynomial_trajectory_item->z_coeff);
-    mavlink_msg_polynomial_trajectory_item_get_yaw_coeff(msg, polynomial_trajectory_item->yaw_coeff);
+    mavlink_msg_polynomial_trajectory_item_get_coeff(msg, polynomial_trajectory_item->coeff);
     polynomial_trajectory_item->target_system = mavlink_msg_polynomial_trajectory_item_get_target_system(msg);
     polynomial_trajectory_item->target_component = mavlink_msg_polynomial_trajectory_item_get_target_component(msg);
+    polynomial_trajectory_item->type = mavlink_msg_polynomial_trajectory_item_get_type(msg);
     polynomial_trajectory_item->index = mavlink_msg_polynomial_trajectory_item_get_index(msg);
 #else
         uint8_t len = msg->len < MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_LEN? msg->len : MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_ITEM_LEN;

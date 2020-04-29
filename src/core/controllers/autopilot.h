@@ -115,8 +115,10 @@ bool autopilot_get_is_armed(void);
 void autopilot_mission_reset(void);
 int autopilot_get_mode(void);
 int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec, float radius);
-int autopilot_add_write_trajectory(int index, float *x_traj_coeff, float *y_traj_coeff,
-                                   float *z_traj_coeff, float *yaw_traj_coeff);
+int autopilot_set_x_trajectory(int index, float *x_traj_coeff);
+int autopilot_set_y_trajectory(int index, float *y_traj_coeff);
+int autopilot_set_z_trajectory(int index, float *z_traj_coeff);
+int autopilot_set_yaw_trajectory(int index, float *yaw_traj_coeff);
 int autopilot_clear_waypoint_list(void);
 int autopilot_goto_waypoint_now(float pos[3], bool change_height);
 int autopilot_halt_waypoint_mission(void);

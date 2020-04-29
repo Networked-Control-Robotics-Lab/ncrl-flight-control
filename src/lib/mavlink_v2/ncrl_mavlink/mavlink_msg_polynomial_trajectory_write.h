@@ -8,15 +8,17 @@ typedef struct __mavlink_polynomial_trajectory_write_t {
  uint8_t target_system; /*<  System ID*/
  uint8_t target_component; /*<  Component ID*/
  uint8_t list_size; /*<  Trajectory list size*/
+ uint8_t z_enabled; /*<  UAV should track z trajectory (1: true, 0: false)*/
+ uint8_t yaw_enabled; /*<  UAV should track yaw trajectory (1: true, 0: false)*/
 }) mavlink_polynomial_trajectory_write_t;
 
-#define MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_LEN 3
-#define MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_MIN_LEN 3
-#define MAVLINK_MSG_ID_11000_LEN 3
-#define MAVLINK_MSG_ID_11000_MIN_LEN 3
+#define MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_LEN 5
+#define MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_MIN_LEN 5
+#define MAVLINK_MSG_ID_11000_LEN 5
+#define MAVLINK_MSG_ID_11000_MIN_LEN 5
 
-#define MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_CRC 234
-#define MAVLINK_MSG_ID_11000_CRC 234
+#define MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_CRC 43
+#define MAVLINK_MSG_ID_11000_CRC 43
 
 
 
@@ -24,19 +26,23 @@ typedef struct __mavlink_polynomial_trajectory_write_t {
 #define MAVLINK_MESSAGE_INFO_POLYNOMIAL_TRAJECTORY_WRITE { \
     11000, \
     "POLYNOMIAL_TRAJECTORY_WRITE", \
-    3, \
+    5, \
     {  { "target_system", NULL, MAVLINK_TYPE_UINT8_T, 0, 0, offsetof(mavlink_polynomial_trajectory_write_t, target_system) }, \
          { "target_component", NULL, MAVLINK_TYPE_UINT8_T, 0, 1, offsetof(mavlink_polynomial_trajectory_write_t, target_component) }, \
          { "list_size", NULL, MAVLINK_TYPE_UINT8_T, 0, 2, offsetof(mavlink_polynomial_trajectory_write_t, list_size) }, \
+         { "z_enabled", NULL, MAVLINK_TYPE_UINT8_T, 0, 3, offsetof(mavlink_polynomial_trajectory_write_t, z_enabled) }, \
+         { "yaw_enabled", NULL, MAVLINK_TYPE_UINT8_T, 0, 4, offsetof(mavlink_polynomial_trajectory_write_t, yaw_enabled) }, \
          } \
 }
 #else
 #define MAVLINK_MESSAGE_INFO_POLYNOMIAL_TRAJECTORY_WRITE { \
     "POLYNOMIAL_TRAJECTORY_WRITE", \
-    3, \
+    5, \
     {  { "target_system", NULL, MAVLINK_TYPE_UINT8_T, 0, 0, offsetof(mavlink_polynomial_trajectory_write_t, target_system) }, \
          { "target_component", NULL, MAVLINK_TYPE_UINT8_T, 0, 1, offsetof(mavlink_polynomial_trajectory_write_t, target_component) }, \
          { "list_size", NULL, MAVLINK_TYPE_UINT8_T, 0, 2, offsetof(mavlink_polynomial_trajectory_write_t, list_size) }, \
+         { "z_enabled", NULL, MAVLINK_TYPE_UINT8_T, 0, 3, offsetof(mavlink_polynomial_trajectory_write_t, z_enabled) }, \
+         { "yaw_enabled", NULL, MAVLINK_TYPE_UINT8_T, 0, 4, offsetof(mavlink_polynomial_trajectory_write_t, yaw_enabled) }, \
          } \
 }
 #endif
@@ -50,16 +56,20 @@ typedef struct __mavlink_polynomial_trajectory_write_t {
  * @param target_system  System ID
  * @param target_component  Component ID
  * @param list_size  Trajectory list size
+ * @param z_enabled  UAV should track z trajectory (1: true, 0: false)
+ * @param yaw_enabled  UAV should track yaw trajectory (1: true, 0: false)
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_polynomial_trajectory_write_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
-                               uint8_t target_system, uint8_t target_component, uint8_t list_size)
+                               uint8_t target_system, uint8_t target_component, uint8_t list_size, uint8_t z_enabled, uint8_t yaw_enabled)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_LEN];
     _mav_put_uint8_t(buf, 0, target_system);
     _mav_put_uint8_t(buf, 1, target_component);
     _mav_put_uint8_t(buf, 2, list_size);
+    _mav_put_uint8_t(buf, 3, z_enabled);
+    _mav_put_uint8_t(buf, 4, yaw_enabled);
 
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_LEN);
 #else
@@ -67,6 +77,8 @@ static inline uint16_t mavlink_msg_polynomial_trajectory_write_pack(uint8_t syst
     packet.target_system = target_system;
     packet.target_component = target_component;
     packet.list_size = list_size;
+    packet.z_enabled = z_enabled;
+    packet.yaw_enabled = yaw_enabled;
 
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_LEN);
 #endif
@@ -84,17 +96,21 @@ static inline uint16_t mavlink_msg_polynomial_trajectory_write_pack(uint8_t syst
  * @param target_system  System ID
  * @param target_component  Component ID
  * @param list_size  Trajectory list size
+ * @param z_enabled  UAV should track z trajectory (1: true, 0: false)
+ * @param yaw_enabled  UAV should track yaw trajectory (1: true, 0: false)
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_polynomial_trajectory_write_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
                                mavlink_message_t* msg,
-                                   uint8_t target_system,uint8_t target_component,uint8_t list_size)
+                                   uint8_t target_system,uint8_t target_component,uint8_t list_size,uint8_t z_enabled,uint8_t yaw_enabled)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_LEN];
     _mav_put_uint8_t(buf, 0, target_system);
     _mav_put_uint8_t(buf, 1, target_component);
     _mav_put_uint8_t(buf, 2, list_size);
+    _mav_put_uint8_t(buf, 3, z_enabled);
+    _mav_put_uint8_t(buf, 4, yaw_enabled);
 
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_LEN);
 #else
@@ -102,6 +118,8 @@ static inline uint16_t mavlink_msg_polynomial_trajectory_write_pack_chan(uint8_t
     packet.target_system = target_system;
     packet.target_component = target_component;
     packet.list_size = list_size;
+    packet.z_enabled = z_enabled;
+    packet.yaw_enabled = yaw_enabled;
 
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_LEN);
 #endif
@@ -120,7 +138,7 @@ static inline uint16_t mavlink_msg_polynomial_trajectory_write_pack_chan(uint8_t
  */
 static inline uint16_t mavlink_msg_polynomial_trajectory_write_encode(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg, const mavlink_polynomial_trajectory_write_t* polynomial_trajectory_write)
 {
-    return mavlink_msg_polynomial_trajectory_write_pack(system_id, component_id, msg, polynomial_trajectory_write->target_system, polynomial_trajectory_write->target_component, polynomial_trajectory_write->list_size);
+    return mavlink_msg_polynomial_trajectory_write_pack(system_id, component_id, msg, polynomial_trajectory_write->target_system, polynomial_trajectory_write->target_component, polynomial_trajectory_write->list_size, polynomial_trajectory_write->z_enabled, polynomial_trajectory_write->yaw_enabled);
 }
 
 /**
@@ -134,7 +152,7 @@ static inline uint16_t mavlink_msg_polynomial_trajectory_write_encode(uint8_t sy
  */
 static inline uint16_t mavlink_msg_polynomial_trajectory_write_encode_chan(uint8_t system_id, uint8_t component_id, uint8_t chan, mavlink_message_t* msg, const mavlink_polynomial_trajectory_write_t* polynomial_trajectory_write)
 {
-    return mavlink_msg_polynomial_trajectory_write_pack_chan(system_id, component_id, chan, msg, polynomial_trajectory_write->target_system, polynomial_trajectory_write->target_component, polynomial_trajectory_write->list_size);
+    return mavlink_msg_polynomial_trajectory_write_pack_chan(system_id, component_id, chan, msg, polynomial_trajectory_write->target_system, polynomial_trajectory_write->target_component, polynomial_trajectory_write->list_size, polynomial_trajectory_write->z_enabled, polynomial_trajectory_write->yaw_enabled);
 }
 
 /**
@@ -144,16 +162,20 @@ static inline uint16_t mavlink_msg_polynomial_trajectory_write_encode_chan(uint8
  * @param target_system  System ID
  * @param target_component  Component ID
  * @param list_size  Trajectory list size
+ * @param z_enabled  UAV should track z trajectory (1: true, 0: false)
+ * @param yaw_enabled  UAV should track yaw trajectory (1: true, 0: false)
  */
 #ifdef MAVLINK_USE_CONVENIENCE_FUNCTIONS
 
-static inline void mavlink_msg_polynomial_trajectory_write_send(mavlink_channel_t chan, uint8_t target_system, uint8_t target_component, uint8_t list_size)
+static inline void mavlink_msg_polynomial_trajectory_write_send(mavlink_channel_t chan, uint8_t target_system, uint8_t target_component, uint8_t list_size, uint8_t z_enabled, uint8_t yaw_enabled)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_LEN];
     _mav_put_uint8_t(buf, 0, target_system);
     _mav_put_uint8_t(buf, 1, target_component);
     _mav_put_uint8_t(buf, 2, list_size);
+    _mav_put_uint8_t(buf, 3, z_enabled);
+    _mav_put_uint8_t(buf, 4, yaw_enabled);
 
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE, buf, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_MIN_LEN, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_LEN, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_CRC);
 #else
@@ -161,6 +183,8 @@ static inline void mavlink_msg_polynomial_trajectory_write_send(mavlink_channel_
     packet.target_system = target_system;
     packet.target_component = target_component;
     packet.list_size = list_size;
+    packet.z_enabled = z_enabled;
+    packet.yaw_enabled = yaw_enabled;
 
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE, (const char *)&packet, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_MIN_LEN, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_LEN, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_CRC);
 #endif
@@ -174,7 +198,7 @@ static inline void mavlink_msg_polynomial_trajectory_write_send(mavlink_channel_
 static inline void mavlink_msg_polynomial_trajectory_write_send_struct(mavlink_channel_t chan, const mavlink_polynomial_trajectory_write_t* polynomial_trajectory_write)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
-    mavlink_msg_polynomial_trajectory_write_send(chan, polynomial_trajectory_write->target_system, polynomial_trajectory_write->target_component, polynomial_trajectory_write->list_size);
+    mavlink_msg_polynomial_trajectory_write_send(chan, polynomial_trajectory_write->target_system, polynomial_trajectory_write->target_component, polynomial_trajectory_write->list_size, polynomial_trajectory_write->z_enabled, polynomial_trajectory_write->yaw_enabled);
 #else
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE, (const char *)polynomial_trajectory_write, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_MIN_LEN, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_LEN, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_CRC);
 #endif
@@ -188,13 +212,15 @@ static inline void mavlink_msg_polynomial_trajectory_write_send_struct(mavlink_c
   is usually the receive buffer for the channel, and allows a reply to an
   incoming message with minimum stack space usage.
  */
-static inline void mavlink_msg_polynomial_trajectory_write_send_buf(mavlink_message_t *msgbuf, mavlink_channel_t chan,  uint8_t target_system, uint8_t target_component, uint8_t list_size)
+static inline void mavlink_msg_polynomial_trajectory_write_send_buf(mavlink_message_t *msgbuf, mavlink_channel_t chan,  uint8_t target_system, uint8_t target_component, uint8_t list_size, uint8_t z_enabled, uint8_t yaw_enabled)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char *buf = (char *)msgbuf;
     _mav_put_uint8_t(buf, 0, target_system);
     _mav_put_uint8_t(buf, 1, target_component);
     _mav_put_uint8_t(buf, 2, list_size);
+    _mav_put_uint8_t(buf, 3, z_enabled);
+    _mav_put_uint8_t(buf, 4, yaw_enabled);
 
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE, buf, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_MIN_LEN, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_LEN, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_CRC);
 #else
@@ -202,6 +228,8 @@ static inline void mavlink_msg_polynomial_trajectory_write_send_buf(mavlink_mess
     packet->target_system = target_system;
     packet->target_component = target_component;
     packet->list_size = list_size;
+    packet->z_enabled = z_enabled;
+    packet->yaw_enabled = yaw_enabled;
 
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE, (const char *)packet, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_MIN_LEN, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_LEN, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_CRC);
 #endif
@@ -244,6 +272,26 @@ static inline uint8_t mavlink_msg_polynomial_trajectory_write_get_list_size(cons
 }
 
 /**
+ * @brief Get field z_enabled from polynomial_trajectory_write message
+ *
+ * @return  UAV should track z trajectory (1: true, 0: false)
+ */
+static inline uint8_t mavlink_msg_polynomial_trajectory_write_get_z_enabled(const mavlink_message_t* msg)
+{
+    return _MAV_RETURN_uint8_t(msg,  3);
+}
+
+/**
+ * @brief Get field yaw_enabled from polynomial_trajectory_write message
+ *
+ * @return  UAV should track yaw trajectory (1: true, 0: false)
+ */
+static inline uint8_t mavlink_msg_polynomial_trajectory_write_get_yaw_enabled(const mavlink_message_t* msg)
+{
+    return _MAV_RETURN_uint8_t(msg,  4);
+}
+
+/**
  * @brief Decode a polynomial_trajectory_write message into a struct
  *
  * @param msg The message to decode
@@ -255,6 +303,8 @@ static inline void mavlink_msg_polynomial_trajectory_write_decode(const mavlink_
     polynomial_trajectory_write->target_system = mavlink_msg_polynomial_trajectory_write_get_target_system(msg);
     polynomial_trajectory_write->target_component = mavlink_msg_polynomial_trajectory_write_get_target_component(msg);
     polynomial_trajectory_write->list_size = mavlink_msg_polynomial_trajectory_write_get_list_size(msg);
+    polynomial_trajectory_write->z_enabled = mavlink_msg_polynomial_trajectory_write_get_z_enabled(msg);
+    polynomial_trajectory_write->yaw_enabled = mavlink_msg_polynomial_trajectory_write_get_yaw_enabled(msg);
 #else
         uint8_t len = msg->len < MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_LEN? msg->len : MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_LEN;
         memset(polynomial_trajectory_write, 0, MAVLINK_MSG_ID_POLYNOMIAL_TRAJECTORY_WRITE_LEN);
