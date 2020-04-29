@@ -1,6 +1,6 @@
 #include <stdint.h>
-#include "mavlink.h"
-#include "ncrl.h"
+#include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"
+#include "ncrl_mavlink.h"
 #include "../mavlink/publisher.h"
 #include "autopilot.h"
 
@@ -74,6 +74,6 @@ void mav_mission_request_list(mavlink_message_t *received_msg)
 	send_mavlink_msg_to_uart(&msg);
 }
 
-void mission_waypoint_ack_handler(void)
+void mission_waypoint_microservice_handler(void)
 {
 }

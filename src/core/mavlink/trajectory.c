@@ -1,5 +1,5 @@
-#include "mavlink.h"
-#include "ncrl.h"
+#include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"
+#include "ncrl_mavlink.h"
 #include "../mavlink/publisher.h"
 #include "autopilot.h"
 
@@ -8,7 +8,7 @@ bool traj_do_ack = false;
 bool receiving_traj = false;
 int traj_num_to_receive = 0;
 
-void polynomial_trajectory_ack_handler(void)
+void polynomial_trajectory_microservice_handler(void)
 {
 	if(traj_do_ack == true) {
 		mavlink_message_t msg;

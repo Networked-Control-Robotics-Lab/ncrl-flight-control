@@ -6,7 +6,6 @@
 void mav_command_long(mavlink_message_t *received_msg);
 void mav_mission_request_list(mavlink_message_t *received_msg);
 
-void mission_waypoint_ack_handler(void);
-void polynomial_trajectory_ack_handler(void);
+void mission_waypoint_microservice_handler(void);
 
 #endif

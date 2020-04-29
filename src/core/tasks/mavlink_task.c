@@ -2,11 +2,13 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
-#include "mavlink.h"
+#include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"
+#include "ncrl_mavlink.h"
 #include "../mavlink/publisher.h"
 #include "../mavlink/parser.h"
 #include "../mavlink/param.h"
 #include "../mavlink/mission.h"
+#include "../mavlink/trajectory.h"
 #include "delay.h"
 #include "uart.h"
 
@@ -59,9 +61,9 @@ void mavlink_task(void *param)
 		}
 
 		/* microservice handlers */
-		parameter_ack_handler();
-		mission_waypoint_ack_handler();
-		polynomial_trajectory_ack_handler();
+		parameter_microservice_handler();
+		mission_waypoint_microservice_handler();
+		polynomial_trajectory_microservice_handler();
 
 		freertos_task_delay(delay_time_ms);
 	}

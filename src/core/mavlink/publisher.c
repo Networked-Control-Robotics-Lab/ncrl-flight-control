@@ -1,6 +1,6 @@
 #include "stm32f4xx.h"
-#include "mavlink.h"
-#include "ncrl.h"
+#include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"
+#include "ncrl_mavlink.h"
 #include "uart.h"
 #include "ahrs.h"
 #include "sys_time.h"

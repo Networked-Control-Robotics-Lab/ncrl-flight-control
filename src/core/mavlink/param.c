@@ -1,5 +1,6 @@
 #include <stdint.h>
-#include "mavlink.h"
+#include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"
+#include "ncrl_mavlink.h"
 #include "./publisher.h"
 
 void mav_param_request_list(mavlink_message_t *received_msg)
@@ -17,6 +18,6 @@ void mav_param_request_list(mavlink_message_t *received_msg)
 	send_mavlink_msg_to_uart(&msg);
 }
 
-void parameter_ack_handler(void)
+void parameter_microservice_handler(void)
 {
 }

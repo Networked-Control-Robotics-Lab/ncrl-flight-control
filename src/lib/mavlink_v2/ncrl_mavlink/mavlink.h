@@ -1,5 +1,5 @@
 /** @file
- *  @brief MAVLink comm protocol built from ncrl.xml
+ *  @brief MAVLink comm protocol built from ncrl_mavlink.xml
  *  @see http://mavlink.org
  */
 #pragma once
@@ -29,6 +29,6 @@
 #endif
 
 #include "version.h"
-#include "ncrl.h"
+#include "ncrl_mavlink.h"
 
 #endif // MAVLINK_H

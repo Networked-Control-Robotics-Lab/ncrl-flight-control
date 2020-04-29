@@ -125,7 +125,7 @@ CFLAGS+=-I./lib/STM32F4xx_StdPeriph_Driver/inc
 CFLAGS+=-I./lib/FreeRTOS/Source/include
 CFLAGS+=-I./lib/FreeRTOS/Source/portable/GCC/ARM_CM4F
 CFLAGS+=-I./lib/mavlink_v2/common
-CFLAGS+=-I./lib/mavlink_v2/ncrl
+CFLAGS+=-I./lib/mavlink_v2/ncrl_mavlink
 
 OBJS=$(SRC:.c=.o)
 
