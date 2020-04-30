@@ -205,6 +205,7 @@ int autopilot_config_trajectory_following(int traj_num, bool z_traj, bool yaw_tr
 	//TODO: check trajectory list size
 	//TODO: check autopilot mode
 	//TODO: derive velocity coefficients from position coefficients
+	autopilot_ptr->traj_num = traj_num;
 	autopilot_ptr->z_traj = z_traj;
 	autopilot_ptr->yaw_traj = yaw_traj;
 	return AUTOPILOT_SET_SUCCEED;
