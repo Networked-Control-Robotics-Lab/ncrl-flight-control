@@ -19,30 +19,35 @@ volatile uint8_t received_mavlink_msg;
 
 void mavlink_task(void *param)
 {
-	float update_rate = 50.0f;
+	float update_rate = 1000.0f;
 	float delay_time_ms = (1.0f / update_rate) * 1000.0f;
 
-	int prescaling_counter = 0;
+	int prescaler_div_500 = 0;
+	int prescaler_div_20 = 0;
 
 	char c;
 
 	while(1) {
 		/* send the following mavlink message with 1Hz */
-		if(prescaling_counter == 50) {
+		if(prescaler_div_500 == 500) {
 			send_mavlink_heartbeat();
 			send_mavlink_system_status();
 #if (SELECT_LOCALIZATION == LOCALIZATION_USE_GPS_MAG)
 			send_mavlink_gps();
 #endif
-			prescaling_counter = 0;
+			prescaler_div_500 = 0;
 		}
-		prescaling_counter++;
+		prescaler_div_500++;
 
-		/* send the following mavlink message with 50Hz */
-		send_mavlink_attitude_quaternion();
+		if(prescaler_div_20 == 20) {
+			/* send the following mavlink message with 25Hz */
+			//send_mavlink_attitude_quaternion();
 #if (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
-		send_mavlink_local_position_ned();
+			//send_mavlink_local_position_ned();
 #endif
+			prescaler_div_20 = 0;
+		}
+		prescaler_div_20++;
 
 		//send_mavlink_attitude();
 		//send_mavlink_current_waypoint();

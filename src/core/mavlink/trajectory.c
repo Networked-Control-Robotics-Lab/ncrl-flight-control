@@ -4,15 +4,23 @@
 #include "autopilot.h"
 #include "sys_time.h"
 
-uint8_t traj_ack_val;
-uint8_t traj_index = 0;
 bool traj_do_ack = false;
+uint8_t traj_ack_val;
+
 bool traj_receiving = false;
 int traj_list_size = 0;
-uint8_t next_traj_type = TRAJECTORY_POSITION_X;
+uint8_t traj_index = 0;
+
 bool z_traj_enabled = false;
 bool yaw_traj_enabled = false;
+
 float recept_start_time = 0.0f;
+bool recept_finished = false;
+
+bool x_received = false;
+bool y_received = false;
+bool z_received = false;
+bool yaw_received = false;
 
 void polynomial_trajectory_microservice_handler(void)
 {
@@ -24,10 +32,32 @@ void polynomial_trajectory_microservice_handler(void)
 		traj_do_ack = false;
 	}
 
-	if(traj_receiving == true) {
+	if(traj_receiving == true || recept_finished == true) {
 		float current_time = get_sys_time_s();
 		if((current_time - recept_start_time) >= 5.0f) {
+			if(recept_finished == true) {
+				/* succeeded: close transaction after 5 seconds in case
+                                 * the ground station didn't received the ack message */
+				recept_finished = false;
+			} else {
+				/* timeout: transaction failed! */
+				//reset autopilot manager
+				autopilot_config_trajectory_following(0, false, false);
+			}
+
+			//stop receiving trajectory item message
 			traj_receiving = false;
+
+			/* reset reception flags */
+			z_traj_enabled = false;
+			yaw_traj_enabled = false;
+			x_received = false;
+			y_received = false;
+			z_received = false;
+			yaw_received = false;
+			traj_index = 0;
+			traj_list_size = 0;
+
 			//TODO: unlock autopilot
 		}
 	}
@@ -50,18 +80,28 @@ void mav_polynomial_trajectory_write(mavlink_message_t *received_msg)
 	mavlink_polynomial_trajectory_write_t poly_traj_write;
 	mavlink_msg_polynomial_trajectory_write_decode(received_msg, &poly_traj_write);
 
-	traj_receiving = true;
 	z_traj_enabled = (poly_traj_write.z_enabled == 0 ? false : true);
 	yaw_traj_enabled = (poly_traj_write.yaw_enabled == 0 ? false : true);
 	traj_list_size = poly_traj_write.list_size;
 
-	ack_val = TRAJECTORY_ACK_OK;
+	autopilot_config_trajectory_following(traj_list_size, z_traj_enabled, yaw_traj_enabled);
 
+	x_received = false;
+	y_received = false;
+	z_received = false;
+	yaw_received = false;
+	recept_finished = false;
+	traj_receiving = true;
+	traj_index = 0;
+
+	ack_val = TRAJECTORY_ACK_OK;
 	trigger_polynomial_trajectory_ack_sending(ack_val);
 }
 
 void mav_polynomial_trajectory_cmd(mavlink_message_t *received_msg)
 {
+	//TODO: check if trajectory exists!
+
 	mavlink_polynomial_trajectory_cmd_t poly_traj_cmd;
 	mavlink_msg_polynomial_trajectory_cmd_decode(received_msg, &poly_traj_cmd);
 
@@ -69,12 +109,7 @@ void mav_polynomial_trajectory_cmd(mavlink_message_t *received_msg)
 
 	switch(poly_traj_cmd.cmd) {
 	case TRAJECTORY_FOLLOWING_START: {
-		bool loop;
-		if(option == 0) {
-			loop = false;
-		} else {
-			loop = true;
-		}
+		bool loop = (option == 0 ? false : true);
 		autopilot_trajectory_following_start(loop);
 		break;
 	}
@@ -97,60 +132,48 @@ void mav_polynomial_trajectory_item(mavlink_message_t *received_msg)
 	uint8_t ack_val;
 	int ret_val = 0;
 
-	/* check current trajectory index/type to receive */
-	if(poly_traj_item.index != traj_index ||
-	    poly_traj_item.type != next_traj_type) {
-		ack_val = TRAJECTORY_ACK_INDEX_MISMATCHED;
-		trigger_polynomial_trajectory_ack_sending(ack_val);
-		return;
+	/* check current trajectory index to receive */
+	if(poly_traj_item.index != traj_index) {
+		/* index mismatched */
+		return; 
 	}
 
 	/* save trajectory and decide next receiption type */
-	switch(next_traj_type) {
+	switch(poly_traj_item.type) {
 	case TRAJECTORY_POSITION_X:
 		ret_val = autopilot_set_x_trajectory(traj_index, poly_traj_item.coeff);
-		next_traj_type = TRAJECTORY_POSITION_Y;
+		x_received = true;
 		break;
 	case TRAJECTORY_POSITION_Y:
 		ret_val = autopilot_set_y_trajectory(traj_index, poly_traj_item.coeff);
-		if(z_traj_enabled == true) {
-			next_traj_type = TRAJECTORY_POSITION_Z;
-		} else {
-			if(yaw_traj_enabled == true) {
-				next_traj_type = TRAJECTORY_ANGLE_YAW;
-			} else {
-				next_traj_type = TRAJECTORY_POSITION_X;
-			}
-		}
+		y_received = true;
 		break;
 	case TRAJECTORY_POSITION_Z:
 		ret_val = autopilot_set_z_trajectory(traj_index, poly_traj_item.coeff);
-		if(yaw_traj_enabled == true) {
-			next_traj_type = TRAJECTORY_ANGLE_YAW;
-		} else {
-			next_traj_type = TRAJECTORY_POSITION_X;
-		}
+		z_received = true;
 		break;
 	case TRAJECTORY_ANGLE_YAW:
 		ret_val = autopilot_set_yaw_trajectory(traj_index, poly_traj_item.coeff);
-		next_traj_type = TRAJECTORY_POSITION_X;
+		yaw_received = true;
 		break;
 	}
 
-	traj_index++; //next trajectory segment to receive
-
-	/* trigger sending ack message */
-	if(ret_val == AUTOPILOT_SET_SUCCEED) {
-		ack_val = TRAJECTORY_ACK_OK;
-	} else {
-		ack_val = TRAJECTORY_ACK_ERROR; //TODO: more error codes?
+	if((x_received == true) && (y_received == true) &&
+           (z_received == true || z_traj_enabled == false) &&
+           (yaw_received == true || yaw_traj_enabled == false)) {
+		traj_index++; //next trajectory segment to receive
+		x_received = false;
+		y_received = false;
+		z_received = false;
+		yaw_received = false;
 	}
+
+	ack_val = TRAJECTORY_ACK_OK;
 	trigger_polynomial_trajectory_ack_sending(ack_val);
 
 	/* finish receiving all trajectory segments */
-	if(traj_index == traj_list_size) {
-		traj_receiving = false;
-		traj_list_size = 0;
+	if(traj_index >= traj_list_size) {
+		recept_finished = true;
 		//TODO: unlock autopilot
 	}
 }

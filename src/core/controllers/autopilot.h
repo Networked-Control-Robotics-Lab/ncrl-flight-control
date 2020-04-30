@@ -103,6 +103,8 @@ typedef struct {
 	int traj_num;
 	float traj_start_time;
 	float traj_update_time_last;
+	bool z_traj;
+	bool yaw_traj;
 } autopilot_t;
 
 void autopilot_init(autopilot_t *_autopilot);
@@ -119,6 +121,7 @@ int autopilot_set_x_trajectory(int index, float *x_traj_coeff);
 int autopilot_set_y_trajectory(int index, float *y_traj_coeff);
 int autopilot_set_z_trajectory(int index, float *z_traj_coeff);
 int autopilot_set_yaw_trajectory(int index, float *yaw_traj_coeff);
+int autopilot_config_trajectory_following(int traj_num, bool z_traj, bool yaw_traj);
 int autopilot_clear_waypoint_list(void);
 int autopilot_goto_waypoint_now(float pos[3], bool change_height);
 int autopilot_halt_waypoint_mission(void);
