@@ -37,7 +37,7 @@ void polynomial_trajectory_microservice_handler(void)
 		if((current_time - recept_start_time) >= 5.0f) {
 			if(recept_finished == true) {
 				/* succeeded: close transaction after 5 seconds in case
-                                 * the ground station didn't received the ack message */
+				 * the ground station didn't received the ack message */
 				recept_finished = false;
 			} else {
 				/* timeout: transaction failed! */
@@ -135,7 +135,7 @@ void mav_polynomial_trajectory_item(mavlink_message_t *received_msg)
 	/* check current trajectory index to receive */
 	if(poly_traj_item.index != traj_index) {
 		/* index mismatched */
-		return; 
+		return;
 	}
 
 	/* save trajectory and decide next receiption type */
@@ -159,8 +159,8 @@ void mav_polynomial_trajectory_item(mavlink_message_t *received_msg)
 	}
 
 	if((x_received == true) && (y_received == true) &&
-           (z_received == true || z_traj_enabled == false) &&
-           (yaw_received == true || yaw_traj_enabled == false)) {
+	    (z_received == true || z_traj_enabled == false) &&
+	    (yaw_received == true || yaw_traj_enabled == false)) {
 		traj_index++; //next trajectory segment to receive
 		x_received = false;
 		y_received = false;

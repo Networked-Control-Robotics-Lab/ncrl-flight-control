@@ -202,9 +202,9 @@ int autopilot_set_yaw_trajectory(int index, float *yaw_traj_coeff)
 
 int autopilot_config_trajectory_following(int traj_num, bool z_traj, bool yaw_traj)
 {
-        //TODO: check trajectory list size
-        //TODO: check autopilot mode
-        //TODO: derive velocity coefficients from position coefficients
+	//TODO: check trajectory list size
+	//TODO: check autopilot mode
+	//TODO: derive velocity coefficients from position coefficients
 	autopilot_ptr->z_traj = z_traj;
 	autopilot_ptr->yaw_traj = yaw_traj;
 	return AUTOPILOT_SET_SUCCEED;
