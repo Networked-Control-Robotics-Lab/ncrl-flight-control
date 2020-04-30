@@ -141,19 +141,23 @@ void mav_polynomial_trajectory_item(mavlink_message_t *received_msg)
 	/* save trajectory and decide next receiption type */
 	switch(poly_traj_item.type) {
 	case TRAJECTORY_POSITION_X:
-		ret_val = autopilot_set_x_trajectory(traj_index, poly_traj_item.coeff);
+		ret_val = autopilot_set_x_trajectory(traj_index, poly_traj_item.coeff,
+			poly_traj_item.flight_time);
 		x_received = true;
 		break;
 	case TRAJECTORY_POSITION_Y:
-		ret_val = autopilot_set_y_trajectory(traj_index, poly_traj_item.coeff);
+		ret_val = autopilot_set_y_trajectory(traj_index, poly_traj_item.coeff,
+			poly_traj_item.flight_time);
 		y_received = true;
 		break;
 	case TRAJECTORY_POSITION_Z:
-		ret_val = autopilot_set_z_trajectory(traj_index, poly_traj_item.coeff);
+		ret_val = autopilot_set_z_trajectory(traj_index, poly_traj_item.coeff,
+			poly_traj_item.flight_time);
 		z_received = true;
 		break;
 	case TRAJECTORY_ANGLE_YAW:
-		ret_val = autopilot_set_yaw_trajectory(traj_index, poly_traj_item.coeff);
+		ret_val = autopilot_set_yaw_trajectory(traj_index, poly_traj_item.coeff,
+			poly_traj_item.flight_time);
 		yaw_received = true;
 		break;
 	}

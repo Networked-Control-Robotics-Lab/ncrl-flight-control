@@ -86,7 +86,6 @@ void autopilot_assign_trajactory_waypoint(float time)
 	                               calc_7th_polynomial(autopilot_ptr->trajectory_segments[curr_traj].x_poly_coeff, time);
 	autopilot_ptr->wp_now.pos[1] = 100.0f *
 	                               calc_7th_polynomial(autopilot_ptr->trajectory_segments[curr_traj].y_poly_coeff, time);
-	autopilot_ptr->wp_now.pos[2] = 0.6f;
 
 	//TODO: altitude fixed mode
 	//TODO: yaw motion planning
@@ -160,43 +159,47 @@ int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec,
 	}
 }
 
-int autopilot_set_x_trajectory(int index, float *x_traj_coeff)
+int autopilot_set_x_trajectory(int index, float *x_traj_coeff, float fligt_time)
 {
 	//TODO: check trajectory list size
 	//TODO: check autopilot mode
 	//TODO: derive velocity coefficients from position coefficients
 	copy_7th_polynomial_coefficients(autopilot_ptr->trajectory_segments[index].x_poly_coeff,
 	                                 x_traj_coeff);
+	autopilot_ptr->trajectory_segments[index].flight_time = fligt_time;
 	return AUTOPILOT_SET_SUCCEED;
 }
 
-int autopilot_set_y_trajectory(int index, float *y_traj_coeff)
+int autopilot_set_y_trajectory(int index, float *y_traj_coeff, float fligt_time)
 {
 	//TODO: check trajectory list size
 	//TODO: check autopilot mode
 	//TODO: derive velocity coefficients from position coefficients
 	copy_7th_polynomial_coefficients(autopilot_ptr->trajectory_segments[index].y_poly_coeff,
 	                                 y_traj_coeff);
+	autopilot_ptr->trajectory_segments[index].flight_time = fligt_time;
 	return AUTOPILOT_SET_SUCCEED;
 }
 
-int autopilot_set_z_trajectory(int index, float *z_traj_coeff)
+int autopilot_set_z_trajectory(int index, float *z_traj_coeff, float fligt_time)
 {
 	//TODO: check trajectory list size
 	//TODO: check autopilot mode
 	//TODO: derive velocity coefficients from position coefficients
 	copy_7th_polynomial_coefficients(autopilot_ptr->trajectory_segments[index].z_poly_coeff,
 	                                 z_traj_coeff);
+	autopilot_ptr->trajectory_segments[index].flight_time = fligt_time;
 	return AUTOPILOT_SET_SUCCEED;
 }
 
-int autopilot_set_yaw_trajectory(int index, float *yaw_traj_coeff)
+int autopilot_set_yaw_trajectory(int index, float *yaw_traj_coeff, float fligt_time)
 {
 	//TODO: check trajectory list size
 	//TODO: check autopilot mode
 	//TODO: derive velocity coefficients from position coefficients
 	copy_3th_polynomial_coefficients(autopilot_ptr->trajectory_segments[index].yaw_poly_coeff,
 	                                 yaw_traj_coeff);
+	autopilot_ptr->trajectory_segments[index].flight_time = fligt_time;
 	return AUTOPILOT_SET_SUCCEED;
 }
 

@@ -208,10 +208,11 @@ static void mavlink_test_polynomial_trajectory_item(uint8_t system_id, uint8_t c
         uint8_t buffer[MAVLINK_MAX_PACKET_LEN];
         uint16_t i;
     mavlink_polynomial_trajectory_item_t packet_in = {
-        { 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0 },101,168,235,46
+        { 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0 },241.0,113,180,247,58
     };
     mavlink_polynomial_trajectory_item_t packet1, packet2;
         memset(&packet1, 0, sizeof(packet1));
+        packet1.flight_time = packet_in.flight_time;
         packet1.target_system = packet_in.target_system;
         packet1.target_component = packet_in.target_component;
         packet1.type = packet_in.type;
@@ -231,12 +232,12 @@ static void mavlink_test_polynomial_trajectory_item(uint8_t system_id, uint8_t c
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 
         memset(&packet2, 0, sizeof(packet2));
-    mavlink_msg_polynomial_trajectory_item_pack(system_id, component_id, &msg , packet1.target_system , packet1.target_component , packet1.type , packet1.index , packet1.coeff );
+    mavlink_msg_polynomial_trajectory_item_pack(system_id, component_id, &msg , packet1.target_system , packet1.target_component , packet1.type , packet1.index , packet1.coeff , packet1.flight_time );
     mavlink_msg_polynomial_trajectory_item_decode(&msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 
         memset(&packet2, 0, sizeof(packet2));
-    mavlink_msg_polynomial_trajectory_item_pack_chan(system_id, component_id, MAVLINK_COMM_0, &msg , packet1.target_system , packet1.target_component , packet1.type , packet1.index , packet1.coeff );
+    mavlink_msg_polynomial_trajectory_item_pack_chan(system_id, component_id, MAVLINK_COMM_0, &msg , packet1.target_system , packet1.target_component , packet1.type , packet1.index , packet1.coeff , packet1.flight_time );
     mavlink_msg_polynomial_trajectory_item_decode(&msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 
@@ -249,7 +250,7 @@ static void mavlink_test_polynomial_trajectory_item(uint8_t system_id, uint8_t c
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
         
         memset(&packet2, 0, sizeof(packet2));
-    mavlink_msg_polynomial_trajectory_item_send(MAVLINK_COMM_1 , packet1.target_system , packet1.target_component , packet1.type , packet1.index , packet1.coeff );
+    mavlink_msg_polynomial_trajectory_item_send(MAVLINK_COMM_1 , packet1.target_system , packet1.target_component , packet1.type , packet1.index , packet1.coeff , packet1.flight_time );
     mavlink_msg_polynomial_trajectory_item_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 }
