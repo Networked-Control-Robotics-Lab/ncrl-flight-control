@@ -64,15 +64,18 @@ struct waypoint_t {
 	float touch_radius;  //[m]
 };
 
-struct uav_info_t {
-	float pos[3];
-	float vel[3];
-};
-
 /* every entities in autopilot_t is defined in enu frame */
 typedef struct {
-	struct uav_info_t uav_info;
-	struct waypoint_t wp_now;
+	struct {
+		float pos[3];
+		float vel[3];
+	} uav_info; /* current position and velocity of the uav */
+
+	struct {
+		float pos[3];  //[m]
+		float vel[3];  //[m/s]
+		float heading; //[deg]
+	} wp_now; /* autopilot provides these to controller as desired setpoint */
 
 	struct {
 		float origin[3];
@@ -93,14 +96,14 @@ typedef struct {
 
 	/* for waypoint following (representing setpoint with waypoints) */
 	struct waypoint_t wp_list[WAYPOINT_NUM_MAX]; //enu frame
-	int curr_wp;
-	int wp_num;
+	int curr_wp; //waypoint index, indicates which waypoint to track
+	int wp_num;  //total waypoint number
 
 	/* for trajectory following (representing setpoint with 7th ordered polynomials) */
 	struct trajectory_segment_t trajectory_segments[WAYPOINT_NUM_MAX];
 	float trajectory_update_time;
-	int curr_traj;
-	int traj_num;
+	int curr_traj;  //trajectory segment index, indicates which trajectory to track
+	int traj_num;   //total trajectory number
 	float traj_start_time;
 	float traj_update_time_last;
 	bool z_traj;

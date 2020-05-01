@@ -33,6 +33,48 @@ float calc_7th_polynomial(float *c, float t)
 	return ret_poly;
 }
 
+float calc_6th_polynomial(float *c, float t)
+{
+	float t_powers[7];
+	t_powers[0] = 1;
+	float ret_poly = c[0] * t_powers[0];
+
+	for(int i = 1; i < 7; i++) {
+		t_powers[i] = t_powers[i - 1] * t;
+		ret_poly += c[i] * t_powers[i];
+	}
+
+	return ret_poly;
+}
+
+float calc_3th_polynomial(float *c, float t)
+{
+	float t_powers[4];
+	t_powers[0] = 1;
+	float ret_poly = c[0] * t_powers[0];
+
+	for(int i = 1; i < 4; i++) {
+		t_powers[i] = t_powers[i - 1] * t;
+		ret_poly += c[i] * t_powers[i];
+	}
+
+	return ret_poly;
+}
+
+float calc_2th_polynomial(float *c, float t)
+{
+	float t_powers[3];
+	t_powers[0] = 1;
+	float ret_poly = c[0] * t_powers[0];
+
+	for(int i = 1; i < 3; i++) {
+		t_powers[i] = t_powers[i - 1] * t;
+		ret_poly += c[i] * t_powers[i];
+	}
+
+	return ret_poly;
+}
+
 void copy_3th_polynomial_coefficients(float *dest, float *src)
 {
 	dest[0] = src[0];
@@ -117,11 +159,17 @@ void autopilot_update_uav_info(float pos_enu[3], float vel_enu[3])
 
 void autopilot_assign_trajactory_waypoint(float time)
 {
+	//TODO: unifiy the unit
 	int curr_traj = autopilot_ptr->curr_traj;
-	autopilot_ptr->wp_now.pos[0] = 100.0f * //TODO: unifiy the unit
-	                               calc_7th_polynomial(autopilot_ptr->trajectory_segments[curr_traj].x_poly_coeff, time);
+	autopilot_ptr->wp_now.pos[0] = 100.0f *
+		calc_7th_polynomial(autopilot_ptr->trajectory_segments[curr_traj].x_poly_coeff, time);
 	autopilot_ptr->wp_now.pos[1] = 100.0f *
-	                               calc_7th_polynomial(autopilot_ptr->trajectory_segments[curr_traj].y_poly_coeff, time);
+		calc_7th_polynomial(autopilot_ptr->trajectory_segments[curr_traj].y_poly_coeff, time);
+	autopilot_ptr->wp_now.vel[0] = 100.0f *
+		calc_6th_polynomial(autopilot_ptr->trajectory_segments[curr_traj].vx_poly_coeff, time);
+	autopilot_ptr->wp_now.vel[1] = 100.0f *
+		calc_6th_polynomial(autopilot_ptr->trajectory_segments[curr_traj].vy_poly_coeff, time);
+	autopilot_ptr->wp_now.vel[2] = 0.0f;
 
 	//TODO: altitude fixed mode
 	//TODO: yaw motion planning
