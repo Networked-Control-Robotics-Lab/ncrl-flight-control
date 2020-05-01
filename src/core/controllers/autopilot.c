@@ -39,11 +39,11 @@ void autopilot_init(autopilot_t *_autopilot)
 	autopilot_ptr->traj_update_time_last = 0.0f;
 }
 
-void autopilot_update_uav_info(float pos_enu[3], float vel_enu[3])
+void autopilot_update_uav_state(float pos_enu[3], float vel_enu[3])
 {
-	autopilot_ptr->uav_info.pos[0] = pos_enu[0];
-	autopilot_ptr->uav_info.pos[1] = pos_enu[1];
-	autopilot_ptr->uav_info.pos[2] = pos_enu[2];
+	autopilot_ptr->uav_state.pos[0] = pos_enu[0];
+	autopilot_ptr->uav_state.pos[1] = pos_enu[1];
+	autopilot_ptr->uav_state.pos[2] = pos_enu[2];
 }
 
 void autopilot_assign_pos_target_x(float x)
@@ -146,7 +146,7 @@ void autopilot_set_disarmed(void)
 	autopilot_ptr->armed = false;
 }
 
-bool autopilot_get_is_armed(void)
+bool autopilot_is_armed(void)
 {
 	return autopilot_ptr->armed;
 }
@@ -358,7 +358,7 @@ int autopilot_trigger_auto_landing(void)
 int autopilot_trigger_auto_takeoff(void)
 {
 	/* FIXME: should test motor output rather than absoulte height */
-	if(autopilot_ptr->uav_info.pos[2] < 15.0f) {
+	if(autopilot_ptr->uav_state.pos[2] < 15.0f) {
 		autopilot_ptr->mode = AUTOPILOT_TAKEOFF_MODE;
 		return AUTOPILOT_SET_SUCCEED;
 	} else {
@@ -378,9 +378,9 @@ void autopilot_waypoint_handler(void)
 
 		/* hovering at current position */
 		autopilot_assign_pos_target(
-		        autopilot_ptr->uav_info.pos[0],
-		        autopilot_ptr->uav_info.pos[1],
-		        autopilot_ptr->uav_info.pos[2]);
+		        autopilot_ptr->uav_state.pos[0],
+		        autopilot_ptr->uav_state.pos[1],
+		        autopilot_ptr->uav_state.pos[2]);
 		autopilot_assign_zero_vel_target();
 	}
 
@@ -425,7 +425,7 @@ void autopilot_waypoint_handler(void)
 		/* slowly change the height setpoint to indicate uav to the sky */
 		autopilot_ptr->wp_now.pos[2] -= autopilot_ptr->landing_speed;
 		autopilot_assign_zero_vel_target();
-		if(autopilot_ptr->uav_info.pos[2] < autopilot_ptr->landing_accept_height) {
+		if(autopilot_ptr->uav_state.pos[2] < autopilot_ptr->landing_accept_height) {
 			autopilot_ptr->mode = AUTOPILOT_MOTOR_LOCKED_MODE;
 		}
 		break;
@@ -433,9 +433,9 @@ void autopilot_waypoint_handler(void)
 	case AUTOPILOT_TAKEOFF_MODE: {
 		/* slowly change the height setpoint to indicate uav to the ground */
 		autopilot_ptr->wp_now.pos[2] += autopilot_ptr->takeoff_speed;
-		if(autopilot_ptr->uav_info.pos[2] > autopilot_ptr->takeoff_height) {
+		if(autopilot_ptr->uav_state.pos[2] > autopilot_ptr->takeoff_height) {
 			autopilot_ptr->mode = AUTOPILOT_HOVERING_MODE;
-			autopilot_ptr->uav_info.pos[2] = autopilot_ptr->takeoff_height;
+			autopilot_ptr->uav_state.pos[2] = autopilot_ptr->takeoff_height;
 			autopilot_assign_zero_vel_target();
 		}
 		break;
@@ -473,11 +473,11 @@ void autopilot_waypoint_handler(void)
 	case AUTOPILOT_FOLLOW_WAYPOINT_MODE: {
 		/* calculate 2-norm to check if enter the waypoint touch zone or not */
 		float curr_dist[3];
-		curr_dist[0] = autopilot_ptr->uav_info.pos[0] - autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[0];
+		curr_dist[0] = autopilot_ptr->uav_state.pos[0] - autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[0];
 		curr_dist[0] *= curr_dist[0];
-		curr_dist[1] = autopilot_ptr->uav_info.pos[1] - autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[1];
+		curr_dist[1] = autopilot_ptr->uav_state.pos[1] - autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[1];
 		curr_dist[1] *= curr_dist[1];
-		curr_dist[2] = autopilot_ptr->uav_info.pos[2] - autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[2];
+		curr_dist[2] = autopilot_ptr->uav_state.pos[2] - autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[2];
 		curr_dist[2] *= curr_dist[2];
 
 		float accept_dist = autopilot_ptr->wp_list[autopilot_ptr->curr_wp].touch_radius;

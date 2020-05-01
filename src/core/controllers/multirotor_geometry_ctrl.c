@@ -509,7 +509,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 
 	float control_moments[3] = {0.0f}, control_force = 0.0f;
 	if(rc->auto_flight == true && optitrack_present == true) {
-		autopilot_update_uav_info(optitrack.pos, optitrack.vel_filtered);
+		autopilot_update_uav_state(optitrack.pos, optitrack.vel_filtered);
 		autopilot_waypoint_handler();
 
 		assign_vector_3x1_eun_to_ned(curr_pos, optitrack.pos);

@@ -69,7 +69,7 @@ typedef struct {
 	struct {
 		float pos[3];
 		float vel[3];
-	} uav_info; /* current position and velocity of the uav */
+	} uav_state; /* current position and velocity of the uav */
 
 	struct {
 		float pos[3];  //[m]
@@ -111,12 +111,12 @@ typedef struct {
 } autopilot_t;
 
 void autopilot_init(autopilot_t *_autopilot);
-void autopilot_update_uav_info(float pos_enu[3], float vel_enu[3]);
+void autopilot_update_uav_state(float pos_enu[3], float vel_enu[3]);
 void autopilot_set_enu_rectangular_fence(float origin[3], float lx, float ly, float height);
 void autopilot_set_mode(int new_mode);
 void autopilot_set_armed(void);
 void autopilot_set_disarmed(void);
-bool autopilot_get_is_armed(void);
+bool autopilot_is_armed(void);
 void autopilot_mission_reset(void);
 int autopilot_get_mode(void);
 int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec, float radius);

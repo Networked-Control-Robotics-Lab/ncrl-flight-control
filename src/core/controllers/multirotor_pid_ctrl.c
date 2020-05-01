@@ -292,7 +292,7 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desire
 	/* altitude control */
 	altitude_control(optitrack.pos[2], optitrack.vel_filtered[2], &pid_alt_vel, &pid_alt);
 
-	autopilot_update_uav_info(optitrack.pos, optitrack.vel_filtered);
+	autopilot_update_uav_state(optitrack.pos, optitrack.vel_filtered);
 	autopilot_waypoint_handler();
 	/* feed position controller setpoint from autopilot (enu) */
 	pid_pos_x.setpoint = autopilot.wp_now.pos[0];

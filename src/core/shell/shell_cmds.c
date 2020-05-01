@@ -76,7 +76,7 @@ void shell_cmd_disarm(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int p
 
 void shell_cmd_takeoff(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
-	if(autopilot_get_is_armed() == false) {
+	if(autopilot_is_armed() == false) {
 		shell_puts("failed, uav not armed!\n\r");
 		return;
 	}
@@ -100,7 +100,7 @@ void shell_cmd_takeoff(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int 
 
 void shell_cmd_land(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
-	if(autopilot_get_is_armed() == false) {
+	if(autopilot_is_armed() == false) {
 		shell_puts("failed, uav not armed!\n\r");
 		return;
 	}
@@ -124,7 +124,7 @@ void shell_cmd_land(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 
 void shell_cmd_fly(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
-	if(autopilot_get_is_armed() == false) {
+	if(autopilot_is_armed() == false) {
 		shell_puts("failed, uav not armed!\n\r");
 		return;
 	}
@@ -263,7 +263,7 @@ static void mission_add_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_L
 
 static void mission_start_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
 {
-	if(autopilot_get_is_armed() == false) {
+	if(autopilot_is_armed() == false) {
 		shell_puts("failed, uav not armed!\n\r");
 		return;
 	}
@@ -289,7 +289,7 @@ static void mission_start_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM
 
 static void mission_loop_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
 {
-	if(autopilot_get_is_armed() == false) {
+	if(autopilot_is_armed() == false) {
 		shell_puts("failed, uav not armed!\n\r");
 		return;
 	}
@@ -320,7 +320,7 @@ static void mission_list_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_
 
 static void mission_halt_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
 {
-	if(autopilot_get_is_armed() == false) {
+	if(autopilot_is_armed() == false) {
 		shell_puts("failed, uav not armed!\n\r");
 		return;
 	}
@@ -344,7 +344,7 @@ static void mission_halt_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_
 
 static void mission_resume_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
 {
-	if(autopilot_get_is_armed() == false) {
+	if(autopilot_is_armed() == false) {
 		shell_puts("failed, uav not armed!\n\r");
 		return;
 	}
