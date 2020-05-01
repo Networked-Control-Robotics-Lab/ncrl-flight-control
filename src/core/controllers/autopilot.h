@@ -59,7 +59,6 @@ struct trajectory_segment_t
 
 struct waypoint_t {
 	float pos[3];        //[m]
-	float vel[3];        //[m/s]
 	float heading;       //[deg]
 	float halt_time_sec; //[s]
 	float touch_radius;  //[m]
