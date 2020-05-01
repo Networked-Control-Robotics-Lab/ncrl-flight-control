@@ -46,22 +46,64 @@ void autopilot_update_uav_info(float pos_enu[3], float vel_enu[3])
 	autopilot_ptr->uav_info.pos[2] = pos_enu[2];
 }
 
+void autopilot_assign_pos_target_x(float x)
+{
+	autopilot_ptr->wp_now.pos[0] = x;
+}
+
+void autopilot_assign_pos_target_y(float y)
+{
+	autopilot_ptr->wp_now.pos[1] = y;
+}
+
+void autopilot_assign_pos_target_z(float z)
+{
+	autopilot_ptr->wp_now.pos[2] = z;
+}
+
+void autopilot_assign_pos_target(float x, float y, float z)
+{
+	autopilot_ptr->wp_now.pos[0] = x;
+	autopilot_ptr->wp_now.pos[1] = y;
+	autopilot_ptr->wp_now.pos[2] = z;
+}
+
+void autopilot_assign_vel_target(float x, float y, float z)
+{
+	autopilot_ptr->wp_now.vel[0] = x;
+	autopilot_ptr->wp_now.vel[1] = y;
+	autopilot_ptr->wp_now.vel[2] = z;
+}
+
+void autopilot_assign_zero_vel_target(void)
+{
+	autopilot_ptr->wp_now.vel[0] = 0.0f;
+	autopilot_ptr->wp_now.vel[1] = 0.0f;
+	autopilot_ptr->wp_now.vel[2] = 0.0f;
+}
+
 void autopilot_assign_trajactory_waypoint(float time)
 {
-	//TODO: unifiy the unit
 	int curr_traj = autopilot_ptr->curr_traj;
-	autopilot_ptr->wp_now.pos[0] = 100.0f *
-	                               calc_7th_polynomial(autopilot_ptr->trajectory_segments[curr_traj].x_poly_coeff, time);
-	autopilot_ptr->wp_now.pos[1] = 100.0f *
-	                               calc_7th_polynomial(autopilot_ptr->trajectory_segments[curr_traj].y_poly_coeff, time);
-	autopilot_ptr->wp_now.vel[0] = 100.0f *
-	                               calc_6th_polynomial(autopilot_ptr->trajectory_segments[curr_traj].vx_poly_coeff, time);
-	autopilot_ptr->wp_now.vel[1] = 100.0f *
-	                               calc_6th_polynomial(autopilot_ptr->trajectory_segments[curr_traj].vy_poly_coeff, time);
-	autopilot_ptr->wp_now.vel[2] = 0.0f;
+	float *x_traj_coeff = autopilot_ptr->trajectory_segments[curr_traj].x_poly_coeff;
+	float *y_traj_coeff = autopilot_ptr->trajectory_segments[curr_traj].y_poly_coeff;
+	float *vx_traj_coeff = autopilot_ptr->trajectory_segments[curr_traj].vx_poly_coeff;
+	float *vy_traj_coeff = autopilot_ptr->trajectory_segments[curr_traj].vy_poly_coeff;
 
-	//TODO: altitude fixed mode
-	//TODO: yaw motion planning
+	//TODO: unifiy the unit
+	/* update position/velocity setpoint to controller */
+	float x_target = 100.0f * calc_7th_polynomial(x_traj_coeff, time);
+	float y_target = 100.0f * calc_7th_polynomial(y_traj_coeff, time);
+	float vx_target = 100.0f * calc_6th_polynomial(vx_traj_coeff, time);
+	float vy_target = 100.0f * calc_6th_polynomial(vy_traj_coeff, time);
+	float vz_target = 0.0f;
+
+	autopilot_assign_pos_target_x(x_target);
+	autopilot_assign_pos_target_y(y_target);
+	autopilot_assign_vel_target(vx_target, vy_target, vz_target);
+
+	//TODO: z planning mode
+	//TODO: yaw planning mode
 }
 
 void autopilot_set_enu_rectangular_fence(float origin[3], float lx, float ly, float height)
@@ -258,11 +300,15 @@ int autopilot_waypoint_mission_start(bool loop_mission)
 
 	if(autopilot_ptr->wp_num >= 1) {
 		autopilot_ptr->curr_wp = 0;
+		/* change to waypoint following mode */
 		autopilot_ptr->mode = AUTOPILOT_FOLLOW_WAYPOINT_MODE;
-		autopilot_ptr->wp_now.pos[0] = autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[0];
-		autopilot_ptr->wp_now.pos[1] = autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[1];
-		autopilot_ptr->wp_now.pos[2] = autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[2];
 		autopilot_ptr->loop_mission = loop_mission;
+		/* update position/velocity setpoint to controller */
+		float x_target = autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[0];
+		float y_target = autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[1];
+		float z_target = autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[2];
+		autopilot_assign_pos_target(x_target, y_target, z_target);
+		autopilot_assign_zero_vel_target();
 		return AUTOPILOT_SET_SUCCEED;
 	} else {
 		return AUTOPILOT_WP_LIST_EMPYT;
@@ -292,7 +338,7 @@ int autopilot_trajectory_following_start(bool loop_trajectory)
 int autopilot_trajectory_following_stop(void)
 {
 	if(autopilot_ptr->mode == AUTOPILOT_TRAJECTORY_FOLLOWING_MODE) {
-		autopilot_ptr->mode = AUTOPILOT_HOVERING_MODE;
+		autopilot_ptr->halt_flag = true;
 		return AUTOPILOT_SET_SUCCEED;
 	} else {
 		return AUTOPILOT_NOT_IN_TRAJECTORY_MODE;
@@ -327,12 +373,15 @@ void autopilot_waypoint_handler(void)
 
 	/* if receive halt command */
 	if(autopilot_ptr->halt_flag == true) {
-		/* hovering at current position */
-		autopilot_ptr->wp_now.pos[0] = autopilot_ptr->uav_info.pos[0];
-		autopilot_ptr->wp_now.pos[1] = autopilot_ptr->uav_info.pos[1];
-		autopilot_ptr->wp_now.pos[2] = autopilot_ptr->uav_info.pos[2];
 		autopilot_ptr->halt_flag = false;
 		autopilot_ptr->mode = AUTOPILOT_HOVERING_MODE;
+
+		/* hovering at current position */
+		autopilot_assign_pos_target(
+		        autopilot_ptr->uav_info.pos[0],
+		        autopilot_ptr->uav_info.pos[1],
+		        autopilot_ptr->uav_info.pos[2]);
+		autopilot_assign_zero_vel_target();
 	}
 
 	switch(autopilot_ptr->mode) {
@@ -340,7 +389,7 @@ void autopilot_waypoint_handler(void)
 	case AUTOPILOT_HOVERING_MODE:
 		return;
 	case AUTOPILOT_TRAJECTORY_FOLLOWING_MODE: {
-		/* converting trajectory polynomial to waypoint according to the update frequency*/
+		/* converte trajectory polynomial to waypoint according to the update frequency */
 		float current_time = get_sys_time_s();
 		if((current_time - autopilot_ptr->traj_update_time_last) < TRAJECTORY_WP_UPDATE_TIME) {
 			break;
@@ -375,6 +424,7 @@ void autopilot_waypoint_handler(void)
 	case AUTOPILOT_LANDING_MODE: {
 		/* slowly change the height setpoint to indicate uav to the sky */
 		autopilot_ptr->wp_now.pos[2] -= autopilot_ptr->landing_speed;
+		autopilot_assign_zero_vel_target();
 		if(autopilot_ptr->uav_info.pos[2] < autopilot_ptr->landing_accept_height) {
 			autopilot_ptr->mode = AUTOPILOT_MOTOR_LOCKED_MODE;
 		}
@@ -386,13 +436,15 @@ void autopilot_waypoint_handler(void)
 		if(autopilot_ptr->uav_info.pos[2] > autopilot_ptr->takeoff_height) {
 			autopilot_ptr->mode = AUTOPILOT_HOVERING_MODE;
 			autopilot_ptr->uav_info.pos[2] = autopilot_ptr->takeoff_height;
+			autopilot_assign_zero_vel_target();
 		}
 		break;
 	}
 	case AUTOPILOT_WAIT_NEXT_WAYPOINT_MODE: {
 		curr_time = get_sys_time_s();
 		/* check if time is up */
-		if((curr_time - start_time) > autopilot_ptr->wp_list[autopilot_ptr->curr_wp].halt_time_sec) {
+		if((curr_time - start_time) >
+		    autopilot_ptr->wp_list[autopilot_ptr->curr_wp].halt_time_sec) {
 			/* continue next waypoint if exist */
 			if(autopilot_ptr->curr_wp < (autopilot_ptr->wp_num - 1)) {
 				autopilot_ptr->mode = AUTOPILOT_FOLLOW_WAYPOINT_MODE;
@@ -409,9 +461,12 @@ void autopilot_waypoint_handler(void)
 				}
 			}
 
-			autopilot_ptr->wp_now.pos[0] = autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[0];
-			autopilot_ptr->wp_now.pos[1] = autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[1];
-			autopilot_ptr->wp_now.pos[2] = autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[2];
+			/* update position/velocity setpoint to controller */
+			float x_target = autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[0];
+			float y_target = autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[1];
+			float z_target = autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[2];
+			autopilot_assign_pos_target(x_target, y_target, z_target);
+			autopilot_assign_zero_vel_target();
 		}
 		break;
 	}
