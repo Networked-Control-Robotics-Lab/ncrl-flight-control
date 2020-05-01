@@ -53,6 +53,42 @@ void copy_7th_polynomial_coefficients(float *dest, float *src)
 	dest[7] = src[7];
 }
 
+/*
+ * input: 3th order polynomial's coefficients
+ * output: 2th order polynomial's coefficients
+ */
+void differentiate_3th_polynomial(float *pos_traj_coeff, float *vel_traj_coeff)
+{
+	const float d0 = 1.0f;
+	const float d1 = 1.0f / 2.0f;
+	const float d2 = 1.0f / 3.0f;
+	vel_traj_coeff[0] = d0 * pos_traj_coeff[1];
+	vel_traj_coeff[1] = d1 * pos_traj_coeff[2];
+	vel_traj_coeff[2] = d2 * pos_traj_coeff[3];
+}
+
+/*
+ * input: 7th order polynomial's coefficients
+ * output: 6th order polynomial's coefficients
+ */
+void differentiate_7th_polynomial(float *pos_traj_coeff, float *vel_traj_coeff)
+{
+	const float d0 = 1.0f;
+	const float d1 = 1.0f / 2.0f;
+	const float d2 = 1.0f / 3.0f;
+	const float d3 = 1.0f / 4.0f;
+	const float d4 = 1.0f / 5.0f;
+	const float d5 = 1.0f / 6.0f;
+	const float d6 = 1.0f / 7.0f;
+	vel_traj_coeff[0] = d0 * pos_traj_coeff[1];
+	vel_traj_coeff[1] = d1 * pos_traj_coeff[2];
+	vel_traj_coeff[2] = d2 * pos_traj_coeff[3];
+	vel_traj_coeff[3] = d3 * pos_traj_coeff[4];
+	vel_traj_coeff[4] = d4 * pos_traj_coeff[5];
+	vel_traj_coeff[5] = d5 * pos_traj_coeff[6];
+	vel_traj_coeff[6] = d6 * pos_traj_coeff[7];
+}
+
 void assign_vector_3x1_eun_to_ned(float *ned, float *enu)
 {
 	ned[0] = enu[1];
@@ -167,6 +203,9 @@ int autopilot_set_x_trajectory(int index, float *x_traj_coeff, float fligt_time)
 	copy_7th_polynomial_coefficients(autopilot_ptr->trajectory_segments[index].x_poly_coeff,
 	                                 x_traj_coeff);
 	autopilot_ptr->trajectory_segments[index].flight_time = fligt_time;
+	differentiate_7th_polynomial(autopilot_ptr->trajectory_segments[index].x_poly_coeff,
+                                     autopilot_ptr->trajectory_segments[index].vx_poly_coeff);
+
 	return AUTOPILOT_SET_SUCCEED;
 }
 
@@ -178,6 +217,9 @@ int autopilot_set_y_trajectory(int index, float *y_traj_coeff, float fligt_time)
 	copy_7th_polynomial_coefficients(autopilot_ptr->trajectory_segments[index].y_poly_coeff,
 	                                 y_traj_coeff);
 	autopilot_ptr->trajectory_segments[index].flight_time = fligt_time;
+	differentiate_7th_polynomial(autopilot_ptr->trajectory_segments[index].y_poly_coeff,
+                                     autopilot_ptr->trajectory_segments[index].vy_poly_coeff);
+
 	return AUTOPILOT_SET_SUCCEED;
 }
 
@@ -189,6 +231,9 @@ int autopilot_set_z_trajectory(int index, float *z_traj_coeff, float fligt_time)
 	copy_7th_polynomial_coefficients(autopilot_ptr->trajectory_segments[index].z_poly_coeff,
 	                                 z_traj_coeff);
 	autopilot_ptr->trajectory_segments[index].flight_time = fligt_time;
+	differentiate_7th_polynomial(autopilot_ptr->trajectory_segments[index].z_poly_coeff,
+                                     autopilot_ptr->trajectory_segments[index].vz_poly_coeff);
+
 	return AUTOPILOT_SET_SUCCEED;
 }
 
@@ -200,6 +245,9 @@ int autopilot_set_yaw_trajectory(int index, float *yaw_traj_coeff, float fligt_t
 	copy_3th_polynomial_coefficients(autopilot_ptr->trajectory_segments[index].yaw_poly_coeff,
 	                                 yaw_traj_coeff);
 	autopilot_ptr->trajectory_segments[index].flight_time = fligt_time;
+	differentiate_3th_polynomial(autopilot_ptr->trajectory_segments[index].yaw_poly_coeff,
+                                     autopilot_ptr->trajectory_segments[index].yaw_rate_poly_coeff);
+
 	return AUTOPILOT_SET_SUCCEED;
 }
 

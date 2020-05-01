@@ -47,11 +47,12 @@ struct trajectory_segment_t
 	float y_poly_coeff[8];
 	float z_poly_coeff[8];
 
-	float vx_poly_coeff[8];
-	float vy_poly_coeff[8];
-	float vz_poly_coeff[8];
+	float vx_poly_coeff[7];
+	float vy_poly_coeff[7];
+	float vz_poly_coeff[7];
 
-	float yaw_poly_coeff[8];
+	float yaw_poly_coeff[4];
+	float yaw_rate_poly_coeff[3];
 
 	float flight_time;
 };
