@@ -89,7 +89,8 @@ SRC+=./common/delay.c \
 	./common/bound.c \
 	./common/matrix.c \
 	./common/se3_math.c \
-	./common/quaternion.c
+	./common/quaternion.c \
+	./common/polynomial.c
 
 SRC+=./driver/periph/uart.c \
 	./driver/periph/spi.c \
