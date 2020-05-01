@@ -1,15 +1,6 @@
-## NCRL flight controller
+## NCRL Flight Controller
 
-### Coding style convention
+# Guide
 
-* [Linux kernel coding style](https://www.kernel.org/doc/html/v4.10/process/coding-style.html)
+Check NCRL Flight Controller [documentation page](https://c-shengwen-tw.gitbook.io/ncrl-flight-controller/).
 
-### Calibration
-
-1. Accelerometer calibration
-
-2. Remote controller calibration
-
-3. UAV parameters setting
-
-4. Gain tunning
