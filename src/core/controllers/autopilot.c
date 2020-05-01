@@ -51,13 +51,13 @@ void autopilot_assign_trajactory_waypoint(float time)
 	//TODO: unifiy the unit
 	int curr_traj = autopilot_ptr->curr_traj;
 	autopilot_ptr->wp_now.pos[0] = 100.0f *
-		calc_7th_polynomial(autopilot_ptr->trajectory_segments[curr_traj].x_poly_coeff, time);
+	                               calc_7th_polynomial(autopilot_ptr->trajectory_segments[curr_traj].x_poly_coeff, time);
 	autopilot_ptr->wp_now.pos[1] = 100.0f *
-		calc_7th_polynomial(autopilot_ptr->trajectory_segments[curr_traj].y_poly_coeff, time);
+	                               calc_7th_polynomial(autopilot_ptr->trajectory_segments[curr_traj].y_poly_coeff, time);
 	autopilot_ptr->wp_now.vel[0] = 100.0f *
-		calc_6th_polynomial(autopilot_ptr->trajectory_segments[curr_traj].vx_poly_coeff, time);
+	                               calc_6th_polynomial(autopilot_ptr->trajectory_segments[curr_traj].vx_poly_coeff, time);
 	autopilot_ptr->wp_now.vel[1] = 100.0f *
-		calc_6th_polynomial(autopilot_ptr->trajectory_segments[curr_traj].vy_poly_coeff, time);
+	                               calc_6th_polynomial(autopilot_ptr->trajectory_segments[curr_traj].vy_poly_coeff, time);
 	autopilot_ptr->wp_now.vel[2] = 0.0f;
 
 	//TODO: altitude fixed mode
@@ -141,7 +141,7 @@ int autopilot_set_x_trajectory(int index, float *x_traj_coeff, float fligt_time)
 	                                 x_traj_coeff);
 	autopilot_ptr->trajectory_segments[index].flight_time = fligt_time;
 	differentiate_7th_polynomial(autopilot_ptr->trajectory_segments[index].x_poly_coeff,
-                                     autopilot_ptr->trajectory_segments[index].vx_poly_coeff);
+	                             autopilot_ptr->trajectory_segments[index].vx_poly_coeff);
 
 	return AUTOPILOT_SET_SUCCEED;
 }
@@ -155,7 +155,7 @@ int autopilot_set_y_trajectory(int index, float *y_traj_coeff, float fligt_time)
 	                                 y_traj_coeff);
 	autopilot_ptr->trajectory_segments[index].flight_time = fligt_time;
 	differentiate_7th_polynomial(autopilot_ptr->trajectory_segments[index].y_poly_coeff,
-                                     autopilot_ptr->trajectory_segments[index].vy_poly_coeff);
+	                             autopilot_ptr->trajectory_segments[index].vy_poly_coeff);
 
 	return AUTOPILOT_SET_SUCCEED;
 }
@@ -169,7 +169,7 @@ int autopilot_set_z_trajectory(int index, float *z_traj_coeff, float fligt_time)
 	                                 z_traj_coeff);
 	autopilot_ptr->trajectory_segments[index].flight_time = fligt_time;
 	differentiate_7th_polynomial(autopilot_ptr->trajectory_segments[index].z_poly_coeff,
-                                     autopilot_ptr->trajectory_segments[index].vz_poly_coeff);
+	                             autopilot_ptr->trajectory_segments[index].vz_poly_coeff);
 
 	return AUTOPILOT_SET_SUCCEED;
 }
@@ -183,7 +183,7 @@ int autopilot_set_yaw_trajectory(int index, float *yaw_traj_coeff, float fligt_t
 	                                 yaw_traj_coeff);
 	autopilot_ptr->trajectory_segments[index].flight_time = fligt_time;
 	differentiate_3th_polynomial(autopilot_ptr->trajectory_segments[index].yaw_poly_coeff,
-                                     autopilot_ptr->trajectory_segments[index].yaw_rate_poly_coeff);
+	                             autopilot_ptr->trajectory_segments[index].yaw_rate_poly_coeff);
 
 	return AUTOPILOT_SET_SUCCEED;
 }
