@@ -1,6 +1,6 @@
-## NCRL Flight Controller
+# NCRL Flight Controller
 
-# Guide
+## Guide
 
 Check NCRL Flight Controller [documentation page](https://c-shengwen-tw.gitbook.io/ncrl-flight-controller/).
 
