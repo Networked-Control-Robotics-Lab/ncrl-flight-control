@@ -282,18 +282,28 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
                             float *curr_vel, float *desired_vel, float *curr_accel, float *desired_accel,
                             float *output_moments, float *output_force, bool manual_flight)
 {
+	/* ex = x - xd */
 	float pos_des_ned[3];
 	assign_vector_3x1_eun_to_ned(pos_des_ned, autopilot.wp_now.pos);
-
-	/* ex = x - xd */
 	pos_error[0] = curr_pos[0] - pos_des_ned[0];
 	pos_error[1] = curr_pos[1] - pos_des_ned[1];
 	pos_error[2] = curr_pos[2] - pos_des_ned[2];
 
 	/* ev = v - vd */
+	//float vel_des_ned[3];
+	//assign_vector_3x1_eun_to_ned(vel_des_ned, autopilot.wp_now.vel);
 	vel_error[0] = curr_vel[0] - desired_vel[0];
 	vel_error[1] = curr_vel[1] - desired_vel[1];
 	vel_error[2] = curr_vel[2] - desired_vel[2];
+
+	float acc_ff_ned[3];
+	acc_ff_ned[0] = 0.0f;
+	acc_ff_ned[1] = 0.0f;
+	acc_ff_ned[2] = 0.0f;
+	//assign_vector_3x1_eun_to_ned(acc_des_ned, autopilot.wp_now.acc_feedforward);
+	acc_ff_ned[0] = newton_to_grams_force(acc_ff_ned[0]);
+	acc_ff_ned[1] = newton_to_grams_force(acc_ff_ned[1]);
+	acc_ff_ned[2] = newton_to_grams_force(acc_ff_ned[2]);
 
 	tracking_error_integral[0] += k_tracking_i_gain[0] * (pos_error[0]) * dt;
 	tracking_error_integral[1] += k_tracking_i_gain[1] * (pos_error[1]) * dt;
@@ -303,9 +313,12 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	bound_float(&tracking_error_integral[1], 150, -150);
 	bound_float(&tracking_error_integral[2], 50, -50);
 
-	_mat_(kxex_kvev_mge3_mxd_dot_dot)[0] = -kpx*pos_error[0] - kvx*vel_error[0] - tracking_error_integral[0];
-	_mat_(kxex_kvev_mge3_mxd_dot_dot)[1] = -kpy*pos_error[1] - kvy*vel_error[1] - tracking_error_integral[1];
-	_mat_(kxex_kvev_mge3_mxd_dot_dot)[2] = -kpz*pos_error[2] - kvz*vel_error[2] - uav_weight - tracking_error_integral[2];
+	_mat_(kxex_kvev_mge3_mxd_dot_dot)[0] = -kpx*pos_error[0] - kvx*vel_error[0] +
+	                                       acc_ff_ned[0] - tracking_error_integral[0];
+	_mat_(kxex_kvev_mge3_mxd_dot_dot)[1] = -kpy*pos_error[1] - kvy*vel_error[1] +
+	                                       acc_ff_ned[1] - tracking_error_integral[1];
+	_mat_(kxex_kvev_mge3_mxd_dot_dot)[2] = -kpz*pos_error[2] - kvz*vel_error[2] +
+	                                       acc_ff_ned[2] - tracking_error_integral[2] - uav_weight;
 
 	/* calculate the denominator of b3d */
 	float b3d_denominator; //caution: this term should not be 0
