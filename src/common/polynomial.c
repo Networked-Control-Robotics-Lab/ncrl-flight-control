@@ -26,6 +26,20 @@ float calc_3th_polynomial(float *c, float t)
 	return ret_poly;
 }
 
+float calc_5th_polynomial(float *c, float t)
+{
+	float t_powers[6];
+	t_powers[0] = 1;
+	float ret_poly = c[0] * t_powers[0];
+
+	for(int i = 1; i < 6; i++) {
+		t_powers[i] = t_powers[i - 1] * t;
+		ret_poly += c[i] * t_powers[i];
+	}
+
+	return ret_poly;
+}
+
 float calc_6th_polynomial(float *c, float t)
 {
 	float t_powers[7];
@@ -89,18 +103,38 @@ void differentiate_3th_polynomial(float *pos_traj_coeff, float *vel_traj_coeff)
 }
 
 /*
+ * input: 6th order polynomial's coefficients
+ * output: 5th order polynomial's coefficients
+ */
+void differentiate_6th_polynomial(float *pos_traj_coeff, float *vel_traj_coeff)
+{
+	const float d0 = 1.0f;
+	const float d1 = 2.0f;
+	const float d2 = 3.0f;
+	const float d3 = 4.0f;
+	const float d4 = 5.0f;
+	const float d5 = 6.0f;
+	vel_traj_coeff[0] = d0 * pos_traj_coeff[1];
+	vel_traj_coeff[1] = d1 * pos_traj_coeff[2];
+	vel_traj_coeff[2] = d2 * pos_traj_coeff[3];
+	vel_traj_coeff[3] = d3 * pos_traj_coeff[4];
+	vel_traj_coeff[4] = d4 * pos_traj_coeff[5];
+	vel_traj_coeff[5] = d5 * pos_traj_coeff[6];
+}
+
+/*
  * input: 7th order polynomial's coefficients
  * output: 6th order polynomial's coefficients
  */
 void differentiate_7th_polynomial(float *pos_traj_coeff, float *vel_traj_coeff)
 {
 	const float d0 = 1.0f;
-	const float d1 = 1.0f / 2.0f;
-	const float d2 = 1.0f / 3.0f;
-	const float d3 = 1.0f / 4.0f;
-	const float d4 = 1.0f / 5.0f;
-	const float d5 = 1.0f / 6.0f;
-	const float d6 = 1.0f / 7.0f;
+	const float d1 = 2.0f;
+	const float d2 = 3.0f;
+	const float d3 = 4.0f;
+	const float d4 = 5.0f;
+	const float d5 = 6.0f;
+	const float d6 = 7.0f;
 	vel_traj_coeff[0] = d0 * pos_traj_coeff[1];
 	vel_traj_coeff[1] = d1 * pos_traj_coeff[2];
 	vel_traj_coeff[2] = d2 * pos_traj_coeff[3];

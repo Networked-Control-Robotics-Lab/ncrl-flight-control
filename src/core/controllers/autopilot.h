@@ -51,6 +51,10 @@ struct trajectory_segment_t
 	float vy_poly_coeff[7];
 	float vz_poly_coeff[7];
 
+	float ax_poly_coeff[7];
+	float ay_poly_coeff[7];
+	float az_poly_coeff[7];
+
 	float yaw_poly_coeff[4];
 	float yaw_rate_poly_coeff[3];
 
@@ -72,9 +76,10 @@ typedef struct {
 	} uav_state; /* current position and velocity of the uav */
 
 	struct {
-		float pos[3];  //[m]
-		float vel[3];  //[m/s]
-		float heading; //[deg]
+		float pos[3];            //[m]
+		float vel[3];            //[m/s]
+		float acc_feedforward[3]; //[m/s^2]
+		float heading;           //[deg]
 	} wp_now; /* autopilot provides these to controller as desired setpoint */
 
 	struct {
