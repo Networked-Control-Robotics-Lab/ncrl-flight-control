@@ -89,6 +89,13 @@ void autopilot_assign_acc_feedforward(float ax, float ay, float az)
 	autopilot_ptr->wp_now.acc_feedforward[2] = az;
 }
 
+void autopilot_assign_zero_acc_feedforward(void)
+{
+	autopilot_ptr->wp_now.acc_feedforward[0] = 0.0f;
+	autopilot_ptr->wp_now.acc_feedforward[1] = 0.0f;
+	autopilot_ptr->wp_now.acc_feedforward[2] = 0.0f;
+}
+
 void autopilot_assign_trajactory_waypoint(float time)
 {
 	int curr_traj = autopilot_ptr->curr_traj;
@@ -329,6 +336,7 @@ int autopilot_waypoint_mission_start(bool loop_mission)
 		float z_target = autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[2];
 		autopilot_assign_pos_target(x_target, y_target, z_target);
 		autopilot_assign_zero_vel_target();
+		autopilot_assign_zero_acc_feedforward();
 		return AUTOPILOT_SET_SUCCEED;
 	} else {
 		return AUTOPILOT_WP_LIST_EMPYT;
@@ -402,6 +410,7 @@ void autopilot_waypoint_handler(void)
 		        autopilot_ptr->uav_state.pos[1],
 		        autopilot_ptr->uav_state.pos[2]);
 		autopilot_assign_zero_vel_target();
+		autopilot_assign_zero_acc_feedforward();
 	}
 
 	switch(autopilot_ptr->mode) {
@@ -445,6 +454,7 @@ void autopilot_waypoint_handler(void)
 		/* slowly change the height setpoint to indicate uav to the sky */
 		autopilot_ptr->wp_now.pos[2] -= autopilot_ptr->landing_speed;
 		autopilot_assign_zero_vel_target();
+		autopilot_assign_zero_acc_feedforward();
 		if(autopilot_ptr->uav_state.pos[2] < autopilot_ptr->landing_accept_height) {
 			autopilot_ptr->mode = AUTOPILOT_MOTOR_LOCKED_MODE;
 		}
@@ -457,6 +467,7 @@ void autopilot_waypoint_handler(void)
 			autopilot_ptr->mode = AUTOPILOT_HOVERING_MODE;
 			autopilot_ptr->uav_state.pos[2] = autopilot_ptr->takeoff_height;
 			autopilot_assign_zero_vel_target();
+			autopilot_assign_zero_acc_feedforward();
 		}
 		break;
 	}
@@ -487,6 +498,7 @@ void autopilot_waypoint_handler(void)
 			float z_target = autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[2];
 			autopilot_assign_pos_target(x_target, y_target, z_target);
 			autopilot_assign_zero_vel_target();
+			autopilot_assign_zero_acc_feedforward();
 		}
 		break;
 	}
