@@ -77,7 +77,6 @@ void TIM2_IRQHandler(void)
 	if(TIM_GetITStatus(TIM2, TIM_IT_Update) == SET) {
 		TIM_ClearITPendingBit(TIM2, TIM_FLAG_Update);
 		sw_i2c_handler();
-		led_toggle(LED_R);
 	}
 }
 
