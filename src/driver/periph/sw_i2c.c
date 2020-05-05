@@ -15,6 +15,8 @@
 #include "stm32f4xx.h"
 #include "sw_i2c.h"
 #include "sys_time.h"
+#include "isr.h"
+#include "gpio.h"
 
 #define I2C_FREQ 400000 //400k[Hz]
 #define I2C_CLOCK_PERIOD_MS ((1 / I2C_FREQ) * 1000) //[ms]
@@ -22,11 +24,13 @@
 #define SW_I2C_SCL GPIOE, GPIO_Pin_0
 #define SW_I2C_SDA GPIOE, GPIO_Pin_1
 
-int i2c_state = SW_I2C_IDLE;
+int i2c_state = SW_I2C_DO_NOTHING;
+
 
 void sw_i2c_init(void)
 {
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
 
 	GPIO_InitTypeDef GPIO_InitStruct = {
 		.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1,
@@ -37,6 +41,35 @@ void sw_i2c_init(void)
 	};
 
 	GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+	/* 90MHz / (1125 * 1) = 8000Hz */
+	TIM_TimeBaseInitTypeDef TimeBaseInitStruct = {
+		.TIM_Period = 1125 - 1,
+		.TIM_Prescaler = 1 - 1,
+		.TIM_CounterMode = TIM_CounterMode_Up,
+		.TIM_ClockDivision = TIM_CKD_DIV1,
+		.TIM_RepetitionCounter = 0
+	};
+	TIM_TimeBaseInit(TIM2, &TimeBaseInitStruct);
+
+	NVIC_InitTypeDef NVIC_InitStruct = {
+		.NVIC_IRQChannel = TIM2_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = 0,//SW_I2C_TIMER_ISR_PRIORITY,
+		.NVIC_IRQChannelSubPriority = 0,
+		.NVIC_IRQChannelCmd = ENABLE
+	};
+	NVIC_Init(&NVIC_InitStruct);
+
+	TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
+	TIM_Cmd(TIM2, ENABLE);
+}
+
+void TIM2_IRQHandler(void)
+{
+	if(TIM_GetITStatus(TIM2, TIM_IT_Update) == SET) {
+		TIM_ClearITPendingBit(TIM2, TIM_FLAG_Update);
+		led_toggle(LED_R);
+	}
 }
 
 void sw_i2c_config_sda_in(void)
@@ -90,6 +123,30 @@ uint8_t sw_i2c_sda_read(void)
 	return GPIO_ReadInputDataBit(SW_I2C_SDA);
 }
 
+void sw_i2c_start_handler(void)
+{
+}
+
+void sw_i2c_stop_handler(void)
+{
+}
+
+void sw_i2c_ack_handler(void)
+{
+}
+
+void sw_i2c_nack_handler(void)
+{
+}
+
+void sw_i2c_byte_send_handler(void)
+{
+}
+
+void sw_i2c_byte_receive_handler(void)
+{
+}
+
 void sw_i2c_scl_handler(void)
 {
 }
@@ -97,19 +154,25 @@ void sw_i2c_scl_handler(void)
 void sw_i2c_sda_handler(void)
 {
 	switch(i2c_state) {
-	case SW_I2C_IDLE:
+	case SW_I2C_DO_NOTHING:
 		break;
 	case SW_I2C_START:
+		sw_i2c_start_handler();
 		break;
 	case SW_I2C_STOP:
+		sw_i2c_stop_handler();
 		break;
-	case SW_I2C_SEND_BIT:
+	case SW_I2C_SEND_BYTE:
+		sw_i2c_byte_send_handler();
 		break;
-	case SW_I2C_RECEIVE_BIT:
+	case SW_I2C_RECEIVE_BYTE:
+		sw_i2c_byte_receive_handler();
 		break;
 	case SW_I2C_ACK:
+		sw_i2c_ack_handler();
 		break;
 	case SW_I2C_NACK:
+		sw_i2c_nack_handler();
 		break;
 	}
 }
