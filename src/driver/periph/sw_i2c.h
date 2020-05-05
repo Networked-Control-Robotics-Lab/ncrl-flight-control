@@ -11,4 +11,7 @@ enum {
 	SW_I2C_NACK
 } SW_I2C_STATE;
 
+void sw_i2c_init(void);
+void sw_i2c_write_test(void);
+
 #endif
