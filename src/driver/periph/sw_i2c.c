@@ -296,40 +296,45 @@ void sw_i2c_handler(void)
 
 void sw_i2c_start(void)
 {
+	while(i2c_state != SW_I2C_DO_NOTHING);
 	i2c_state = SW_I2C_START;
 	while(i2c_state != SW_I2C_DO_NOTHING);
 }
 
 void sw_i2c_stop(void)
 {
+	while(i2c_state != SW_I2C_DO_NOTHING);
 	i2c_state = SW_I2C_STOP;
 	while(i2c_state != SW_I2C_DO_NOTHING);
 }
 
 void sw_i2c_ack(void)
 {
+	while(i2c_state != SW_I2C_DO_NOTHING);
 	i2c_state = SW_I2C_ACK;
 	while(i2c_state != SW_I2C_DO_NOTHING);
 }
 
 void sw_i2c_nack(void)
 {
+	while(i2c_state != SW_I2C_DO_NOTHING);
 	i2c_state = SW_I2C_NACK;
 	while(i2c_state != SW_I2C_DO_NOTHING);
 }
 
 uint8_t sw_i2c_read_byte(void)
 {
+	while(i2c_state != SW_I2C_DO_NOTHING);
 	i2c_rw_bit_index = 0;
 	i2c_state = SW_I2C_RECEIVE_BYTE;
 	while(i2c_state != SW_I2C_DO_NOTHING);
 
 	return sw_i2c_recpt_data;
-
 }
 
 void sw_i2c_send_byte(uint8_t data)
 {
+	while(i2c_state != SW_I2C_DO_NOTHING);
 	i2c_rw_bit_index = 0;
 	sw_i2c_send_data = data;
 
