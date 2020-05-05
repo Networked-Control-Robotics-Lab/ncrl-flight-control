@@ -1,6 +1,13 @@
 #ifndef __SW_I2C_H__
 #define __SW_I2C_H__
 
+#include "coroutine.h"
+
+#define SW_I2C_COROUTINE_DELAY(delay_ms) \
+	sw_i2c_coroutine_delay_start(delay_ms); \
+	CR_YIELD(); \
+	if(!sw_i2c_coroutine_delay_times_up()) {CR_RETURN;}
+
 enum {
 	SW_I2C_DO_NOTHING,
 	SW_I2C_START,
