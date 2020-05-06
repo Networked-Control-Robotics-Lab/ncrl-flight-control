@@ -26,6 +26,8 @@
 #include "debug_link_task.h"
 #include "perf.h"
 #include "perf_list.h"
+#include "sw_i2c.h"
+#include "compass_task.h"
 
 extern SemaphoreHandle_t flight_ctl_semphr;
 
@@ -61,8 +63,11 @@ int main(void)
 	exti10_init(); //imu ext interrupt
 	spi1_init(); //imu
 	spi3_init(); //barometer
+	//sw_i2c_init(); //XXX
 
 	blocked_delay_ms(1000);
+
+	//xTaskCreate(task_compass, "compass handler", 512, NULL, tskIDLE_PRIORITY + 4, NULL); //XXX
 
 	xTaskCreate(task_flight_ctrl, "flight control", 4096, NULL, tskIDLE_PRIORITY + 3, NULL);
 

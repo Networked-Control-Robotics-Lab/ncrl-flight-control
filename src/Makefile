@@ -75,6 +75,7 @@ SRC+=./core/main.c \
 	./core/tasks/mavlink_task.c \
 	./core/tasks/debug_link_task.c \
 	./core/tasks/shell_task.c \
+	./core/tasks/compass_task.c \
 	./core/shell/quadshell.c \
 	./core/shell/shell_cmds.c \
 	./core/debug_link/debug_link.c \
@@ -106,6 +107,7 @@ SRC+=./driver/periph/uart.c \
 	./driver/device/motor.c \
 	./driver/device/optitrack.c \
 	./driver/device/sys_time.c \
+	./driver/device/ist8310.c
 
 CFLAGS+=-I./
 CFLAGS+=-I./platform

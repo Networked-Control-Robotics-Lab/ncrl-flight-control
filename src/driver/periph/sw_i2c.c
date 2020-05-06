@@ -28,6 +28,8 @@
 
 void sw_i2c_handler(void);
 
+SemaphoreHandle_t sw_i2c_semphr;
+
 volatile int i2c_state = SW_I2C_DO_NOTHING;
 float coroutine_delay_start_time = 0;
 float coroutine_delay_time = 0;
@@ -37,6 +39,9 @@ volatile int i2c_rw_bit_index;
 
 void sw_i2c_init(void)
 {
+	sw_i2c_semphr = xSemaphoreCreateBinary();
+	xSemaphoreGive(sw_i2c_semphr);
+
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
 
@@ -62,7 +67,7 @@ void sw_i2c_init(void)
 
 	NVIC_InitTypeDef NVIC_InitStruct = {
 		.NVIC_IRQChannel = TIM2_IRQn,
-		.NVIC_IRQChannelPreemptionPriority = 0,//SW_I2C_TIMER_ISR_PRIORITY,
+		.NVIC_IRQChannelPreemptionPriority = SW_I2C_TIMER_ISR_PRIORITY,
 		.NVIC_IRQChannelSubPriority = 0,
 		.NVIC_IRQChannelCmd = ENABLE
 	};
@@ -70,6 +75,16 @@ void sw_i2c_init(void)
 
 	TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
 	TIM_Cmd(TIM2, ENABLE);
+}
+
+void sw_i2c_timer_enable(void)
+{
+	TIM_Cmd(TIM2, ENABLE);
+}
+
+void sw_i2c_timer_disable(void)
+{
+	TIM_Cmd(TIM2, DISABLE);
 }
 
 void TIM2_IRQHandler(void)
@@ -162,6 +177,9 @@ void sw_i2c_start_handler(void)
 
 	i2c_state = SW_I2C_DO_NOTHING;
 
+	BaseType_t higher_priority_task_woken = pdFALSE;
+	xSemaphoreGiveFromISR(sw_i2c_semphr, &higher_priority_task_woken);
+
 	CR_END();
 }
 
@@ -178,6 +196,11 @@ void sw_i2c_stop_handler(void)
 	sw_i2c_sda_set_high();
 
 	i2c_state = SW_I2C_DO_NOTHING;
+
+	sw_i2c_timer_disable();
+
+	BaseType_t higher_priority_task_woken = pdFALSE;
+	xSemaphoreGiveFromISR(sw_i2c_semphr, &higher_priority_task_woken);
 
 	CR_END();
 }
@@ -196,6 +219,9 @@ void sw_i2c_ack_handler(void)
 
 	i2c_state = SW_I2C_DO_NOTHING;
 
+	BaseType_t higher_priority_task_woken = pdFALSE;
+	xSemaphoreGiveFromISR(sw_i2c_semphr, &higher_priority_task_woken);
+
 	CR_END();
 }
 
@@ -212,6 +238,9 @@ void sw_i2c_nack_handler(void)
 	sw_i2c_scl_set_low();
 
 	i2c_state = SW_I2C_DO_NOTHING;
+
+	BaseType_t higher_priority_task_woken = pdFALSE;
+	xSemaphoreGiveFromISR(sw_i2c_semphr, &higher_priority_task_woken);
 
 	CR_END();
 }
@@ -237,6 +266,9 @@ void sw_i2c_byte_send_handler(void)
 	i2c_rw_bit_index++;
 	if(i2c_rw_bit_index >= 8) {
 		i2c_state = SW_I2C_DO_NOTHING;
+
+		BaseType_t higher_priority_task_woken = pdFALSE;
+		xSemaphoreGiveFromISR(sw_i2c_semphr, &higher_priority_task_woken);
 	}
 
 	CR_END();
@@ -263,6 +295,9 @@ void sw_i2c_byte_receive_handler(void)
 	i2c_rw_bit_index++;
 	if(i2c_rw_bit_index >= 8) {
 		i2c_state = SW_I2C_DO_NOTHING;
+
+		BaseType_t higher_priority_task_woken = pdFALSE;
+		xSemaphoreGiveFromISR(sw_i2c_semphr, &higher_priority_task_woken);
 	}
 
 	CR_END();
@@ -296,45 +331,47 @@ void sw_i2c_handler(void)
 
 void sw_i2c_start(void)
 {
-	while(i2c_state != SW_I2C_DO_NOTHING);
+	while(xSemaphoreTake(sw_i2c_semphr, portMAX_DELAY) != pdTRUE);
+
+	sw_i2c_timer_enable();
 	i2c_state = SW_I2C_START;
-	while(i2c_state != SW_I2C_DO_NOTHING);
 }
 
 void sw_i2c_stop(void)
 {
-	while(i2c_state != SW_I2C_DO_NOTHING);
+	while(xSemaphoreTake(sw_i2c_semphr, portMAX_DELAY) != pdTRUE);
+
 	i2c_state = SW_I2C_STOP;
-	while(i2c_state != SW_I2C_DO_NOTHING);
 }
 
 void sw_i2c_ack(void)
 {
-	while(i2c_state != SW_I2C_DO_NOTHING);
+	while(xSemaphoreTake(sw_i2c_semphr, portMAX_DELAY) != pdTRUE);
+
 	i2c_state = SW_I2C_ACK;
-	while(i2c_state != SW_I2C_DO_NOTHING);
 }
 
 void sw_i2c_nack(void)
 {
-	while(i2c_state != SW_I2C_DO_NOTHING);
+	while(xSemaphoreTake(sw_i2c_semphr, portMAX_DELAY) != pdTRUE);
+
 	i2c_state = SW_I2C_NACK;
-	while(i2c_state != SW_I2C_DO_NOTHING);
 }
 
 uint8_t sw_i2c_read_byte(void)
 {
-	while(i2c_state != SW_I2C_DO_NOTHING);
+	while(xSemaphoreTake(sw_i2c_semphr, portMAX_DELAY) != pdTRUE);
+
 	i2c_rw_bit_index = 0;
 	i2c_state = SW_I2C_RECEIVE_BYTE;
-	while(i2c_state != SW_I2C_DO_NOTHING);
 
 	return sw_i2c_recpt_data;
 }
 
 void sw_i2c_send_byte(uint8_t data)
 {
-	while(i2c_state != SW_I2C_DO_NOTHING);
+	while(xSemaphoreTake(sw_i2c_semphr, portMAX_DELAY) != pdTRUE);
+
 	i2c_rw_bit_index = 0;
 	sw_i2c_send_data = data;
 
@@ -342,7 +379,6 @@ void sw_i2c_send_byte(uint8_t data)
 	sw_i2c_scl_set_low();
 
 	i2c_state = SW_I2C_SEND_BYTE;
-	while(i2c_state != SW_I2C_DO_NOTHING);
 }
 
 /**************************************************************/

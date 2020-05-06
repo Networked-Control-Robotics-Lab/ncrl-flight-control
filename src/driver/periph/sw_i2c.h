@@ -1,6 +1,7 @@
 #ifndef __SW_I2C_H__
 #define __SW_I2C_H__
 
+#include "stdint.h"
 #include "coroutine.h"
 
 #define SW_I2C_COROUTINE_DELAY(delay_ms) \
@@ -19,6 +20,14 @@ enum {
 } SW_I2C_STATE;
 
 void sw_i2c_init(void);
+void sw_i2c_start(void);
+void sw_i2c_stop(void);
+void sw_i2c_ack(void);
+void sw_i2c_nack(void);
+uint8_t sw_i2c_read_byte(void);
+void sw_i2c_send_byte(uint8_t data);
+
+
 void sw_i2c_write_test(void);
 
 #endif
