@@ -61,6 +61,7 @@ void rc_safety_protection(void)
 			time_last = time_current;
 		}
 		read_rc(&rc);
+		vTaskDelay(1);
 	} while(rc_safety_check(&rc) == 1);
 }
 
