@@ -12,6 +12,7 @@ typedef struct {
 	float temp_raw;
 
 	float accel_lpf[3];
+	float accel_unscaled_lpf[3];
 	float gyro_lpf[3];
 	float mag_lpf[3];
 } imu_t;

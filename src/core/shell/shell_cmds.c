@@ -458,7 +458,7 @@ void shell_cmd_acc_calib(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], in
 		if(uart3_getc(&c, 0) == true) {
 			if(c == 'q') break;
 		}
-		debug_print_mpu6500_accel();
+		debug_print_mpu6500_unscaled_lpf_accel();
 	}
 }
 

@@ -62,5 +62,6 @@ void mpu6500_init(imu_t *imu);
 void mpu6500_int_handler(void);
 
 void debug_print_mpu6500_accel(void);
+void debug_print_mpu6500_unscaled_lpf_accel(void);
 
 #endif
