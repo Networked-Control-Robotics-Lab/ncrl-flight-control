@@ -6,8 +6,10 @@
 #include "gpio.h"
 #include "fc_task.h"
 #include "sys_time.h"
+#include "led.h"
 
-#define FLIGHT_CTL_PRESCALER_RELOAD 1000
+#define FLIGHT_CTL_PRESCALER_RELOAD 1000 //400Hz
+#define LED_CTRL_PRESCALER_RELOAD  16000 //25Hz
 
 extern SemaphoreHandle_t flight_ctl_semphr;
 
@@ -37,6 +39,8 @@ void timer12_init(void)
 void TIM8_BRK_TIM12_IRQHandler(void)
 {
 	static int flight_ctl_cnt = FLIGHT_CTL_PRESCALER_RELOAD;
+	//static int led_ctrl_cnt = LED_CTRL_PRESCALER_RELOAD;
+
 	if(TIM_GetITStatus(TIM12, TIM_IT_Update) == SET) {
 		TIM_ClearITPendingBit(TIM12, TIM_IT_Update);
 
@@ -46,5 +50,12 @@ void TIM8_BRK_TIM12_IRQHandler(void)
 			flight_ctl_cnt = FLIGHT_CTL_PRESCALER_RELOAD;
 			flight_ctl_semaphore_handler();
 		}
+
+#if 0
+		if((led_ctrl_cnt--) == 0) {
+			led_ctrl_cnt = LED_CTRL_PRESCALER_RELOAD;
+			rgb_led_handler();
+		}
+#endif
 	}
 }
