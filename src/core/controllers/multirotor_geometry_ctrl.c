@@ -313,12 +313,16 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	bound_float(&tracking_error_integral[1], 150, -150);
 	bound_float(&tracking_error_integral[2], 50, -50);
 
+	/* the output force unit is gram force [gf], which is equal to the value of the mass,
+	 * it should be refined later since it may cause ambiguity */
+	float uav_weight = uav_mass;
+
 	_mat_(kxex_kvev_mge3_mxd_dot_dot)[0] = -kpx*pos_error[0] - kvx*vel_error[0] +
 	                                       force_ff_ned[0] - tracking_error_integral[0];
 	_mat_(kxex_kvev_mge3_mxd_dot_dot)[1] = -kpy*pos_error[1] - kvy*vel_error[1] +
 	                                       force_ff_ned[1] - tracking_error_integral[1];
 	_mat_(kxex_kvev_mge3_mxd_dot_dot)[2] = -kpz*pos_error[2] - kvz*vel_error[2] +
-	                                       force_ff_ned[2] - tracking_error_integral[2] - uav_mass;
+	                                       force_ff_ned[2] - tracking_error_integral[2] - uav_weight;
 
 	/* calculate the denominator of b3d */
 	float b3d_denominator; //caution: this term should not be 0
