@@ -84,7 +84,8 @@ SRC+=./core/main.c \
 	./core/mavlink/mission.c \
 	./core/mavlink/param.c \
 	./core/mavlink/trajectory.c \
-	./core/perf/perf.c
+	./core/perf/perf.c \
+	./core/config/sys_param.c
 
 SRC+=./common/delay.c \
 	./common/bound.c \
@@ -120,6 +121,7 @@ CFLAGS+=-I./core/tasks
 CFLAGS+=-I./core/mavlink
 CFLAGS+=-I./core/shell
 CFLAGS+=-I./core/perf
+CFLAGS+=-I./core/config
 CFLAGS+=-I./common
 CFLAGS+=-I./driver/periph
 CFLAGS+=-I./driver/device
