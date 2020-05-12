@@ -9,29 +9,24 @@
 #include "lpf.h"
 #include "imu.h"
 
-#define MPU6500_ACCEL_SCALE MPU6500A_16g
-#define MPU6500_GYRO_SCALE MPU6500G_2000dps
-
 #define IMU_CALIB_SAMPLE_CNT 10000
 
-/* acceleromter calibration */
-#define GX_MAX (+2017)
-#define GX_MIN (-2004)
-#define GY_MAX (+2420)
-#define GY_MIN (-1740)
-#define GZ_MAX (+2080)
-#define GZ_MIN (-2110)
-#define ACC_RESCALE_X  (4096.0f / (GX_MAX - GX_MIN))
-#define ACC_RESCALE_Y  (4096.0f / (GY_MAX - GY_MIN))
-#define ACC_RESCALE_Z  (4096.0f / (GZ_MAX - GZ_MIN))
+imu_t *imu_mpu6500;
 
-int16_t gyro_bias[3] = {0, 0, 0};
-int16_t accel_bias[3] = {0, 0, 0};
-
-volatile bool mpu6500_init_finished = false;
-imu_t *mpu6500;
-
-bool mpu6500_calib_mode = false;
+mpu6500_t mpu6500 = {
+	.gyro_bias = {0, 0, 0},
+	.accel_bias = {0, 0, 0},
+	.accel_fs = MPU6500_GYRO_FS_16G,
+	.gyro_fs = MPU6500_GYRO_FS_2000_DPS,
+	.calib_mode = false,
+	.init_finished = false,
+	.gx_min = -2004,
+	.gx_max = +2017,
+	.gy_min = -1740,
+	.gy_max = +2420,
+	.gz_min = -2110,
+	.gz_max = +2080
+};
 
 static uint8_t mpu6500_read_byte(uint8_t address)
 {
@@ -82,60 +77,108 @@ static void mpu6500_bias_calc(int16_t *gyro, int16_t *accel)
 
 	imu_bias_sampling_cnt--;
 	if(imu_bias_sampling_cnt == 0) {
-		gyro_bias[0] = (int16_t)_gyro_bias[0];
-		gyro_bias[1] = (int16_t)_gyro_bias[1];
-		gyro_bias[2] = (int16_t)_gyro_bias[2];
-		accel_bias[0] = (int16_t)_accel_bias[0];
-		accel_bias[1] = (int16_t)_accel_bias[1];
-		accel_bias[2] = 0;  //(int16_t)(_accel_bias[2] - (-9.8f / MPU6500_ACCEL_SCALE));
-		mpu6500_init_finished = true;
+		mpu6500.gyro_bias[0] = (int16_t)_gyro_bias[0];
+		mpu6500.gyro_bias[1] = (int16_t)_gyro_bias[1];
+		mpu6500.gyro_bias[2] = (int16_t)_gyro_bias[2];
+		mpu6500.accel_bias[0] = (int16_t)_accel_bias[0];
+		mpu6500.accel_bias[1] = (int16_t)_accel_bias[1];
+		mpu6500.accel_bias[2] = 0;  //(int16_t)(_accel_bias[2] - (-9.8f / mpu6500.accel_scale));
+		mpu6500.init_finished = true;
 	}
 }
 
 void mpu6500_init(imu_t *imu)
 {
-	mpu6500 = imu;
+	imu_mpu6500 = imu;
 
 	while((mpu6500_read_who_am_i() != 0x70));
 	blocked_delay_ms(100);
 
 	mpu6500_reset();
 
-	mpu6500_write_byte(MPU6500_GYRO_CONFIG, 0x18); //gyro sensing range: +-2000dps
+	float gravity_full_scale = 0.0f;
+
+	switch(mpu6500.accel_fs) {
+	case MPU6500_GYRO_FS_2G:
+		mpu6500.accel_scale = 9.8 / 16384.0f;
+		gravity_full_scale = 16384.0f * 2.0f;
+		mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x00);
+		break;
+	case MPU6500_GYRO_FS_4G:
+		mpu6500.accel_scale = 9.8f / 8192.0f;
+		gravity_full_scale = 8192.0f * 2.0f;
+		mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x08);
+		break;
+	case MPU6500_GYRO_FS_8G:
+		mpu6500.accel_scale = 9.8f / 4096.0f;
+		gravity_full_scale = 4096.0f * 2;
+		mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x10);
+		break;
+	case MPU6500_GYRO_FS_16G:
+		mpu6500.accel_scale = 9.8f / 2048.0f;
+		gravity_full_scale = 2048.0f * 2;
+		mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x18);
+		break;
+	}
 	blocked_delay_ms(100);
+
+	mpu6500.accel_rescale_x = gravity_full_scale / (mpu6500.gx_max - mpu6500.gx_min);
+	mpu6500.accel_rescale_y = gravity_full_scale / (mpu6500.gy_max - mpu6500.gy_min);
+	mpu6500.accel_rescale_z = gravity_full_scale / (mpu6500.gz_max - mpu6500.gz_min);
+
+	switch(mpu6500.gyro_fs) {
+	case MPU6500_GYRO_FS_250_DPS:
+		mpu6500.gyro_scale = 1.0f / 131.0f;
+		mpu6500_write_byte(MPU6500_GYRO_CONFIG, 0x00);
+		break;
+	case MPU6500_GYRO_FS_500_DPS:
+		mpu6500.gyro_scale = 1.0f / 65.5f;
+		mpu6500_write_byte(MPU6500_GYRO_CONFIG, 0x08);
+		break;
+	case MPU6500_GYRO_FS_1000_DPS:
+		mpu6500.gyro_scale = 1.0f / 32.8f;
+		mpu6500_write_byte(MPU6500_GYRO_CONFIG, 0x10);
+		break;
+	case MPU6500_GYRO_FS_2000_DPS:
+		mpu6500.gyro_scale = 1.0f / 16.4f;
+		mpu6500_write_byte(MPU6500_GYRO_CONFIG, 0x18);
+		break;
+	}
+	blocked_delay_ms(100);
+
 	mpu6500_write_byte(MPU6500_ACCEL_CONFIG2, 0x08); //accel update rate: 4KHz, disable internel lpf
-	blocked_delay_ms(100);
-	mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x18); //accel sensing range: +-16g
 	blocked_delay_ms(100);
 	mpu6500_write_byte(MPU6500_INT_ENABLE, 0x01); //enable data ready interrupt
 	blocked_delay_ms(100);
 
-	while(mpu6500_init_finished == false);
+	while(mpu6500.init_finished == false);
 }
 
 static void mpu6500_apply_calibration(int16_t *accel_unscaled, int16_t *gyro_unscaled)
 {
-	accel_unscaled[0] = ((float)accel_unscaled[0] - accel_bias[0]) * ACC_RESCALE_X;
-	accel_unscaled[1] = ((float)accel_unscaled[1] - accel_bias[1]) * ACC_RESCALE_Y;
-	accel_unscaled[2] = ((float)accel_unscaled[2] - accel_bias[2]);
+	accel_unscaled[0] = ((float)accel_unscaled[0] - mpu6500.accel_bias[0]) *
+	                    mpu6500.accel_rescale_x;
+	accel_unscaled[1] = ((float)accel_unscaled[1] - mpu6500.accel_bias[1]) *
+	                    mpu6500.accel_rescale_y;
+	accel_unscaled[2] = ((float)accel_unscaled[2] - mpu6500.accel_bias[2]);
 
-	gyro_unscaled[0] -= gyro_bias[0];
-	gyro_unscaled[1] -= gyro_bias[1];
-	gyro_unscaled[2] -= gyro_bias[2];
+	gyro_unscaled[0] -= mpu6500.gyro_bias[0];
+	gyro_unscaled[1] -= mpu6500.gyro_bias[1];
+	gyro_unscaled[2] -= mpu6500.gyro_bias[2];
 }
 
 static void mpu6500_accel_convert_to_scale(int16_t *accel_unscaled, float *accel_scaled)
 {
-	accel_scaled[0] = (float)accel_unscaled[0] * MPU6500_ACCEL_SCALE;
-	accel_scaled[1] = (float)accel_unscaled[1] * MPU6500_ACCEL_SCALE;
-	accel_scaled[2] = (float)accel_unscaled[2] * MPU6500_ACCEL_SCALE;
+	accel_scaled[0] = (float)accel_unscaled[0] * mpu6500.accel_scale;
+	accel_scaled[1] = (float)accel_unscaled[1] * mpu6500.accel_scale;
+	accel_scaled[2] = (float)accel_unscaled[2] * mpu6500.accel_scale;
 }
 
 void mpu6500_gyro_convert_to_scale(int16_t *gyro_unscaled, float *gyro_scaled)
 {
-	gyro_scaled[0] = gyro_unscaled[0] * MPU6500_GYRO_SCALE;
-	gyro_scaled[1] = gyro_unscaled[1] * MPU6500_GYRO_SCALE;
-	gyro_scaled[2] = gyro_unscaled[2] * MPU6500_GYRO_SCALE;
+	gyro_scaled[0] = gyro_unscaled[0] * mpu6500.gyro_scale;
+	gyro_scaled[1] = gyro_unscaled[1] * mpu6500.gyro_scale;
+	gyro_scaled[2] = gyro_unscaled[2] * mpu6500.gyro_scale;
 }
 
 void mpu6500_temp_convert_to_scale(int16_t *temp_unscaled, float *temp_scaled)
@@ -166,52 +209,52 @@ void mpu6500_int_handler(void)
 	buffer[13] = spi_read_write(SPI1, 0xff);
 
 	/* composite sensor data */
-	mpu6500->accel_unscaled[0] = -((int16_t)buffer[0] << 8) | (int16_t)buffer[1];
-	mpu6500->accel_unscaled[1] = -((int16_t)buffer[2] << 8) | (int16_t)buffer[3];
-	mpu6500->accel_unscaled[2] = +((int16_t)buffer[4] << 8) | (int16_t)buffer[5];
-	mpu6500->temp_unscaled = ((int16_t)buffer[6] << 8) | (int16_t)buffer[7];
-	mpu6500->gyro_unscaled[0] = -((int16_t)buffer[8] << 8) | (int16_t)buffer[9];
-	mpu6500->gyro_unscaled[1] = -((int16_t)buffer[10] << 8) | (int16_t)buffer[11];
-	mpu6500->gyro_unscaled[2] = +((int16_t)buffer[12] << 8) | (int16_t)buffer[13];
+	imu_mpu6500->accel_unscaled[0] = -((int16_t)buffer[0] << 8) | (int16_t)buffer[1];
+	imu_mpu6500->accel_unscaled[1] = -((int16_t)buffer[2] << 8) | (int16_t)buffer[3];
+	imu_mpu6500->accel_unscaled[2] = +((int16_t)buffer[4] << 8) | (int16_t)buffer[5];
+	imu_mpu6500->temp_unscaled = ((int16_t)buffer[6] << 8) | (int16_t)buffer[7];
+	imu_mpu6500->gyro_unscaled[0] = -((int16_t)buffer[8] << 8) | (int16_t)buffer[9];
+	imu_mpu6500->gyro_unscaled[1] = -((int16_t)buffer[10] << 8) | (int16_t)buffer[11];
+	imu_mpu6500->gyro_unscaled[2] = +((int16_t)buffer[12] << 8) | (int16_t)buffer[13];
 	mpu6500_chip_deselect();
 
-	if(mpu6500_init_finished == false) {
-		mpu6500_bias_calc(mpu6500->gyro_unscaled, mpu6500->accel_unscaled);
+	if(mpu6500.init_finished == false) {
+		mpu6500_bias_calc(imu_mpu6500->gyro_unscaled, imu_mpu6500->accel_unscaled);
 		return;
 	}
 
 	/* cancel sensor bias and fix slope */
-	if(mpu6500_calib_mode == true) {
-		lpf((float)mpu6500->accel_unscaled[0], &(mpu6500->accel_unscaled_lpf[0]), 0.0001);
-		lpf((float)mpu6500->accel_unscaled[1], &(mpu6500->accel_unscaled_lpf[1]), 0.0001);
-		lpf((float)mpu6500->accel_unscaled[2], &(mpu6500->accel_unscaled_lpf[2]), 0.0001);
+	if(mpu6500.calib_mode == true) {
+		lpf((float)imu_mpu6500->accel_unscaled[0], &(imu_mpu6500->accel_unscaled_lpf[0]), 0.0001);
+		lpf((float)imu_mpu6500->accel_unscaled[1], &(imu_mpu6500->accel_unscaled_lpf[1]), 0.0001);
+		lpf((float)imu_mpu6500->accel_unscaled[2], &(imu_mpu6500->accel_unscaled_lpf[2]), 0.0001);
 	} else {
-		mpu6500_apply_calibration(mpu6500->accel_unscaled, mpu6500->gyro_unscaled);
+		mpu6500_apply_calibration(imu_mpu6500->accel_unscaled, imu_mpu6500->gyro_unscaled);
 	}
 
 	/* sensor data unit conversion */
-	mpu6500_accel_convert_to_scale(mpu6500->accel_unscaled, mpu6500->accel_raw);
-	mpu6500_gyro_convert_to_scale(mpu6500->gyro_unscaled, mpu6500->gyro_raw);
-	mpu6500_temp_convert_to_scale(&mpu6500->temp_unscaled, &mpu6500->temp_raw);
+	mpu6500_accel_convert_to_scale(imu_mpu6500->accel_unscaled, imu_mpu6500->accel_raw);
+	mpu6500_gyro_convert_to_scale(imu_mpu6500->gyro_unscaled, imu_mpu6500->gyro_raw);
+	mpu6500_temp_convert_to_scale(&imu_mpu6500->temp_unscaled, &imu_mpu6500->temp_raw);
 
 	/* low pass filtering for accelerometer, gyroscope do not require this process */
-	lpf(mpu6500->accel_raw[0], &(mpu6500->accel_lpf[0]), 0.02);
-	lpf(mpu6500->accel_raw[1], &(mpu6500->accel_lpf[1]), 0.02);
-	lpf(mpu6500->accel_raw[2], &(mpu6500->accel_lpf[2]), 0.02);
-	lpf(mpu6500->gyro_raw[0], &(mpu6500->gyro_lpf[0]), 0.03);
-	lpf(mpu6500->gyro_raw[1], &(mpu6500->gyro_lpf[1]), 0.03);
-	lpf(mpu6500->gyro_raw[2], &(mpu6500->gyro_lpf[2]), 0.03);
-	//mpu6500->gyro_lpf[0] = mpu6500->gyro_raw[0];
-	//mpu6500->gyro_lpf[1] = mpu6500->gyro_raw[1];
-	//mpu6500->gyro_lpf[2] = mpu6500->gyro_raw[2];
+	lpf(imu_mpu6500->accel_raw[0], &(imu_mpu6500->accel_lpf[0]), 0.02);
+	lpf(imu_mpu6500->accel_raw[1], &(imu_mpu6500->accel_lpf[1]), 0.02);
+	lpf(imu_mpu6500->accel_raw[2], &(imu_mpu6500->accel_lpf[2]), 0.02);
+	lpf(imu_mpu6500->gyro_raw[0], &(imu_mpu6500->gyro_lpf[0]), 0.03);
+	lpf(imu_mpu6500->gyro_raw[1], &(imu_mpu6500->gyro_lpf[1]), 0.03);
+	lpf(imu_mpu6500->gyro_raw[2], &(imu_mpu6500->gyro_lpf[2]), 0.03);
+	//imu_mpu6500->gyro_lpf[0] = imu_mpu6500->gyro_raw[0];
+	//imu_mpu6500->gyro_lpf[1] = imu_mpu6500->gyro_raw[1];
+	//imu_mpu6500->gyro_lpf[2] = imu_mpu6500->gyro_raw[2];
 }
 
 void debug_print_mpu6500_accel(void)
 {
 	char s[100] = {0};
 
-	sprintf(s, "[accel] x:%4d, y:%4d, z:%4d\n\r", mpu6500->accel_unscaled[0],
-	        mpu6500->accel_unscaled[1], mpu6500->accel_unscaled[2]);
+	sprintf(s, "[accel] x:%4d, y:%4d, z:%4d\n\r", imu_mpu6500->accel_unscaled[0],
+	        imu_mpu6500->accel_unscaled[1], imu_mpu6500->accel_unscaled[2]);
 
 	uart3_puts(s, strlen(s));
 	blocked_delay_ms(100);
@@ -221,8 +264,8 @@ void debug_print_mpu6500_unscaled_lpf_accel(void)
 {
 	char s[100] = {0};
 
-	sprintf(s, "[accel] x:%4.0f, y:%4.0f, z:%4.0f\n\r", mpu6500->accel_unscaled_lpf[0],
-	        mpu6500->accel_unscaled_lpf[1], mpu6500->accel_unscaled_lpf[2]);
+	sprintf(s, "[accel] x:%4.0f, y:%4.0f, z:%4.0f\n\r", imu_mpu6500->accel_unscaled_lpf[0],
+	        imu_mpu6500->accel_unscaled_lpf[1], imu_mpu6500->accel_unscaled_lpf[2]);
 
 	uart3_puts(s, strlen(s));
 	blocked_delay_ms(100);

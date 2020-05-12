@@ -1,6 +1,8 @@
 #ifndef __MPU6500_H__
 #define __MPU6500_H__
 
+#include <stdint.h>
+#include <stdbool.h>
 #include "stm32f4xx_conf.h"
 #include "spi.h"
 #include "imu.h"
@@ -46,17 +48,43 @@
 #define MPU6500_I2C_SLV4_DI 0x35
 #define MPU6500_I2C_SLV4_DO 0x40
 
-#define MPU6500A_2g 0.00059815365f
-#define MPU6500A_4g 0.00119630731
-#define MPU6500A_8g 0.00239261463f
-#define MPU6500A_16g 0.00478522926f
-
-#define MPU6500G_250dps 0.007633587786f
-#define MPU6500G_500dps 0.015267175572f
-#define MPU6500G_1000dps 0.030487804878f
-#define MPU6500G_2000dps 0.060975609756f
-
 #define MPU6500T_85degC 0.00294f
+
+enum {
+	MPU6500_GYRO_FS_2G = 0,
+	MPU6500_GYRO_FS_4G = 1,
+	MPU6500_GYRO_FS_8G = 2,
+	MPU6500_GYRO_FS_16G = 3,
+} MPU6500_ACCEL_FS;
+
+enum {
+	MPU6500_GYRO_FS_250_DPS = 0,
+	MPU6500_GYRO_FS_500_DPS = 1,
+	MPU6500_GYRO_FS_1000_DPS = 2,
+	MPU6500_GYRO_FS_2000_DPS = 3,
+} MPU6500_GYRO_FS;
+
+typedef struct {
+	int16_t gyro_bias[3];
+	int16_t accel_bias[3];
+	int accel_fs;
+	int gyro_fs;
+	float accel_scale;
+	float gyro_scale;
+	bool calib_mode;
+	volatile bool init_finished;
+
+	/* calibration */
+	float gx_min;
+	float gx_max;
+	float gy_min;
+	float gy_max;
+	float gz_min;
+	float gz_max;
+	float accel_rescale_x;
+	float accel_rescale_y;
+	float accel_rescale_z;
+} mpu6500_t;
 
 void mpu6500_init(imu_t *imu);
 void mpu6500_int_handler(void);
