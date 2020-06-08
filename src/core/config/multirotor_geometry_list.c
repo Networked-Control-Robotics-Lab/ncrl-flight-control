@@ -1,65 +1,33 @@
 #include "sys_param.h"
+#include "common_list.h"
+#include "multirotor_geometry_list.h"
 
-enum {
-	MR_GEO_GAIN_ROLL_P,
-	MR_GEO_GAIN_ROLL_D,
+sys_param_data multirotor_geometry_param_list[MR_GEO_PARAM_LIST_SIZE];
 
-	MR_GEO_GAIN_PITCH_P,
-	MR_GEO_GAIN_PITCH_D,
+void init_multirotor_geometry_param_list(void)
+{
+	init_sys_param_list(multirotor_geometry_param_list, MR_GEO_PARAM_LIST_SIZE);
 
-	MR_GEO_GAIN_YAW_P,
-	MR_GEO_GAIN_YAW_D,
+	init_common_params();
 
-	MR_GEO_GAIN_RATE_ONLY_YAW_D,
-
-	MR_GEO_GAIN_POS_X,
-	MR_GEO_GAIN_VEL_X,
-
-	MR_GEO_GAIN_POS_Y,
-	MR_GEO_GAIN_VEL_Y,
-
-	MR_GEO_GAIN_POS_Z,
-	MR_GEO_GAIN_VEL_Z,
-
-	MR_GEO_GAIN_POS_X_I,
-	MR_GEO_GAIN_POS_Y_I,
-	MR_GEO_GAIN_POS_Z_I,
-
-	MR_GEO_UAV_MASS,
-
-	MR_GEO_INERTIA_JXX,
-	MR_GEO_INERTIA_JYY,
-	MR_GEO_INERTIA_JZZ
-} MULTIROTOR_GEOMETRY_PARAM_ID;
-
-sys_param_data multirotor_geometry_param_list[] = {
-	SYS_PARAM_ATTR("GAIN_ROLL_P", MR_GEO_GAIN_ROLL_P),
-	SYS_PARAM_ATTR("GAIN_ROLL_D", MR_GEO_GAIN_ROLL_D),
-
-	SYS_PARAM_ATTR("GAIN_PITCH_P", MR_GEO_GAIN_PITCH_P),
-	SYS_PARAM_ATTR("GAIN_PITCH_D", MR_GEO_GAIN_PITCH_D),
-
-	SYS_PARAM_ATTR("GAIN_YAW_P", MR_GEO_GAIN_YAW_P),
-	SYS_PARAM_ATTR("GAIN_YAW_D", MR_GEO_GAIN_YAW_D),
-
-	SYS_PARAM_ATTR("GAIN_RATE_ONLY_YAW_D", MR_GEO_GAIN_RATE_ONLY_YAW_D),
-
-	SYS_PARAM_ATTR("GAIN_POS_X", MR_GEO_GAIN_POS_X),
-	SYS_PARAM_ATTR("GAIN_VEL_X", MR_GEO_GAIN_VEL_X),
-
-	SYS_PARAM_ATTR("GAIN_POS_Y", MR_GEO_GAIN_POS_Y),
-	SYS_PARAM_ATTR("GAIN_VEL_Y", MR_GEO_GAIN_VEL_Y),
-
-	SYS_PARAM_ATTR("GAIN_POS_Z", MR_GEO_GAIN_POS_Z),
-	SYS_PARAM_ATTR("GAIN_VEL_Z", MR_GEO_GAIN_VEL_Z),
-
-	SYS_PARAM_ATTR("GAIN_POS_X_I", MR_GEO_GAIN_POS_X_I),
-	SYS_PARAM_ATTR("GAIN_POS_Y_I", MR_GEO_GAIN_POS_Y_I),
-	SYS_PARAM_ATTR("GAIN_POS_Z_I", MR_GEO_GAIN_POS_Z_I),
-
-	SYS_PARAM_ATTR("UAV_MASS", MR_GEO_UAV_MASS),
-
-	SYS_PARAM_ATTR("INERTIA_JXX", MR_GEO_INERTIA_JXX),
-	SYS_PARAM_ATTR("INERTIA_JYY", MR_GEO_INERTIA_JYY),
-	SYS_PARAM_ATTR("INERTIA_JZZ", MR_GEO_INERTIA_JZZ)
-};
+	init_sys_param_float(MR_GEO_GAIN_ROLL_P, "GAIN_ROLL_P", 300.0f);
+	init_sys_param_float(MR_GEO_GAIN_ROLL_D, "GAIN_ROLL_D", 40.25f);
+	init_sys_param_float(MR_GEO_GAIN_PITCH_P, "GAIN_PITCH_P", 300.0f);
+	init_sys_param_float(MR_GEO_GAIN_PITCH_D, "GAIN_PITCH_D", 40.25f);
+	init_sys_param_float(MR_GEO_GAIN_YAW_P, "GAIN_YAW_P", 2900.0f);
+	init_sys_param_float(MR_GEO_GAIN_YAW_D, "GAIN_YAW_D", 200.0);
+	init_sys_param_float(MR_GEO_GAIN_RATE_ONLY_YAW_D, "GAIN_RATE_ONLY_YAW_D", 2750.0f);
+	init_sys_param_float(MR_GEO_GAIN_POS_X, "GAIN_POS_X", 3.6f);
+	init_sys_param_float(MR_GEO_GAIN_VEL_X, "GAIN_VEL_X", 2.2f);
+	init_sys_param_float(MR_GEO_GAIN_POS_Y, "GAIN_POS_Y", 3.6f);
+	init_sys_param_float(MR_GEO_GAIN_VEL_Y, "GAIN_VEL_Y", 2.2f);
+	init_sys_param_float(MR_GEO_GAIN_POS_Z, "GAIN_POS_Z", 8.5f);
+	init_sys_param_float(MR_GEO_GAIN_VEL_Z, "GAIN_VEL_Z", 4.0f);
+	init_sys_param_float(MR_GEO_GAIN_POS_X_I, "GAIN_POS_X_I", 0.0f);
+	init_sys_param_float(MR_GEO_GAIN_POS_Y_I, "GAIN_POS_Y_I", 0.0f);
+	init_sys_param_float(MR_GEO_GAIN_POS_Z_I, "GAIN_POS_Z_I", 0.0f);
+	init_sys_param_float(MR_GEO_UAV_MASS, "UAV_MASS", 1150.0f);
+	init_sys_param_float(MR_GEO_INERTIA_JXX, "INERTIA_JXX", 0.01466f);
+	init_sys_param_float(MR_GEO_INERTIA_JYY, "INERTIA_JYY", 0.01466f);
+	init_sys_param_float(MR_GEO_INERTIA_JZZ, "INERTIA_JZZ", 0.02848f);
+}
