@@ -290,11 +290,11 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	pos_error[2] = curr_pos[2] - pos_des_ned[2];
 
 	/* ev = v - vd */
-	//float vel_des_ned[3];
-	//assign_vector_3x1_eun_to_ned(vel_des_ned, autopilot.wp_now.vel);
-	vel_error[0] = curr_vel[0] - desired_vel[0];
-	vel_error[1] = curr_vel[1] - desired_vel[1];
-	vel_error[2] = curr_vel[2] - desired_vel[2];
+	float vel_des_ned[3];
+	assign_vector_3x1_eun_to_ned(vel_des_ned, autopilot.wp_now.vel);
+	vel_error[0] = curr_vel[0] - vel_des_ned[0];
+	vel_error[1] = curr_vel[1] - vel_des_ned[1];
+	vel_error[2] = curr_vel[2] - vel_des_ned[2];
 
 	float force_ff_ned[3];
 	force_ff_ned[0] = 0.0f;
