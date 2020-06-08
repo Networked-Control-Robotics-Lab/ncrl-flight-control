@@ -9,6 +9,7 @@
 #include "autopilot.h"
 #include "perf.h"
 #include "perf_list.h"
+#include "sys_param.h"
 
 static bool parse_float_from_str(char *str, float *value)
 {
@@ -35,7 +36,8 @@ void shell_cmd_help(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 	          "radio\n\r"
 	          "radio_raw\n\r"
 	          "acc_calib\n\r"
-	          "perf\n\r";
+	          "perf\n\r"
+	          "params\n\r";
 	shell_puts(s);
 }
 
@@ -488,4 +490,76 @@ void shell_cmd_perf(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 	sprintf(s, "* [total] %.2fms (%.0f%%)\n\r",
 	        flight_loop_time * 1000.0f, flight_loop_cpu_percentage);
 	shell_puts(s);
+}
+
+void shell_cmd_params(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
+	char s[100];
+
+	int i;
+	int list_size = get_sys_param_list_size();
+
+	sprintf(s, "system parameters (size: %d):\n\r", list_size);
+
+	char *name;
+	char *type_s;
+	int type;
+
+	uint8_t u8;
+	int8_t s8;
+	uint16_t u16;
+	int16_t s16;
+	uint32_t u32;
+	int32_t s32;
+	float f;
+
+	for(i = 0; i < list_size; i++) {
+		get_sys_param_name(i, &name);
+		get_sys_param_type(i, &type);
+
+		switch(type) {
+		case SYS_PARAM_U8:
+			type_s = SYS_PARAM_TYPE_TO_STRING(SYS_PARAM_U8);
+			get_sys_param_u8(i, &u8);
+			sprintf(s, "#%d - name:\"%s\" - type:\"%s\" - val:%u\n\r",
+			        i, name, type_s, u8);
+			break;
+		case SYS_PARAM_S8:
+			type_s = SYS_PARAM_TYPE_TO_STRING(SYS_PARAM_S8);
+			get_sys_param_s8(i, &s8);
+			sprintf(s, "#%d - name:\"%s\" - type:\"%s\" - val:%d\n\r",
+			        i, name, type_s, s8);
+			break;
+		case SYS_PARAM_U16:
+			type_s = SYS_PARAM_TYPE_TO_STRING(SYS_PARAM_U16);
+			get_sys_param_u16(i, &u16);
+			sprintf(s, "#%d - name:\"%s\" - type:\"%s\" - val:%u\n\r",
+			        i, name, type_s, u16);
+			break;
+		case SYS_PARAM_S16:
+			type_s = SYS_PARAM_TYPE_TO_STRING(SYS_PARAM_S16);
+			get_sys_param_s16(i, &s16);
+			sprintf(s, "#%d - name:\"%s\" - type:\"%s\" - val:%d\n\r",
+			        i, name, type_s, s16);
+			break;
+		case SYS_PARAM_U32:
+			type_s = SYS_PARAM_TYPE_TO_STRING(SYS_PARAM_U32);
+			get_sys_param_u32(i, &u32);
+			sprintf(s, "#%d - name:\"%s\" - type:\"%s\" - val:%lu\n\r",
+			        i, name, type_s, u32);
+			break;
+		case SYS_PARAM_S32:
+			type_s = SYS_PARAM_TYPE_TO_STRING(SYS_PARAM_S32);
+			get_sys_param_s32(i, &s32);
+			sprintf(s, "#%d - name:\"%s\" - type:\"%s\" - val:%ld\n\r",
+			        i, name, type_s, s32);
+			break;
+		case SYS_PARAM_FLOAT:
+			type_s = SYS_PARAM_TYPE_TO_STRING(SYS_PARAM_FLOAT);
+			get_sys_param_float(i, &f);
+			sprintf(s, "#%d - name:\"%s\" - type:\"%s\" - val:%f\n\r",
+			        i, name, type_s, f);
+			break;
+		}
+	}
 }

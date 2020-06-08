@@ -85,6 +85,8 @@ bool attitude_manual_height_auto = false;
 
 void geometry_ctrl_init(void)
 {
+	//init_multirotor_geometry_param_list();
+
 	autopilot_init(&autopilot);
 
 	float geo_fence_origin[3] = {0.0f, 0.0f, 0.0f};

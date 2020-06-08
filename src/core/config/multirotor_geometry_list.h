@@ -28,4 +28,6 @@ enum {
 	MR_GEO_PARAM_LIST_SIZE
 } MULTIROTOR_GEOMETRY_PARAM_ID;
 
+void init_multirotor_geometry_param_list(void);
+
 #endif

@@ -46,6 +46,8 @@ float motor1, motor2, motor3, motor4;
 
 void multirotor_pid_controller_init(void)
 {
+	//init_multirotor_pid_param_list();
+
 	autopilot_init(&autopilot);
 
 	float geo_fence_origin[3] = {0.0f, 0.0f, 0.0f};

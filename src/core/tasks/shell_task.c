@@ -20,6 +20,7 @@ struct cmd_list_entry shell_cmd_list[] = {
 	DEF_SHELL_CMD(radio_raw)
 	DEF_SHELL_CMD(acc_calib)
 	DEF_SHELL_CMD(perf)
+	DEF_SHELL_CMD(params)
 };
 
 void shell_greeting(void)

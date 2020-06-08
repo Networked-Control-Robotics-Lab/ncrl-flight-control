@@ -25,4 +25,6 @@ enum {
 	MR_PID_PARAM_LIST_SIZE
 };
 
+void init_multirotor_pid_param_list(void);
+
 #endif
