@@ -85,7 +85,9 @@ SRC+=./core/main.c \
 	./core/mavlink/param.c \
 	./core/mavlink/trajectory.c \
 	./core/perf/perf.c \
-	./core/config/sys_param.c
+	./core/config/sys_param.c \
+	./core/config/multirotor_geometry_list.c \
+	./core/config/multirotor_pid_list.c
 
 SRC+=./common/delay.c \
 	./common/bound.c \
