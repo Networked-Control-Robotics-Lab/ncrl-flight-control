@@ -23,6 +23,8 @@
 #define COEFFICIENT_YAW 1.0f
 
 #define newton_to_grams_force(n) (n * 101.97f) //[newton * m] to [gram force * m]
+#define cm_to_m(l) (l * 0.01)
+#define g_to_kg(w) (w * 0.001)
 
 extern optitrack_t optitrack;
 
@@ -149,11 +151,11 @@ void geometry_ctrl_init(void)
 
 	/* tracking controller */
 	/* x-axis tracking gains  */
-	kpx = 3.6f;
-	kvx = 2.2f;
+	kpx = 4.1f;
+	kvx = 2.5f;
 	/* y-axis tracking gains */
-	kpy = 3.6f;
-	kvy = 2.2f;
+	kpy = 4.1f;
+	kvy = 2.5f;
 	/* z-axis tracking gains */
 	kpz = 8.5f;
 	kvz = 4.0f;
@@ -298,14 +300,13 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	vel_error[1] = curr_vel[1] - vel_des_ned[1];
 	vel_error[2] = curr_vel[2] - vel_des_ned[2];
 
-	float force_ff_ned[3];
-	force_ff_ned[0] = 0.0f;
-	force_ff_ned[1] = 0.0f;
-	force_ff_ned[2] = 0.0f;
-	//assign_vector_3x1_eun_to_ned(acc_des_ned, autopilot.wp_now.acc_feedforward);
-	force_ff_ned[0] = newton_to_grams_force(uav_mass * force_ff_ned[0]);
-	force_ff_ned[1] = newton_to_grams_force(uav_mass * force_ff_ned[1]);
-	force_ff_ned[2] = newton_to_grams_force(uav_mass * force_ff_ned[2]);
+	/* XXX: refine the unit! */
+	float force_ff_ned[3] = {0.0f};
+	float accel_ff_ned[3] = {0.0f};
+	assign_vector_3x1_eun_to_ned(accel_ff_ned, autopilot.wp_now.acc_feedforward);
+	force_ff_ned[0] = newton_to_grams_force(g_to_kg(uav_mass) * cm_to_m(accel_ff_ned[0]));
+	force_ff_ned[1] = newton_to_grams_force(g_to_kg(uav_mass) * cm_to_m(accel_ff_ned[1]));
+	force_ff_ned[2] = newton_to_grams_force(g_to_kg(uav_mass) * cm_to_m(accel_ff_ned[2]));
 
 	tracking_error_integral[0] += k_tracking_i_gain[0] * (pos_error[0]) * dt;
 	tracking_error_integral[1] += k_tracking_i_gain[1] * (pos_error[1]) * dt;
