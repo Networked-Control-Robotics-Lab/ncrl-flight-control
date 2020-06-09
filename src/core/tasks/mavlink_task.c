@@ -25,7 +25,6 @@ void mavlink_tx_task(void *param)
 
 	int prescaler_div_50 = 0;
 	int prescaler_div_10 = 0;
-	int prescaler_div_5 = 0;
 
 	while(1) {
 		/* send the following mavlink message with 1Hz */
@@ -35,6 +34,13 @@ void mavlink_tx_task(void *param)
 #if (SELECT_LOCALIZATION == LOCALIZATION_USE_GPS_MAG)
 			send_mavlink_gps();
 #endif
+
+			send_mavlink_attitude_quaternion();
+#if (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
+			send_mavlink_local_position_ned();
+#endif
+
+
 			prescaler_div_50 = 0;
 		}
 		prescaler_div_50++;
@@ -43,7 +49,9 @@ void mavlink_tx_task(void *param)
 			/* send the following mavlink message with 25Hz */
 			send_mavlink_attitude_quaternion();
 #if (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
-			send_mavlink_local_position_ned();
+			if(autopilot_get_mode() != AUTOPILOT_TRAJECTORY_FOLLOWING_MODE) {
+				send_mavlink_local_position_ned();
+			}
 #endif
 			prescaler_div_10 = 0;
 		}
@@ -52,12 +60,9 @@ void mavlink_tx_task(void *param)
 		/* send trajectory debug message if autopilot mode is set to
 		 * trajectory following mode */
 		if(autopilot_get_mode() == AUTOPILOT_TRAJECTORY_FOLLOWING_MODE) {
-			if(prescaler_div_5 == 5) {
-				send_mavlink_trajectory_position_debug();
-				send_mavlink_trajectory_velocity_debug();
-				send_mavlink_trajectory_acceleration_debug();
-			}
-			prescaler_div_5++;
+			send_mavlink_trajectory_position_debug();
+			send_mavlink_trajectory_velocity_debug();
+			send_mavlink_trajectory_acceleration_debug();
 		}
 
 		//send_mavlink_attitude();
