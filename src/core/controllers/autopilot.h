@@ -76,10 +76,10 @@ typedef struct {
 	} uav_state; /* current position and velocity of the uav */
 
 	struct {
-		float pos[3];            //[m]
-		float vel[3];            //[m/s]
+		float pos[3];             //[m]
+		float vel[3];             //[m/s]
 		float acc_feedforward[3]; //[m/s^2]
-		float heading;           //[deg]
+		float heading;            //[deg]
 	} wp_now; /* autopilot provides these to controller as desired setpoint */
 
 	struct {
@@ -117,26 +117,33 @@ typedef struct {
 
 void autopilot_init(autopilot_t *_autopilot);
 void autopilot_update_uav_state(float pos_enu[3], float vel_enu[3]);
+
 void autopilot_set_enu_rectangular_fence(float origin[3], float lx, float ly, float height);
 void autopilot_set_mode(int new_mode);
 void autopilot_set_armed(void);
 void autopilot_set_disarmed(void);
-bool autopilot_is_armed(void);
 void autopilot_mission_reset(void);
+
+bool autopilot_is_armed(void);
 int autopilot_get_mode(void);
-int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec, float radius);
+void autopilot_get_pos_setpoint(float *pos_set);
+void autopilot_get_vel_setpoint(float *vel_set);
+void autopilot_get_accel_feedforward(float *accel_ff);
+
 int autopilot_set_x_trajectory(int index, float *x_traj_coeff, float fligt_time);
 int autopilot_set_y_trajectory(int index, float *y_traj_coeff, float fligt_time);
 int autopilot_set_z_trajectory(int index, float *z_traj_coeff, float fligt_time);
 int autopilot_set_yaw_trajectory(int index, float *yaw_traj_coeff, float fligt_time);
 int autopilot_config_trajectory_following(int traj_num, bool z_traj, bool yaw_traj);
+int autopilot_trajectory_following_start(bool loop_trajectory);
+int autopilot_trajectory_following_stop(void);
+
+int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec, float radius);
 int autopilot_clear_waypoint_list(void);
 int autopilot_goto_waypoint_now(float pos[3], bool change_height);
 int autopilot_halt_waypoint_mission(void);
 int autopilot_resume_waypoint_mission(void);
 int autopilot_waypoint_mission_start(bool loop_mission);
-int autopilot_trajectory_following_start(bool loop_trajectory);
-int autopilot_trajectory_following_stop(void);
 int autopilot_trigger_auto_landing(void);
 int autopilot_trigger_auto_takeoff(void);
 void autopilot_waypoint_handler(void);

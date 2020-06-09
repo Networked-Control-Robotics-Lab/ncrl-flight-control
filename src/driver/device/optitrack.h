@@ -27,7 +27,10 @@ int optitrack_serial_decoder(uint8_t *buf);
 void optitrack_handler(uint8_t c);
 void optitrack_init(int id);
 bool optitrack_available(void);
-void optitrack_read(float *pos_ned, float *vel_ned);
+
+void optitrack_read(float *pos_enu, float *vel_enu);
+void optitrack_read_pos(float *pos_enu);
+void optitrack_read_vel(float *vel_enu);
 
 void send_optitrack_position_debug_message(debug_msg_t *payload);
 void send_optitrack_quaternion_debug_message(debug_msg_t *payload);

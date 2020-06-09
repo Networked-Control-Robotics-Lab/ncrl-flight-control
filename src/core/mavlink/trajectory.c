@@ -3,6 +3,7 @@
 #include "../mavlink/publisher.h"
 #include "autopilot.h"
 #include "sys_time.h"
+#include "optitrack.h"
 
 bool traj_do_ack = false;
 uint8_t traj_ack_val;
@@ -180,4 +181,58 @@ void mav_polynomial_trajectory_item(mavlink_message_t *received_msg)
 		recept_finished = true;
 		//TODO: unlock autopilot
 	}
+}
+
+void send_mavlink_trajectory_position_debug(void)
+{
+	uint8_t target_system = 0;
+	uint8_t target_component = 0;
+
+	float curr_pos[3] = {0.0f};
+	float des_pos[3] = {0.0f};
+
+	optitrack_read_pos(curr_pos); //XXX: add abstraction layer for this
+	autopilot_get_pos_setpoint(des_pos);
+
+	mavlink_message_t msg;
+	mavlink_msg_polynomial_trajectory_position_debug_pack(
+	        1, 1, &msg, target_system, target_component,
+	        curr_pos[0], curr_pos[1], curr_pos[2],
+	        des_pos[0], des_pos[1], des_pos[2]);
+	send_mavlink_msg_to_uart(&msg);
+}
+
+void send_mavlink_trajectory_velocity_debug(void)
+{
+	uint8_t target_system = 0;
+	uint8_t target_component = 0;
+
+	float curr_vel[3] = {0.0f};
+	float des_vel[3] = {0.0f};
+
+	optitrack_read_vel(curr_vel); //XXX: add abstraction layer for this
+	autopilot_get_vel_setpoint(des_vel);
+
+	mavlink_message_t msg;
+	mavlink_msg_polynomial_trajectory_velocity_debug_pack(
+	        1, 1, &msg, target_system, target_component,
+	        curr_vel[0], curr_vel[1], curr_vel[2],
+	        des_vel[0], des_vel[1], des_vel[2]);
+	send_mavlink_msg_to_uart(&msg);
+}
+
+void send_mavlink_trajectory_acceleration_debug(void)
+{
+	uint8_t target_system = 0;
+	uint8_t target_component = 0;
+
+	float des_accel_ff[3] = {0.0f};
+
+	autopilot_get_accel_feedforward(des_accel_ff);
+
+	mavlink_message_t msg;
+	mavlink_msg_polynomial_trajectory_acceleration_debug_pack(
+	        1, 1, &msg, target_system, target_component,
+	        des_accel_ff[0], des_accel_ff[1], des_accel_ff[2]);
+	send_mavlink_msg_to_uart(&msg);
 }

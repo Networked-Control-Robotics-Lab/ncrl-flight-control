@@ -7,6 +7,10 @@ void mav_polynomial_trajectory_write(mavlink_message_t *received_msg);
 void mav_polynomial_trajectory_cmd(mavlink_message_t *received_msg);
 void mav_polynomial_trajectory_item(mavlink_message_t *received_msg);
 
+void send_mavlink_trajectory_position_debug(void);
+void send_mavlink_trajectory_velocity_debug(void);
+void send_mavlink_trajectory_acceleration_debug(void);
+
 void polynomial_trajectory_microservice_handler(void);
 
 #endif

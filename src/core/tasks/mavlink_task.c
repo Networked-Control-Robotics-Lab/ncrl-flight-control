@@ -11,6 +11,7 @@
 #include "../mavlink/trajectory.h"
 #include "delay.h"
 #include "uart.h"
+#include "autopilot.h"
 
 mavlink_message_t mavlink_recpt_msg;
 mavlink_status_t mavlink_recpt_status;
@@ -24,6 +25,7 @@ void mavlink_tx_task(void *param)
 
 	int prescaler_div_50 = 0;
 	int prescaler_div_10 = 0;
+	int prescaler_div_5 = 0;
 
 	while(1) {
 		/* send the following mavlink message with 1Hz */
@@ -37,7 +39,6 @@ void mavlink_tx_task(void *param)
 		}
 		prescaler_div_50++;
 
-
 		if(prescaler_div_10 == 10) {
 			/* send the following mavlink message with 25Hz */
 			send_mavlink_attitude_quaternion();
@@ -47,6 +48,17 @@ void mavlink_tx_task(void *param)
 			prescaler_div_10 = 0;
 		}
 		prescaler_div_10++;
+
+		/* send trajectory debug message if autopilot mode is set to
+		 * trajectory following mode */
+		if(autopilot_get_mode() == AUTOPILOT_TRAJECTORY_FOLLOWING_MODE) {
+			if(prescaler_div_5 == 5) {
+				send_mavlink_trajectory_position_debug();
+				send_mavlink_trajectory_velocity_debug();
+				send_mavlink_trajectory_acceleration_debug();
+			}
+			prescaler_div_5++;
+		}
 
 		//send_mavlink_attitude();
 		//send_mavlink_current_waypoint();

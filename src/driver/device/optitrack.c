@@ -147,15 +147,29 @@ int optitrack_serial_decoder(uint8_t *buf)
 	return 0;
 }
 
-void optitrack_read(float *pos_ned, float *vel_ned)
+void optitrack_read(float *pos_enu, float *vel_enu)
 {
-	pos_ned[0] = optitrack.pos[0];
-	pos_ned[1] = optitrack.pos[1];
-	pos_ned[2] = optitrack.pos[2];
+	pos_enu[0] = optitrack.pos[0];
+	pos_enu[1] = optitrack.pos[1];
+	pos_enu[2] = optitrack.pos[2];
 
-	vel_ned[0] = optitrack.vel_raw[0];
-	vel_ned[1] = optitrack.vel_raw[1];
-	vel_ned[2] = optitrack.vel_raw[2];
+	vel_enu[0] = optitrack.vel_raw[0];
+	vel_enu[1] = optitrack.vel_raw[1];
+	vel_enu[2] = optitrack.vel_raw[2];
+}
+
+void optitrack_read_pos(float *pos_enu)
+{
+	pos_enu[0] = optitrack.pos[0];
+	pos_enu[1] = optitrack.pos[1];
+	pos_enu[2] = optitrack.pos[2];
+}
+
+void optitrack_read_vel(float *vel_enu)
+{
+	vel_enu[0] = optitrack.vel_raw[0];
+	vel_enu[1] = optitrack.vel_raw[1];
+	vel_enu[2] = optitrack.vel_raw[2];
 }
 
 void send_optitrack_position_debug_message(debug_msg_t *payload)

@@ -176,6 +176,27 @@ void autopilot_mission_reset(void)
 	autopilot_ptr->curr_wp = 0;
 }
 
+void autopilot_get_pos_setpoint(float *pos_set)
+{
+	pos_set[0] = autopilot_ptr->wp_now.pos[0];
+	pos_set[1] = autopilot_ptr->wp_now.pos[1];
+	pos_set[2] = autopilot_ptr->wp_now.pos[2];
+}
+
+void autopilot_get_vel_setpoint(float *vel_set)
+{
+	vel_set[0] = autopilot_ptr->wp_now.vel[0];
+	vel_set[1] = autopilot_ptr->wp_now.vel[1];
+	vel_set[2] = autopilot_ptr->wp_now.vel[2];
+}
+
+void autopilot_get_accel_feedforward(float *accel_ff)
+{
+	accel_ff[0] = autopilot_ptr->wp_now.acc_feedforward[0];
+	accel_ff[1] = autopilot_ptr->wp_now.acc_feedforward[1];
+	accel_ff[2] = autopilot_ptr->wp_now.acc_feedforward[2];
+}
+
 int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec, float radius)
 {
 	if(autopilot_test_point_in_rectangular_fence(pos) == false) {
