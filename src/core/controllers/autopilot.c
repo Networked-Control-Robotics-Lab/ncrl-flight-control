@@ -450,18 +450,18 @@ void autopilot_waypoint_handler(void)
 		float elapsed_time = current_time - autopilot_ptr->traj_start_time;
 		if(elapsed_time >=
 		    autopilot_ptr->trajectory_segments[autopilot_ptr->curr_traj].flight_time) {
+			elapsed_time = 0.0f; //reset trajectory time variable
+
 			/* continue next trajectory if exist */
 			if(autopilot_ptr->curr_traj < (autopilot_ptr->traj_num - 1)) {
 				autopilot_ptr->curr_traj++;
 				autopilot_ptr->traj_start_time = current_time;
-				elapsed_time = 0.0f; //reset trajectory time variable
 			} else {
 				/* check if user ask to loop the mission */
 				if(autopilot_ptr->loop_mission == true) {
 					/* start trajectory mission again */
 					autopilot_ptr->curr_traj = 0;
 					autopilot_ptr->traj_start_time = get_sys_time_s();
-					elapsed_time = 0.0f; //reset trajectory time variable
 				} else {
 					/* end of the mission, do hovering */
 					autopilot_ptr->mode = AUTOPILOT_HOVERING_MODE;
