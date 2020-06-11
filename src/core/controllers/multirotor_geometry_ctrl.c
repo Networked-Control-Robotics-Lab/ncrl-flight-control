@@ -138,10 +138,10 @@ void geometry_ctrl_init(void)
 	/* attitude controller */
 	/* roll gains */
 	krx = 300.0f;
-	kwx = 40.25f;
+	kwx = 40.0f;
 	/* pitch gains */
 	kry = 300.0f;
-	kwy = 40.25f;
+	kwy = 40.0f;
 	/* yaw gains */
 	krz = 2900.0f;
 	kwz = 200.0;
@@ -150,19 +150,19 @@ void geometry_ctrl_init(void)
 	yaw_rate_ctrl_gain = 2750.0f;
 
 	/* tracking controller */
-	/* x-axis tracking gains  */
-	kpx = 4.1f;
-	kvx = 2.5f;
+	/* x-axis tracking gains */
+	kpx = 8.5f;
+	kvx = 3.0f;
 	/* y-axis tracking gains */
-	kpy = 4.1f;
-	kvy = 2.5f;
+	kpy = 8.5f;
+	kvy = 3.0f;
 	/* z-axis tracking gains */
-	kpz = 8.5f;
+	kpz = 8.7f;
 	kvz = 4.0f;
 
 	k_tracking_i_gain[0] = 0.0f;
 	k_tracking_i_gain[1] = 0.0f;
-	k_tracking_i_gain[0] = 0.0f;
+	k_tracking_i_gain[2] = 0.0f;
 }
 
 void estimate_uav_dynamics(float *gyro, float *moments, float *m_rot_frame)
