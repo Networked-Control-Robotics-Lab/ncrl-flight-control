@@ -400,6 +400,6 @@ void UART7_IRQHandler(void)
 		c = USART_ReceiveData(UART7);
 		UART7->SR;
 
-		optitrack_handler(c);
+		optitrack_isr_handler(c);
 	}
 }

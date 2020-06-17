@@ -188,7 +188,7 @@ class serial_plotter_class:
         	self.create_curve('z', 'yellow')
         	self.show_subplot()
         elif (message_id == 9):
-         	plt.subplot(211)
+         	plt.subplot(311)
         	plt.ylabel('velocity (raw) [cm/s]')
         	plt.ylim([-200, 200])
         	self.create_curve('vx', 'red')
@@ -196,13 +196,19 @@ class serial_plotter_class:
         	self.create_curve('vz', 'yellow')
         	self.show_subplot()
 
-         	plt.subplot(212)
+         	plt.subplot(312)
         	plt.ylabel('velocity (lpf) [cm/s]')
         	plt.ylim([-200, 200])
         	self.create_curve('vx', 'red')
                 self.create_curve('vy', 'orange')
         	self.create_curve('vz', 'yellow')
         	self.show_subplot()
+
+                plt.subplot(313)
+                plt.ylabel('update frequency')
+                plt.ylim([0, 200])
+                self.create_curve('update freq', 'red')
+                self.show_subplot()
         elif (message_id == 10):
          	plt.subplot(111)
         	plt.ylabel('value')

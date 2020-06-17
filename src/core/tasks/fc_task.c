@@ -105,6 +105,8 @@ void task_flight_ctrl(void *param)
 		//gpio_on(EXT_SW);
 		perf_start(PERF_FLIGHT_CONTROL_LOOP);
 
+		optitrack_update();
+
 		read_rc(&rc);
 		rc_yaw_setpoint_handler(&desired_yaw, -rc.yaw, 0.0025);
 

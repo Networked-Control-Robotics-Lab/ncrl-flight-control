@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <string.h>
 #include "stm32f4xx_conf.h"
+#include "FreeRTOS.h"
+#include "task.h"
 #include "uart.h"
 #include "gpio.h"
 #include "optitrack.h"
@@ -10,18 +12,20 @@
 #include "lpf.h"
 #include "debug_link.h"
 
-#define OPTITRACK_SERIAL_MSG_SIZE 32
+#define OPTITRACK_QUEUE_SIZE (32 * 400) //~400 packets
 
-volatile int optitrack_buf_pos = 0;
-uint8_t optitrack_buf[OPTITRACK_SERIAL_MSG_SIZE] = {0};
+typedef struct {
+	char c;
+} optitrack_buf_c_t;
+
+QueueHandle_t optitrack_queue;
 
 optitrack_t optitrack;
-float pos_last[3];
-bool vel_init_ready = false;
 
 void optitrack_init(int id)
 {
 	optitrack.id = id;
+	optitrack_queue = xQueueCreate(OPTITRACK_QUEUE_SIZE, sizeof(optitrack_buf_c_t));
 }
 
 bool optitrack_available(void)
@@ -37,31 +41,46 @@ bool optitrack_available(void)
 
 void optitrack_buf_push(uint8_t c)
 {
-	if(optitrack_buf_pos >= OPTITRACK_SERIAL_MSG_SIZE) {
+	if(optitrack.buf_pos >= OPTITRACK_SERIAL_MSG_SIZE) {
 		/* drop the oldest data and shift the rest to left */
 		int i;
 		for(i = 1; i < OPTITRACK_SERIAL_MSG_SIZE; i++) {
-			optitrack_buf[i - 1] = optitrack_buf[i];
+			optitrack.buf[i - 1] = optitrack.buf[i];
 		}
 
 		/* save new byte to the last array element */
-		optitrack_buf[OPTITRACK_SERIAL_MSG_SIZE - 1] = c;
-		optitrack_buf_pos = OPTITRACK_SERIAL_MSG_SIZE;
+		optitrack.buf[OPTITRACK_SERIAL_MSG_SIZE - 1] = c;
+		optitrack.buf_pos = OPTITRACK_SERIAL_MSG_SIZE;
 	} else {
 		/* append new byte if the array boundary is not yet reached */
-		optitrack_buf[optitrack_buf_pos] = c;
-		optitrack_buf_pos++;
+		optitrack.buf[optitrack.buf_pos] = c;
+		optitrack.buf_pos++;
 	}
 }
 
-void optitrack_handler(uint8_t c)
+void optitrack_isr_handler(uint8_t c)
 {
-	optitrack_buf_push(c);
-	if(c == '+' && optitrack_buf[0] == '@') {
-		/* decode optitrack message */
-		if(optitrack_serial_decoder(optitrack_buf) == 0) {
-			led_on(LED_G);
-			optitrack_buf_pos = 0; //reset position pointer
+	optitrack_buf_c_t optitrack_queue_item;
+	optitrack_queue_item.c = c;
+
+	BaseType_t higher_priority_task_woken = pdFALSE;
+	xQueueSendToBackFromISR(optitrack_queue, &optitrack_queue_item,
+	                        &higher_priority_task_woken);
+}
+
+void optitrack_update(void)
+{
+	optitrack_buf_c_t recept_c;
+	while(xQueueReceive(optitrack_queue, &recept_c, 0) == pdTRUE) {
+		uint8_t c = recept_c.c;
+
+		optitrack_buf_push(c);
+		if(c == '+' && optitrack.buf[0] == '@') {
+			/* decode optitrack message */
+			if(optitrack_serial_decoder(optitrack.buf) == 0) {
+				led_on(LED_G);
+				optitrack.buf_pos = 0; //reset position pointer
+			}
 		}
 	}
 }
@@ -80,10 +99,10 @@ static uint8_t generate_optitrack_checksum_byte(uint8_t *payload, int payload_co
 
 void optitrack_numerical_vel_calc(void)
 {
-	const float dt = 1.0f / 120.0f; //fixed dt (30Hz)
-	optitrack.vel_raw[0] = (optitrack.pos[0] - pos_last[0]) / dt;
-	optitrack.vel_raw[1] = (optitrack.pos[1] - pos_last[1]) / dt;
-	optitrack.vel_raw[2] = (optitrack.pos[2] - pos_last[2]) / dt;
+	const float dt = 1.0f / 70.0f; //fixed dt (120Hz)
+	optitrack.vel_raw[0] = (optitrack.pos[0] - optitrack.pos_last[0]) / dt;
+	optitrack.vel_raw[1] = (optitrack.pos[1] - optitrack.pos_last[1]) / dt;
+	optitrack.vel_raw[2] = (optitrack.pos[2] - optitrack.pos_last[2]) / dt;
 
 	float received_period = (optitrack.time_now - optitrack.time_last) * 0.001;
 	optitrack.recv_freq = 1.0f / received_period;
@@ -122,40 +141,29 @@ int optitrack_serial_decoder(uint8_t *buf)
 	memcpy(&optitrack.q[0], &buf[27], sizeof(float));
 	optitrack.q[3] *= -1;
 
-	if(vel_init_ready == false) {
+	if(optitrack.vel_ready == false) {
 		optitrack.time_last = get_sys_time_ms();
-		pos_last[0] = optitrack.pos[0];
-		pos_last[1] = optitrack.pos[1];
-		pos_last[2] = optitrack.pos[2];
+		optitrack.pos_last[0] = optitrack.pos[0];
+		optitrack.pos_last[1] = optitrack.pos[1];
+		optitrack.pos_last[2] = optitrack.pos[2];
 		optitrack.vel_raw[0] = 0.0f;
 		optitrack.vel_raw[1] = 0.0f;
 		optitrack.vel_raw[2] = 0.0f;
-		vel_init_ready = true;
+		optitrack.vel_ready = true;
 		return 0;
 	}
 
 	static int vel_calc_counter = 0;
 	if((vel_calc_counter++) == 1) {
 		optitrack_numerical_vel_calc();
-		pos_last[0] = optitrack.pos[0]; //save for next iteration
-		pos_last[1] = optitrack.pos[1];
-		pos_last[2] = optitrack.pos[2];
+		optitrack.pos_last[0] = optitrack.pos[0]; //save for next iteration
+		optitrack.pos_last[1] = optitrack.pos[1];
+		optitrack.pos_last[2] = optitrack.pos[2];
 		optitrack.time_last = optitrack.time_now;
 		vel_calc_counter = 0;
 	}
 
 	return 0;
-}
-
-void optitrack_read(float *pos_enu, float *vel_enu)
-{
-	pos_enu[0] = optitrack.pos[0];
-	pos_enu[1] = optitrack.pos[1];
-	pos_enu[2] = optitrack.pos[2];
-
-	vel_enu[0] = optitrack.vel_raw[0];
-	vel_enu[1] = optitrack.vel_raw[1];
-	vel_enu[2] = optitrack.vel_raw[2];
 }
 
 void optitrack_read_pos(float *pos_enu)
@@ -198,4 +206,5 @@ void send_optitrack_velocity_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_float(&optitrack.vel_filtered[0], payload);
 	pack_debug_debug_message_float(&optitrack.vel_filtered[1], payload);
 	pack_debug_debug_message_float(&optitrack.vel_filtered[2], payload);
+	pack_debug_debug_message_float(&optitrack.recv_freq, payload);
 }

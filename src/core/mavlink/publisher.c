@@ -80,7 +80,8 @@ void send_mavlink_local_position_ned(void)
 {
 	float pos[3];
 	float vel[3];
-	optitrack_read(pos, vel); //XXX: add abstraction layer for this
+	optitrack_read_pos(pos); //XXX: add abstraction layer for this
+	optitrack_read_vel(vel);
 
 	pos[0] *= 0.01f;
 	pos[1] *= 0.01f;

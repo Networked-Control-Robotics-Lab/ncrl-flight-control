@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include "debug_link.h"
 
+#define OPTITRACK_SERIAL_MSG_SIZE 32
+
 typedef struct {
 	uint8_t id;
 
@@ -21,14 +23,19 @@ typedef struct {
 	float time_now;
 	float time_last;
 	float recv_freq;
+
+	volatile int buf_pos;
+	uint8_t buf[OPTITRACK_SERIAL_MSG_SIZE];
+	float pos_last[3];
+	bool vel_ready;
 } optitrack_t ;
 
-int optitrack_serial_decoder(uint8_t *buf);
-void optitrack_handler(uint8_t c);
 void optitrack_init(int id);
-bool optitrack_available(void);
+int optitrack_serial_decoder(uint8_t *buf);
+void optitrack_isr_handler(uint8_t c);
 
-void optitrack_read(float *pos_enu, float *vel_enu);
+void optitrack_update(void);
+bool optitrack_available(void);
 void optitrack_read_pos(float *pos_enu);
 void optitrack_read_vel(float *vel_enu);
 
