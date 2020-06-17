@@ -110,7 +110,6 @@ typedef struct {
 	int curr_traj;  //trajectory segment index, indicates which trajectory to track
 	int traj_num;   //total trajectory number
 	float traj_start_time;
-	float traj_update_time_last;
 	bool z_traj;
 	bool yaw_traj;
 } autopilot_t;

@@ -36,7 +36,6 @@ void autopilot_init(autopilot_t *_autopilot)
 	autopilot_ptr->takeoff_speed = 0.08;
 	autopilot_ptr->takeoff_height = 100;          //[cm]
 	autopilot_ptr->landing_accept_height = 15.0f; //[cm]
-	autopilot_ptr->traj_update_time_last = 0.0f;
 }
 
 void autopilot_update_uav_state(float pos_enu[3], float vel_enu[3])
@@ -121,6 +120,7 @@ void autopilot_assign_trajactory_waypoint(float time)
 	autopilot_assign_pos_target_y(y_target);
 	autopilot_assign_vel_target(vx_target, vy_target, vz_target);
 	autopilot_assign_acc_feedforward(ax_feedforward, ay_feedforward, az_feedforward);
+	//autopilot_assign_zero_acc_feedforward();
 
 	//TODO: z planning mode
 	//TODO: yaw planning mode
@@ -441,12 +441,6 @@ void autopilot_waypoint_handler(void)
 	case AUTOPILOT_TRAJECTORY_FOLLOWING_MODE: {
 		/* converte trajectory polynomial to waypoint according to the update frequency */
 		float current_time = get_sys_time_s();
-		if((current_time - autopilot_ptr->traj_update_time_last) < TRAJECTORY_WP_UPDATE_TIME) {
-			break;
-		} else {
-			autopilot_ptr->traj_update_time_last = current_time;
-		}
-
 		float elapsed_time = current_time - autopilot_ptr->traj_start_time;
 		if(elapsed_time >=
 		    autopilot_ptr->trajectory_segments[autopilot_ptr->curr_traj].flight_time) {
