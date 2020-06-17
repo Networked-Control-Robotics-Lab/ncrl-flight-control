@@ -99,7 +99,7 @@ static uint8_t generate_optitrack_checksum_byte(uint8_t *payload, int payload_co
 
 void optitrack_numerical_vel_calc(void)
 {
-	const float dt = 1.0f / 70.0f; //fixed dt (120Hz)
+	const float dt = 1.0f / 120.0f; //fixed dt (120Hz)
 	optitrack.vel_raw[0] = (optitrack.pos[0] - optitrack.pos_last[0]) / dt;
 	optitrack.vel_raw[1] = (optitrack.pos[1] - optitrack.pos_last[1]) / dt;
 	optitrack.vel_raw[2] = (optitrack.pos[2] - optitrack.pos_last[2]) / dt;
@@ -153,15 +153,11 @@ int optitrack_serial_decoder(uint8_t *buf)
 		return 0;
 	}
 
-	static int vel_calc_counter = 0;
-	if((vel_calc_counter++) == 1) {
-		optitrack_numerical_vel_calc();
-		optitrack.pos_last[0] = optitrack.pos[0]; //save for next iteration
-		optitrack.pos_last[1] = optitrack.pos[1];
-		optitrack.pos_last[2] = optitrack.pos[2];
-		optitrack.time_last = optitrack.time_now;
-		vel_calc_counter = 0;
-	}
+	optitrack_numerical_vel_calc();
+	optitrack.pos_last[0] = optitrack.pos[0]; //save for next iteration
+	optitrack.pos_last[1] = optitrack.pos[1];
+	optitrack.pos_last[2] = optitrack.pos[2];
+	optitrack.time_last = optitrack.time_now;
 
 	return 0;
 }
