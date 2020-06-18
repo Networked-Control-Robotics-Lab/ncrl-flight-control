@@ -32,8 +32,8 @@ struct mavlink_parser_item cmd_list[] = {
 	//MAV_CMD_DEF(mav_mission_set_current, 41),
 	MAV_CMD_DEF(mav_command_long, 76),
 	MAV_CMD_DEF(mav_param_request_list, 21),
-	//MAV_CMD_DEF(mav_param_request_read, 20),
-	//MAV_CMD_DEF(mav_param_set, 23),
+	MAV_CMD_DEF(mav_param_request_read, 20),
+	MAV_CMD_DEF(mav_param_set, 23),
 	/* extended mavlink messages */
 	MAV_CMD_DEF(mav_polynomial_trajectory_write, 11000),
 	MAV_CMD_DEF(mav_polynomial_trajectory_cmd, 11001),
