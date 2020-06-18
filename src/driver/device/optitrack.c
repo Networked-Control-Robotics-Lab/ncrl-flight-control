@@ -66,6 +66,7 @@ void optitrack_isr_handler(uint8_t c)
 	BaseType_t higher_priority_task_woken = pdFALSE;
 	xQueueSendToBackFromISR(optitrack_queue, &optitrack_queue_item,
 	                        &higher_priority_task_woken);
+	portEND_SWITCHING_ISR(higher_priority_task_woken);
 }
 
 void optitrack_update(void)
