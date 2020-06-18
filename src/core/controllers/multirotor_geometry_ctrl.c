@@ -16,6 +16,7 @@
 #include "ahrs.h"
 #include "autopilot.h"
 #include "debug_link.h"
+#include "multirotor_geometry_list.h"
 
 #define dt 0.0025 //[s]
 #define MOTOR_TO_CG_LENGTH 16.25f //[cm]
@@ -87,7 +88,7 @@ bool attitude_manual_height_auto = false;
 
 void geometry_ctrl_init(void)
 {
-	//init_multirotor_geometry_param_list();
+	init_multirotor_geometry_param_list();
 
 	autopilot_init(&autopilot);
 

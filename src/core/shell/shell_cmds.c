@@ -500,6 +500,7 @@ void shell_cmd_params(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int p
 	int list_size = get_sys_param_list_size();
 
 	sprintf(s, "system parameters (size: %d):\n\r", list_size);
+	shell_puts(s);
 
 	char *name;
 	char *type_s;
@@ -521,45 +522,50 @@ void shell_cmd_params(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int p
 		case SYS_PARAM_U8:
 			type_s = SYS_PARAM_TYPE_TO_STRING(SYS_PARAM_U8);
 			get_sys_param_u8(i, &u8);
-			sprintf(s, "#%d - name:\"%s\" - type:\"%s\" - val:%u\n\r",
+			sprintf(s, "[#%d][%s][%s][%u]\n\r",
 			        i, name, type_s, u8);
 			break;
 		case SYS_PARAM_S8:
 			type_s = SYS_PARAM_TYPE_TO_STRING(SYS_PARAM_S8);
 			get_sys_param_s8(i, &s8);
-			sprintf(s, "#%d - name:\"%s\" - type:\"%s\" - val:%d\n\r",
+			sprintf(s, "[#%d][%s][%s][%d]\n\r",
 			        i, name, type_s, s8);
 			break;
 		case SYS_PARAM_U16:
 			type_s = SYS_PARAM_TYPE_TO_STRING(SYS_PARAM_U16);
 			get_sys_param_u16(i, &u16);
-			sprintf(s, "#%d - name:\"%s\" - type:\"%s\" - val:%u\n\r",
+			sprintf(s, "[#%d][%s][%s][%u]\n\r",
 			        i, name, type_s, u16);
 			break;
 		case SYS_PARAM_S16:
 			type_s = SYS_PARAM_TYPE_TO_STRING(SYS_PARAM_S16);
 			get_sys_param_s16(i, &s16);
-			sprintf(s, "#%d - name:\"%s\" - type:\"%s\" - val:%d\n\r",
+			sprintf(s, "[#%d][%s][%s][%d]\n\r",
 			        i, name, type_s, s16);
 			break;
 		case SYS_PARAM_U32:
 			type_s = SYS_PARAM_TYPE_TO_STRING(SYS_PARAM_U32);
 			get_sys_param_u32(i, &u32);
-			sprintf(s, "#%d - name:\"%s\" - type:\"%s\" - val:%lu\n\r",
+			sprintf(s, "[#%d][%s][%s][%lu]\n\r",
 			        i, name, type_s, u32);
 			break;
 		case SYS_PARAM_S32:
 			type_s = SYS_PARAM_TYPE_TO_STRING(SYS_PARAM_S32);
 			get_sys_param_s32(i, &s32);
-			sprintf(s, "#%d - name:\"%s\" - type:\"%s\" - val:%ld\n\r",
+			sprintf(s, "[#%d][%s][%s][%ld]\n\r",
 			        i, name, type_s, s32);
 			break;
 		case SYS_PARAM_FLOAT:
 			type_s = SYS_PARAM_TYPE_TO_STRING(SYS_PARAM_FLOAT);
 			get_sys_param_float(i, &f);
-			sprintf(s, "#%d - name:\"%s\" - type:\"%s\" - val:%f\n\r",
+			sprintf(s, "[#%d][%s][%s][%.2f]\n\r",
 			        i, name, type_s, f);
 			break;
+		default:
+			sprintf(s, "[#%d][%s][unknown type %d]\n\r",
+			        i, name, type);
 		}
+
+		shell_puts(s);
 	}
 }

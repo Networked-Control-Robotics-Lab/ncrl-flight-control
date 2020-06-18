@@ -1,6 +1,8 @@
 #ifndef __MULTIROTOR_GEOMETRY_H__
 #define __MULTIROTOR_GEOMETRY_H__
 
+#include "common_list.h"
+
 enum {
 	//... reserved for common parameters
 	/*----------------------------------*/

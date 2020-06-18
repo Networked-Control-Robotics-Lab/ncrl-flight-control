@@ -132,6 +132,7 @@ int init_sys_param_u8(int index, char *name, uint8_t val)
 
 	sys_param_list[index].name = name;
 	sys_param_list[index].u8_val = val;
+	sys_param_list[index].type = SYS_PARAM_U8;
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -144,6 +145,7 @@ int init_sys_param_s8(int index, char *name, int8_t val)
 
 	sys_param_list[index].name = name;
 	sys_param_list[index].s8_val = val;
+	sys_param_list[index].type = SYS_PARAM_S8;
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -156,6 +158,7 @@ int init_sys_param_u16(int index, char *name, uint16_t val)
 
 	sys_param_list[index].name = name;
 	sys_param_list[index].u16_val = val;
+	sys_param_list[index].type = SYS_PARAM_U16;
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -168,6 +171,7 @@ int init_sys_param_s16(int index, char *name, int16_t val)
 
 	sys_param_list[index].name = name;
 	sys_param_list[index].s16_val = val;
+	sys_param_list[index].type = SYS_PARAM_S16;
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -180,6 +184,7 @@ int init_sys_param_u32(int index, char *name, uint32_t val)
 
 	sys_param_list[index].name = name;
 	sys_param_list[index].u32_val = val;
+	sys_param_list[index].type = SYS_PARAM_U32;
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -192,6 +197,7 @@ int init_sys_param_s32(int index, char *name, int32_t val)
 
 	sys_param_list[index].name = name;
 	sys_param_list[index].s32_val = val;
+	sys_param_list[index].type = SYS_PARAM_S32;
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -204,6 +210,7 @@ int init_sys_param_float(int index, char *name, float val)
 
 	sys_param_list[index].name = name;
 	sys_param_list[index].float_val = val;
+	sys_param_list[index].type = SYS_PARAM_FLOAT;
 
 	return SYS_PARAM_SUCCEED;
 }
