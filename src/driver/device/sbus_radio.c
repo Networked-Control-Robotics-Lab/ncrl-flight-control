@@ -5,7 +5,7 @@
 #include "delay.h"
 #include "bound.h"
 #include "uart.h"
-#include "sbus_receiver.h"
+#include "sbus_radio.h"
 #include "sys_time.h"
 
 void parse_sbus(uint8_t *raw_buff, uint16_t *rc_val);

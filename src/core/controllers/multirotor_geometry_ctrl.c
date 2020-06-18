@@ -3,7 +3,7 @@
 #include "task.h"
 #include "semphr.h"
 #include "gpio.h"
-#include "sbus_receiver.h"
+#include "sbus_radio.h"
 #include "optitrack.h"
 #include "ahrs.h"
 #include "matrix.h"

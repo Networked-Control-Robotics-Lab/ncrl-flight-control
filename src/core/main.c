@@ -13,7 +13,7 @@
 #include "pwm.h"
 #include "exti.h"
 #include "mpu6500.h"
-#include "sbus_receiver.h"
+#include "sbus_radio.h"
 #include "optitrack.h"
 #include "sys_time.h"
 #include "motor.h"

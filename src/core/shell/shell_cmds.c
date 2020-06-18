@@ -4,7 +4,7 @@
 #include <errno.h>
 #include "mpu6500.h"
 #include "uart.h"
-#include "sbus_receiver.h"
+#include "sbus_radio.h"
 #include "quadshell.h"
 #include "autopilot.h"
 #include "perf.h"

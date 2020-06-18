@@ -107,7 +107,7 @@ SRC+=./driver/periph/uart.c \
 	./driver/periph/sw_i2c.c \
 	./driver/device/mpu6500.c \
 	./driver/device/ms5611.c \
-	./driver/device/sbus_receiver.c \
+	./driver/device/sbus_radio.c \
 	./driver/device/motor.c \
 	./driver/device/optitrack.c \
 	./driver/device/sys_time.c \

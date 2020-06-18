@@ -8,7 +8,7 @@
 #include "gpio.h"
 #include "uart.h"
 #include "pwm.h"
-#include "sbus_receiver.h"
+#include "sbus_radio.h"
 #include "mpu6500.h"
 #include "motor.h"
 #include "optitrack.h"

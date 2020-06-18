@@ -8,7 +8,7 @@
 
 #include "stm32f4xx_conf.h"
 #include "isr.h"
-#include "sbus_receiver.h"
+#include "sbus_radio.h"
 #include "optitrack.h"
 
 #define UART3_QUEUE_SIZE 500

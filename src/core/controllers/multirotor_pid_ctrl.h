@@ -6,7 +6,7 @@
 #include "ahrs.h"
 #include "debug_link.h"
 #include "imu.h"
-#include "sbus_receiver.h"
+#include "sbus_radio.h"
 
 void multirotor_pid_controller_init(void);
 void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desired_heading);

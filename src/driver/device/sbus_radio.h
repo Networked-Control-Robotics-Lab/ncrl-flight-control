@@ -1,5 +1,5 @@
-#ifndef __SBUS_RECEIVER_H__
-#define __SBUS_RECEIVER_H__
+#ifndef __SBUS_RADIO_H__
+#define __SBUS_RADIO_H__
 
 #include <stdint.h>
 #include <stdbool.h>
