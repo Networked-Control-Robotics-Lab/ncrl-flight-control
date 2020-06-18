@@ -5,6 +5,4 @@
 
 void mav_param_request_list(mavlink_message_t *received_msg);
 
-void parameter_microservice_handler(void);
-
 #endif

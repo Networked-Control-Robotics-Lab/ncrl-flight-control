@@ -503,7 +503,7 @@ void shell_cmd_params(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int p
 
 	char *name;
 	char *type_s;
-	int type;
+	uint8_t type;
 
 	uint8_t u8;
 	int8_t s8;

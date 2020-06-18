@@ -30,7 +30,7 @@ int get_sys_param_name(int index, char **name)
 	return SYS_PARAM_SUCCEED;
 }
 
-int get_sys_param_type(int index, int *type)
+int get_sys_param_type(int index, uint8_t *type)
 {
 	if((index < 0) || (index > list_last_index)) {
 		return SYS_PARAM_INDEX_OUT_OF_RANGE;

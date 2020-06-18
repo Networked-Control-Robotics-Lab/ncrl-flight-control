@@ -31,7 +31,7 @@ enum {
 
 typedef struct {
 	char *name;
-	int type;
+	uint8_t type;
 
 	union {
 		uint8_t u8_val; 
@@ -47,7 +47,7 @@ typedef struct {
 void init_sys_param_list(sys_param_data *list, int _list_size);
 int get_sys_param_list_size(void);
 int get_sys_param_name(int index, char **name);
-int get_sys_param_type(int index, int *type);
+int get_sys_param_type(int index, uint8_t *type);
 
 int init_sys_param_u8(int index, char *name, uint8_t val);
 int init_sys_param_s8(int index, char *name, int8_t val);

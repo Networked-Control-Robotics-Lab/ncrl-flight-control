@@ -14,8 +14,8 @@ enum ENUM_MAV_CMDS {
 	//ENUM_HANDLER_FUNC(mav_mission_set_current),
 	ENUM_HANDLER_FUNC(mav_command_long),
 	ENUM_HANDLER_FUNC(mav_param_request_list),
-	//ENUM_HANDLER_FUNC(mav_param_request_read),
-	//ENUM_HANDLER_FUNC(mav_param_set),
+	ENUM_HANDLER_FUNC(mav_param_request_read),
+	ENUM_HANDLER_FUNC(mav_param_set),
 	/* extended mavlink messages */
 	ENUM_HANDLER_FUNC(mav_polynomial_trajectory_write),
 	ENUM_HANDLER_FUNC(mav_polynomial_trajectory_cmd),

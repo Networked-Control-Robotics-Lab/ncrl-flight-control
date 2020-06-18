@@ -70,7 +70,6 @@ void mavlink_tx_task(void *param)
 		//send_mavlink_reached_waypoint();
 
 		/* microservice handlers */
-		parameter_microservice_handler();
 		mission_waypoint_microservice_handler();
 		polynomial_trajectory_microservice_handler();
 
