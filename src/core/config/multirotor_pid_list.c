@@ -16,7 +16,7 @@ void init_multirotor_pid_param_list(void)
 	init_sys_param_float(MR_PID_GAIN_PITCH_D, "GAIN_PITCH_D", 0.05f);
 	init_sys_param_float(MR_PID_GAIN_YAW_P, "GAIN_YAW_P", 0.3f);
 	init_sys_param_float(MR_PID_GAIN_YAW_D, "GAIN_YAW_D", -0.15f);
-	init_sys_param_float(MR_PID_GAIN_RATE_ONLY_YAW_D, "GAIN_RATE_ONLY_YAW_D", 0.3f);
+	init_sys_param_float(MR_PID_GAIN_RATE_YAW, "GAIN_RATE_YAW", 0.3f);
 	init_sys_param_float(MR_PID_GAIN_POS_X_P, "GAIN_POS_X_P", 0.15f);
 	init_sys_param_float(MR_PID_GAIN_POS_X_I, "GAIN_POS_X_I", 0.006f);
 	init_sys_param_float(MR_PID_GAIN_POS_X_D, "GAIN_POS_X_D", 0.067f);

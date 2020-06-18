@@ -49,8 +49,6 @@ void mav_param_request_list(mavlink_message_t *received_msg)
 		case SYS_PARAM_FLOAT:
 			get_sys_param_float(i, &data_float);
 			param_val = (float)data_float;
-		default:
-			return;
 		}
 
 		mavlink_msg_param_value_pack_chan(1, 1, MAVLINK_COMM_1, &msg, param_name,

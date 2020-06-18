@@ -16,7 +16,7 @@ void init_multirotor_geometry_param_list(void)
 	init_sys_param_float(MR_GEO_GAIN_PITCH_D, "GAIN_PITCH_D", 40.25f);
 	init_sys_param_float(MR_GEO_GAIN_YAW_P, "GAIN_YAW_P", 2900.0f);
 	init_sys_param_float(MR_GEO_GAIN_YAW_D, "GAIN_YAW_D", 200.0);
-	init_sys_param_float(MR_GEO_GAIN_RATE_ONLY_YAW_D, "GAIN_RATE_ONLY_YAW_D", 2750.0f);
+	init_sys_param_float(MR_GEO_GAIN_RATE_YAW, "GAIN_RATE_YAW", 2750.0f);
 	init_sys_param_float(MR_GEO_GAIN_POS_X, "GAIN_POS_X", 3.6f);
 	init_sys_param_float(MR_GEO_GAIN_VEL_X, "GAIN_VEL_X", 2.2f);
 	init_sys_param_float(MR_GEO_GAIN_POS_Y, "GAIN_POS_Y", 3.6f);
