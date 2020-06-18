@@ -60,7 +60,7 @@ void rc_safety_protection(void)
 			led_toggle(LED_R);
 			time_last = time_current;
 		}
-		read_rc(&rc);
+		sbus_rc_read(&rc);
 		vTaskDelay(1);
 	} while(rc_safety_check(&rc) == 1);
 }
@@ -107,7 +107,7 @@ void task_flight_ctrl(void *param)
 
 		optitrack_update();
 
-		read_rc(&rc);
+		sbus_rc_read(&rc);
 		rc_yaw_setpoint_handler(&desired_yaw, -rc.yaw, 0.0025);
 
 		perf_start(PERF_AHRS);

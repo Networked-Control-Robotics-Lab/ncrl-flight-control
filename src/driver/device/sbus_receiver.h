@@ -62,8 +62,14 @@ typedef struct {
 	int aux1_mode;
 } radio_t;
 
-void sbus_rc_handler(uint8_t byte);
-void read_rc(radio_t *rc);
+typedef struct {
+	uint8_t buf[25];
+	int buf_recept_cnt;
+	uint16_t rc_val[15];
+} sbus_t;
+
+void sbus_rc_isr_handler(uint8_t byte);
+void sbus_rc_read(radio_t *rc);
 int rc_safety_check(radio_t *rc);
 void debug_print_rc_info(void);
 void debug_print_rc_val(void);

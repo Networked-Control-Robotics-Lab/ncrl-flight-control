@@ -389,7 +389,7 @@ void UART4_IRQHandler(void)
 		c = USART_ReceiveData(UART4);
 		UART4->SR;
 
-		sbus_rc_handler(c);
+		sbus_rc_isr_handler(c);
 	}
 }
 
