@@ -297,7 +297,10 @@ int set_sys_param_float(int index, float val)
 	return SYS_PARAM_SUCCEED;
 }
 
-void save_param_list_to_flash(void)
+/*******************************
+ * flash storage r/w functions *
+ *******************************/
+int save_param_list_to_flash(void)
 {
 	uint32_t save_buf[list_size + 2];
 	memset(save_buf, 0, list_size + 2);
@@ -335,13 +338,21 @@ void save_param_list_to_flash(void)
 	memcpy(&save_buf[1], &crc, sizeof(uint32_t));
 
 	/* save system parameters to sector 11 of internel flash */
-	flash_write(ADDR_FLASH_SECTOR_11, save_buf, list_size + 2);
+	int retval = flash_write(ADDR_FLASH_SECTOR_11, save_buf, list_size + 2);
+
+	switch(retval) {
+	case FLASH_WR_DATA_INCORRECT:
+		return SYS_PARAM_FLASH_WR_DATA_INCORRECT;
+	case FLASH_WR_TIMEOUT:
+		return SYS_PARAM_FLASH_WR_TIMEOUT;
+	case FLASH_ERASE_TIMEOUT:
+		return SYS_PARAM_FLASH_ERASE_TIMEOUT;
+	}
+
+	return SYS_PARAM_FLASH_WR_SUCCEED;
 }
 
-/*******************************
- * flash storage r/w functions *
- *******************************/
-void load_param_list_from_flash(void)
+int load_param_list_from_flash(void)
 {
 	uint32_t read_buf[list_size];
 	memset(read_buf, 0, list_size);
@@ -354,16 +365,23 @@ void load_param_list_from_flash(void)
 	/* read header (parameter list size) and crc */
 	memcpy(&read_list_size, (uint32_t *)(flash_start_addr), sizeof(int));
 	memcpy(&read_crc, (uint32_t *)(flash_start_addr + 1), sizeof(uint32_t));
+
 	/* read paramater list */
 	memcpy(read_buf, (uint32_t *)(flash_start_addr + 2), sizeof(uint32_t) * list_size);
 
-	uint32_t calc_crc = calculate_crc_of_words(read_buf + 2, list_size);
-
-	/* confirm list size and crc stored in flash */
-	if((read_list_size != list_size) || (read_crc != calc_crc)) {
+	/* confirm list size stored in flash */
+	if(read_list_size != list_size) {
 		/* incorrect, save default value to flash */
 		save_param_list_to_flash();
-		return;
+		return SYS_PARAM_FLASH_SIZE_INCORRECT;
+	}
+
+	/* confirm crc stored in flash */
+	uint32_t calc_crc = calculate_crc_of_words(read_buf, list_size);
+	if(read_crc != calc_crc) {
+		/* incorrect, save default value to flash */
+		save_param_list_to_flash();
+		return SYS_PARAM_FLASH_CRC_INCORRECT;
 	}
 
 	/* load parameter list from buffer */
@@ -394,4 +412,5 @@ void load_param_list_from_flash(void)
 		}
 	}
 
+	return SYS_PARAM_FLASH_WR_SUCCEED;
 }

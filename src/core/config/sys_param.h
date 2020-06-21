@@ -29,6 +29,15 @@ enum {
 	/* not supporting uint64_t, int64_t and double */
 } SYS_PARAM_TYPE;
 
+enum {
+	SYS_PARAM_FLASH_WR_SUCCEED = 0,
+        SYS_PARAM_FLASH_WR_DATA_INCORRECT = 1,
+        SYS_PARAM_FLASH_WR_TIMEOUT = 2,
+        SYS_PARAM_FLASH_ERASE_TIMEOUT = 3,
+	SYS_PARAM_FLASH_CRC_INCORRECT = 4,
+	SYS_PARAM_FLASH_SIZE_INCORRECT = 5
+} SYS_PARAM_FLASH_RETVAL;
+
 typedef struct {
 	char *name;
 	uint8_t type;
@@ -71,5 +80,8 @@ int set_sys_param_s16(int index, int16_t val);
 int set_sys_param_u32(int index, uint32_t val);
 int set_sys_param_s32(int index, int32_t val);
 int set_sys_param_float(int index, float val);
+
+int save_param_list_to_flash(void);
+int load_param_list_from_flash(void);
 
 #endif

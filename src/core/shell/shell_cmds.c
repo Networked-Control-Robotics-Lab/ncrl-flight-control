@@ -492,7 +492,7 @@ void shell_cmd_perf(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 	shell_puts(s);
 }
 
-void shell_cmd_params(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+static void param_list_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
 {
 	char s[100];
 
@@ -568,4 +568,62 @@ void shell_cmd_params(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int p
 
 		shell_puts(s);
 	}
+
+}
+
+static void param_save_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
+{
+	int retval = save_param_list_to_flash();
+
+	switch(retval) {
+	case SYS_PARAM_FLASH_WR_SUCCEED:
+		shell_puts("successfully saved parameter list to flash.\n\r");
+		break;
+	case SYS_PARAM_FLASH_WR_DATA_INCORRECT:
+		shell_puts("failed, written data inconsistent error!\n\r");
+		break;
+	case SYS_PARAM_FLASH_WR_TIMEOUT:
+		shell_puts("failed, flash programming timeout!\n\r");
+		break;
+	case SYS_PARAM_FLASH_ERASE_TIMEOUT:
+		shell_puts("failed, flash erasing timeout!\n\r");
+		break;
+	}
+}
+
+static void param_load_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
+{
+	int retval = load_param_list_from_flash();
+
+	switch(retval) {
+	case SYS_PARAM_FLASH_WR_SUCCEED:
+		shell_puts("successfully loaded parameter list from flash.\n\r");
+		break;
+	case SYS_PARAM_FLASH_CRC_INCORRECT:
+		shell_puts("failed, crc inconsistent, saved default to flash now!\n\r");
+		break;
+	case SYS_PARAM_FLASH_SIZE_INCORRECT:
+		shell_puts("failed, list size inconsistent, saved default to flash now!\n\r");
+		break;
+	}
+}
+
+void shell_cmd_param(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
+	if(param_cnt == 2) {
+		if(strcmp(param_list[1], "list") == 0) {
+			param_list_cmd_handler(param_list);
+		} else if(strcmp(param_list[1], "save") == 0) {
+			param_save_cmd_handler(param_list);
+		} else if(strcmp(param_list[1], "load") == 0) {
+			param_load_cmd_handler(param_list);
+		} else {
+			shell_puts("unknown paramater command!\n\r");
+		}
+	} else {
+		shell_puts("param list\n\r"
+		           "param save\n\r"
+		           "param load\n\r");
+	}
+
 }

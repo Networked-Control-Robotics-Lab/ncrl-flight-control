@@ -74,12 +74,12 @@ int flash_write(uint32_t start_addr, uint32_t *data_arr, int size)
 		data_in_flash = *(uint32_t *)read_addr;
 
 		if(data_in_flash != data_arr[i]) {
+			FLASH_Lock();
 			return FLASH_WR_DATA_INCORRECT;
 		}
 	}
 
 	FLASH_Lock();
-
 	return FLASH_WR_SUCCEED;
 }
 
