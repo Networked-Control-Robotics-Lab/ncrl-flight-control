@@ -4,7 +4,7 @@
 #include "task.h"
 #include "ublox_m8n.h"
 
-#define UBLOX_M8N_QUEUE_SIZE 100
+#define UBLOX_M8N_QUEUE_SIZE 1000
 
 #define UBX_SYNC_C1 0xb5
 #define UBX_SYNC_C2 0x62

@@ -1,6 +1,8 @@
 #ifndef __UBLOX_M8N_H__
 #define __UBLOX_M8N_H__
 
+#define UBX_BUFFER_SIZE 200
+
 enum {
 	UBX_STATE_WAIT_SYNC_C1 = 0,
 	UBX_STATE_WAIT_SYNC_C2 = 1,
@@ -20,7 +22,7 @@ typedef struct {
 	uint8_t recept_len_buf[2];
 	uint16_t recept_len;
 	uint8_t recept_ck[2];
-	uint8_t recept_buf[100];
+	uint8_t recept_buf[UBX_BUFFER_SIZE];
 	uint16_t recept_buf_ptr;
 
 	uint16_t year;
