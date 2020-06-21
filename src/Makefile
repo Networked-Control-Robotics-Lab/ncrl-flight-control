@@ -50,6 +50,7 @@ SRC+=./lib/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_i2c.c \
 	./lib/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_pwr.c \
 	./lib/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_exti.c \
 	./lib/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_syscfg.c \
+	./lib/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_crc.c \
 	./lib/STM32F4xx_StdPeriph_Driver/src/misc.c
 
 SRC+=lib/FreeRTOS/Source/croutine.c \
@@ -106,6 +107,7 @@ SRC+=./driver/periph/uart.c \
 	./driver/periph/gpio.c \
 	./driver/periph/sw_i2c.c \
 	./driver/periph/flash.c \
+	./driver/periph/crc.c \
 	./driver/device/mpu6500.c \
 	./driver/device/ms5611.c \
 	./driver/device/sbus_radio.c \
