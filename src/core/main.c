@@ -28,6 +28,7 @@
 #include "perf_list.h"
 #include "sw_i2c.h"
 #include "compass_task.h"
+#include "crc.h"
 
 extern SemaphoreHandle_t flight_ctl_semphr;
 
@@ -50,6 +51,7 @@ int main(void)
 	optitrack_init(UAV_ID); //setup tracker id for this MAV
 
 	/* driver initialization */
+	crc_init();
 	led_init();
 	ext_switch_init();
 	uart1_init(115200);
