@@ -22,6 +22,20 @@ typedef struct {
 	uint8_t recept_ck[2];
 	uint8_t recept_buf[100];
 	uint16_t recept_buf_ptr;
+
+	uint16_t year;
+	uint16_t month;
+	uint8_t day;
+	uint8_t hour;
+	uint8_t minute;
+	uint8_t second;
+	int32_t longitude;
+	int32_t latitude;
+	int32_t vel_n;
+	int32_t vel_e;
+	uint8_t fix_type;
+	uint8_t num_sv;
+	uint16_t pdop;
 } ublox_t;
 
 void ublox_m8n_init(void);

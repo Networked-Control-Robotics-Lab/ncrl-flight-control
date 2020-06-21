@@ -1,3 +1,4 @@
+#include <string.h>
 #include "stm32f4xx_conf.h"
 #include "FreeRTOS.h"
 #include "task.h"
@@ -56,6 +57,20 @@ void ublox_decode_nav_pvt_msg(void)
 	if(calc_ck != ublox.recept_ck) {
 		return;
 	}
+
+	memcpy(&ublox.year, (ublox.recept_buf + 4), sizeof(uint16_t));
+	memcpy(&ublox.month, (ublox.recept_buf + 6), sizeof(uint16_t));
+	memcpy(&ublox.day, (ublox.recept_buf + 7), sizeof(uint8_t));
+	memcpy(&ublox.hour, (ublox.recept_buf + 8), sizeof(uint8_t));
+	memcpy(&ublox.minute, (ublox.recept_buf + 9), sizeof(uint8_t));
+	memcpy(&ublox.second, (ublox.recept_buf + 10), sizeof(uint8_t));
+	memcpy(&ublox.longitude, (ublox.recept_buf + 24), sizeof(int32_t));
+	memcpy(&ublox.latitude, (ublox.recept_buf + 28), sizeof(int32_t));
+	memcpy(&ublox.vel_n, (ublox.recept_buf + 48), sizeof(int32_t));
+	memcpy(&ublox.vel_e, (ublox.recept_buf + 52), sizeof(int32_t));
+	memcpy(&ublox.fix_type, (ublox.recept_buf + 20), sizeof(uint8_t));
+	memcpy(&ublox.num_sv, (ublox.recept_buf + 23), sizeof(uint8_t));
+	memcpy(&ublox.pdop, (ublox.recept_buf + 76), sizeof(uint16_t));
 }
 
 void ublox_m8n_gps_update(void)
