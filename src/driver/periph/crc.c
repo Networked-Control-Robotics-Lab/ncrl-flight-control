@@ -7,7 +7,7 @@ void crc_init(void)
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_CRC, ENABLE);
 }
 
-float calculate_crc_of_words(uint32_t *data_arr, int size)
+uint32_t calculate_crc_of_words(uint32_t *data_arr, int size)
 {
 	CRC_ResetDR(); //clear data register before calculating crc
 	return 	CRC_CalcBlockCRC(data_arr, size);

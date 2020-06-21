@@ -1,4 +1,7 @@
-#include "stdio.h"
+#include <stdio.h>
+#include <string.h>
+#include "flash.h"
+#include "crc.h"
 #include "sys_param.h"
 
 sys_param_data *sys_param_list = NULL;
@@ -292,4 +295,103 @@ int set_sys_param_float(int index, float val)
 	sys_param_list[index].float_val = val;
 
 	return SYS_PARAM_SUCCEED;
+}
+
+void save_param_list_to_flash(void)
+{
+	uint32_t save_buf[list_size + 2];
+	memset(save_buf, 0, list_size + 2);
+
+	int i;
+	for(i = 0; i < list_size; i++) {
+		switch(sys_param_list[i].type) {
+		case SYS_PARAM_U8:
+			memcpy(&save_buf[i + 2], &sys_param_list[i].u8_val, sizeof(uint8_t));
+			break;
+		case SYS_PARAM_S8:
+			memcpy(&save_buf[i + 2], &sys_param_list[i].s8_val, sizeof(int8_t));
+			break;
+		case SYS_PARAM_U16:
+			memcpy(&save_buf[i + 2], &sys_param_list[i].u16_val, sizeof(uint16_t));
+			break;
+		case SYS_PARAM_S16:
+			memcpy(&save_buf[i + 2], &sys_param_list[i].s16_val, sizeof(int16_t));
+			break;
+		case SYS_PARAM_U32:
+			memcpy(&save_buf[i + 2], &sys_param_list[i].u32_val, sizeof(uint32_t));
+			break;
+		case SYS_PARAM_S32:
+			memcpy(&save_buf[i + 2], &sys_param_list[i].s32_val, sizeof(int32_t));
+			break;
+		case SYS_PARAM_FLOAT:
+			memcpy(&save_buf[i + 2], &sys_param_list[i].float_val, sizeof(float));
+			break;
+		}
+	}
+
+	/* reserve 2 word for list size and crc */
+	memcpy(&save_buf[0], &list_size, sizeof(int));
+	uint32_t crc = calculate_crc_of_words(save_buf + 2, list_size);
+	memcpy(&save_buf[1], &crc, sizeof(uint32_t));
+
+	/* save system parameters to sector 11 of internel flash */
+	flash_write(ADDR_FLASH_SECTOR_11, save_buf, list_size + 2);
+}
+
+/*******************************
+ * flash storage r/w functions *
+ *******************************/
+void load_param_list_from_flash(void)
+{
+	uint32_t read_buf[list_size];
+	memset(read_buf, 0, list_size);
+
+	int read_list_size = 0;
+	int read_crc = 0;
+
+	uint32_t flash_start_addr = ADDR_FLASH_SECTOR_11;
+
+	/* read header (parameter list size) and crc */
+	memcpy(&read_list_size, (uint32_t *)(flash_start_addr), sizeof(int));
+	memcpy(&read_crc, (uint32_t *)(flash_start_addr + 1), sizeof(uint32_t));
+	/* read paramater list */
+	memcpy(read_buf, (uint32_t *)(flash_start_addr + 2), sizeof(uint32_t) * list_size);
+
+	uint32_t calc_crc = calculate_crc_of_words(read_buf + 2, list_size);
+
+	/* confirm list size and crc stored in flash */
+	if((read_list_size != list_size) || (read_crc != calc_crc)) {
+		/* incorrect, save default value to flash */
+		save_param_list_to_flash();
+		return;
+	}
+
+	/* load parameter list from buffer */
+	int i;
+	for(i = 0; i < list_size; i++) {
+		switch(sys_param_list[i].type) {
+		case SYS_PARAM_U8:
+			memcpy(&sys_param_list[i].u8_val, &read_buf[i], sizeof(uint8_t));
+			break;
+		case SYS_PARAM_S8:
+			memcpy(&sys_param_list[i].s8_val, &read_buf[i], sizeof(int8_t));
+			break;
+		case SYS_PARAM_U16:
+			memcpy(&sys_param_list[i].u16_val, &read_buf[i], sizeof(uint16_t));
+			break;
+		case SYS_PARAM_S16:
+			memcpy(&sys_param_list[i].s16_val, &read_buf[i], sizeof(int16_t));
+			break;
+		case SYS_PARAM_U32:
+			memcpy(&sys_param_list[i].u32_val, &read_buf[i], sizeof(uint32_t));
+			break;
+		case SYS_PARAM_S32:
+			memcpy(&sys_param_list[i].s32_val, &read_buf[i], sizeof(int32_t));
+			break;
+		case SYS_PARAM_FLOAT:
+			memcpy(&sys_param_list[i].float_val, &read_buf[i], sizeof(float));
+			break;
+		}
+	}
+
 }
