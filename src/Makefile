@@ -115,7 +115,8 @@ SRC+=./driver/periph/uart.c \
 	./driver/device/optitrack.c \
 	./driver/device/sys_time.c \
 	./driver/device/ist8310.c \
-	./driver/device/led.c
+	./driver/device/led.c \
+	./driver/device/ublox_m8n.c
 
 CFLAGS+=-I./
 CFLAGS+=-I./platform
