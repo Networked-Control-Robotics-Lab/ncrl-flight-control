@@ -1,8 +1,11 @@
 #include <stdint.h>
+#include "FreeRTOS.h"
+#include "task.h"
 #include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"
 #include "ncrl_mavlink.h"
 #include "./publisher.h"
 #include "sys_param.h"
+#include "delay.h"
 
 void mav_param_request_list(mavlink_message_t *received_msg)
 {
@@ -63,6 +66,7 @@ void mav_param_request_list(mavlink_message_t *received_msg)
 		mavlink_msg_param_value_pack_chan(1, 1, MAVLINK_COMM_1, &msg, param_name,
 		                                  param_val, param_type, param_cnt, i);
 		send_mavlink_msg_to_uart(&msg);
+		freertos_task_delay(50);
 	}
 }
 

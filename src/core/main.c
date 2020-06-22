@@ -69,6 +69,8 @@ int main(void)
 
 	blocked_delay_ms(1000);
 
+	mavlink_queue_init();
+
 	//xTaskCreate(task_compass, "compass handler", 512, NULL, tskIDLE_PRIORITY + 4, NULL); //XXX
 
 	xTaskCreate(task_flight_ctrl, "flight control", 4096, NULL, tskIDLE_PRIORITY + 3, NULL);
