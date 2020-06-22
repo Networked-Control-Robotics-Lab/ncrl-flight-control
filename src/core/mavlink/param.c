@@ -31,24 +31,33 @@ void mav_param_request_list(mavlink_message_t *received_msg)
 		case SYS_PARAM_U8:
 			get_sys_param_u8(i, &data_u8);
 			param_val = (float)data_u8;
+			break;
 		case SYS_PARAM_S8:
 			get_sys_param_s8(i, &data_s8);
 			param_val = (float)data_s8;
+			break;
 		case SYS_PARAM_U16:
 			get_sys_param_u16(i, &data_u16);
 			param_val = (float)data_u16;
+			break;
 		case SYS_PARAM_S16:
 			get_sys_param_s16(i, &data_s16);
 			param_val = (float)data_s16;
+			break;
 		case SYS_PARAM_U32:
 			get_sys_param_u32(i, &data_u32);
 			param_val = (float)data_u32;
+			break;
 		case SYS_PARAM_S32:
 			get_sys_param_s32(i, &data_s32);
 			param_val = (float)data_s32;
+			break;
 		case SYS_PARAM_FLOAT:
 			get_sys_param_float(i, &data_float);
 			param_val = (float)data_float;
+			break;
+		default:
+			return;
 		}
 
 		mavlink_msg_param_value_pack_chan(1, 1, MAVLINK_COMM_1, &msg, param_name,
@@ -92,24 +101,31 @@ void mav_param_request_read(mavlink_message_t *received_msg)
 		case SYS_PARAM_U8:
 			get_sys_param_u8(i, &data_u8);
 			param_val = (float)data_u8;
+			break;
 		case SYS_PARAM_S8:
 			get_sys_param_s8(i, &data_s8);
 			param_val = (float)data_s8;
+			break;
 		case SYS_PARAM_U16:
 			get_sys_param_u16(i, &data_u16);
 			param_val = (float)data_u16;
+			break;
 		case SYS_PARAM_S16:
 			get_sys_param_s16(i, &data_s16);
 			param_val = (float)data_s16;
+			break;
 		case SYS_PARAM_U32:
 			get_sys_param_u32(i, &data_u32);
 			param_val = (float)data_u32;
+			break;
 		case SYS_PARAM_S32:
 			get_sys_param_s32(i, &data_s32);
 			param_val = (float)data_s32;
+			break;
 		case SYS_PARAM_FLOAT:
 			get_sys_param_float(i, &data_float);
 			param_val = (float)data_float;
+			break;
 		default:
 			return;
 		}
@@ -156,30 +172,37 @@ void mav_param_set(mavlink_message_t *received_msg)
 			set_sys_param_u8(i, (uint8_t)mav_param_set.param_value);
 			get_sys_param_u8(i, &data_u8);
 			param_val = (float)data_u8;
+			break;
 		case SYS_PARAM_S8:
 			set_sys_param_s8(i, (int8_t)mav_param_set.param_value);
 			get_sys_param_s8(i, &data_s8);
 			param_val = (float)data_s8;
+			break;
 		case SYS_PARAM_U16:
 			set_sys_param_u16(i, (uint16_t)mav_param_set.param_value);
 			get_sys_param_u16(i, &data_u16);
 			param_val = (float)data_u16;
+			break;
 		case SYS_PARAM_S16:
 			set_sys_param_s16(i, (int16_t)mav_param_set.param_value);
 			get_sys_param_s16(i, &data_s16);
 			param_val = (float)data_s16;
+			break;
 		case SYS_PARAM_U32:
 			set_sys_param_u32(i, (uint32_t)mav_param_set.param_value);
 			get_sys_param_u32(i, &data_u32);
 			param_val = (float)data_u32;
+			break;
 		case SYS_PARAM_S32:
 			set_sys_param_s32(i, (int32_t)mav_param_set.param_value);
 			get_sys_param_s32(i, &data_s32);
 			param_val = (float)data_s32;
+			break;
 		case SYS_PARAM_FLOAT:
 			set_sys_param_float(i, (float)mav_param_set.param_value);
 			get_sys_param_float(i, &data_float);
 			param_val = (float)data_float;
+			break;
 		default:
 			return;
 		}
