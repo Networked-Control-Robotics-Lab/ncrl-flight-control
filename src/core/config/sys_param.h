@@ -63,6 +63,7 @@ int init_sys_param_s8(int index, char *name, int8_t val);
 int init_sys_param_u16(int index, char *name, uint16_t val);
 int init_sys_param_s16(int index, char *name, int16_t val);
 int init_sys_param_u32(int index, char *name, uint32_t val);
+int init_sys_param_s32(int index, char *name, int32_t val);
 int init_sys_param_float(int index, char *name, float val);
 
 int get_sys_param_u8(int index, uint8_t *retval);
