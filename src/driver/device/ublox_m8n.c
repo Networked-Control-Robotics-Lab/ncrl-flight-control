@@ -3,6 +3,8 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "ublox_m8n.h"
+#include "uart.h"
+#include "delay.h"
 
 #define UBLOX_M8N_QUEUE_SIZE 1000
 
@@ -17,9 +19,37 @@ QueueHandle_t ublox_m8n_queue;
 
 ublox_t ublox;
 
+void ublox_command_send(uint8_t *cmd, int size)
+{
+	usart_puts(UART7, (char *)cmd, size);
+	blocked_delay_ms(100);
+}
+
 void ublox_m8n_init(void)
 {
 	ublox_m8n_queue = xQueueCreate(UBLOX_M8N_QUEUE_SIZE, sizeof(ublox_m8n_buf_c_t));
+
+#if 1
+	/* enable nav_pvt message output */
+	ublox_command_send(ubx_nav_pvt_set, UBX_NAV_PVT_SET_LEN);
+
+	/* diable nmea messages output */
+	ublox_command_send(ubx_nmea_gxgga_set, UBX_NMEA_GXGGA_SET_LEN);
+	ublox_command_send(ubx_nmea_gxggl_set, UBX_NMEA_GXGGL_SET_LEN);
+	ublox_command_send(ubx_nmea_gxgsa_set, UBX_NMEA_GXGSA_SET_LEN);
+	ublox_command_send(ubx_nmea_gxgsv_set, UBX_NMEA_GXGSV_SET_LEN);
+	ublox_command_send(ubx_nmea_gxgmc_set, UBX_NMEA_GXGMC_SET_LEN);
+	ublox_command_send(ubx_nmea_gxvtg_set, UBX_NMEA_GXVTG_SET_LEN);
+
+	/* set dynamic range to 2g  */
+	ublox_command_send(ubx_2g_mode_set, UBX_2G_MODE_SET_LEN);
+
+	/* use UTC time */
+	ublox_command_send(ubx_utc_time_set, UBX_UTC_TIME_SET_LEN);
+
+	/* save configurations to rom */
+	//ublox_command_send(ubx_save_rom_cmd, UBX_SAVE_ROM_CMD_LEN);
+#endif
 }
 
 void ublox_checksum_calc(uint8_t *result, uint8_t *payload, uint16_t len)
