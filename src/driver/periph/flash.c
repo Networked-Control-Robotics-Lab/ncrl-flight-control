@@ -37,14 +37,14 @@ uint32_t get_flash_sector_num(uint32_t addr)
 	return sector;
 }
 
-int flash_write(uint32_t start_addr, uint32_t *data_arr, int size)
+int flash_write(uint32_t start_addr, uint32_t *data_arr, volatile int size)
 {
 	FLASH_Unlock();
 
-	uint32_t end_addr = start_addr + size;
+	volatile uint32_t end_addr = start_addr + size;
 
-	uint32_t start_sector = get_flash_sector_num(start_addr);
-	uint32_t end_sector = get_flash_sector_num(end_addr);
+	volatile uint32_t start_sector = get_flash_sector_num(start_addr);
+	volatile uint32_t end_sector = get_flash_sector_num(end_addr);
 
 	FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR |
 	                FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
@@ -61,7 +61,7 @@ int flash_write(uint32_t start_addr, uint32_t *data_arr, int size)
 
 	/* write data into flash sector */
 	for(i = 0; i < size; i++) {
-		uint32_t write_addr = start_addr + i;
+		volatile uint32_t write_addr = start_addr + (i * 4);
 		while(FLASH_ProgramWord(write_addr, data_arr[i]) != FLASH_COMPLETE) {
 			//XXX: timeout
 		}
@@ -70,7 +70,7 @@ int flash_write(uint32_t start_addr, uint32_t *data_arr, int size)
 	/* verify the written data */
 	uint32_t data_in_flash;
 	for(i = 0; i < size; i++) {
-		uint32_t read_addr = start_addr + i;
+		uint32_t read_addr = start_addr + (i * 4);
 		data_in_flash = *(uint32_t *)read_addr;
 
 		if(data_in_flash != data_arr[i]) {
@@ -91,7 +91,7 @@ void debug_print_flash(uint32_t start_address, int size)
 
 	int i;
 	for(i = 0; i < size; i++) {
-		uint32_t read_addr = start_address + i;
+		uint32_t read_addr = start_address + (i * 4);
 		data_read = *(uint32_t *)read_addr;
 
 		sprintf(s, "%p: %lu\n\r", (uint32_t *)read_addr, data_read);

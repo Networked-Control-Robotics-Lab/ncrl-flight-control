@@ -364,10 +364,10 @@ int load_param_list_from_flash(void)
 
 	/* read header (parameter list size) and crc */
 	memcpy(&read_list_size, (uint32_t *)(flash_start_addr), sizeof(int));
-	memcpy(&read_crc, (uint32_t *)(flash_start_addr + 1), sizeof(uint32_t));
+	memcpy(&read_crc, (uint32_t *)(flash_start_addr) + 1, sizeof(uint32_t));
 
 	/* read paramater list */
-	memcpy(read_buf, (uint32_t *)(flash_start_addr + 2), sizeof(uint32_t) * list_size);
+	memcpy(read_buf, (uint32_t *)(flash_start_addr) + 2, sizeof(uint32_t) * list_size);
 
 	/* confirm list size stored in flash */
 	if(read_list_size != list_size) {
