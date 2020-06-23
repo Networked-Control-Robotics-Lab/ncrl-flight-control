@@ -139,10 +139,10 @@ void geometry_ctrl_init(void)
 	/* attitude controller */
 	/* roll gains */
 	krx = 300.0f;
-	kwx = 40.0f;
+	kwx = 37.0f;
 	/* pitch gains */
 	kry = 300.0f;
-	kwy = 40.0f;
+	kwy = 37.0f;
 	/* yaw gains */
 	krz = 2900.0f;
 	kwz = 200.0;
@@ -152,11 +152,11 @@ void geometry_ctrl_init(void)
 
 	/* tracking controller */
 	/* x-axis tracking gains */
-	kpx = 8.5f;
-	kvx = 6.0f;
+	kpx = 9.5f;
+	kvx = 7.0f;
 	/* y-axis tracking gains */
-	kpy = 8.5f;
-	kvy = 6.0f;
+	kpy = 11.5f;
+	kvy = 8.0f;
 	/* z-axis tracking gains */
 	kpz = 8.7f;
 	kvz = 4.0f;
