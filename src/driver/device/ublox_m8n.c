@@ -58,14 +58,14 @@ ublox_t ublox;
 void ublox_command_send(uint8_t *cmd, int size)
 {
 	usart_puts(UART7, (char *)cmd, size);
-	blocked_delay_ms(500);
+	blocked_delay_ms(100);
 }
 
 void ublox_m8n_init(void)
 {
 	ublox_m8n_queue = xQueueCreate(UBLOX_M8N_QUEUE_SIZE, sizeof(ublox_m8n_buf_c_t));
 
-	blocked_delay_ms(500);
+	blocked_delay_ms(500); //wait until uart finished initialization
 
 	/* enable nav_pvt message output */
 	ublox_command_send(ubx_nav_pvt_set, UBX_NAV_PVT_SET_LEN);
