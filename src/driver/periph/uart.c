@@ -18,6 +18,7 @@ typedef struct {
 } uart_c_t;
 
 SemaphoreHandle_t uart3_tx_semphr;
+SemaphoreHandle_t uart7_tx_semphr;
 
 QueueHandle_t uart3_rx_queue;
 
@@ -196,7 +197,10 @@ void uart6_init(int baudrate)
  */
 void uart7_init(int baudrate)
 {
+	uart7_tx_semphr = xSemaphoreCreateBinary();
+
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART7, ENABLE);
 
 	GPIO_PinAFConfig(GPIOE, GPIO_PinSource7, GPIO_AF_UART7);
@@ -223,11 +227,17 @@ void uart7_init(int baudrate)
 	USART_ClearFlag(UART7, USART_FLAG_TC);
 
 	NVIC_InitTypeDef NVIC_InitStruct = {
-		.NVIC_IRQChannel = UART7_IRQn,
-		.NVIC_IRQChannelPreemptionPriority = GPS_OPTITRACK_UART_ISR,
+		.NVIC_IRQChannel = DMA1_Stream1_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = GPS_UART_TX_ISR,
 		.NVIC_IRQChannelSubPriority = 0,
 		.NVIC_IRQChannelCmd = ENABLE
 	};
+	NVIC_Init(&NVIC_InitStruct);
+	DMA_ITConfig(DMA1_Stream1, DMA_IT_TC, ENABLE);
+
+	NVIC_InitStruct.NVIC_IRQChannel = UART7_IRQn;
+	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = GPS_OPTITRACK_UART_ISR;
+	NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStruct);
 	USART_ITConfig(UART7, USART_IT_RXNE, ENABLE);
 }
@@ -343,6 +353,37 @@ void uart6_puts(char *s, int size)
 	while(DMA_GetFlagStatus(DMA2_Stream6, DMA_FLAG_TCIF6) == RESET);
 }
 
+void uart7_puts(char *s, int size)
+{
+	//uart7 tx: dma1 channel5 stream1
+	DMA_ClearFlag(DMA1_Stream1, DMA_FLAG_TCIF5);
+
+	DMA_InitTypeDef DMA_InitStructure = {
+		.DMA_BufferSize = (uint32_t)size,
+		.DMA_FIFOMode = DMA_FIFOMode_Disable,
+		.DMA_FIFOThreshold = DMA_FIFOThreshold_Full,
+		.DMA_MemoryBurst = DMA_MemoryBurst_Single,
+		.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte,
+		.DMA_MemoryInc = DMA_MemoryInc_Enable,
+		.DMA_Mode = DMA_Mode_Normal,
+		.DMA_PeripheralBaseAddr = (uint32_t)(&UART7->DR),
+		.DMA_PeripheralBurst = DMA_PeripheralBurst_Single,
+		.DMA_PeripheralInc = DMA_PeripheralInc_Disable,
+		.DMA_Priority = DMA_Priority_Medium,
+		.DMA_Channel = DMA_Channel_5,
+		.DMA_DIR = DMA_DIR_MemoryToPeripheral,
+		.DMA_Memory0BaseAddr = (uint32_t)s
+	};
+	DMA_Init(DMA1_Stream1, &DMA_InitStructure);
+
+	//send data from memory to uart data register
+	DMA_Cmd(DMA1_Stream1, ENABLE);
+	USART_DMACmd(UART7, USART_DMAReq_Tx, ENABLE);
+
+	xSemaphoreTake(uart7_tx_semphr, portMAX_DELAY);
+}
+
+
 bool uart3_getc(char *c, long sleep_ticks)
 {
 	uart_c_t recpt_c;
@@ -351,6 +392,18 @@ bool uart3_getc(char *c, long sleep_ticks)
 	} else {
 		*c = recpt_c.c;
 		return true;
+	}
+}
+
+void DMA1_Stream1_IRQHandler(void)
+{
+	/* uart7 tx dma */
+	if(DMA_GetITStatus(DMA1_Stream1, DMA_IT_TCIF1) == SET) {
+		DMA_ClearITPendingBit(DMA1_Stream1, DMA_IT_TCIF1);
+
+		BaseType_t higher_priority_task_woken = pdFALSE;
+		xSemaphoreGiveFromISR(uart7_tx_semphr, &higher_priority_task_woken);
+		portEND_SWITCHING_ISR(higher_priority_task_woken);
 	}
 }
 
