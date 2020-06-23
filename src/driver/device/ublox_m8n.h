@@ -8,7 +8,7 @@
 #define UBX_NMEA_GXGGL_SET_LEN 16
 #define UBX_NMEA_GXGSA_SET_LEN 16
 #define UBX_NMEA_GXGSV_SET_LEN 16
-#define UBX_NMEA_GXGMC_SET_LEN 16
+#define UBX_NMEA_GXRMC_SET_LEN 16
 #define UBX_NMEA_GXVTG_SET_LEN 16
 #define UBX_2G_MODE_SET_LEN 44
 #define UBX_UTC_TIME_SET_LEN 14
@@ -33,11 +33,12 @@ typedef struct {
 	uint8_t recept_len_buf[2];
 	uint16_t recept_len;
 	uint8_t recept_ck[2];
+	uint8_t calc_ck[2];
 	uint8_t recept_buf[UBX_BUFFER_SIZE];
 	uint16_t recept_buf_ptr;
 
 	uint16_t year;
-	uint16_t month;
+	uint8_t month;
 	uint8_t day;
 	uint8_t hour;
 	uint8_t minute;

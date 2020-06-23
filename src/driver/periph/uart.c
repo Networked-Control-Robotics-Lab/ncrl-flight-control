@@ -454,9 +454,9 @@ void UART7_IRQHandler(void)
 		UART7->SR;
 
 #if (SELECT_LOCALIZATION == LOCALIZATION_USE_GPS_MAG)
-	ublox_m8n_isr_handler(c);
+		ublox_m8n_isr_handler(c);
 #elif (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
-	optitrack_isr_handler(c);
+		optitrack_isr_handler(c);
 #endif
 	}
 }
