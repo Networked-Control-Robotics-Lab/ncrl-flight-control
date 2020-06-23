@@ -29,6 +29,7 @@
 #include "sw_i2c.h"
 #include "compass_task.h"
 #include "crc.h"
+#include "ublox_m8n.h"
 
 extern SemaphoreHandle_t flight_ctl_semphr;
 
@@ -48,8 +49,6 @@ int main(void)
 	/* freertos initialization */
 	flight_ctl_semphr = xSemaphoreCreateBinary();
 
-	optitrack_init(UAV_ID); //setup tracker id for this MAV
-
 	/* driver initialization */
 	crc_init();
 	led_init();
@@ -58,7 +57,15 @@ int main(void)
 	uart3_init(115200); //telem
 	uart4_init(100000); //s-bus
 	uart6_init(115200);
-	uart7_init(115200); //gps or optitrack
+
+#if (SELECT_LOCALIZATION == LOCALIZATION_USE_GPS_MAG)
+	uart7_init(38400); //gps
+	ublox_m8n_init();
+#elif (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
+	uart7_init(115200); //optitrack
+	optitrack_init(UAV_ID); //setup tracker id for this MAV
+#endif
+
 	timer12_init(); //system timer and flight controller timer
 	pwm_timer1_init(); //motor
 	pwm_timer4_init(); //motor

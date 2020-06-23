@@ -25,6 +25,7 @@
 #include "debug_link.h"
 #include "perf.h"
 #include "perf_list.h"
+#include "ublox_m8n.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 10
 
@@ -105,7 +106,11 @@ void task_flight_ctrl(void *param)
 		//gpio_on(EXT_SW);
 		perf_start(PERF_FLIGHT_CONTROL_LOOP);
 
+#if (SELECT_LOCALIZATION == LOCALIZATION_USE_GPS_MAG)
+		ublox_m8n_gps_update();
+#elif (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
 		optitrack_update();
+#endif
 
 		sbus_rc_read(&rc);
 		rc_yaw_setpoint_handler(&desired_yaw, -rc.yaw, 0.0025);

@@ -5,11 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-
 #include "stm32f4xx_conf.h"
 #include "isr.h"
 #include "sbus_radio.h"
 #include "optitrack.h"
+#include "ublox_m8n.h"
 
 #define UART3_QUEUE_SIZE 500
 
@@ -453,6 +453,10 @@ void UART7_IRQHandler(void)
 		c = USART_ReceiveData(UART7);
 		UART7->SR;
 
-		optitrack_isr_handler(c);
+#if (SELECT_LOCALIZATION == LOCALIZATION_USE_GPS_MAG)
+	ublox_m8n_isr_handler(c);
+#elif (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
+	optitrack_isr_handler(c);
+#endif
 	}
 }
