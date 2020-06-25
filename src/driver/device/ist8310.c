@@ -4,6 +4,8 @@
 #include "sw_i2c.h"
 #include "delay.h"
 
+#define IST8310_ADDR 0xE
+
 SemaphoreHandle_t ist8310_semphr;
 
 float *mag_ptr;
@@ -55,18 +57,35 @@ void ist8310_read_sensor(void)
 	mag_ptr[2] = mz_unscaled;
 }
 
+uint8_t ist8310_read_byte(uint8_t addr)
+{
+	uint8_t data;
+
+	sw_i2c_blocked_start();
+	sw_i2c_blocked_send_byte((IST8310_ADDR << 1) | 1);
+	sw_i2c_blocked_wait_ack();
+	sw_i2c_blocked_send_byte(addr);
+	sw_i2c_blocked_wait_ack();
+
+	sw_i2c_blocked_start();
+	sw_i2c_blocked_send_byte((IST8310_ADDR << 1) | 0);
+	sw_i2c_blocked_wait_ack();
+	data = sw_i2c_blocked_read_byte();
+	sw_i2c_blocked_nack();
+	sw_i2c_blocked_stop();
+
+	return data;
+}
+
 void ist8310_task_handler(void)
 {
 	//ist8130_init(); //XXX
 
-	while(1) {
-		sw_i2c_start();
-		sw_i2c_send_byte(0xA0);
-		sw_i2c_ack();
-		sw_i2c_send_byte(0xB0);
-		sw_i2c_nack();
-		sw_i2c_stop();
+	volatile uint8_t who_i_am;
 
-		freertos_task_delay(100);
+	while(1) {
+		who_i_am = ist8310_read_byte(0x00);
+
+		blocked_delay_ms(100);
 	}
 }
