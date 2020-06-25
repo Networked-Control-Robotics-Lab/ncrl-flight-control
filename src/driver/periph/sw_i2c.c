@@ -20,7 +20,7 @@
 #include "coroutine.h"
 #include "delay.h"
 
-#define I2C_FREQ 400000 //400k[Hz]
+#define I2C_FREQ 100000 //100k[Hz], XXX:change to 400k later
 #define I2C_CLOCK_PERIOD_MS ((1 / I2C_FREQ) * 1000) //[ms]
 
 #define SW_I2C_SCL GPIOE, GPIO_Pin_0
@@ -50,7 +50,7 @@ void sw_i2c_init(void)
 		.GPIO_Mode = GPIO_Mode_OUT,
 		.GPIO_Speed = GPIO_Speed_50MHz,
 		.GPIO_OType = GPIO_OType_PP,
-		.GPIO_PuPd = GPIO_PuPd_DOWN
+		.GPIO_PuPd = GPIO_PuPd_NOPULL
 	};
 
 	GPIO_Init(GPIOE, &GPIO_InitStruct);
@@ -101,8 +101,8 @@ void sw_i2c_config_sda_in(void)
 		.GPIO_Pin = GPIO_Pin_1,
 		.GPIO_Mode = GPIO_Mode_IN,
 		.GPIO_Speed = GPIO_Speed_50MHz,
-		.GPIO_OType = GPIO_OType_PP,
-		.GPIO_PuPd = GPIO_PuPd_DOWN
+		.GPIO_OType = GPIO_OType_OD,
+		.GPIO_PuPd = GPIO_PuPd_NOPULL
 	};
 
 	GPIO_Init(GPIOE, &GPIO_InitStruct);
@@ -115,7 +115,7 @@ void sw_i2c_config_sda_out(void)
 		.GPIO_Mode = GPIO_Mode_OUT,
 		.GPIO_Speed = GPIO_Speed_50MHz,
 		.GPIO_OType = GPIO_OType_PP,
-		.GPIO_PuPd = GPIO_PuPd_DOWN
+		.GPIO_PuPd = GPIO_PuPd_NOPULL
 	};
 
 	GPIO_Init(GPIOE, &GPIO_InitStruct);
@@ -387,6 +387,7 @@ void sw_i2c_send_byte(uint8_t data)
 void sw_i2c_delay_ms(float delay_ms)
 {
 	float start_time = get_sys_time_ms();
+
 	while(1) {
 		float curr_time = get_sys_time_ms();
 		float elapsed_time = curr_time - start_time;
@@ -424,11 +425,13 @@ void sw_i2c_blocked_stop(void)
 bool sw_i2c_blocked_wait_ack(void)
 {
 	sw_i2c_config_sda_in();
+
 	sw_i2c_sda_set_high();
 	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
 	sw_i2c_scl_set_high();
+	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
 
-	uint8_t trial_time = 0;
+	int trial_time = 0;
 
 	while(sw_i2c_sda_read()) {
 		trial_time++;
@@ -439,7 +442,7 @@ bool sw_i2c_blocked_wait_ack(void)
 		}
 	}
 
-	sw_i2c_sda_set_low();
+	sw_i2c_scl_set_low();
 	return true;
 }
 
@@ -456,8 +459,8 @@ void sw_i2c_blocked_ack(void)
 
 void sw_i2c_blocked_nack(void)
 {
-	sw_i2c_config_sda_out();
 	sw_i2c_scl_set_low();
+	sw_i2c_config_sda_out();
 	//sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
 	sw_i2c_sda_set_high();
 	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
@@ -489,7 +492,7 @@ void sw_i2c_blocked_send_byte(uint8_t data)
 	}
 }
 
-uint8_t sw_i2c_blocked_read_byte(bool do_ack)
+uint8_t sw_i2c_blocked_read_byte(void)
 {
 	sw_i2c_config_sda_in();
 
@@ -506,12 +509,6 @@ uint8_t sw_i2c_blocked_read_byte(bool do_ack)
 			data++;
 		}
 		sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
-	}
-
-	if(do_ack == true) {
-		sw_i2c_blocked_ack();
-	} else {
-		sw_i2c_blocked_nack();
 	}
 
 	return data;
