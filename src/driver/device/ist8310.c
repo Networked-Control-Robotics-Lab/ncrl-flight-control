@@ -62,13 +62,13 @@ uint8_t ist8310_read_byte(uint8_t addr)
 	uint8_t data;
 
 	sw_i2c_blocked_start();
-	sw_i2c_blocked_send_byte((IST8310_ADDR << 1) | 1);
+	sw_i2c_blocked_send_byte((IST8310_ADDR << 1) | 0);
 	sw_i2c_blocked_wait_ack();
 	sw_i2c_blocked_send_byte(addr);
 	sw_i2c_blocked_wait_ack();
 
 	sw_i2c_blocked_start();
-	sw_i2c_blocked_send_byte((IST8310_ADDR << 1) | 0);
+	sw_i2c_blocked_send_byte((IST8310_ADDR << 1) | 1);
 	sw_i2c_blocked_wait_ack();
 	data = sw_i2c_blocked_read_byte();
 	sw_i2c_blocked_nack();
