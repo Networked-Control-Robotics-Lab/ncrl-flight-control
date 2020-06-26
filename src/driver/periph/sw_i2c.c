@@ -337,6 +337,7 @@ void sw_i2c_wait_ack_handler(void)
 	}
 
 	sw_i2c_scl_set_low();
+	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
 
 	i2c_state = SW_I2C_DO_NOTHING;
 
@@ -507,6 +508,8 @@ bool sw_i2c_blocked_wait_ack(void)
 	}
 
 	sw_i2c_scl_set_low();
+	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+
 	return true;
 }
 
