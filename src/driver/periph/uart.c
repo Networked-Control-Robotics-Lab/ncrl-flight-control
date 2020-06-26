@@ -10,7 +10,7 @@
 #include "sbus_radio.h"
 #include "optitrack.h"
 #include "ublox_m8n.h"
-
+#include "proj_config.h"
 #define UART3_QUEUE_SIZE 500
 
 typedef struct {
