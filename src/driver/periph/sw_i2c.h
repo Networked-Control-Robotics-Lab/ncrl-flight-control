@@ -17,7 +17,8 @@ enum {
 	SW_I2C_SEND_BYTE,
 	SW_I2C_RECEIVE_BYTE,
 	SW_I2C_ACK,
-	SW_I2C_NACK
+	SW_I2C_NACK,
+	SW_I2C_WAIT_ACK
 } SW_I2C_STATE;
 
 void sw_i2c_init(void);
