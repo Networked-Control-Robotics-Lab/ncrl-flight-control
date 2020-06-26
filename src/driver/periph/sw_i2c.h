@@ -26,6 +26,7 @@ void sw_i2c_start(void);
 void sw_i2c_stop(void);
 void sw_i2c_ack(void);
 void sw_i2c_nack(void);
+void sw_i2c_wait_ack(void);
 uint8_t sw_i2c_read_byte(void);
 void sw_i2c_send_byte(uint8_t data);
 

@@ -43,7 +43,7 @@ void sw_i2c_init(void)
 	xSemaphoreGive(sw_i2c_semphr);
 
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
-	//RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
 
 	GPIO_InitTypeDef GPIO_InitStruct = {
 		.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1,
@@ -55,7 +55,6 @@ void sw_i2c_init(void)
 
 	GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-#if 0
 	/* 90MHz / (225 * 1) = 4000Hz */
 	TIM_TimeBaseInitTypeDef TimeBaseInitStruct = {
 		.TIM_Period = 225 - 1,
@@ -76,20 +75,18 @@ void sw_i2c_init(void)
 
 	TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
 	TIM_Cmd(TIM2, ENABLE);
-#endif
 }
 
 void sw_i2c_timer_enable(void)
 {
-	//TIM_Cmd(TIM2, ENABLE);
+	TIM_Cmd(TIM2, ENABLE);
 }
 
 void sw_i2c_timer_disable(void)
 {
-	//TIM_Cmd(TIM2, DISABLE);
+	TIM_Cmd(TIM2, DISABLE);
 }
 
-#if 0
 void TIM2_IRQHandler(void)
 {
 	if(TIM_GetITStatus(TIM2, TIM_IT_Update) == SET) {
@@ -97,7 +94,6 @@ void TIM2_IRQHandler(void)
 		sw_i2c_handler();
 	}
 }
-#endif
 
 void sw_i2c_config_sda_in(void)
 {
@@ -341,6 +337,11 @@ void sw_i2c_wait_ack_handler(void)
 	}
 
 	sw_i2c_scl_set_low();
+
+	i2c_state = SW_I2C_DO_NOTHING;
+
+	BaseType_t higher_priority_task_woken = pdFALSE;
+	xSemaphoreGiveFromISR(sw_i2c_semphr, &higher_priority_task_woken);
 
 	CR_END();
 }
