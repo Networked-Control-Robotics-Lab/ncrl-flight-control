@@ -4,7 +4,7 @@
 #include "sw_i2c.h"
 #include "delay.h"
 
-#define IST8310_ADDR 0xE
+#define IST8310_ADDR 0xe
 
 SemaphoreHandle_t ist8310_semphr;
 
@@ -66,7 +66,6 @@ uint8_t ist8310_read_byte(uint8_t addr)
 	sw_i2c_blocked_wait_ack();
 	sw_i2c_blocked_send_byte(addr);
 	sw_i2c_blocked_wait_ack();
-
 	sw_i2c_blocked_start();
 	sw_i2c_blocked_send_byte((IST8310_ADDR << 1) | 1);
 	sw_i2c_blocked_wait_ack();
@@ -77,15 +76,38 @@ uint8_t ist8310_read_byte(uint8_t addr)
 	return data;
 }
 
-void ist8310_write_byte(uint8_t addr, uint8_t write_data)
+void ist8310_write_byte(uint8_t addr, uint8_t data)
 {
 	sw_i2c_blocked_start();
 	sw_i2c_blocked_send_byte((IST8310_ADDR << 1) | 0);
 	sw_i2c_blocked_wait_ack();
 	sw_i2c_blocked_send_byte(addr);
 	sw_i2c_blocked_wait_ack();
-	sw_i2c_blocked_send_byte(write_data);
+	sw_i2c_blocked_send_byte(data);
 	sw_i2c_blocked_wait_ack();
+	sw_i2c_blocked_stop();
+}
+
+void ist8310_read_bytes(uint8_t addr, uint8_t *data, int size)
+{
+	sw_i2c_blocked_start();
+	sw_i2c_blocked_send_byte((IST8310_ADDR << 1) | 0);
+	sw_i2c_blocked_wait_ack();
+	sw_i2c_blocked_send_byte(addr);
+	sw_i2c_blocked_wait_ack();
+	sw_i2c_blocked_start();
+	sw_i2c_blocked_send_byte((IST8310_ADDR << 1) | 1);
+	sw_i2c_blocked_wait_ack();
+	for(int i = 0; i < size; i++) {
+		data[i] = sw_i2c_blocked_read_byte();
+		if(i == (size-1)) {
+			/* send nack if all bytes are received */
+			sw_i2c_blocked_nack();
+		} else {
+			/* send ack for requesting next byte */
+			sw_i2c_blocked_ack();
+		}
+	}
 	sw_i2c_blocked_stop();
 }
 
@@ -94,18 +116,22 @@ void ist8310_task_handler(void)
 	//ist8130_init(); //XXX
 
 	volatile uint8_t who_i_am;
+	uint8_t mag_buf[6] = {0};
 
 	while(1) {
 		who_i_am = ist8310_read_byte(0x00);
 		blocked_delay_ms(100);
 
-		ist8310_write_byte(0x0A, 0x07); //register control1: 50Hz
+		ist8310_write_byte(0x0a, 0x07); //register control1: 50Hz
 		blocked_delay_ms(100);
 
 		ist8310_write_byte(0x41, 0x24); //register average: 16
 		blocked_delay_ms(100);
 
-		ist8310_write_byte(0x42, 0xC0); //register pulse duration control: normal
+		ist8310_write_byte(0x42, 0xc0); //register pulse duration control: normal
+		blocked_delay_ms(100);
+
+		ist8310_read_bytes(0x03, mag_buf, 6);
 		blocked_delay_ms(100);
 	}
 }
