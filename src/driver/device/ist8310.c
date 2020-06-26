@@ -77,6 +77,18 @@ uint8_t ist8310_read_byte(uint8_t addr)
 	return data;
 }
 
+void ist8310_write_byte(uint8_t addr, uint8_t write_data)
+{
+	sw_i2c_blocked_start();
+	sw_i2c_blocked_send_byte((IST8310_ADDR << 1) | 0);
+	sw_i2c_blocked_wait_ack();
+	sw_i2c_blocked_send_byte(addr);
+	sw_i2c_blocked_wait_ack();
+	sw_i2c_blocked_send_byte(write_data);
+	sw_i2c_blocked_wait_ack();
+	sw_i2c_blocked_stop();
+}
+
 void ist8310_task_handler(void)
 {
 	//ist8130_init(); //XXX
@@ -85,7 +97,15 @@ void ist8310_task_handler(void)
 
 	while(1) {
 		who_i_am = ist8310_read_byte(0x00);
+		blocked_delay_ms(100);
 
+		ist8310_write_byte(0x0A, 0x07); //register control1: 50Hz
+		blocked_delay_ms(100);
+
+		ist8310_write_byte(0x41, 0x24); //register average: 16
+		blocked_delay_ms(100);
+
+		ist8310_write_byte(0x42, 0xC0); //register pulse duration control: normal
 		blocked_delay_ms(100);
 	}
 }
