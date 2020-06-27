@@ -11,6 +11,7 @@
 #include "perf_list.h"
 #include "sys_param.h"
 #include "imu.h"
+#include "delay.h"
 
 static bool parse_float_from_str(char *str, float *value)
 {
@@ -636,6 +637,7 @@ void shell_cmd_compass(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int 
 	}
 
 	float mag[3] = {0};
+	volatile float update_freq = 0;
 
 	char c;
 	char s[100] = {0};
@@ -647,7 +649,12 @@ void shell_cmd_compass(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int 
 		}
 
 		get_imu_compass_raw(mag);
-		sprintf(s, "compass x:%f, y:%f, z:%f\n\r", mag[0], mag[1], mag[2]);
+		update_freq = get_imu_compass_update_freq();
+
+		sprintf(s, "[%.0fHz] compass x:%.0f, y:%.0f, z:%.0f\n\r",
+		        update_freq, mag[0], mag[1], mag[2]);
 		shell_puts(s);
+
+		freertos_task_delay(1000);
 	}
 }

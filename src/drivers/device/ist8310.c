@@ -144,6 +144,10 @@ void ist8310_task_handler(void)
 
 	while(1) {
 		ist8310_read_sensor();
-		blocked_delay_ms(50);
+
+		/* output data rate (odr) = 50Hz
+		   without data ready interrupt, it requires at least 500Hz
+		   to check status registart via i2c and read the data */
+		freertos_task_delay(2);
 	}
 }
