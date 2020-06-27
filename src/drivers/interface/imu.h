@@ -17,4 +17,10 @@ typedef struct {
 	float mag_lpf[3];
 } imu_t;
 
+bool is_compass_present(void);
+
+void get_imu_accel_raw(float *accel_raw);
+void get_imu_gyro_raw(float *gyro_raw);
+void get_imu_compass_raw(float *mag_raw);
+
 #endif

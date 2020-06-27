@@ -108,6 +108,13 @@ void ist8310_read_sensor(void)
 	ist8310.mag_raw[2] = ist8310.mag_unscaled[2] * IST8310_RESOLUTION_3MG;
 }
 
+void ist8310_get_raw_mag(float *mag_raw)
+{
+	mag_raw[0] = ist8310.mag_raw[0];
+	mag_raw[1] = ist8310.mag_raw[1];
+	mag_raw[2] = ist8310.mag_raw[2];
+}
+
 void ist8310_task_handler(void)
 {
 	ist8130_init();

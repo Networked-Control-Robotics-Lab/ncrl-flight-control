@@ -1,6 +1,8 @@
 #ifndef __IST8310_H__
 #define __IST8310_H__
 
+#include <stdint.h>
+
 #define IST8310_ADDR 0xe
 
 #define IST8310_REG_WIA  0x00
@@ -33,6 +35,8 @@ typedef struct {
 } ist8310_t;
 
 void ist8130_init(void);
+void ist8310_get_raw_mag(float *mag_raw);
+
 void ist8310_task_handler(void);
 
 #endif

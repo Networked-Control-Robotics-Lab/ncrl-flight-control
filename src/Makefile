@@ -98,25 +98,25 @@ SRC+=./common/delay.c \
 	./common/quaternion.c \
 	./common/polynomial.c
 
-SRC+=./driver/periph/uart.c \
-	./driver/periph/spi.c \
-	./driver/periph/pwm.c \
-	./driver/periph/timer.c \
-	./driver/periph/isr.c \
-	./driver/periph/exti.c \
-	./driver/periph/gpio.c \
-	./driver/periph/sw_i2c.c \
-	./driver/periph/flash.c \
-	./driver/periph/crc.c \
-	./driver/device/mpu6500.c \
-	./driver/device/ms5611.c \
-	./driver/device/sbus_radio.c \
-	./driver/device/motor.c \
-	./driver/device/optitrack.c \
-	./driver/device/sys_time.c \
-	./driver/device/ist8310.c \
-	./driver/device/led.c \
-	./driver/device/ublox_m8n.c
+SRC+=./drivers/periph/uart.c \
+	./drivers/periph/spi.c \
+	./drivers/periph/pwm.c \
+	./drivers/periph/timer.c \
+	./drivers/periph/isr.c \
+	./drivers/periph/exti.c \
+	./drivers/periph/gpio.c \
+	./drivers/periph/sw_i2c.c \
+	./drivers/periph/flash.c \
+	./drivers/periph/crc.c \
+	./drivers/device/mpu6500.c \
+	./drivers/device/ms5611.c \
+	./drivers/device/sbus_radio.c \
+	./drivers/device/motor.c \
+	./drivers/device/optitrack.c \
+	./drivers/device/sys_time.c \
+	./drivers/device/ist8310.c \
+	./drivers/device/led.c \
+	./drivers/device/ublox_m8n.c
 
 CFLAGS+=-I./
 CFLAGS+=-I./platform
@@ -130,8 +130,9 @@ CFLAGS+=-I./core/shell
 CFLAGS+=-I./core/perf
 CFLAGS+=-I./core/config
 CFLAGS+=-I./common
-CFLAGS+=-I./driver/periph
-CFLAGS+=-I./driver/device
+CFLAGS+=-I./drivers/periph
+CFLAGS+=-I./drivers/device
+CFLAGS+=-I./drivers/interface
 CFLAGS+=-I./lib/CMSIS
 CFLAGS+=-I./lib/CMSIS/Include
 CFLAGS+=-I./lib/CMSIS/Device/ST/STM32F4xx/Include
