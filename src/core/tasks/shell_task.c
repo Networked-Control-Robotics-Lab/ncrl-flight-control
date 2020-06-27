@@ -21,6 +21,7 @@ struct cmd_list_entry shell_cmd_list[] = {
 	DEF_SHELL_CMD(acc_calib)
 	DEF_SHELL_CMD(perf)
 	DEF_SHELL_CMD(param)
+	DEF_SHELL_CMD(compass)
 };
 
 void shell_greeting(void)

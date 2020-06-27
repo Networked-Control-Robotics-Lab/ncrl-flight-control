@@ -10,6 +10,7 @@
 #include "perf.h"
 #include "perf_list.h"
 #include "sys_param.h"
+#include "imu.h"
 
 static bool parse_float_from_str(char *str, float *value)
 {
@@ -626,4 +627,27 @@ void shell_cmd_param(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int pa
 		           "param load\n\r");
 	}
 
+}
+
+void shell_cmd_compass(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
+	if(is_compass_present() == false) {
+		shell_puts("compass not presents!\n\r");
+	}
+
+	float mag[3] = {0};
+
+	char c;
+	char s[100] = {0};
+
+	shell_puts("press [q] to stop.\n\r");
+	while(1) {
+		if(uart3_getc(&c, 0) == true) {
+			if(c == 'q') break;
+		}
+
+		get_imu_compass_raw(mag);
+		sprintf(s, "compass x:%f, y:%f, z:%f\n\r", mag[0], mag[1], mag[2]);
+		shell_puts(s);
+	}
 }
