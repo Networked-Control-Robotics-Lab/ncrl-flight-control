@@ -28,7 +28,7 @@
 #define IST8310_CNTRL2_DRPOL 0x04
 #define IST8310_CNTRL2_DRENA 0x08
 
-#define IST8310_RESOLUTION_3MG 3.0f
+#define IST8310_RESOLUTION 0.3f //0.3uT/LSB
 
 typedef struct {
 	int16_t mag_unscaled[3];

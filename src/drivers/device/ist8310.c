@@ -115,9 +115,9 @@ void ist8310_read_sensor(void)
 	ist8310.mag_unscaled[2] = (((int16_t)buf[5]) << 8 | buf[4]);
 
 	/* convert unscaled data to raw data */
-	ist8310.mag_raw[0] = ist8310.mag_unscaled[0] * IST8310_RESOLUTION_3MG;
-	ist8310.mag_raw[1] = ist8310.mag_unscaled[1] * IST8310_RESOLUTION_3MG;
-	ist8310.mag_raw[2] = ist8310.mag_unscaled[2] * IST8310_RESOLUTION_3MG;
+	ist8310.mag_raw[0] = ist8310.mag_unscaled[0] * IST8310_RESOLUTION;
+	ist8310.mag_raw[1] = ist8310.mag_unscaled[1] * IST8310_RESOLUTION;
+	ist8310.mag_raw[2] = ist8310.mag_unscaled[2] * IST8310_RESOLUTION;
 
 	/* calculate update frequency */
 	float curr_time = get_sys_time_s();

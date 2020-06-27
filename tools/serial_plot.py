@@ -288,8 +288,8 @@ class serial_plotter_class:
 
         elif (message_id == 15):
           	plt.subplot(111)
-        	plt.ylabel('magnetic induction (mG)')
-        	plt.ylim([-100000, 100000])
+        	plt.ylabel('magnetic induction (uT)')
+        	plt.ylim([-10000, 10000])
         	self.create_curve('mx', 'red')
                 self.create_curve('my', 'blue')
         	self.create_curve('mz', 'green')
