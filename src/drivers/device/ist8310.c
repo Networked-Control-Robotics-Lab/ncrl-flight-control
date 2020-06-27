@@ -95,6 +95,13 @@ void ist8310_semaphore_handler(void)
 
 void ist8310_read_sensor(void)
 {
+	uint8_t status = ist8310_read_byte(IST8310_REG_STAT1);
+
+	uint8_t data_ready = status & 0x01;
+	if(data_ready == 0) {
+		return;
+	}
+
 	uint8_t buf[6];
 
 	ist8310_read_bytes(IST8310_REG_DATA, buf, 6);
@@ -121,6 +128,6 @@ void ist8310_task_handler(void)
 
 	while(1) {
 		ist8310_read_sensor();
-		blocked_delay_ms(10);
+		blocked_delay_ms(20);
 	}
 }

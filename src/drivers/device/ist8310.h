@@ -5,8 +5,9 @@
 
 #define IST8310_ADDR 0xe
 
-#define IST8310_REG_WIA  0x00
-#define IST8310_REG_DATA 0x03
+#define IST8310_REG_WIA   0x00
+#define IST8310_REG_STAT1 0x02
+#define IST8310_REG_DATA  0x03
 
 #define IST8310_REG_CTRL1 0x0a
 #define IST8310_REG_CTRL2 0x0b
