@@ -3,63 +3,11 @@
 #include "semphr.h"
 #include "sw_i2c.h"
 #include "delay.h"
-
-#define IST8310_ADDR 0xe
-
-uint8_t ist8310_read_byte(uint8_t addr);
-void ist8310_write_byte(uint8_t addr, uint8_t data);
-void ist8310_read_bytes(uint8_t addr, uint8_t *data, int size);
+#include "ist8310.h"
 
 SemaphoreHandle_t ist8310_semphr;
 
-float *mag_ptr;
-
-static uint8_t ist8310_read_who_i_am(void)
-{
-	uint8_t id = ist8310_read_byte(0x00);
-	blocked_delay_ms(10);
-	return id;
-}
-
-void ist8130_init(void)
-{
-	ist8310_semphr = xSemaphoreCreateBinary();
-
-	while(ist8310_read_who_i_am() != 0x10);
-
-	ist8310_write_byte(0x0a, 0x07); //register control1: 50Hz
-	blocked_delay_ms(100);
-
-	ist8310_write_byte(0x41, 0x24); //register average: 16
-	blocked_delay_ms(100);
-
-	ist8310_write_byte(0x42, 0xc0); //register pulse duration control: normal
-	blocked_delay_ms(100);
-}
-
-void ist8310_semaphore_handler(void)
-{
-	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	xSemaphoreGiveFromISR(ist8310_semphr, &xHigherPriorityTaskWoken);
-	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
-}
-
-void ist8310_read_sensor(void)
-{
-	uint8_t buf[6];
-
-	uint16_t mx_unscaled, my_unscaled, mz_unscaled;
-
-	ist8310_read_bytes(0x03, buf, 6);
-
-	mx_unscaled = ((uint16_t)buf[1]) << 8 | buf[0];
-	my_unscaled = ((uint16_t)buf[3]) << 8 | buf[2];
-	mz_unscaled = ((uint16_t)buf[5]) << 8 | buf[4];
-
-	mag_ptr[0] = mx_unscaled; //TODO: convert scale
-	mag_ptr[1] = my_unscaled;
-	mag_ptr[2] = mz_unscaled;
-}
+ist8310_t ist8310;
 
 uint8_t ist8310_read_byte(uint8_t addr)
 {
@@ -113,6 +61,51 @@ void ist8310_read_bytes(uint8_t addr, uint8_t *data, int size)
 		}
 	}
 	sw_i2c_stop();
+}
+
+static uint8_t ist8310_read_who_i_am(void)
+{
+	uint8_t id = ist8310_read_byte(IST8310_REG_WIA);
+	blocked_delay_ms(5);
+	return id;
+}
+
+void ist8130_init(void)
+{
+	ist8310_semphr = xSemaphoreCreateBinary();
+
+	while(ist8310_read_who_i_am() != IST8310_CHIP_ID);
+
+	ist8310_write_byte(IST8310_REG_CTRL1, IST8310_ODR_50HZ);
+	blocked_delay_ms(10);
+
+	ist8310_write_byte(IST8310_REG_AVG, IST8310_AVG_16);
+	blocked_delay_ms(10);
+
+	ist8310_write_byte(IST8310_REG_PDCTL, IST8310_PD_NORMAL);
+	blocked_delay_ms(10);
+}
+
+void ist8310_semaphore_handler(void)
+{
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	xSemaphoreGiveFromISR(ist8310_semphr, &xHigherPriorityTaskWoken);
+	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+}
+
+void ist8310_read_sensor(void)
+{
+	uint8_t buf[6];
+
+	ist8310_read_bytes(IST8310_REG_DATA, buf, 6);
+
+	ist8310.mag_unscaled[0] = (((int16_t)buf[1]) << 8 | buf[0]);
+	ist8310.mag_unscaled[1] = (((int16_t)buf[3]) << 8 | buf[2]);
+	ist8310.mag_unscaled[2] = (((int16_t)buf[5]) << 8 | buf[4]);
+
+	ist8310.mag_raw[0] = ist8310.mag_unscaled[0] * IST8310_RESOLUTION_3MG;
+	ist8310.mag_raw[1] = ist8310.mag_unscaled[1] * IST8310_RESOLUTION_3MG;
+	ist8310.mag_raw[2] = ist8310.mag_unscaled[2] * IST8310_RESOLUTION_3MG;
 }
 
 void ist8310_task_handler(void)
