@@ -1,6 +1,8 @@
 #ifndef __IMU_H__
 #define __IMU_H__
 
+#include "debug_link.h"
+
 typedef struct {
 	int16_t accel_unscaled[3];
 	int16_t gyro_unscaled[3];
@@ -26,5 +28,7 @@ void get_imu_compass_raw(float *mag_raw);
 float get_imu_accel_update_freq(void);
 float get_imu_gyro_update_freq(void);
 float get_imu_compass_update_freq(void);
+
+void send_compass_debug_message(debug_msg_t *payload);
 
 #endif

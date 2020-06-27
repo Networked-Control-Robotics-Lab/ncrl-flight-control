@@ -286,6 +286,15 @@ class serial_plotter_class:
         	self.create_curve('ez', 'green')
         	self.show_subplot()
 
+        elif (message_id == 15):
+          	plt.subplot(111)
+        	plt.ylabel('magnetic induction (mG)')
+        	plt.ylim([-100000, 100000])
+        	self.create_curve('mx', 'red')
+                self.create_curve('my', 'blue')
+        	self.create_curve('mz', 'green')
+        	self.show_subplot()
+
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \
 		interval=0, blit=True)
