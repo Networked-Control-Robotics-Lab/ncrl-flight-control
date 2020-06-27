@@ -23,4 +23,8 @@ void get_imu_accel_raw(float *accel_raw);
 void get_imu_gyro_raw(float *gyro_raw);
 void get_imu_compass_raw(float *mag_raw);
 
+float get_imu_accel_update_freq(void);
+float get_imu_gyro_update_freq(void);
+float get_imu_compass_update_freq(void);
+
 #endif

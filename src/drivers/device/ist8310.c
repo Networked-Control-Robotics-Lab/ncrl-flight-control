@@ -4,6 +4,7 @@
 #include "sw_i2c.h"
 #include "delay.h"
 #include "ist8310.h"
+#include "sys_time.h"
 
 SemaphoreHandle_t ist8310_semphr;
 
@@ -84,6 +85,8 @@ void ist8130_init(void)
 
 	ist8310_write_byte(IST8310_REG_PDCTL, IST8310_PD_NORMAL);
 	blocked_delay_ms(10);
+
+	ist8310.last_update_time = get_sys_time_s();
 }
 
 void ist8310_semaphore_handler(void)
@@ -95,24 +98,32 @@ void ist8310_semaphore_handler(void)
 
 void ist8310_read_sensor(void)
 {
+	/* check sensor data is ready or not */
 	uint8_t status = ist8310_read_byte(IST8310_REG_STAT1);
-
 	uint8_t data_ready = status & 0x01;
 	if(data_ready == 0) {
 		return;
 	}
 
+	/* read sensor datas via i2c */
 	uint8_t buf[6];
-
 	ist8310_read_bytes(IST8310_REG_DATA, buf, 6);
 
+	/* composite unscaled data */
 	ist8310.mag_unscaled[0] = (((int16_t)buf[1]) << 8 | buf[0]);
 	ist8310.mag_unscaled[1] = (((int16_t)buf[3]) << 8 | buf[2]);
 	ist8310.mag_unscaled[2] = (((int16_t)buf[5]) << 8 | buf[4]);
 
+	/* convert unscaled data to raw data */
 	ist8310.mag_raw[0] = ist8310.mag_unscaled[0] * IST8310_RESOLUTION_3MG;
 	ist8310.mag_raw[1] = ist8310.mag_unscaled[1] * IST8310_RESOLUTION_3MG;
 	ist8310.mag_raw[2] = ist8310.mag_unscaled[2] * IST8310_RESOLUTION_3MG;
+
+	/* calculate update frequency */
+	float curr_time = get_sys_time_s();
+	float elapsed_time = curr_time - ist8310.last_update_time;
+	ist8310.update_freq = 1.0f / elapsed_time;
+	ist8310.last_update_time = curr_time;
 }
 
 void ist8310_get_raw_mag(float *mag_raw)
@@ -122,12 +133,17 @@ void ist8310_get_raw_mag(float *mag_raw)
 	mag_raw[2] = ist8310.mag_raw[2];
 }
 
+float ist8310_get_update_freq(void)
+{
+	return ist8310.update_freq;
+}
+
 void ist8310_task_handler(void)
 {
 	ist8130_init();
 
 	while(1) {
 		ist8310_read_sensor();
-		blocked_delay_ms(20);
+		blocked_delay_ms(50);
 	}
 }

@@ -33,11 +33,14 @@
 typedef struct {
 	int16_t mag_unscaled[3];
 	float mag_raw[3];
+	float last_update_time;
+	float update_freq;
 } ist8310_t;
 
 void ist8130_init(void);
-void ist8310_get_raw_mag(float *mag_raw);
-
 void ist8310_task_handler(void);
+
+void ist8310_get_raw_mag(float *mag_raw);
+float ist8310_get_update_freq(void);
 
 #endif

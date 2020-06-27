@@ -25,3 +25,19 @@ bool is_compass_present(void)
 	return false;
 #endif
 }
+
+float get_imu_accel_update_freq(void)
+{
+	return 0.0f;
+}
+
+float get_imu_gyro_update_freq(void)
+{
+	return 0.0f;
+}
+
+float get_imu_compass_update_freq(void)
+{
+	return ist8310_get_update_freq();
+}
+
