@@ -1,3 +1,4 @@
+#include "arm_math.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
@@ -131,6 +132,18 @@ void ist8310_get_raw_mag(float *mag_raw)
 	mag_raw[0] = ist8310.mag_raw[0];
 	mag_raw[1] = ist8310.mag_raw[1];
 	mag_raw[2] = ist8310.mag_raw[2];
+}
+
+float ist8310_get_raw_mag_strength(void)
+{
+	float mx = ist8310.mag_raw[0];
+	float my = ist8310.mag_raw[1];
+	float mz = ist8310.mag_raw[2];
+
+	float mag_strength;
+	arm_sqrt_f32(mx*mx + my*my + mz*mz, &mag_strength);
+
+	return mag_strength;
 }
 
 float ist8310_get_update_freq(void)

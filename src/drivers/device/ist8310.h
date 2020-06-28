@@ -42,5 +42,6 @@ void ist8310_task_handler(void);
 
 void ist8310_get_raw_mag(float *mag_raw);
 float ist8310_get_update_freq(void);
+float ist8310_get_raw_mag_strength(void);
 
 #endif

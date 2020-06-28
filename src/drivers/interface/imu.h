@@ -29,6 +29,8 @@ float get_imu_accel_update_freq(void);
 float get_imu_gyro_update_freq(void);
 float get_imu_compass_update_freq(void);
 
+float get_imu_compass_raw_strength(void);
+
 void send_compass_debug_message(debug_msg_t *payload);
 
 #endif
