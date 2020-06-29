@@ -79,8 +79,8 @@ float uav_dynamics_m[3] = {0.0f}; //M = (J * W_dot) + (W X JW)
 float uav_dynamics_m_rot_frame[3] = {0.0f}; //M_rot = (J * W_dot)
 
 float curr_pos[3];
-float curr_vel[3], desired_vel[3];
-float curr_accel[3], desired_accel[3];
+float curr_vel[3];
+float curr_accel[3];
 
 autopilot_t autopilot;
 
@@ -284,8 +284,8 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 }
 
 void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *curr_pos,
-                            float *curr_vel, float *desired_vel, float *curr_accel, float *desired_accel,
-                            float *output_moments, float *output_force, bool manual_flight)
+                            float *curr_vel, float *curr_accel, float *output_moments,
+                            float *output_force, bool manual_flight)
 {
 	/* ex = x - xd */
 	float pos_des_ned[3];
@@ -472,12 +472,6 @@ void rc_mode_change_handler_geometry(radio_t *rc)
 		autopilot.wp_now.pos[0] = optitrack.pos[0];
 		autopilot.wp_now.pos[1] = optitrack.pos[1];
 		autopilot.wp_now.pos[2] = optitrack.pos[2];
-		desired_vel[0] = 0.0f;
-		desired_vel[1] = 0.0f;
-		desired_vel[2] = 0.0f;
-		desired_accel[0] = 0.0f;
-		desired_accel[1] = 0.0f;
-		desired_accel[2] = 0.0f;
 		reset_geometry_tracking_error_integral();
 	}
 
@@ -487,12 +481,6 @@ void rc_mode_change_handler_geometry(radio_t *rc)
 		autopilot.wp_now.pos[0] = 0.0f;
 		autopilot.wp_now.pos[1] = 0.0f;
 		autopilot.wp_now.pos[2] = 0.0f;
-		desired_vel[0] = 0.0f;
-		desired_vel[1] = 0.0f;
-		desired_vel[2] = 0.0f;
-		desired_accel[0] = 0.0f;
-		desired_accel[1] = 0.0f;
-		desired_accel[2] = 0.0f;
 		reset_geometry_tracking_error_integral();
 	}
 
@@ -536,7 +524,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 		assign_vector_3x1_eun_to_ned(curr_pos, optitrack.pos);
 		assign_vector_3x1_eun_to_ned(curr_vel, optitrack.vel_filtered);
 		geometry_tracking_ctrl(&desired_attitude, ahrs->q, gyro, curr_pos,
-		                       curr_vel, desired_vel, curr_accel, desired_accel, control_moments,
+		                       curr_vel, curr_accel, control_moments,
 		                       &control_force, attitude_manual_height_auto);
 	} else {
 		geometry_manual_ctrl(&desired_attitude, ahrs->q, gyro, control_moments, optitrack_present);
