@@ -4,7 +4,6 @@
 #include "semphr.h"
 #include "gpio.h"
 #include "sbus_radio.h"
-#include "optitrack.h"
 #include "ahrs.h"
 #include "matrix.h"
 #include "motor_thrust.h"
@@ -27,8 +26,6 @@
 #define newton_to_grams_force(n) (n * 101.97f) //[newton * m] to [gram force * m]
 #define cm_to_m(l) (l * 0.01)
 #define g_to_kg(w) (w * 0.001)
-
-extern optitrack_t optitrack;
 
 MAT_ALLOC(J, 3, 3);
 MAT_ALLOC(R, 3, 3);
@@ -76,8 +73,10 @@ float k_tracking_i_gain[3];
 
 float uav_mass;
 
-float uav_dynamics_m[3] = {0.0f}; //M = (J * W_dot) + (W X JW)
-float uav_dynamics_m_rot_frame[3] = {0.0f}; //M_rot = (J * W_dot)
+//M = (J * W_dot) + (W X JW)
+float uav_dynamics_m[3] = {0.0f};
+//M_rot = (J * W_dot)
+float uav_dynamics_m_rot_frame[3] = {0.0f};
 
 autopilot_t autopilot;
 
@@ -280,23 +279,23 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 	output_moments[2] = -_krz*_mat_(eR)[2] -_kwz*_mat_(eW)[2] + newton_to_grams_force(_mat_(inertia_effect)[2]);
 }
 
-void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *curr_pos,
-                            float *curr_vel, float *output_moments, float *output_force,
+void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *curr_pos_ned,
+                            float *curr_vel_ned, float *output_moments, float *output_force,
                             bool manual_flight)
 {
 	/* ex = x - xd */
 	float pos_des_ned[3];
 	assign_vector_3x1_eun_to_ned(pos_des_ned, autopilot.wp_now.pos);
-	pos_error[0] = curr_pos[0] - pos_des_ned[0];
-	pos_error[1] = curr_pos[1] - pos_des_ned[1];
-	pos_error[2] = curr_pos[2] - pos_des_ned[2];
+	pos_error[0] = curr_pos_ned[0] - pos_des_ned[0];
+	pos_error[1] = curr_pos_ned[1] - pos_des_ned[1];
+	pos_error[2] = curr_pos_ned[2] - pos_des_ned[2];
 
 	/* ev = v - vd */
 	float vel_des_ned[3];
 	assign_vector_3x1_eun_to_ned(vel_des_ned, autopilot.wp_now.vel);
-	vel_error[0] = curr_vel[0] - vel_des_ned[0];
-	vel_error[1] = curr_vel[1] - vel_des_ned[1];
-	vel_error[2] = curr_vel[2] - vel_des_ned[2];
+	vel_error[0] = curr_vel_ned[0] - vel_des_ned[0];
+	vel_error[1] = curr_vel_ned[1] - vel_des_ned[1];
+	vel_error[2] = curr_vel_ned[2] - vel_des_ned[2];
 
 	/* XXX: refine the unit! */
 	float force_ff_ned[3] = {0.0f};
@@ -472,9 +471,11 @@ void rc_mode_handler_geometry_ctrl(radio_t *rc)
 	if(rc->auto_flight == true && auto_flight_mode_last != true) {
 		autopilot_set_mode(AUTOPILOT_HOVERING_MODE);
 		/* set position setpoint to current position (enu) */
-		autopilot.wp_now.pos[0] = optitrack.pos[0];
-		autopilot.wp_now.pos[1] = optitrack.pos[1];
-		autopilot.wp_now.pos[2] = optitrack.pos[2];
+		float curr_pos[3] = {0};
+		get_enu_position(curr_pos);
+		autopilot.wp_now.pos[0] = curr_pos[0];
+		autopilot.wp_now.pos[1] = curr_pos[1];
+		autopilot.wp_now.pos[2] = curr_pos[2];
 		reset_geometry_tracking_error_integral();
 	}
 
@@ -502,14 +503,13 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	bool heading_available = is_compass_present();
 
 	/* prepare position and velocity data */
-	float curr_pos[3] = {0.0f};
-	float curr_vel[3] = {0.0f};
+	float curr_pos_enu[3] = {0.0f}, curr_pos_ned[3] = {0.0f};
+	float curr_vel_enu[3] = {0.0f}, curr_vel_ned[3] = {0.0f};
 	if(localization_available == true) {
-		float pos_enu[3], vel_enu[3];
-		get_enu_position(pos_enu);
-		get_enu_velocity(vel_enu);
-		assign_vector_3x1_eun_to_ned(curr_pos, pos_enu);
-		assign_vector_3x1_eun_to_ned(curr_vel, vel_enu);
+		get_enu_position(curr_pos_enu);
+		get_enu_velocity(curr_vel_enu);
+		assign_vector_3x1_eun_to_ned(curr_pos_ned, curr_pos_enu);
+		assign_vector_3x1_eun_to_ned(curr_vel_ned, curr_vel_enu);
 	}
 
 	/* prepare gyroscope data */
@@ -518,7 +518,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	gyro[1] = deg_to_rad(imu->gyro_lpf[1]);
 	gyro[2] = deg_to_rad(imu->gyro_lpf[2]);
 
-	/* prepare manual control commands (euler angle) */
+	/* prepare manual control attitude commands (euler angle) */
 	euler_t attitude_cmd;
 	attitude_cmd.roll = deg_to_rad(-rc->roll);
 	attitude_cmd.pitch = deg_to_rad(-rc->pitch);
@@ -533,15 +533,16 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	/* prepare current attitude matrix (dcm) using quaternion */
 	quat_to_rotation_matrix(ahrs->q, _mat_(R), _mat_(Rt));
 
+	/* guidance system (autopilot) */
+	autopilot_update_uav_state(curr_pos_enu, curr_vel_enu);
+	autopilot_guidance_handler();
+
 	float control_moments[3] = {0.0f}, control_force = 0.0f;
 
 	/* auto-flight mode (position, velocity and attitude control) */
 	if(rc->auto_flight == true && localization_available && heading_available) {
-		autopilot_update_uav_state(optitrack.pos, optitrack.vel_filtered);
-		autopilot_waypoint_handler();
-
-		geometry_tracking_ctrl(&attitude_cmd, ahrs->q, gyro, curr_pos,
-		                       curr_vel, control_moments, &control_force,
+		geometry_tracking_ctrl(&attitude_cmd, ahrs->q, gyro, curr_pos_ned,
+		                       curr_vel_ned, control_moments, &control_force,
 		                       attitude_manual_height_auto);
 		/* manual flight mode (attitude control only) */
 	} else {

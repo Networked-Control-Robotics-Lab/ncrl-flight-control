@@ -149,7 +149,7 @@ int autopilot_resume_waypoint_mission(void);
 int autopilot_waypoint_mission_start(bool loop_mission);
 int autopilot_trigger_auto_landing(void);
 int autopilot_trigger_auto_takeoff(void);
-void autopilot_waypoint_handler(void);
+void autopilot_guidance_handler(void);
 
 void assign_vector_3x1_eun_to_ned(float *ned, float *enu);
 

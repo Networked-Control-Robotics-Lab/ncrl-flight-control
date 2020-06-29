@@ -443,7 +443,7 @@ int autopilot_trigger_auto_takeoff(void)
 	}
 }
 
-void autopilot_waypoint_handler(void)
+void autopilot_guidance_handler(void)
 {
 	static float start_time = 0.0f;
 	float curr_time = 0.0f;
