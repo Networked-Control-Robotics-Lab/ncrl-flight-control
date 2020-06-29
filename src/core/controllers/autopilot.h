@@ -117,6 +117,10 @@ typedef struct {
 void autopilot_init(autopilot_t *_autopilot);
 void autopilot_update_uav_state(float pos_enu[3], float vel_enu[3]);
 
+bool autopilot_is_manual_flight_mode(void);
+bool autopilot_is_motor_locked_mode(void);
+bool autopilot_is_auto_flight_mode(void);
+
 void autopilot_set_enu_rectangular_fence(float origin[3], float lx, float ly, float height);
 void autopilot_set_mode(int new_mode);
 void autopilot_set_armed(void);

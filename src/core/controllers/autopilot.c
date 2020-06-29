@@ -45,6 +45,34 @@ void autopilot_update_uav_state(float pos_enu[3], float vel_enu[3])
 	autopilot_ptr->uav_state.pos[2] = pos_enu[2];
 }
 
+bool autopilot_is_manual_flight_mode(void)
+{
+	if(autopilot_ptr->mode == AUTOPILOT_MANUAL_FLIGHT_MODE) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool autopilot_is_motor_locked_mode(void)
+{
+	if(autopilot_ptr->mode == AUTOPILOT_MOTOR_LOCKED_MODE) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool autopilot_is_auto_flight_mode(void)
+{
+	if(autopilot_ptr->mode != AUTOPILOT_MANUAL_FLIGHT_MODE &&
+	    autopilot_ptr->mode != AUTOPILOT_MOTOR_LOCKED_MODE) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
 void autopilot_assign_pos_target_x(float x)
 {
 	autopilot_ptr->wp_now.pos[0] = x;

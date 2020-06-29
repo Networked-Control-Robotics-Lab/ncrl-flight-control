@@ -461,9 +461,15 @@ void thrust_force_allocate_quadrotor(float *moment, float total_force)
 	set_motor_pwm_pulse(MOTOR4, (uint16_t)(motor_pwm[3]));
 }
 
-void rc_mode_change_handler_geometry(radio_t *rc)
+void rc_mode_handler_geometry_ctrl(radio_t *rc)
 {
 	static bool auto_flight_mode_last = false;
+
+	if(rc->safety == false && rc->auto_flight == true) {
+		autopilot_set_mode(AUTOPILOT_HOVERING_MODE);
+	} else {
+		autopilot_set_mode(AUTOPILOT_MANUAL_FLIGHT_MODE);
+	}
 
 	//if mode switched to auto-flight
 	if(rc->auto_flight == true && auto_flight_mode_last != true) {
@@ -487,10 +493,13 @@ void rc_mode_change_handler_geometry(radio_t *rc)
 	auto_flight_mode_last = rc->auto_flight;
 }
 
+bool check_motor_lock_condition(bool condition)
+{
+	return condition; //true: lock, false: unlock
+}
+
 void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desired_heading)
 {
-	rc_mode_change_handler_geometry(rc);
-
 	bool optitrack_present = optitrack_available();
 
 	euler_t desired_attitude;
@@ -533,35 +542,31 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 		control_force = 4.0f * convert_motor_cmd_to_thrust(rc->throttle / 100.0f); //FIXME
 	}
 
-	bool halt_motor;
-	if((rc->throttle < 10.0f && autopilot_get_mode() == AUTOPILOT_MANUAL_FLIGHT_MODE) ||
-	    (autopilot.wp_now.pos[2] < 15.0f && autopilot_get_mode() != AUTOPILOT_MANUAL_FLIGHT_MODE) ||
-	    autopilot_get_mode() == AUTOPILOT_MOTOR_LOCKED_MODE) {
-		halt_motor = true;
-	} else {
-		halt_motor = false;
-	}
-
-	if(rc->safety == false) {
-		if(halt_motor == false) {
-			led_on(LED_B);
-			led_off(LED_R);
-			thrust_force_allocate_quadrotor(control_moments, control_force);
-		} else {
-			led_on(LED_B);
-			led_off(LED_R);
-			*desired_heading = ahrs->attitude.yaw;
-			motor_halt();
-		}
-	} else {
-		if(rc->auto_flight == true) {
-			autopilot_set_mode(AUTOPILOT_HOVERING_MODE);
-		} else {
-			autopilot_set_mode(AUTOPILOT_MANUAL_FLIGHT_MODE);
-		}
+	if(rc->safety == true) {
 		led_on(LED_B);
 		led_off(LED_R);
 		*desired_heading = ahrs->attitude.yaw;
+	} else {
+		led_on(LED_R);
+		led_off(LED_B);
+	}
+
+	bool lock_motor = false;
+
+	//lock motor if throttle values is lower than 10% during manual flight
+	lock_motor |= check_motor_lock_condition(rc->throttle < 10.0f &&
+	                autopilot_is_manual_flight_mode());
+	//lock motor if current height is lower than auto-landing threshold value
+	lock_motor |= check_motor_lock_condition(autopilot.wp_now.pos[2] < 15.0f &&
+	                autopilot_is_auto_flight_mode());
+	//lock motor if motors are locked by autopilot
+	lock_motor |= check_motor_lock_condition(autopilot_is_motor_locked_mode());
+	//lock motor if radio safety botton is on
+	lock_motor |= check_motor_lock_condition(rc->safety == true);
+
+	if(lock_motor == false) {
+		thrust_force_allocate_quadrotor(control_moments, control_force);
+	} else {
 		motor_halt();
 	}
 }
