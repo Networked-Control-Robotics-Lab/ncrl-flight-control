@@ -28,16 +28,11 @@ static bool parse_float_from_str(char *str, float *value)
 void shell_cmd_help(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
 	char *s = "supported commands:\n\r"
+                  "help\n\r"
 	          "clear\n\r"
-	          "arm\n\r"
-	          "disarm\n\r"
-	          "takeoff\n\r"
-	          "land\n\r"
-	          "fly\n\r"
-	          "mission\n\r"
-	          "radio\n\r"
-	          "radio_raw\n\r"
-	          "acc_calib\n\r"
+	          "arm, disarm, takeoff, land, fly, mission\n\r"
+	          "radio, radio_raw\n\r"
+	          "acc_calib, compass\n\r"
 	          "perf\n\r"
 	          "params\n\r";
 	shell_puts(s);
