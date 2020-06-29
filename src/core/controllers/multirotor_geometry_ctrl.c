@@ -539,13 +539,13 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 
 	float control_moments[3] = {0.0f}, control_force = 0.0f;
 
-	/* auto-flight mode (position, velocity and attitude control) */
 	if(rc->auto_flight == true && localization_available && heading_available) {
+		/* auto-flight mode (position, velocity and attitude control) */
 		geometry_tracking_ctrl(&attitude_cmd, ahrs->q, gyro, curr_pos_ned,
 		                       curr_vel_ned, control_moments, &control_force,
 		                       attitude_manual_height_auto);
-		/* manual flight mode (attitude control only) */
 	} else {
+		/* manual flight mode (attitude control only) */
 		geometry_manual_ctrl(&attitude_cmd, ahrs->q, gyro, control_moments,
 		                     localization_available);
 

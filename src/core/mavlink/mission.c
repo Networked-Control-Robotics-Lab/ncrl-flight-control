@@ -4,6 +4,10 @@
 #include "../mavlink/publisher.h"
 #include "autopilot.h"
 
+uint16_t waypoint_cnt = 0;
+uint16_t waypoint_send_index = 0;
+bool send_waypoint_flag = false;
+
 static void mavlink_send_capability(void)
 {
 	mavlink_message_t msg;
@@ -68,12 +72,45 @@ void mav_mission_request_list(mavlink_message_t *received_msg)
 {
 	mavlink_message_t msg;
 
-	uint16_t waypoint_cnt = 0;
+	waypoint_cnt = 0; //XXX: read waypoint
 	mavlink_msg_mission_count_pack_chan(1, 1, MAVLINK_COMM_1, &msg, 255, 0,
 	                                    waypoint_cnt, MAV_MISSION_TYPE_MISSION);
 	send_mavlink_msg_to_uart(&msg);
+
+	if(waypoint_cnt > 0) {
+		//trigger microservice handler
+		send_waypoint_flag = true;
+	}
 }
 
 void mission_waypoint_microservice_handler(void)
 {
+	if(send_waypoint_flag == true) {
+		uint8_t frame = MAV_FRAME_GLOBAL;
+		uint16_t command = MAV_GOTO_DO_CONTINUE;
+		uint8_t current = 0;
+		uint8_t autocontinue = 1;
+		float param1 = 0.0f;
+		float param2 = 0.0f;
+		float param3 = 0.0f;
+		float param4 = 0.0f;
+		float pos[3] = {0.0f};
+		uint8_t mission_type = 	MAV_MISSION_TYPE_MISSION;
+
+		mavlink_message_t msg;
+		mavlink_msg_mission_item_int_pack_chan(1, 1, MAVLINK_COMM_1, &msg, 255, 0,
+		                                       waypoint_send_index, frame, command, current, autocontinue, param1,
+		                                       param2, param3, param4, pos[0], pos[1], pos[2], mission_type);
+		send_mavlink_msg_to_uart(&msg);
+
+		//XXX: add non-blocked delay
+
+		if(waypoint_send_index == (waypoint_cnt - 1)) {
+			waypoint_cnt = 0;
+			waypoint_send_index = 0;
+			send_waypoint_flag = false;
+		} else {
+			waypoint_send_index++;
+		}
+	}
 }
