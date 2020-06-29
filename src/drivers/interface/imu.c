@@ -20,7 +20,8 @@ void get_imu_compass_raw(float *mag_raw)
 
 bool is_compass_present(void)
 {
-#if (SELECT_LOCALIZATION == LOCALIZATION_USE_GPS_MAG)
+#if (SELECT_LOCALIZATION == LOCALIZATION_USE_GPS_MAG) || \
+    (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
 	return true;
 #else
 	return false;

@@ -117,7 +117,8 @@ SRC+=./drivers/periph/uart.c \
 	./drivers/device/ist8310.c \
 	./drivers/device/led.c \
 	./drivers/device/ublox_m8n.c \
-	./drivers/interface/imu.c
+	./drivers/interface/imu.c \
+	./drivers/interface/localization_system.c
 
 CFLAGS+=-I./
 CFLAGS+=-I./platform

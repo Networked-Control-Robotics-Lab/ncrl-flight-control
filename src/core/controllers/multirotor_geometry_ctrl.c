@@ -17,6 +17,7 @@
 #include "autopilot.h"
 #include "debug_link.h"
 #include "multirotor_geometry_list.h"
+#include "localization_system.h"
 
 #define dt 0.0025 //[s]
 #define MOTOR_TO_CG_LENGTH 16.25f //[cm]
@@ -77,10 +78,6 @@ float uav_mass;
 
 float uav_dynamics_m[3] = {0.0f}; //M = (J * W_dot) + (W X JW)
 float uav_dynamics_m_rot_frame[3] = {0.0f}; //M_rot = (J * W_dot)
-
-float curr_pos[3];
-float curr_vel[3];
-float curr_accel[3];
 
 autopilot_t autopilot;
 
@@ -284,8 +281,8 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 }
 
 void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *curr_pos,
-                            float *curr_vel, float *curr_accel, float *output_moments,
-                            float *output_force, bool manual_flight)
+                            float *curr_vel, float *output_moments, float *output_force,
+                            bool manual_flight)
 {
 	/* ex = x - xd */
 	float pos_des_ned[3];
@@ -500,43 +497,56 @@ bool check_motor_lock_condition(bool condition)
 
 void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desired_heading)
 {
-	bool optitrack_present = optitrack_available();
+	/* get sensor status */
+	bool localization_available = is_localization_info_available();
+	bool heading_available = is_compass_present();
 
-	euler_t desired_attitude;
-	if(optitrack_present == true) {
-		desired_attitude.roll = deg_to_rad(-rc->roll);
-		desired_attitude.pitch = deg_to_rad(-rc->pitch);
-		desired_attitude.yaw = deg_to_rad(*desired_heading); //yaw rate controller
-	} else {
-		desired_attitude.roll = deg_to_rad(-rc->roll);
-		desired_attitude.pitch = deg_to_rad(-rc->pitch);
-		desired_attitude.yaw = deg_to_rad(-rc->yaw); //heading controller
+	/* prepare position and velocity data */
+	float curr_pos[3] = {0.0f};
+	float curr_vel[3] = {0.0f};
+	if(localization_available == true) {
+		float pos_enu[3], vel_enu[3];
+		get_enu_position(pos_enu);
+		get_enu_velocity(vel_enu);
+		assign_vector_3x1_eun_to_ned(curr_pos, pos_enu);
+		assign_vector_3x1_eun_to_ned(curr_vel, vel_enu);
 	}
 
-	float gyro[3];
+	/* prepare gyroscope data */
+	float gyro[3] = {0.0};
 	gyro[0] = deg_to_rad(imu->gyro_lpf[0]);
 	gyro[1] = deg_to_rad(imu->gyro_lpf[1]);
 	gyro[2] = deg_to_rad(imu->gyro_lpf[2]);
 
-#if 0
-	estimate_uav_dynamics(gyro, uav_dynamics_m, uav_dynamics_m_rot_frame);
-#endif
+	/* prepare manual control commands (euler angle) */
+	euler_t attitude_cmd;
+	attitude_cmd.roll = deg_to_rad(-rc->roll);
+	attitude_cmd.pitch = deg_to_rad(-rc->pitch);
+	if(heading_available == true) {
+		//yaw control mode
+		attitude_cmd.yaw = deg_to_rad(*desired_heading);
+	} else {
+		//yaw rate control mode
+		attitude_cmd.yaw = deg_to_rad(-rc->yaw);
+	}
 
-	/* convert attitude (quaternion) to rotation matrix */
+	/* prepare current attitude matrix (dcm) using quaternion */
 	quat_to_rotation_matrix(ahrs->q, _mat_(R), _mat_(Rt));
 
 	float control_moments[3] = {0.0f}, control_force = 0.0f;
-	if(rc->auto_flight == true && optitrack_present == true) {
+
+	/* auto-flight mode (position, velocity and attitude control) */
+	if(rc->auto_flight == true && localization_available && heading_available) {
 		autopilot_update_uav_state(optitrack.pos, optitrack.vel_filtered);
 		autopilot_waypoint_handler();
 
-		assign_vector_3x1_eun_to_ned(curr_pos, optitrack.pos);
-		assign_vector_3x1_eun_to_ned(curr_vel, optitrack.vel_filtered);
-		geometry_tracking_ctrl(&desired_attitude, ahrs->q, gyro, curr_pos,
-		                       curr_vel, curr_accel, control_moments,
-		                       &control_force, attitude_manual_height_auto);
+		geometry_tracking_ctrl(&attitude_cmd, ahrs->q, gyro, curr_pos,
+		                       curr_vel, control_moments, &control_force,
+		                       attitude_manual_height_auto);
+		/* manual flight mode (attitude control only) */
 	} else {
-		geometry_manual_ctrl(&desired_attitude, ahrs->q, gyro, control_moments, optitrack_present);
+		geometry_manual_ctrl(&attitude_cmd, ahrs->q, gyro, control_moments,
+		                     localization_available);
 
 		/* generate total thrust for quadrotor using rc in manual mode */
 		control_force = 4.0f * convert_motor_cmd_to_thrust(rc->throttle / 100.0f); //FIXME
