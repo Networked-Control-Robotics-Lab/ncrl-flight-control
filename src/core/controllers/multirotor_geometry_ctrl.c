@@ -471,7 +471,7 @@ void rc_mode_handler_geometry_ctrl(radio_t *rc)
 	if(rc->auto_flight == true && auto_flight_mode_last != true) {
 		autopilot_set_mode(AUTOPILOT_HOVERING_MODE);
 		/* set position setpoint to current position (enu) */
-		float curr_pos[3] = {0};
+		float curr_pos[3] = {0.0f};
 		get_enu_position(curr_pos);
 		autopilot.wp_now.pos[0] = curr_pos[0];
 		autopilot.wp_now.pos[1] = curr_pos[1];
@@ -498,6 +498,9 @@ bool check_motor_lock_condition(bool condition)
 
 void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desired_heading)
 {
+	/* check rc events */
+	rc_mode_handler_geometry_ctrl(rc);
+
 	/* get sensor status */
 	bool localization_available = is_localization_info_available();
 	bool heading_available = is_compass_present();
