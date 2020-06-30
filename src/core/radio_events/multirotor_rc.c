@@ -7,7 +7,7 @@ void multirotor_free_fall_rc(radio_t *rc);
 void multirotor_rc_special_function_handler(radio_t *rc)
 {
 	//call the test function you want to use here:
-	multirotor_free_fall_rc(rc);
+	//multirotor_free_fall_rc(rc);
 }
 
 /* stability testing function: quadrotor free fall recovery
