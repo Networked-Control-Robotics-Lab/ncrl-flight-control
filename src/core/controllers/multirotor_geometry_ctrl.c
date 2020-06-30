@@ -17,6 +17,7 @@
 #include "debug_link.h"
 #include "multirotor_geometry_list.h"
 #include "localization_system.h"
+#include "multirotor_rc.h"
 
 #define dt 0.0025 //[s]
 #define MOTOR_TO_CG_LENGTH 16.25f //[cm]
@@ -81,8 +82,6 @@ float uav_dynamics_m_rot_frame[3] = {0.0f};
 autopilot_t autopilot;
 
 bool attitude_manual_height_auto = false;
-
-bool nspo_free_fall = false;
 
 void geometry_ctrl_init(void)
 {
@@ -462,7 +461,8 @@ void mr_geometry_ctrl_thrust_allocation(float *moment, float total_force)
 void rc_mode_handler_geometry_ctrl(radio_t *rc)
 {
 	static bool auto_flight_mode_last = false;
-	static int aux1_mode_last = RC_AUX_MODE1;
+
+	multirotor_rc_special_function_handler(rc);
 
 	if(rc->safety == true) {
 		if(rc->auto_flight == true) {
@@ -493,28 +493,7 @@ void rc_mode_handler_geometry_ctrl(radio_t *rc)
 		reset_geometry_tracking_error_integral();
 	}
 
-	if(rc->aux1_mode == RC_AUX_MODE1) {
-		nspo_free_fall = false;
-	}
-
-	if(rc->aux1_mode == RC_AUX_MODE2 && aux1_mode_last != RC_AUX_MODE2) {
-		if(rc->auto_flight == true) {
-			nspo_free_fall = true;
-		}
-	}
-
-	if(rc->aux1_mode == RC_AUX_MODE3) {
-		nspo_free_fall = false;
-	}
-
-	float curr_pos[3] = {0.0f};
-	get_enu_position(curr_pos);
-	if(curr_pos[2] <= 150.0 && nspo_free_fall == true) {
-		nspo_free_fall = false;
-	}
-
 	auto_flight_mode_last = rc->auto_flight;
-	aux1_mode_last = rc->aux1_mode;
 }
 
 bool check_motor_lock_condition(bool condition)
@@ -603,9 +582,8 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	lock_motor |= check_motor_lock_condition(autopilot_is_motor_locked_mode());
 	//lock motor if radio safety botton is on
 	lock_motor |= check_motor_lock_condition(rc->safety == true);
-
-	//XXX
-	lock_motor |= check_motor_lock_condition(nspo_free_fall == true);
+	//lock motor if autopilot locked it
+	lock_motor |= check_motor_lock_condition(autopilot_motor_ls_lock() == true);
 
 	if(lock_motor == false) {
 		mr_geometry_ctrl_thrust_allocation(control_moments, control_force);

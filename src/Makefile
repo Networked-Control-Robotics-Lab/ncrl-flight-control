@@ -89,7 +89,8 @@ SRC+=./core/main.c \
 	./core/param/sys_param.c \
 	./core/param/common_list.c \
 	./core/param/multirotor_geometry_list.c \
-	./core/param/multirotor_pid_list.c
+	./core/param/multirotor_pid_list.c \
+	./core/radio_events/multirotor_rc.c
 
 SRC+=./common/delay.c \
 	./common/bound.c \
@@ -131,6 +132,7 @@ CFLAGS+=-I./core/mavlink
 CFLAGS+=-I./core/shell
 CFLAGS+=-I./core/perf
 CFLAGS+=-I./core/param
+CFLAGS+=-I./core/radio_events
 CFLAGS+=-I./common
 CFLAGS+=-I./drivers/periph
 CFLAGS+=-I./drivers/device

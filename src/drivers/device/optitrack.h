@@ -37,6 +37,7 @@ void optitrack_isr_handler(uint8_t c);
 void optitrack_update(void);
 bool optitrack_available(void);
 void optitrack_read_pos(float *pos_enu);
+float optitrack_read_height(void);
 void optitrack_read_vel(float *vel_enu);
 
 void send_optitrack_position_debug_message(debug_msg_t *payload);

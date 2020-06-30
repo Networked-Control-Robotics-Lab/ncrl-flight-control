@@ -170,6 +170,11 @@ void optitrack_read_pos(float *pos_enu)
 	pos_enu[2] = optitrack.pos[2];
 }
 
+float optitrack_read_height(void)
+{
+	return optitrack.pos[2];
+}
+
 void optitrack_read_vel(float *vel_enu)
 {
 	vel_enu[0] = optitrack.vel_raw[0];

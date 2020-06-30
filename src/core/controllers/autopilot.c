@@ -32,6 +32,7 @@ void autopilot_init(autopilot_t *_autopilot)
 	autopilot_ptr = _autopilot;
 	autopilot_ptr->mode = AUTOPILOT_MANUAL_FLIGHT_MODE;
 	autopilot_ptr->armed = false;
+	autopilot_ptr->motor_locked = false;
 	autopilot_ptr->landing_speed = 0.13;                 //XXX: fix unit
 	autopilot_ptr->takeoff_speed = 0.08;                 //XXX: fix unit
 	autopilot_ptr->takeoff_height = 100;          //[cm] //XXX: fix unit
@@ -431,6 +432,22 @@ int autopilot_trigger_auto_landing(void)
 	} else {
 		return AUTOPILOT_POSITION_NOT_FIXED;
 	}
+}
+
+bool autopilot_motor_ls_lock(void)
+{
+	return autopilot_ptr->motor_locked;
+}
+void autopilot_lock_motor(void)
+{
+	/* caution:dangerous function, carefully use! */
+	autopilot_ptr->motor_locked = true;
+}
+
+void autopilot_unlock_motor(void)
+{
+	/* caution:dangerous function, carefully use! */
+	autopilot_ptr->motor_locked = false;
 }
 
 int autopilot_trigger_auto_takeoff(void)

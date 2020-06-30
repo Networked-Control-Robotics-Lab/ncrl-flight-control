@@ -98,6 +98,7 @@ typedef struct {
 	bool halt_flag;
 	bool loop_mission;
 	bool armed;
+	bool motor_locked;
 
 	/* for waypoint following (representing setpoint with waypoints) */
 	struct waypoint_t wp_list[WAYPOINT_NUM_MAX]; //enu frame
@@ -149,6 +150,10 @@ int autopilot_resume_waypoint_mission(void);
 int autopilot_waypoint_mission_start(bool loop_mission);
 int autopilot_trigger_auto_landing(void);
 int autopilot_trigger_auto_takeoff(void);
+
+bool autopilot_motor_ls_lock(void);
+void autopilot_lock_motor(void);
+void autopilot_unlock_motor(void);
 
 void autopilot_guidance_handler(void);
 

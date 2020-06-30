@@ -11,6 +11,11 @@ void get_enu_position(float *pos)
 	optitrack_read_pos(pos);
 }
 
+float get_enu_height(void)
+{
+	return optitrack_read_height();
+}
+
 void get_wgs84_position(float *latitude, float *longtitude, float *height)
 {
 }
