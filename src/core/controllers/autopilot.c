@@ -245,6 +245,28 @@ int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec,
 	}
 }
 
+int autopilot_add_new_waypoint_wgs84(float latitude, float longitude, float height)
+{
+	//TODO: add geo-fence protection
+
+	if(autopilot_ptr->wp_num <= WAYPOINT_NUM_MAX) {
+		autopilot_ptr->wp_list[autopilot_ptr->wp_num].latitude = latitude;
+		autopilot_ptr->wp_list[autopilot_ptr->wp_num].longitude = longitude;
+		autopilot_ptr->wp_list[autopilot_ptr->wp_num].height = height;
+
+		//XXX: no idea why mavlink don't support these parameters,
+		//     set default for now
+		autopilot_ptr->wp_list[autopilot_ptr->wp_num].heading = 0.0;
+		autopilot_ptr->wp_list[autopilot_ptr->wp_num].halt_time_sec = 3.0;
+		autopilot_ptr->wp_list[autopilot_ptr->wp_num].touch_radius = 50.0;
+
+		autopilot_ptr->wp_num++;
+		return AUTOPILOT_SET_SUCCEED;
+	} else {
+		return AUTOPILOT_WP_LIST_FULL;
+	}
+}
+
 int autopilot_set_x_trajectory(int index, float *x_traj_coeff, float fligt_time)
 {
 	//TODO: check trajectory list size

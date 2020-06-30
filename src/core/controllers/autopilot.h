@@ -63,7 +63,10 @@ struct trajectory_segment_t
 
 struct waypoint_t {
 	float pos[3];        //[m]
+	float latitude;      //[deg]
+	float longitude;     //[deg]
 	float heading;       //[deg]
+	float height;        //[m]
 	float halt_time_sec; //[s]
 	float touch_radius;  //[m]
 };
@@ -143,6 +146,7 @@ int autopilot_trajectory_following_start(bool loop_trajectory);
 int autopilot_trajectory_following_stop(void);
 
 int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec, float radius);
+int autopilot_add_new_waypoint_wgs84(float latitude, float longitude, float height);
 int autopilot_clear_waypoint_list(void);
 int autopilot_goto_waypoint_now(float pos[3], bool change_height);
 int autopilot_halt_waypoint_mission(void);
