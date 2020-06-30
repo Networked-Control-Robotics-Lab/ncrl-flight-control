@@ -82,6 +82,8 @@ autopilot_t autopilot;
 
 bool attitude_manual_height_auto = false;
 
+bool nspo_free_fall = false;
+
 void geometry_ctrl_init(void)
 {
 	init_multirotor_geometry_param_list();
@@ -428,7 +430,7 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 #define l_div_4_neg (-0.25f * (1.0f / MOTOR_TO_CG_LENGTH_M))
 #define b_div_4_pos (+0.25f * (1.0f / COEFFICIENT_YAW))
 #define b_div_4_neg (-0.25f * (1.0f / COEFFICIENT_YAW))
-void thrust_force_allocate_quadrotor(float *moment, float total_force)
+void mr_geometry_ctrl_thrust_allocation(float *moment, float total_force)
 {
 	float motor_pwm[4], motor_force[4];
 
@@ -460,6 +462,7 @@ void thrust_force_allocate_quadrotor(float *moment, float total_force)
 void rc_mode_handler_geometry_ctrl(radio_t *rc)
 {
 	static bool auto_flight_mode_last = false;
+	static int aux1_mode_last = RC_AUX_MODE1;
 
 	if(rc->safety == true) {
 		if(rc->auto_flight == true) {
@@ -490,7 +493,28 @@ void rc_mode_handler_geometry_ctrl(radio_t *rc)
 		reset_geometry_tracking_error_integral();
 	}
 
+	if(rc->aux1_mode == RC_AUX_MODE1) {
+		nspo_free_fall = false;
+	}
+
+	if(rc->aux1_mode == RC_AUX_MODE2 && aux1_mode_last != RC_AUX_MODE2) {
+		if(rc->auto_flight == true) {
+			nspo_free_fall = true;
+		}
+	}
+
+	if(rc->aux1_mode == RC_AUX_MODE3) {
+		nspo_free_fall = false;
+	}
+
+	float curr_pos[3] = {0.0f};
+	get_enu_position(curr_pos);
+	if(curr_pos[2] <= 150.0 && nspo_free_fall == true) {
+		nspo_free_fall = false;
+	}
+
 	auto_flight_mode_last = rc->auto_flight;
+	aux1_mode_last = rc->aux1_mode;
 }
 
 bool check_motor_lock_condition(bool condition)
@@ -580,8 +604,11 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	//lock motor if radio safety botton is on
 	lock_motor |= check_motor_lock_condition(rc->safety == true);
 
+	//XXX
+	lock_motor |= check_motor_lock_condition(nspo_free_fall == true);
+
 	if(lock_motor == false) {
-		thrust_force_allocate_quadrotor(control_moments, control_force);
+		mr_geometry_ctrl_thrust_allocation(control_moments, control_force);
 	} else {
 		motor_halt();
 	}
