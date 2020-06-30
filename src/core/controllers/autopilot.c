@@ -32,10 +32,10 @@ void autopilot_init(autopilot_t *_autopilot)
 	autopilot_ptr = _autopilot;
 	autopilot_ptr->mode = AUTOPILOT_MANUAL_FLIGHT_MODE;
 	autopilot_ptr->armed = false;
-	autopilot_ptr->landing_speed = 0.13;
-	autopilot_ptr->takeoff_speed = 0.08;
-	autopilot_ptr->takeoff_height = 100;          //[cm]
-	autopilot_ptr->landing_accept_height = 15.0f; //[cm]
+	autopilot_ptr->landing_speed = 0.13;                 //XXX: fix unit
+	autopilot_ptr->takeoff_speed = 0.08;                 //XXX: fix unit
+	autopilot_ptr->takeoff_height = 100;          //[cm] //XXX: fix unit
+	autopilot_ptr->landing_accept_height = 15.0f; //[cm] //XXX: fix unit
 }
 
 void autopilot_update_uav_state(float pos_enu[3], float vel_enu[3])
@@ -156,6 +156,7 @@ void autopilot_assign_trajactory_waypoint(float time)
 
 void autopilot_set_enu_rectangular_fence(float origin[3], float lx, float ly, float height)
 {
+	//XXX: fix unit
 	autopilot_ptr->geo_fence.lx = lx * 100.0f; //convet unit from [m] to [cm]
 	autopilot_ptr->geo_fence.ly = ly * 100.0f;
 	autopilot_ptr->geo_fence.height = height * 100.0f;

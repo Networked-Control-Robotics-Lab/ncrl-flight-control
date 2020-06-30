@@ -461,10 +461,12 @@ void rc_mode_handler_geometry_ctrl(radio_t *rc)
 {
 	static bool auto_flight_mode_last = false;
 
-	if(rc->safety == false && rc->auto_flight == true) {
-		autopilot_set_mode(AUTOPILOT_HOVERING_MODE);
-	} else {
-		autopilot_set_mode(AUTOPILOT_MANUAL_FLIGHT_MODE);
+	if(rc->safety == true) {
+		if(rc->auto_flight == true) {
+			autopilot_set_mode(AUTOPILOT_HOVERING_MODE);
+		} else {
+			autopilot_set_mode(AUTOPILOT_MANUAL_FLIGHT_MODE);
+		}
 	}
 
 	//if mode switched to auto-flight
