@@ -8,6 +8,10 @@ uint16_t waypoint_cnt = 0;
 uint16_t waypoint_send_index = 0;
 bool send_waypoint_flag = false;
 
+int mission_count_to_receive = 0;
+int mission_recept_index = 0;
+bool receive_mission_flag = false;
+
 static void mavlink_send_capability(void)
 {
 	mavlink_message_t msg;
@@ -81,6 +85,50 @@ void mav_mission_request_list(mavlink_message_t *received_msg)
 		//trigger microservice handler
 		send_waypoint_flag = true;
 	}
+}
+
+void mav_mission_count(mavlink_message_t *received_msg)
+{
+	mission_count_to_receive = mavlink_msg_mission_count_get_count(received_msg);
+	if(mission_count_to_receive <= 0) {
+		return;
+	}
+
+	receive_mission_flag = true;
+	mission_recept_index = 0;
+
+	mavlink_message_t msg;
+	mavlink_msg_mission_request_int_pack_chan(1, 1, MAVLINK_COMM_1, &msg, 255, 0,
+	                mission_recept_index, MAV_MISSION_TYPE_MISSION);
+	send_mavlink_msg_to_uart(&msg);
+
+	//XXX: enable microservice handler to handle timeout
+}
+
+void mav_mission_item_int(mavlink_message_t *received_msg)
+{
+	if(receive_mission_flag == false) return;
+
+	//XXX: add new waypoint to the manager
+
+	mavlink_message_t msg;
+
+	mission_recept_index++;
+	if(mission_recept_index == mission_count_to_receive) {
+		/* disable microservice handler and reset variables */
+		receive_mission_flag = false;
+		mission_recept_index = 0;
+
+		/* do ack */
+		mavlink_msg_mission_ack_pack_chan(1, 1, MAVLINK_COMM_1, &msg, 255, 0,
+		                                  MAV_MISSION_ACCEPTED, MAV_MISSION_TYPE_MISSION);
+		send_mavlink_msg_to_uart(&msg);
+	}
+
+	/* request for next mission item */
+	mavlink_msg_mission_request_int_pack_chan(1, 1, MAVLINK_COMM_1, &msg, 255, 0,
+	                mission_recept_index, MAV_MISSION_TYPE_MISSION);
+	send_mavlink_msg_to_uart(&msg);
 }
 
 void mission_waypoint_microservice_handler(void)

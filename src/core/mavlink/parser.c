@@ -9,7 +9,8 @@
 enum ENUM_MAV_CMDS {
 	/* common mavlink messages */
 	ENUM_HANDLER_FUNC(mav_mission_request_list),
-	//ENUM_HANDLER_FUNC(mav_mission_count),
+	ENUM_HANDLER_FUNC(mav_mission_count),
+	ENUM_HANDLER_FUNC(mav_mission_item_int),
 	//ENUM_HANDLER_FUNC(mav_mission_clear_all),
 	//ENUM_HANDLER_FUNC(mav_mission_set_current),
 	ENUM_HANDLER_FUNC(mav_command_long),
@@ -27,7 +28,8 @@ enum ENUM_MAV_CMDS {
 struct mavlink_parser_item cmd_list[] = {
 	/* common mavlink messages */
 	MAV_CMD_DEF(mav_mission_request_list, 43),
-	//MAV_CMD_DEF(mav_mission_count, 44),
+	MAV_CMD_DEF(mav_mission_count, 44),
+	MAV_CMD_DEF(mav_mission_item_int, 73),
 	//MAV_CMD_DEF(mav_mission_clear_all, 45),
 	//MAV_CMD_DEF(mav_mission_set_current, 41),
 	MAV_CMD_DEF(mav_command_long, 76),
