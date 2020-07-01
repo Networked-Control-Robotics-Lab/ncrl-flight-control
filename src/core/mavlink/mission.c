@@ -4,20 +4,16 @@
 #include "../mavlink/publisher.h"
 #include "autopilot.h"
 #include "sys_time.h"
+#include "mission.h"
 
 #define MISSION_TIMEOUT_TIME 2.0f //[s]
 #define MISSION_RETRY_TIMES 5
 
-bool send_mission = false;
-float sender_timout_timer = 0.0f;
+mavlink_mission_manager mission_manager;
 
-bool receive_mission = false;
-int recept_mission_cnt = 0;
-int recept_mission_index = 0;
-int recvd_mission_type;
-float recept_timout_timer = 0.0f;
-int recept_retry = 0.0f;
-
+/****************************
+ * mavlink message handlers *
+ ****************************/
 static void mavlink_send_capability(void)
 {
 	mavlink_message_t msg;
@@ -90,18 +86,18 @@ void mav_mission_request_list(mavlink_message_t *received_msg)
 
 	if(waypoint_cnt > 0) {
 		//trigger microservice handler
-		send_mission = true;
+		mission_manager.send_mission = true;
 
 		/* reset timeout timer */
-		sender_timout_timer = get_sys_time_s();
+		mission_manager.sender_timout_timer = get_sys_time_s();
 	}
 }
 
 void mav_mission_count(mavlink_message_t *received_msg)
 {
-	recept_mission_cnt = mavlink_msg_mission_count_get_count(received_msg);
+	mission_manager.recept_cnt = mavlink_msg_mission_count_get_count(received_msg);
 
-	if(recept_mission_cnt <= 0) {
+	if(mission_manager.recept_cnt <= 0) {
 		return;
 	}
 
@@ -111,14 +107,14 @@ void mav_mission_count(mavlink_message_t *received_msg)
 	mavlink_mission_count_t mission_count;
 	mavlink_msg_mission_count_decode(received_msg, &mission_count);
 
-	recvd_mission_type = mission_count.mission_type;
+	mission_manager.recvd_mission_type = mission_count.mission_type;
 
 	/* reject mission if waypoint number exceeded maximum acceptable size */
-	if(recept_mission_cnt > WAYPOINT_NUM_MAX) {
+	if(mission_manager.recept_cnt > WAYPOINT_NUM_MAX) {
 		/* do ack */
 		mavlink_msg_mission_ack_pack_chan(1, 1, MAVLINK_COMM_1, &msg,
 		                                  received_msg->sysid, received_msg->compid,
-		                                  MAV_MISSION_NO_SPACE, recvd_mission_type);
+		                                  MAV_MISSION_NO_SPACE, mission_manager.recvd_mission_type);
 		send_mavlink_msg_to_uart(&msg);
 		return;
 	}
@@ -126,23 +122,23 @@ void mav_mission_count(mavlink_message_t *received_msg)
 	/* clear autopilot waypoint list */
 	autopilot_clear_waypoint_list();
 
-	receive_mission = true;
-	recept_mission_index = 0;
+	mission_manager.receive_mission = true;
+	mission_manager.recept_index = 0;
 
 	/* request for first mission item */
 	mavlink_msg_mission_request_int_pack_chan(1, 1, MAVLINK_COMM_1, &msg,
 	                received_msg->sysid, received_msg->compid,
-	                recept_mission_index, recvd_mission_type);
+	                mission_manager.recept_index, mission_manager.recvd_mission_type);
 	send_mavlink_msg_to_uart(&msg);
 
 	/* start timeout timer and reset retry counter */
-	recept_timout_timer = get_sys_time_s();
-	recept_retry = 0;
+	mission_manager.recept_timout_timer = get_sys_time_s();
+	mission_manager.recept_retry = 0;
 }
 
 void mav_mission_item_int(mavlink_message_t *received_msg)
 {
-	if(receive_mission == false) return;
+	if(mission_manager.receive_mission == false) return;
 
 	int autopilot_retval;
 	mavlink_message_t msg;
@@ -151,19 +147,19 @@ void mav_mission_item_int(mavlink_message_t *received_msg)
 	mavlink_mission_item_int_t mission_item;
 	mavlink_msg_mission_item_int_decode(received_msg, &mission_item);
 
-	if(mission_item.seq == recept_mission_index) {
+	if(mission_item.seq == mission_manager.recept_index) {
 		/* sequence number is correct, save received mission to the list */
 		autopilot_retval =  autopilot_add_new_waypoint_gps_mavlink(
 		                            mission_item.x, mission_item.y, mission_item.z, mission_item.command);
 
 		/* autopilot rejected incomed mission, closed the protocol */
 		if(autopilot_retval != AUTOPILOT_SET_SUCCEED) {
-			receive_mission = false;
+			mission_manager.receive_mission = false;
 
 			/* do ack */
 			mavlink_msg_mission_ack_pack_chan(1, 1, MAVLINK_COMM_1, &msg,
 			                                  received_msg->sysid, received_msg->compid,
-			                                  MAV_MISSION_ERROR, recvd_mission_type);
+			                                  MAV_MISSION_ERROR, mission_manager.recvd_mission_type);
 			send_mavlink_msg_to_uart(&msg);
 
 			return;
@@ -172,43 +168,43 @@ void mav_mission_item_int(mavlink_message_t *received_msg)
 		/* inconsistent sequence number, re-send the request message */
 		mavlink_msg_mission_request_int_pack_chan(1, 1, MAVLINK_COMM_1, &msg,
 		                received_msg->sysid, received_msg->compid,
-		                recept_mission_index, recvd_mission_type);
+		                mission_manager.recept_index, mission_manager.recvd_mission_type);
 		send_mavlink_msg_to_uart(&msg);
 
 		/* start timeout timer and reset retry counter */
-		recept_timout_timer = get_sys_time_s();
-		recept_retry = 0;
+		mission_manager.recept_timout_timer = get_sys_time_s();
+		mission_manager.recept_retry = 0;
 	}
 
-	recept_mission_index++;
+	mission_manager.recept_index++;
 
-	if(recept_mission_index == recept_mission_cnt) {
+	if(mission_manager.recept_index == mission_manager.recept_cnt) {
 		/* disable microservice handler and reset variables */
-		receive_mission = false;
-		recept_mission_cnt = 0;
-		recept_mission_index = 0;
+		mission_manager.receive_mission = false;
+		mission_manager.recept_cnt = 0;
+		mission_manager.recept_index = 0;
 
 		/* do ack */
 		mavlink_msg_mission_ack_pack_chan(1, 1, MAVLINK_COMM_1, &msg,
 		                                  received_msg->sysid, received_msg->compid,
-		                                  MAV_MISSION_ACCEPTED, recvd_mission_type);
+		                                  MAV_MISSION_ACCEPTED, mission_manager.recvd_mission_type);
 		send_mavlink_msg_to_uart(&msg);
 	} else {
 		/* request for next mission item */
 		mavlink_msg_mission_request_int_pack_chan(1, 1, MAVLINK_COMM_1, &msg,
 		                received_msg->sysid, received_msg->compid,
-		                recept_mission_index, recvd_mission_type);
+		                mission_manager.recept_index, mission_manager.recvd_mission_type);
 		send_mavlink_msg_to_uart(&msg);
 
 		/* start timeout timer and reset retry counter */
-		recept_timout_timer = get_sys_time_s();
-		recept_retry = 0;
+		mission_manager.recept_timout_timer = get_sys_time_s();
+		mission_manager.recept_retry = 0;
 	}
 }
 
 void mav_mission_request_int(mavlink_message_t *received_msg)
 {
-	if(send_mission == false) return;
+	if(mission_manager.send_mission == false) return;
 
 	mavlink_message_t msg;
 
@@ -227,7 +223,7 @@ void mav_mission_request_int(mavlink_message_t *received_msg)
 	/* if ground station inquired an invalid mission sequence number */
 	if(retval == false) {
 		/* end the protocol */
-		receive_mission = false;
+		mission_manager.receive_mission = false;
 
 		/* do ack */
 		int mission_type = MAV_MISSION_TYPE_MISSION;
@@ -245,7 +241,7 @@ void mav_mission_request_int(mavlink_message_t *received_msg)
 	uint8_t current = 0;
 	uint8_t autocontinue = 1;
 	float params[4] = {0.0f};
-	uint8_t mission_type = 	recvd_mission_type;
+	uint8_t mission_type = 	mission_manager.recvd_mission_type;
 
 	mavlink_msg_mission_item_int_pack_chan(1, 1, MAVLINK_COMM_1, &msg,
 	                                       received_msg->sysid, received_msg->compid,
@@ -256,15 +252,15 @@ void mav_mission_request_int(mavlink_message_t *received_msg)
 	send_mavlink_msg_to_uart(&msg);
 
 	/* reset timeout timer */
-	sender_timout_timer = get_sys_time_s();
+	mission_manager.sender_timout_timer = get_sys_time_s();
 }
 
 void mav_mission_ack(mavlink_message_t *received_msg)
 {
-	if(send_mission == false) return;
+	if(mission_manager.send_mission == false) return;
 
 	/* ground station received all missions, ready to close the protocol */
-	send_mission = false;
+	mission_manager.send_mission = false;
 }
 
 void mav_mission_clear_all(mavlink_message_t *received_msg)
@@ -275,7 +271,7 @@ void mav_mission_clear_all(mavlink_message_t *received_msg)
 	mavlink_message_t msg;
 
 	/* not supposed to receive this message while receiving or sending waypoing list */
-	if(send_mission == true || receive_mission == true) {
+	if(mission_manager.send_mission == true || mission_manager.receive_mission == true) {
 		/* do ack */
 		mavlink_msg_mission_ack_pack_chan(1, 1, MAVLINK_COMM_1, &msg,
 		                                  received_msg->sysid, received_msg->compid,
@@ -294,33 +290,36 @@ void mav_mission_clear_all(mavlink_message_t *received_msg)
 	send_mavlink_msg_to_uart(&msg);
 }
 
+/*****************************************
+ * mavlink mission microservice handlers *
+ *****************************************/
 void mission_waypoint_microservice_handler_out(void)
 {
-	if(send_mission == false) return;
+	if(mission_manager.send_mission == false) return;
 
 	float curr_time = get_sys_time_s();
-	if((curr_time - sender_timout_timer) > MISSION_TIMEOUT_TIME) {
-		send_mission = false;
+	if((curr_time - mission_manager.sender_timout_timer) > MISSION_TIMEOUT_TIME) {
+		mission_manager.send_mission = false;
 	}
 }
 
 void mission_waypoint_microservice_handler_in(void)
 {
-	if(receive_mission == false) return;
+	if(mission_manager.receive_mission == false) return;
 
 	float curr_time = get_sys_time_s();
-	if((curr_time - recept_timout_timer) > MISSION_TIMEOUT_TIME) {
+	if((curr_time - mission_manager.recept_timout_timer) > MISSION_TIMEOUT_TIME) {
 		/* timeout, send request message */
-		if(recept_retry <= MISSION_RETRY_TIMES) {
+		if(mission_manager.recept_retry <= MISSION_RETRY_TIMES) {
 			mavlink_message_t msg;
 			mavlink_msg_mission_request_int_pack_chan(
 			        1, 1, MAVLINK_COMM_1, &msg, 255, 0,
-			        recept_mission_index, recvd_mission_type);
+			        mission_manager.recept_index, mission_manager.recvd_mission_type);
 			send_mavlink_msg_to_uart(&msg);
-			recept_retry++;
+			mission_manager.recept_retry++;
 		} else {
 			/* exceeded maximum retry time, close the prototcol! */
-			receive_mission = false;
+			mission_manager.receive_mission = false;
 		}
 	}
 }

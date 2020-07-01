@@ -1,20 +1,22 @@
 #ifndef __MISSION_H__
 #define __MISSION_H__
 
+#include <stdint.h>
+#include <stdbool.h>
 #include "mavlink.h"
 
 typedef struct {
 	/* transmission */
-	bool send_mission = false;
-	float sender_timout_timer = 0.0f;
+	bool send_mission;
+	float sender_timout_timer;
       
 	/* reception */
-	bool receive_mission = false;
-	int recept_mission_cnt = 0;
-	int recept_mission_index = 0;
+	bool receive_mission;
+	int recept_cnt;
+	int recept_index;
 	int recvd_mission_type;
-	float recept_timout_timer = 0.0f; 
-	int recept_retry = 0.0f;
+	float recept_timout_timer; 
+	int recept_retry;
 } mavlink_mission_manager;
 
 void mav_command_long(mavlink_message_t *received_msg);
