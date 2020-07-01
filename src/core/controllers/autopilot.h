@@ -63,12 +63,15 @@ struct trajectory_segment_t
 
 struct waypoint_t {
 	float pos[3];        //[m]
-	float latitude;      //[deg]
-	float longitude;     //[deg]
 	float heading;       //[deg]
-	float height;        //[m]
 	float halt_time_sec; //[s]
 	float touch_radius;  //[m]
+
+	/* compatible with mavlink design */
+	int32_t latitude;  //[deg], latitude which scaled by 1/1e7
+	int32_t longitude; //[deg], latitude which scaled by 1/1e7
+	float height;      //[m]
+	uint16_t command;  //check MAV_CMD enum
 };
 
 /* every entities in autopilot_t is defined in enu frame */
@@ -137,6 +140,12 @@ void autopilot_get_pos_setpoint(float *pos_set);
 void autopilot_get_vel_setpoint(float *vel_set);
 void autopilot_get_accel_feedforward(float *accel_ff);
 
+int autopilot_get_waypoint_count(void);
+bool autopilot_get_waypoint_gps_mavlink(int index, int32_t *latitude, int32_t *longitude,
+                                float *height, uint16_t *cmd);
+int autopilot_add_new_waypoint_gps_mavlink(int32_t latitude, int32_t longitude,
+                                     float height, uint16_t cmd);
+
 int autopilot_set_x_trajectory(int index, float *x_traj_coeff, float fligt_time);
 int autopilot_set_y_trajectory(int index, float *y_traj_coeff, float fligt_time);
 int autopilot_set_z_trajectory(int index, float *z_traj_coeff, float fligt_time);
@@ -146,7 +155,7 @@ int autopilot_trajectory_following_start(bool loop_trajectory);
 int autopilot_trajectory_following_stop(void);
 
 int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec, float radius);
-int autopilot_add_new_waypoint_wgs84(float latitude, float longitude, float height);
+
 int autopilot_clear_waypoint_list(void);
 int autopilot_goto_waypoint_now(float pos[3], bool change_height);
 int autopilot_halt_waypoint_mission(void);

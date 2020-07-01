@@ -227,6 +227,25 @@ void autopilot_get_accel_feedforward(float *accel_ff)
 	accel_ff[2] = autopilot_ptr->wp_now.acc_feedforward[2];
 }
 
+int autopilot_get_waypoint_count(void)
+{
+	return autopilot_ptr->wp_num;
+}
+
+bool autopilot_get_waypoint_gps_mavlink(int index, int32_t *latitude, int32_t *longitude,
+                                        float *height, uint16_t *cmd)
+{
+	if(index >= autopilot_ptr->wp_num) {
+		return false; //invalid waypoint index
+	} else {
+		*latitude = autopilot_ptr->wp_list[index].latitude;
+		*longitude = autopilot_ptr->wp_list[index].longitude;
+		*height = autopilot_ptr->wp_list[index].height;
+		*cmd = autopilot_ptr->wp_list[index].command;
+		return true;
+	}
+}
+
 int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec, float radius)
 {
 	if(autopilot_test_point_in_rectangular_fence(pos) == false) {
@@ -245,7 +264,8 @@ int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec,
 	}
 }
 
-int autopilot_add_new_waypoint_wgs84(float latitude, float longitude, float height)
+int autopilot_add_new_waypoint_gps_mavlink(int32_t latitude, int32_t longitude,
+                float height, uint16_t cmd)
 {
 	//TODO: add geo-fence protection
 
@@ -253,6 +273,7 @@ int autopilot_add_new_waypoint_wgs84(float latitude, float longitude, float heig
 		autopilot_ptr->wp_list[autopilot_ptr->wp_num].latitude = latitude;
 		autopilot_ptr->wp_list[autopilot_ptr->wp_num].longitude = longitude;
 		autopilot_ptr->wp_list[autopilot_ptr->wp_num].height = height;
+		autopilot_ptr->wp_list[autopilot_ptr->wp_num].command = cmd;
 
 		//XXX: no idea why mavlink don't support these parameters,
 		//     set default for now
