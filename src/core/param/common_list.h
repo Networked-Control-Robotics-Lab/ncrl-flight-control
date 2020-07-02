@@ -56,6 +56,11 @@ enum {
 	CAL_MAG3_ROT,
 	CAL_MAG_PRIME,
 	SENS_DPRES_OFF,
+	/* sensors */
+	SENS_BOARD_X_OFF,
+	SENS_BOARD_Y_OFF,
+	SENS_BOARD_Z_OFF,
+	SENS_BOARD_ROT,
 	/* radio calibration */
 	RC1_DZ,
 	RC1_MAX,

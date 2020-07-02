@@ -20,7 +20,7 @@ static void mavlink_send_capability(void)
 
 	uint64_t cap = MAV_PROTOCOL_CAPABILITY_MAVLINK2 |
 	               MAV_PROTOCOL_CAPABILITY_SET_ATTITUDE_TARGET;
-	uint32_t flight_sw_version = 1;
+	uint32_t flight_sw_version = 18000000;
 	uint32_t middleware_sw_ver = 2;
 	uint32_t os_sw_version = 10; //freertos ver. = 10.2.1
 	uint32_t board_version = 1;
