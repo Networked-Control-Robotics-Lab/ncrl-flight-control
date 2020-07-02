@@ -7,67 +7,15 @@
 #include "sys_param.h"
 #include "delay.h"
 
+bool send_param = true;
+int send_index = 0;
+int send_count = 0;
+
 void mav_param_request_list(mavlink_message_t *received_msg)
 {
-	mavlink_message_t msg;
-
-	uint16_t param_cnt = get_sys_param_list_size();
-
-	char *param_name;
-	float param_val = 0.0f;
-	uint8_t param_type = 0;
-
-	uint8_t data_u8;
-	int8_t data_s8;
-	uint16_t data_u16;
-	int16_t data_s16;
-	uint32_t data_u32;
-	int32_t data_s32;
-	float data_float;
-
-	int i;
-	for(i = 0; i < param_cnt; i++) {
-		get_sys_param_name(i, &param_name);
-		get_sys_param_type(i, &param_type);
-
-		switch(param_type) {
-		case SYS_PARAM_U8:
-			get_sys_param_u8(i, &data_u8);
-			param_val = (float)data_u8;
-			break;
-		case SYS_PARAM_S8:
-			get_sys_param_s8(i, &data_s8);
-			param_val = (float)data_s8;
-			break;
-		case SYS_PARAM_U16:
-			get_sys_param_u16(i, &data_u16);
-			param_val = (float)data_u16;
-			break;
-		case SYS_PARAM_S16:
-			get_sys_param_s16(i, &data_s16);
-			param_val = (float)data_s16;
-			break;
-		case SYS_PARAM_U32:
-			get_sys_param_u32(i, &data_u32);
-			param_val = (float)data_u32;
-			break;
-		case SYS_PARAM_S32:
-			get_sys_param_s32(i, &data_s32);
-			param_val = (float)data_s32;
-			break;
-		case SYS_PARAM_FLOAT:
-			get_sys_param_float(i, &data_float);
-			param_val = (float)data_float;
-			break;
-		default:
-			return;
-		}
-
-		mavlink_msg_param_value_pack_chan(1, 1, MAVLINK_COMM_1, &msg, param_name,
-		                                  param_val, param_type, param_cnt, i);
-		send_mavlink_msg_to_uart(&msg);
-		freertos_task_delay(50);
-	}
+	send_count = get_sys_param_list_size();
+	send_index = 0;
+	send_param = true;
 }
 
 void mav_param_request_read(mavlink_message_t *received_msg)
@@ -214,5 +162,72 @@ void mav_param_set(mavlink_message_t *received_msg)
 		mavlink_msg_param_value_pack_chan(1, 1, MAVLINK_COMM_1, &msg, param_name,
 		                                  param_val, param_type, param_list_size, i);
 		send_mavlink_msg_to_uart(&msg);
+	}
+}
+
+void paramater_microservice_handler(void)
+{
+	if(send_param == false) return;
+
+	mavlink_message_t msg;
+
+	char *param_name;
+	float param_val = 0.0f;
+	uint8_t param_type = 0;
+
+	uint8_t data_u8;
+	int8_t data_s8;
+	uint16_t data_u16;
+	int16_t data_s16;
+	uint32_t data_u32;
+	int32_t data_s32;
+	float data_float;
+
+	get_sys_param_name(send_index, &param_name);
+	get_sys_param_type(send_index, &param_type);
+
+	switch(param_type) {
+	case SYS_PARAM_U8:
+		get_sys_param_u8(send_index, &data_u8);
+		param_val = (float)data_u8;
+		break;
+	case SYS_PARAM_S8:
+		get_sys_param_s8(send_index, &data_s8);
+		param_val = (float)data_s8;
+		break;
+	case SYS_PARAM_U16:
+		get_sys_param_u16(send_index, &data_u16);
+		param_val = (float)data_u16;
+		break;
+	case SYS_PARAM_S16:
+		get_sys_param_s16(send_index, &data_s16);
+		param_val = (float)data_s16;
+		break;
+	case SYS_PARAM_U32:
+		get_sys_param_u32(send_index, &data_u32);
+		param_val = (float)data_u32;
+		break;
+	case SYS_PARAM_S32:
+		get_sys_param_s32(send_index, &data_s32);
+		param_val = (float)data_s32;
+		break;
+	case SYS_PARAM_FLOAT:
+		get_sys_param_float(send_index, &data_float);
+		param_val = (float)data_float;
+		break;
+	default:
+		return;
+	}
+
+	mavlink_msg_param_value_pack_chan(1, 1, MAVLINK_COMM_1, &msg, param_name,
+	                                  param_val, param_type, send_count, send_index);
+	send_mavlink_msg_to_uart(&msg);
+
+	//select next param to send
+	send_index++;
+
+	/* last param had sent, close the protocol */
+	if(send_index == send_count) {
+		send_param = false;
 	}
 }

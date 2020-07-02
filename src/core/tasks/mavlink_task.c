@@ -89,6 +89,7 @@ void mavlink_tx_task(void *param)
 
 		/* microservice handlers */
 		mission_waypoint_microservice_handler();
+		paramater_microservice_handler();
 		polynomial_trajectory_microservice_handler();
 
 		freertos_task_delay(delay_time_ms);
