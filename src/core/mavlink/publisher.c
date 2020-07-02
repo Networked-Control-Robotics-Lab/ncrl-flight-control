@@ -18,9 +18,10 @@ void send_mavlink_msg_to_uart(mavlink_message_t *msg)
 
 void send_mavlink_heartbeat(void)
 {
+	/* send heartbeat with PX4 id to able to utilize all functions of qgroundcontrol */
 	mavlink_message_t msg;
 	mavlink_msg_heartbeat_pack(1, 1, &msg, MAV_TYPE_QUADROTOR,
-	                           MAV_AUTOPILOT_GENERIC, MAV_MODE_STABILIZE_ARMED, 0, MAV_STATE_ACTIVE);
+	                           MAV_AUTOPILOT_PX4, MAV_MODE_STABILIZE_ARMED, 0, MAV_STATE_ACTIVE);
 	send_mavlink_msg_to_uart(&msg);
 }
 
