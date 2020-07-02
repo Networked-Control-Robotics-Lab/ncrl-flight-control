@@ -12,6 +12,15 @@
 
 #define SIZE_OF_PARAM_LIST(list) (sizeof(list) / sizeof(sys_param_data))
 
+#define INIT_SYS_PARAM_U8(id, val) init_sys_param_u8(id, #id, val)
+#define INIT_SYS_PARAM_S8(id, val) init_sys_param_s8(id, #id, val)
+#define INIT_SYS_PARAM_U16(id, val) init_sys_param_u16(id, #id, val)
+#define INIT_SYS_PARAM_S16(id, val) init_sys_param_s16(id, #id, val)
+#define INIT_SYS_PARAM_U32(id, val) init_sys_param_u32(id, #id, val)
+#define INIT_SYS_PARAM_S32(id, val) init_sys_param_s32(id, #id, val)
+#define INIT_SYS_PARAM_FLOAT(id, val) init_sys_param_float(id, #id, val)
+#define INIT_SYS_PARAM_FLOAT(id, val) init_sys_param_float(id, #id, val)
+
 enum {
 	SYS_PARAM_SUCCEED = 0,
 	SYS_PARAM_INDEX_OUT_OF_RANGE = 1
