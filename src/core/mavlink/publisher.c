@@ -25,6 +25,22 @@ void send_mavlink_heartbeat(void)
 	send_mavlink_msg_to_uart(&msg);
 }
 
+void send_mavlink_scaled_imu1(void)
+{
+	uint32_t boot_time_ms = (uint32_t)get_sys_time_ms();
+
+	mavlink_message_t msg;
+	mavlink_msg_scaled_imu_pack(1, 1, &msg, boot_time_ms, 0, 0, 9800, 0, 0, 0, 0, 0, 0, 25);
+	send_mavlink_msg_to_uart(&msg);
+}
+
+void send_mavlink_status_text(char *s, uint8_t severity, uint16_t id, uint8_t seq)
+{
+	mavlink_message_t msg;
+	mavlink_msg_statustext_pack(1, 1, &msg, severity, s, id, seq);
+	send_mavlink_msg_to_uart(&msg);
+}
+
 void send_mavlink_system_status(void)
 {
 	float battery_voltage = 12.5 * 1000;

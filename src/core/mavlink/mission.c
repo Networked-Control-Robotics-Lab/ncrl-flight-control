@@ -1,10 +1,13 @@
 #include <stdint.h>
+#include "FreeRTOS.h"
+#include "task.h"
 #include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"
 #include "ncrl_mavlink.h"
 #include "../mavlink/publisher.h"
 #include "autopilot.h"
 #include "sys_time.h"
 #include "mission.h"
+#include "delay.h"
 
 #define MISSION_TIMEOUT_TIME 2.0f //[s]
 #define MISSION_RETRY_TIMES 5
@@ -62,8 +65,51 @@ static void mav_cmd_preflight_calibration(mavlink_message_t *received_msg,
 	mavlink_message_t msg;
 	mavlink_msg_command_ack_pack_chan(1, 0, MAVLINK_COMM_1, &msg,
 	                                  command, result, param1, param2,
-	                                  received_msg->sysid, received_msg->compid);
+	                                  255, MAV_COMP_ID_MISSIONPLANNER);
 	send_mavlink_msg_to_uart(&msg);
+
+	freertos_task_delay(1000);
+
+	/* detected stage */
+	send_mavlink_status_text("[cal] calibration started: 2 accel", 6, 0, 0);
+	freertos_task_delay(1000);
+
+	send_mavlink_status_text("[cal] back orientation detected", 6, 0, 0);
+	freertos_task_delay(1000);
+
+	send_mavlink_status_text("[cal] front orientation detected", 6, 0, 0);
+	freertos_task_delay(1000);
+
+	send_mavlink_status_text("[cal] left orientation detected", 6, 0, 0);
+	freertos_task_delay(1000);
+
+	send_mavlink_status_text("[cal] right orientation detected", 6, 0, 0);
+	freertos_task_delay(1000);
+
+	send_mavlink_status_text("[cal] up orientation detected", 6, 0, 0);
+	freertos_task_delay(1000);
+
+	send_mavlink_status_text("[cal] down orientation detected", 6, 0, 0);
+	freertos_task_delay(1000);
+
+	/* measured stage */
+	send_mavlink_status_text("[cal] back side done, rotate to a different side", 6, 0, 0);
+	freertos_task_delay(1000);
+
+	send_mavlink_status_text("[cal] front side done, rotate to a different side", 6, 0, 0);
+	freertos_task_delay(1000);
+
+	send_mavlink_status_text("[cal] left side done, rotate to a different side", 6, 0, 0);
+	freertos_task_delay(1000);
+
+	send_mavlink_status_text("[cal] right side done, rotate to a different side", 6, 0, 0);
+	freertos_task_delay(1000);
+
+	send_mavlink_status_text("[cal] up side done, rotate to a different side", 6, 0, 0);
+	freertos_task_delay(1000);
+
+	send_mavlink_status_text("[cal] down side done, rotate to a different side", 6, 0, 0);
+	freertos_task_delay(1000);
 }
 
 void mav_command_long(mavlink_message_t *received_msg)
