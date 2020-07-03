@@ -85,8 +85,8 @@ int main(void)
 #if (SELECT_TELEM == TELEM_DEBUG_LINK)
 	xTaskCreate(task_debug_link, "debug link", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
 #elif (SELECT_TELEM == TELEM_MAVLINK)
-	xTaskCreate(mavlink_tx_task, "mavlink publisher", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
-	xTaskCreate(mavlink_rx_task, "mavlink receiver", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
+	xTaskCreate(mavlink_tx_task, "mavlink publisher", 1024, NULL, tskIDLE_PRIORITY + 1, NULL);
+	xTaskCreate(mavlink_rx_task, "mavlink receiver", 2048, NULL, tskIDLE_PRIORITY + 1, NULL);
 #elif (SELECT_TELEM == TELEM_SHELL)
 	xTaskCreate(shell_task, "shell", 1024, NULL, tskIDLE_PRIORITY + 1, NULL);
 #endif
