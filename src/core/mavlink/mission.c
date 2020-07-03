@@ -51,6 +51,21 @@ static void mav_cmd_long_override_goto(mavlink_command_long_t *cmd_long)
 {
 }
 
+static void mav_cmd_preflight_calibration(mavlink_message_t *received_msg,
+                mavlink_command_long_t *cmd_long)
+{
+	uint16_t command = MAV_CMD_PREFLIGHT_CALIBRATION;
+	uint8_t result = MAV_RESULT_ACCEPTED;
+	uint8_t param1 = 0;
+	int32_t param2 = 0;
+
+	mavlink_message_t msg;
+	mavlink_msg_command_ack_pack_chan(1, 0, MAVLINK_COMM_1, &msg,
+	                                  command, result, param1, param2,
+	                                  received_msg->sysid, received_msg->compid);
+	send_mavlink_msg_to_uart(&msg);
+}
+
 void mav_command_long(mavlink_message_t *received_msg)
 {
 	mavlink_command_long_t mav_command_long;
@@ -70,6 +85,9 @@ void mav_command_long(mavlink_message_t *received_msg)
 		break;
 	case MAV_CMD_OVERRIDE_GOTO:
 		mav_cmd_long_override_goto(&mav_command_long);
+		break;
+	case MAV_CMD_PREFLIGHT_CALIBRATION:
+		mav_cmd_preflight_calibration(received_msg, &mav_command_long);
 		break;
 	}
 }
