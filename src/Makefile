@@ -85,12 +85,15 @@ SRC+=./core/main.c \
 	./core/mavlink/mission.c \
 	./core/mavlink/param.c \
 	./core/mavlink/trajectory.c \
+	./core/mavlink/mav_command.c \
 	./core/perf/perf.c \
 	./core/param/sys_param.c \
 	./core/param/common_list.c \
 	./core/param/multirotor_geometry_list.c \
 	./core/param/multirotor_pid_list.c \
-	./core/radio_events/multirotor_rc.c
+	./core/radio_events/multirotor_rc.c \
+	./core/calibration/accel_calibration.c \
+	./core/calibration/compass_calibration.c
 
 SRC+=./common/delay.c \
 	./common/bound.c \
@@ -133,6 +136,7 @@ CFLAGS+=-I./core/shell
 CFLAGS+=-I./core/perf
 CFLAGS+=-I./core/param
 CFLAGS+=-I./core/radio_events
+CFLAGS+=-I./core/calibration
 CFLAGS+=-I./common
 CFLAGS+=-I./drivers/periph
 CFLAGS+=-I./drivers/device

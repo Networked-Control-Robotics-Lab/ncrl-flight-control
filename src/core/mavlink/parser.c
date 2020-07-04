@@ -4,6 +4,7 @@
 #include "../mavlink/mission.h"
 #include "../mavlink/param.h"
 #include "../mavlink/trajectory.h"
+#include "../mavlink/mav_command.h"
 
 /* enumerate mavlink handler function */
 enum ENUM_MAV_CMDS {
