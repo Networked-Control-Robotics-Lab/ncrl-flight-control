@@ -5,12 +5,24 @@
 #include "ist8310.h"
 #include "debug_link.h"
 
-void get_imu_accel_raw(float *accel_raw)
+void get_imu_raw_accel(float *accel)
 {
+	mpu6500_get_raw_accel(accel);
 }
 
-void get_imu_gyro_raw(float *gyro_raw)
+void get_imu_filtered_accel(float *accel)
 {
+	mpu6500_get_filtered_accel(accel);
+}
+
+void get_imu_raw_gyro(float *gyro)
+{
+	mpu6500_get_raw_gyro(gyro);
+}
+
+void get_imu_filtered_gyro(float *gyro)
+{
+	mpu6500_get_filtered_gyro(gyro);
 }
 
 void get_imu_compass_raw(float *mag_raw)

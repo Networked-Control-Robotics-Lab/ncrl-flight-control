@@ -19,17 +19,18 @@ typedef struct {
 	float mag_lpf[3];
 } imu_t;
 
-bool is_compass_present(void);
-
-void get_imu_accel_raw(float *accel_raw);
-void get_imu_gyro_raw(float *gyro_raw);
-void get_imu_compass_raw(float *mag_raw);
-
+void get_imu_raw_accel(float *accel);
+void get_imu_filtered_accel(float *accel);
 float get_imu_accel_update_freq(void);
+    
+void get_imu_raw_gyro(float *gyro);
+void get_imu_filtered_gyro(float *gyro);
 float get_imu_gyro_update_freq(void);
-float get_imu_compass_update_freq(void);
 
+bool is_compass_present(void);
+void get_imu_compass_raw(float *mag_raw);
 float get_imu_compass_raw_strength(void);
+float get_imu_compass_update_freq(void);
 
 void send_compass_debug_message(debug_msg_t *payload);
 

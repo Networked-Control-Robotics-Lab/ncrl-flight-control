@@ -249,6 +249,34 @@ void mpu6500_int_handler(void)
 	//imu_mpu6500->gyro_lpf[2] = imu_mpu6500->gyro_raw[2];
 }
 
+void mpu6500_get_raw_accel(float *accel)
+{
+	accel[0] = imu_mpu6500->accel_raw[0];
+	accel[1] = imu_mpu6500->accel_raw[1];
+	accel[2] = imu_mpu6500->accel_raw[2];
+}
+
+void mpu6500_get_filtered_accel(float *accel)
+{
+	accel[0] = imu_mpu6500->accel_lpf[0];
+	accel[1] = imu_mpu6500->accel_lpf[1];
+	accel[2] = imu_mpu6500->accel_lpf[2];
+}
+
+void mpu6500_get_raw_gyro(float *gyro)
+{
+	gyro[0] = imu_mpu6500->gyro_raw[0];
+	gyro[1] = imu_mpu6500->gyro_raw[1];
+	gyro[2] = imu_mpu6500->gyro_raw[2];
+}
+
+void mpu6500_get_filtered_gyro(float *gyro)
+{
+	gyro[0] = imu_mpu6500->gyro_lpf[0];
+	gyro[1] = imu_mpu6500->gyro_lpf[1];
+	gyro[2] = imu_mpu6500->gyro_lpf[2];
+}
+
 void debug_print_mpu6500_accel(void)
 {
 	char s[100] = {0};

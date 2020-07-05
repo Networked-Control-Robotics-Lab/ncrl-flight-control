@@ -89,6 +89,11 @@ typedef struct {
 void mpu6500_init(imu_t *imu);
 void mpu6500_int_handler(void);
 
+void mpu6500_get_raw_accel(float *accel);
+void mpu6500_get_filtered_accel(float *accel);
+void mpu6500_get_raw_gyro(float *gyro);
+void mpu6500_get_filtered_gyro(float *gyro);
+
 void debug_print_mpu6500_accel(void);
 void debug_print_mpu6500_unscaled_lpf_accel(void);
 
