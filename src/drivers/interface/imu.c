@@ -5,6 +5,15 @@
 #include "ist8310.h"
 #include "debug_link.h"
 
+void config_imu_accel_scale_calib_setting(float gx_extreme_p, float gx_extreme_n,
+                float gy_extreme_p, float gy_extreme_n,
+                float gz_extreme_p, float gz_extreme_n)
+{
+	mpu6500_config_scale_calib_setting(gx_extreme_p, gx_extreme_n,
+	                                   gy_extreme_p, gy_extreme_n,
+	                                   gz_extreme_p, gz_extreme_n);
+}
+
 void get_imu_raw_accel(float *accel)
 {
 	mpu6500_get_raw_accel(accel);
