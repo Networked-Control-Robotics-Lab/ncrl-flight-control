@@ -55,14 +55,17 @@ static float capture_accel_gavity_extreme_vaule_x(bool cap_neg)
 	float extreme = accel[0];
 
 	while(1) {
+		/* capture sensor data for 5 seconds */
 		curr_time = get_sys_time_s();
 		if((curr_time - last_time) > 5.0f) {
 			break;
 		}
 
+		/* read sensor */
 		get_imu_filtered_accel(accel);
 		accel_x = accel[0];
 
+		/* record the largest/smallest value */
 		if(cap_neg == true) {
 			if(extreme > accel_x) {
 				extreme = accel_x;
@@ -90,14 +93,17 @@ static float capture_accel_gavity_extreme_vaule_y(bool cap_neg)
 	float extreme = accel[1];
 
 	while(1) {
+		/* capture sensor data for 5 seconds */
 		curr_time = get_sys_time_s();
 		if((curr_time - last_time) > 5.0f) {
 			break;
 		}
 
+		/* read sensor */
 		get_imu_filtered_accel(accel);
 		accel_y = accel[1];
 
+		/* record the largest/smallest value */
 		if(cap_neg == true) {
 			if(extreme > accel_y) {
 				extreme = accel_y;
@@ -126,14 +132,17 @@ static float capture_accel_gavity_extreme_vaule_z(bool cap_neg)
 	float extreme = accel[2];
 
 	while(1) {
+		/* capture sensor data for 5 seconds */
 		curr_time = get_sys_time_s();
 		if((curr_time - last_time) > 5.0f) {
 			break;
 		}
 
+		/* read sensor */
 		get_imu_filtered_accel(accel);
 		accel_z = accel[2];
 
+		/* record the largest/smallest value */
 		if(cap_neg == true) {
 			if(extreme > accel_z) {
 				extreme = accel_z;
@@ -174,8 +183,6 @@ bool detect_accel_motion(float *accel)
 
 void mavlink_accel_calibration_handler(void)
 {
-	freertos_task_delay(1000);
-
 	bool front_finished = false;
 	bool back_finished = false;
 	bool left_finished = false;
@@ -189,29 +196,36 @@ void mavlink_accel_calibration_handler(void)
 
 	float accel[3] = {0.0f};
 
+	/* trigger qgroundcontrol to show the calibration window */
 	send_mavlink_status_text("[cal] calibration started: 2 accel", 6, 0, 0);
-	freertos_task_delay(1000);
 
 	float curr_time;
 	float last_time = get_sys_time_s();
 
 	while(1) {
+		/* read sensor data */
 		get_imu_filtered_accel(accel);
 
+		/* read current time */
 		curr_time = get_sys_time_s();
 
+		/* detect if imu is motionless */
 		if(detect_accel_motion(accel) == true) {
 			last_time = get_sys_time_s();
 		}
 
+		/* collect calibration data if imu is motionless over 5 seconds */
 		if((curr_time - last_time) < 5.0f) {
 			continue;
 		}
 
+		/* update timer */
 		last_time = curr_time;
 
+		/* detect imu orientation */
 		int orientation = detect_accel_orientation(accel);
 
+		/* collect calibration data */
 		switch(orientation) {
 		case ACCEL_CALIB_FRONT: {
 			if(front_finished == true) break;
@@ -277,7 +291,7 @@ void mavlink_accel_calibration_handler(void)
 			break;
 		}
 
-		/* finish collecting datas */
+		/* apply calibration result if calibration is finished */
 		if(front_finished == true && back_finished == true &&
 		    up_finished == true && down_finished == true &&
 		    left_finished == true && right_finished == true) {
