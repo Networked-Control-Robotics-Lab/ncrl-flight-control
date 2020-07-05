@@ -58,7 +58,22 @@ static void mav_cmd_preflight_calibration(mavlink_message_t *received_msg,
 	                                  255, MAV_COMP_ID_MISSIONPLANNER);
 	send_mavlink_msg_to_uart(&msg);
 
-	mavlink_accel_calibration_handler();
+	if((int)cmd_long->param5 == 1 ) {
+		mavlink_accel_calibration_handler();
+	} else if((int)cmd_long->param2 == 1) {
+		mavlink_compass_calibration_handler();
+	} else {
+		/* not supported type calibration */
+		send_mavlink_status_text("[cal] calibration cancelled", 6, 0, 0);
+	}
+
+	/* if user cancelled the calibration*/
+	if((int)cmd_long->param1 == 0 && (int)cmd_long->param2 == 0 &&
+	    (int)cmd_long->param3 == 0 && (int)cmd_long->param4 == 0 &&
+	    (int)cmd_long->param5 == 0 && (int)cmd_long->param6 == 0 &&
+	    (int)cmd_long->param7 == 0) {
+		send_mavlink_status_text("[cal] calibration cancelled", 6, 0, 0);
+	}
 }
 
 void mav_command_long(mavlink_message_t *received_msg)
