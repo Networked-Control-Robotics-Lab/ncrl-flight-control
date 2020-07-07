@@ -125,6 +125,30 @@ bool detect_accel_motion(float *accel)
 	}
 }
 
+void send_progress_update_message(int stage)
+{
+	switch(stage) {
+	case 1:
+		send_mavlink_calibration_status_text("[cal] progress <16>");
+		break;
+	case 2:
+		send_mavlink_calibration_status_text("[cal] progress <32>");
+		break;
+	case 3:
+		send_mavlink_calibration_status_text("[cal] progress <48>");
+		break;
+	case 4:
+		send_mavlink_calibration_status_text("[cal] progress <64>");
+		break;
+	case 5:
+		send_mavlink_calibration_status_text("[cal] progress <80>");
+		break;
+	case 6:
+		send_mavlink_calibration_status_text("[cal] progress <100>");
+		break;
+	}
+}
+
 void mavlink_accel_scale_calibration_handler(void)
 {
 	bool front_finished = false;
@@ -145,6 +169,8 @@ void mavlink_accel_scale_calibration_handler(void)
 
 	float curr_time;
 	float last_time = get_sys_time_s();
+
+	int stage = 0;
 
 	while(1) {
 		if(is_device_calibration_cancelled() == true) {
@@ -184,6 +210,9 @@ void mavlink_accel_scale_calibration_handler(void)
 			calib_x_n = capture_accel_gavity_vaule_x(true);
 			send_mavlink_calibration_status_text("[cal] front side done, rotate to a different side");
 
+			stage++;
+			send_progress_update_message(stage);
+
 			front_finished = true;
 			break;
 		}
@@ -193,6 +222,9 @@ void mavlink_accel_scale_calibration_handler(void)
 			send_mavlink_calibration_status_text("[cal] back orientation detected");
 			calib_x_p = capture_accel_gavity_vaule_x(false);
 			send_mavlink_calibration_status_text("[cal] back side done, rotate to a different side");
+
+			stage++;
+			send_progress_update_message(stage);
 
 			back_finished = true;
 			break;
@@ -204,6 +236,9 @@ void mavlink_accel_scale_calibration_handler(void)
 			calib_z_p = capture_accel_gavity_vaule_z(false);
 			send_mavlink_calibration_status_text("[cal] up side done, rotate to a different side");
 
+			stage++;
+			send_progress_update_message(stage);
+
 			up_finished = true;
 			break;
 		}
@@ -213,6 +248,9 @@ void mavlink_accel_scale_calibration_handler(void)
 			send_mavlink_calibration_status_text("[cal] down orientation detected");
 			calib_z_n = capture_accel_gavity_vaule_z(true);
 			send_mavlink_calibration_status_text("[cal] down side done, rotate to a different side");
+
+			stage++;
+			send_progress_update_message(stage);
 
 			down_finished = true;
 			break;
@@ -224,6 +262,9 @@ void mavlink_accel_scale_calibration_handler(void)
 			calib_y_p = capture_accel_gavity_vaule_y(false);
 			send_mavlink_calibration_status_text("[cal] left side done, rotate to a different side");
 
+			stage++;
+			send_progress_update_message(stage);
+
 			left_finished = true;
 			break;
 		}
@@ -233,6 +274,9 @@ void mavlink_accel_scale_calibration_handler(void)
 			send_mavlink_calibration_status_text("[cal] right orientation detected");
 			calib_y_n = capture_accel_gavity_vaule_y(true);
 			send_mavlink_calibration_status_text("[cal] right side done, rotate to a different side");
+
+			stage++;
+			send_progress_update_message(stage);
 
 			right_finished = true;
 			break;
