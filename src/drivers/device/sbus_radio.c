@@ -138,6 +138,29 @@ void debug_print_raw_sbus(void)
 	uart3_puts(s, strlen(s));
 }
 
+void sbus_get_unscaled(uint16_t *rc_val)
+{
+	rc_val[0] = sbus.rc_val[0];
+	rc_val[1] = sbus.rc_val[1];
+	rc_val[2] = sbus.rc_val[2];
+	rc_val[3] = sbus.rc_val[3];
+	rc_val[4] = sbus.rc_val[4];
+	rc_val[5] = sbus.rc_val[5];
+	rc_val[6] = sbus.rc_val[6];
+	rc_val[7] = sbus.rc_val[7];
+	rc_val[8] = 0;
+	rc_val[9] = 0;
+	rc_val[10] = 0;
+	rc_val[11] = 0;
+	rc_val[12] = 0;
+	rc_val[13] = 0;
+	rc_val[14] = 0;
+	rc_val[15] = 0;
+	rc_val[16] = 0;
+	rc_val[17] = 0;
+	rc_val[18] = 0;
+}
+
 void debug_print_rc_val(void)
 {
 	/* debug message */

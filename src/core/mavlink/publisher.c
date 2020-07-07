@@ -6,6 +6,7 @@
 #include "ahrs.h"
 #include "sys_time.h"
 #include "optitrack.h"
+#include "sbus_radio.h"
 
 extern ahrs_t ahrs;
 
@@ -26,15 +27,6 @@ void send_mavlink_heartbeat(void)
 	send_mavlink_msg_to_uart(&msg);
 }
 
-void send_mavlink_scaled_imu1(void)
-{
-	uint32_t boot_time_ms = (uint32_t)get_sys_time_ms();
-
-	mavlink_message_t msg;
-	mavlink_msg_scaled_imu_pack(1, 1, &msg, boot_time_ms, 0, 0, 9800, 0, 0, 0, 0, 0, 0, 25);
-	send_mavlink_msg_to_uart(&msg);
-}
-
 void send_mavlink_status_text(char *s, uint8_t severity, uint16_t id, uint8_t seq)
 {
 	mavlink_message_t msg;
@@ -50,6 +42,22 @@ void send_mavlink_system_status(void)
 
 	mavlink_msg_sys_status_pack(1, 1, &msg, 0, 0, 0, 0, battery_voltage, -1,
 	                            battery_remain_percentage, 0, 0, 0, 0, 0, 0);
+	send_mavlink_msg_to_uart(&msg);
+}
+
+void send_mavlink_rc_channels(void)
+{
+	uint16_t rc_val[18];
+	uint8_t rssi = 0;
+	sbus_get_unscaled(rc_val);
+
+	mavlink_message_t msg;
+	float boot_time_ms = get_sys_time_ms();
+	mavlink_msg_rc_channels_pack(1, 1, &msg, boot_time_ms, 8, rc_val[0], rc_val[1],
+	                             rc_val[2], rc_val[3], rc_val[4], rc_val[5], rc_val[6],
+	                             rc_val[7], rc_val[8], rc_val[9], rc_val[10], rc_val[11],
+	                             rc_val[12], rc_val[13], rc_val[14], rc_val[15], rc_val[16],
+	                             rc_val[17], rssi);
 	send_mavlink_msg_to_uart(&msg);
 }
 

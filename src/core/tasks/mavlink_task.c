@@ -61,11 +61,12 @@ void mavlink_tx_task(void *param)
 
 	int prescaler_div_50 = 0;
 	int prescaler_div_10 = 0;
+	int prescaler_div_5 = 0;
 
 	mavlink_queue_item_t recept_mav_queue_item;
 
 	while(1) {
-		/* send the following mavlink message with 1Hz */
+		/* send the following mavlink message @ 1Hz */
 		if(prescaler_div_50 == 50) {
 			send_mavlink_heartbeat();
 			send_mavlink_system_status();
@@ -83,8 +84,10 @@ void mavlink_tx_task(void *param)
 		}
 		prescaler_div_50++;
 
+		/* send the following mavlink message @ 5Hz */
 		if(prescaler_div_10 == 10) {
-			/* send the following mavlink message with 25Hz */
+			send_mavlink_rc_channels();
+
 			send_mavlink_attitude_quaternion();
 #if (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
 			if(autopilot_get_mode() != AUTOPILOT_TRAJECTORY_FOLLOWING_MODE) {
@@ -94,6 +97,14 @@ void mavlink_tx_task(void *param)
 			prescaler_div_10 = 0;
 		}
 		prescaler_div_10++;
+
+		/* send the following mavlink message @ 10Hz */
+		if(prescaler_div_5 == 5) {
+			send_mavlink_rc_channels();
+
+			prescaler_div_5 = 0;
+		}
+		prescaler_div_5++;
 
 		/* send trajectory debug message if autopilot mode is set to
 		 * trajectory following mode */

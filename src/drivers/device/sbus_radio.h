@@ -70,6 +70,7 @@ typedef struct {
 
 void sbus_rc_isr_handler(uint8_t byte);
 void sbus_rc_read(radio_t *rc);
+void sbus_get_unscaled(uint16_t *rc_val);
 int rc_safety_check(radio_t *rc);
 void debug_print_rc_info(void);
 void debug_print_rc_val(void);
