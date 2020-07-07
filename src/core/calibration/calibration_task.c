@@ -19,8 +19,11 @@ void task_calibration(void *param)
 {
 	while(1) {
 		switch(calibration_type) {
-		case ACCEL_CALIBRATION:
-			mavlink_accel_calibration_handler();
+		case ACCEL_SCALE_CALIBRATION:
+			mavlink_accel_scale_calibration_handler();
+			break;
+		case ACCEL_OFFSET_CALIBRATION:
+			mavlink_accel_offset_calibration_handler();
 			break;
 		case COMPASS_CALIBRATION:
 			mavlink_compass_calibration_handler();

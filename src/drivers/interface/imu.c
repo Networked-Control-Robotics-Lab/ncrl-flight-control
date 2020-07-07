@@ -10,6 +10,11 @@ void config_imu_accel_scale_calib_setting(float x_scale, float y_scale, float z_
 	mpu6500_config_scale_calib_setting(x_scale, y_scale, z_scale);
 }
 
+void config_imu_accel_offset_calib_setting(float x_offset, float y_offset, float z_offset)
+{
+	mpu6500_config_offset_calib_setting(x_offset, y_offset, z_offset);
+}
+
 void get_imu_raw_accel(float *accel)
 {
 	mpu6500_get_raw_accel(accel);

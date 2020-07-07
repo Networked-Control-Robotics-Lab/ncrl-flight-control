@@ -90,6 +90,7 @@ void mpu6500_init(imu_t *imu);
 void mpu6500_int_handler(void);
 
 void mpu6500_config_scale_calib_setting(float x_scale, float y_scale, float z_scale);
+void mpu6500_config_offset_calib_setting(float x_offset, float y_offset, float z_offset);
 
 void mpu6500_get_raw_accel(float *accel);
 void mpu6500_get_filtered_accel(float *accel);

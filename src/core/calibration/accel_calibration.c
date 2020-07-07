@@ -123,7 +123,7 @@ bool detect_accel_motion(float *accel)
 	}
 }
 
-void mavlink_accel_calibration_handler(void)
+void mavlink_accel_scale_calibration_handler(void)
 {
 	bool front_finished = false;
 	bool back_finished = false;
@@ -252,6 +252,26 @@ void mavlink_accel_calibration_handler(void)
 			return;
 		}
 	}
+}
+
+void mavlink_accel_offset_calibration_handler(void)
+{
+	send_mavlink_calibration_status_text("[cal] calibration started: 2 level");
+
+	float accel[3];
+	get_imu_filtered_accel(accel);
+
+	float x_offset = 0.0f - accel[0];
+	float y_offset = 0.0f - accel[1];
+	float z_offset = (-9.81f) - accel[2];
+
+	config_imu_accel_offset_calib_setting(x_offset, y_offset, z_offset);
+
+	set_sys_param_float(CAL_ACC0_XOFF, x_offset);
+	set_sys_param_float(CAL_ACC0_YOFF, y_offset);
+	set_sys_param_float(CAL_ACC0_ZOFF, z_offset);
+
+	send_mavlink_calibration_status_text("[cal] calibration done: level");
 }
 
 void shell_accel_calibration_handler(void)

@@ -59,9 +59,18 @@ static void mav_cmd_preflight_calibration(mavlink_message_t *received_msg,
 	                                  255, MAV_COMP_ID_MISSIONPLANNER);
 	send_mavlink_msg_to_uart(&msg);
 
-	if((int)cmd_long->param5 == 1 ) {
-		wakeup_calibration_task(ACCEL_CALIBRATION);
+	if((int)cmd_long->param1 == 1) {
+		/* gyro calibration is not required in this firmware,
+		 * we do this during every boot time */
+		send_mavlink_status_text("[cal] calibration cancelled", 6, 0, 0);
+	} else if((int)cmd_long->param5 == 1) {
+		/* accelerometer scale calibration */
+		wakeup_calibration_task(ACCEL_SCALE_CALIBRATION);
+	} else if((int)cmd_long->param5 == 2) {
+		/* accelerometer offset calibration */
+		wakeup_calibration_task(ACCEL_OFFSET_CALIBRATION);
 	} else if((int)cmd_long->param2 == 1) {
+		/* compass calibration */
 		wakeup_calibration_task(COMPASS_CALIBRATION);
 	} else {
 		/* not supported type calibration */
