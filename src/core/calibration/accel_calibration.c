@@ -170,6 +170,8 @@ void mavlink_accel_scale_calibration_handler(void)
 	float curr_time;
 	float last_time = get_sys_time_s();
 
+	float reset_start_time = get_sys_time_s();
+
 	int stage = 0;
 
 	while(1) {
@@ -184,6 +186,13 @@ void mavlink_accel_scale_calibration_handler(void)
 
 		/* read current time */
 		curr_time = get_sys_time_s();
+
+		/* timeout (10 seconds) */
+		if((curr_time - reset_start_time) > 10.0f) {
+			send_mavlink_calibration_status_text(
+			        "[cal] calibration failed: timeout: no motion");
+			return;
+		}
 
 		/* detect if imu is motionless */
 		if(detect_accel_motion(accel) == true) {
@@ -213,6 +222,8 @@ void mavlink_accel_scale_calibration_handler(void)
 			stage++;
 			send_progress_update_message(stage);
 
+			reset_start_time = get_sys_time_s(); //reset timeout timer
+
 			front_finished = true;
 			break;
 		}
@@ -225,6 +236,8 @@ void mavlink_accel_scale_calibration_handler(void)
 
 			stage++;
 			send_progress_update_message(stage);
+
+			reset_start_time = get_sys_time_s(); //reset timeout timer
 
 			back_finished = true;
 			break;
@@ -239,6 +252,8 @@ void mavlink_accel_scale_calibration_handler(void)
 			stage++;
 			send_progress_update_message(stage);
 
+			reset_start_time = get_sys_time_s(); //reset timeout timer
+
 			up_finished = true;
 			break;
 		}
@@ -251,6 +266,8 @@ void mavlink_accel_scale_calibration_handler(void)
 
 			stage++;
 			send_progress_update_message(stage);
+
+			reset_start_time = get_sys_time_s(); //reset timeout timer
 
 			down_finished = true;
 			break;
@@ -265,6 +282,8 @@ void mavlink_accel_scale_calibration_handler(void)
 			stage++;
 			send_progress_update_message(stage);
 
+			reset_start_time = get_sys_time_s(); //reset timeout timer
+
 			left_finished = true;
 			break;
 		}
@@ -277,6 +296,8 @@ void mavlink_accel_scale_calibration_handler(void)
 
 			stage++;
 			send_progress_update_message(stage);
+
+			reset_start_time = get_sys_time_s(); //reset timeout timer
 
 			right_finished = true;
 			break;
