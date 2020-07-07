@@ -7,6 +7,9 @@
 #include "../mavlink/publisher.h"
 #include "imu.h"
 #include "sys_time.h"
+#include "quadshell.h"
+
+#define ACCEL_CALIB_SAMPLING_TIMES 2000
 
 enum {
 	ACCEL_CALIB_FRONT,
@@ -42,119 +45,56 @@ static int detect_accel_orientation(float *accel)
 	return ACCEL_CALIB_DIR_UNKNOWN;
 }
 
-static float capture_accel_gavity_extreme_vaule_x(bool cap_neg)
+static float capture_accel_gavity_vaule_x(bool cap_neg)
 {
 	float accel[3];
-	float accel_x;
 
-	float curr_time;
-	float last_time = get_sys_time_s();
+	float gravity = 0.0f;
 
-	/* init */
-	get_imu_filtered_accel(accel);
-	float extreme = accel[0];
-
-	while(1) {
-		/* capture sensor data for 5 seconds */
-		curr_time = get_sys_time_s();
-		if((curr_time - last_time) > 5.0f) {
-			break;
-		}
-
+	int i;
+	for(i = 0; i < ACCEL_CALIB_SAMPLING_TIMES; i++) {
 		/* read sensor */
 		get_imu_filtered_accel(accel);
-		accel_x = accel[0];
-
-		/* record the largest/smallest value */
-		if(cap_neg == true) {
-			if(extreme > accel_x) {
-				extreme = accel_x;
-			}
-		} else {
-			if(extreme < accel_x) {
-				extreme = accel_x;
-			}
-		}
+		gravity += accel[0] / ACCEL_CALIB_SAMPLING_TIMES;
+		freertos_task_delay(2.5);
 	}
 
-	return extreme;
+	return gravity;
 }
 
-static float capture_accel_gavity_extreme_vaule_y(bool cap_neg)
+static float capture_accel_gavity_vaule_y(bool cap_neg)
 {
 	float accel[3];
-	float accel_y;
 
-	float curr_time;
-	float last_time = get_sys_time_s();
+	float gravity = 0.0f;
 
-	/* init */
-	get_imu_filtered_accel(accel);
-	float extreme = accel[1];
-
-	while(1) {
-		/* capture sensor data for 5 seconds */
-		curr_time = get_sys_time_s();
-		if((curr_time - last_time) > 5.0f) {
-			break;
-		}
-
+	int i;
+	for(i = 0; i < ACCEL_CALIB_SAMPLING_TIMES; i++) {
 		/* read sensor */
 		get_imu_filtered_accel(accel);
-		accel_y = accel[1];
-
-		/* record the largest/smallest value */
-		if(cap_neg == true) {
-			if(extreme > accel_y) {
-				extreme = accel_y;
-			}
-		} else {
-			if(extreme < accel_y) {
-				extreme = accel_y;
-			}
-		}
+		gravity += accel[1] / ACCEL_CALIB_SAMPLING_TIMES;
+		freertos_task_delay(2.5);
 	}
 
-	return extreme;
+	return gravity;
 }
 
 
-static float capture_accel_gavity_extreme_vaule_z(bool cap_neg)
+static float capture_accel_gavity_vaule_z(bool cap_neg)
 {
 	float accel[3];
-	float accel_z;
 
-	float curr_time;
-	float last_time = get_sys_time_s();
+	float gravity = 0.0f;
 
-	/* init */
-	get_imu_filtered_accel(accel);
-	float extreme = accel[2];
-
-	while(1) {
-		/* capture sensor data for 5 seconds */
-		curr_time = get_sys_time_s();
-		if((curr_time - last_time) > 5.0f) {
-			break;
-		}
-
+	int i;
+	for(i = 0; i < ACCEL_CALIB_SAMPLING_TIMES; i++) {
 		/* read sensor */
 		get_imu_filtered_accel(accel);
-		accel_z = accel[2];
-
-		/* record the largest/smallest value */
-		if(cap_neg == true) {
-			if(extreme > accel_z) {
-				extreme = accel_z;
-			}
-		} else {
-			if(extreme < accel_z) {
-				extreme = accel_z;
-			}
-		}
+		gravity += accel[2] / ACCEL_CALIB_SAMPLING_TIMES;
+		freertos_task_delay(2.5);
 	}
 
-	return extreme;
+	return gravity;
 }
 
 bool detect_accel_motion(float *accel)
@@ -231,7 +171,7 @@ void mavlink_accel_calibration_handler(void)
 			if(front_finished == true) break;
 
 			send_mavlink_status_text("[cal] front orientation detected", 6, 0, 0);
-			calib_x_p = capture_accel_gavity_extreme_vaule_x(true);
+			calib_x_n = capture_accel_gavity_vaule_x(true);
 			send_mavlink_status_text("[cal] front side done, rotate to a different side", 6, 0, 0);
 
 			front_finished = true;
@@ -241,7 +181,7 @@ void mavlink_accel_calibration_handler(void)
 			if(back_finished == true) break;
 
 			send_mavlink_status_text("[cal] back orientation detected", 6, 0, 0);
-			calib_x_n = capture_accel_gavity_extreme_vaule_x(false);
+			calib_x_p = capture_accel_gavity_vaule_x(false);
 			send_mavlink_status_text("[cal] back side done, rotate to a different side", 6, 0, 0);
 
 			back_finished = true;
@@ -251,7 +191,7 @@ void mavlink_accel_calibration_handler(void)
 			if(up_finished == true) break;
 
 			send_mavlink_status_text("[cal] up orientation detected", 6, 0, 0);
-			calib_z_p = capture_accel_gavity_extreme_vaule_z(false);
+			calib_z_p = capture_accel_gavity_vaule_z(false);
 			send_mavlink_status_text("[cal] up side done, rotate to a different side", 6, 0, 0);
 
 			up_finished = true;
@@ -261,7 +201,7 @@ void mavlink_accel_calibration_handler(void)
 			if(down_finished == true) break;
 
 			send_mavlink_status_text("[cal] down orientation detected", 6, 0, 0);
-			calib_z_n = capture_accel_gavity_extreme_vaule_z(true);
+			calib_z_n = capture_accel_gavity_vaule_z(true);
 			send_mavlink_status_text("[cal] down side done, rotate to a different side", 6, 0, 0);
 
 			down_finished = true;
@@ -271,7 +211,7 @@ void mavlink_accel_calibration_handler(void)
 			if(left_finished == true) break;
 
 			send_mavlink_status_text("[cal] left orientation detected", 6, 0, 0);
-			calib_y_p = capture_accel_gavity_extreme_vaule_y(false);
+			calib_y_p = capture_accel_gavity_vaule_y(false);
 			send_mavlink_status_text("[cal] left side done, rotate to a different side", 6, 0, 0);
 
 			left_finished = true;
@@ -281,7 +221,7 @@ void mavlink_accel_calibration_handler(void)
 			if(right_finished == true) break;
 
 			send_mavlink_status_text("[cal] right orientation detected", 6, 0, 0);
-			calib_y_n = capture_accel_gavity_extreme_vaule_y(true);
+			calib_y_n = capture_accel_gavity_vaule_y(true);
 			send_mavlink_status_text("[cal] right side done, rotate to a different side", 6, 0, 0);
 
 			right_finished = true;
@@ -296,6 +236,138 @@ void mavlink_accel_calibration_handler(void)
 		    up_finished == true && down_finished == true &&
 		    left_finished == true && right_finished == true) {
 			send_mavlink_status_text("[cal] calibration done: accel", 6, 0, 0);
+			config_imu_accel_scale_calib_setting(calib_x_p, calib_x_n,
+			                                     calib_y_p, calib_y_n,
+			                                     calib_z_p, calib_z_n);
+			return;
+		}
+	}
+}
+
+void shell_accel_calibration_handler(void)
+{
+	bool front_finished = false;
+	bool back_finished = false;
+	bool left_finished = false;
+	bool right_finished = false;
+	bool up_finished = false;
+	bool down_finished = false;
+
+	volatile float calib_x_p, calib_x_n;
+	volatile float calib_y_p, calib_y_n;
+	volatile float calib_z_p, calib_z_n;
+
+	float accel[3] = {0.0f};
+
+	/* trigger qgroundcontrol to show the calibration window */
+	shell_puts("[cal] calibration started: 2 accel\n\r");
+
+	float curr_time;
+	float last_time = get_sys_time_s();
+
+	while(1) {
+		/* read sensor data */
+		get_imu_filtered_accel(accel);
+
+		/* read current time */
+		curr_time = get_sys_time_s();
+
+		/* detect if imu is motionless */
+		if(detect_accel_motion(accel) == true) {
+			last_time = get_sys_time_s();
+		}
+
+		/* collect calibration data if imu is motionless over 5 seconds */
+		if((curr_time - last_time) < 5.0f) {
+			continue;
+		}
+
+		/* update timer */
+		last_time = curr_time;
+
+		/* detect imu orientation */
+		int orientation = detect_accel_orientation(accel);
+
+		/* collect calibration data */
+		switch(orientation) {
+		case ACCEL_CALIB_FRONT: {
+			if(front_finished == true) break;
+
+			shell_puts("[cal] front orientation detected\n\r");
+			calib_x_n = capture_accel_gavity_vaule_x(true);
+			shell_puts("[cal] front side done, rotate to a different side\n\r");
+
+			front_finished = true;
+			break;
+		}
+		case ACCEL_CALIB_BACK: {
+			if(back_finished == true) break;
+
+			shell_puts("[cal] back orientation detected\n\r");
+			calib_x_p = capture_accel_gavity_vaule_x(false);
+			shell_puts("[cal] back side done, rotate to a different side\n\r");
+
+			back_finished = true;
+			break;
+		}
+		case ACCEL_CALIB_UP: {
+			if(up_finished == true) break;
+
+			shell_puts("[cal] up orientation detected\n\r");
+			calib_z_p = capture_accel_gavity_vaule_z(false);
+			shell_puts("[cal] up side done, rotate to a different side\n\r");
+
+			up_finished = true;
+			break;
+		}
+		case ACCEL_CALIB_DOWN: {
+			if(down_finished == true) break;
+
+			shell_puts("[cal] down orientation detected\n\r");
+			calib_z_n = capture_accel_gavity_vaule_z(true);
+			shell_puts("[cal] down side done, rotate to a different side\n\r");
+
+			down_finished = true;
+			break;
+		}
+		case ACCEL_CALIB_LEFT: {
+			if(left_finished == true) break;
+
+			shell_puts("[cal] left orientation detected\n\r");
+			calib_y_p = capture_accel_gavity_vaule_y(false);
+			shell_puts("[cal] left side done, rotate to a different side\n\r");
+
+			left_finished = true;
+			break;
+		}
+		case ACCEL_CALIB_RIGHT: {
+			if(right_finished == true) break;
+
+			shell_puts("[cal] right orientation detected\n\r");
+			calib_y_n = capture_accel_gavity_vaule_y(true);
+			shell_puts("[cal] right side done, rotate to a different side\n\r");
+
+			right_finished = true;
+			break;
+		}
+		default:
+			break;
+		}
+
+		/* apply calibration result if calibration is finished */
+		if(front_finished == true && back_finished == true &&
+		    up_finished == true && down_finished == true &&
+		    left_finished == true && right_finished == true) {
+			char s[300] = {0};
+			sprintf(s, "[cal] calibration done: accel\n\r"
+			        "x max:%.2f, min:%f\n\r"
+			        "y max:%.2f, min:%f\n\r"
+			        "z max:%.2f, min:%f\n\r",
+			        calib_x_p, calib_x_n,
+			        calib_y_p, calib_y_n,
+			        calib_z_p, calib_z_n);
+
+			shell_puts(s);
 			config_imu_accel_scale_calib_setting(calib_x_p, calib_x_n,
 			                                     calib_y_p, calib_y_n,
 			                                     calib_z_p, calib_z_n);

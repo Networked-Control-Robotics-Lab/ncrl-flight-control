@@ -12,6 +12,7 @@
 #include "sys_param.h"
 #include "imu.h"
 #include "delay.h"
+#include "accel_calibration.h"
 
 static bool parse_float_from_str(char *str, float *value)
 {
@@ -32,7 +33,8 @@ void shell_cmd_help(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 	          "clear\n\r"
 	          "arm, disarm, takeoff, land, fly, mission\n\r"
 	          "radio, radio_raw\n\r"
-	          "acc_calib, compass\n\r"
+	          "accel, compass\n\r"
+	          "accel_calib\n\r"
 	          "perf\n\r"
 	          "params\n\r";
 	shell_puts(s);
@@ -449,7 +451,12 @@ void shell_cmd_radio_raw(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], in
 	}
 }
 
-void shell_cmd_acc_calib(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+void shell_cmd_accel_calib(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
+	shell_accel_calibration_handler();
+}
+
+void shell_cmd_accel(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
 	shell_puts("press [q] to stop.\n\r");
 	char c = '\0';
