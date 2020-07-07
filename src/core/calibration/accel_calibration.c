@@ -1,14 +1,15 @@
+#include <stdio.h>
+#include <stdbool.h>
 #include <math.h>
 #include "FreeRTOS.h"
 #include "task.h"
 #include "delay.h"
-#include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"
-#include "ncrl_mavlink.h"
-#include "../mavlink/publisher.h"
 #include "imu.h"
 #include "sys_time.h"
 #include "quadshell.h"
 #include "mavlink_task.h"
+#include "sys_param.h"
+#include "common_list.h"
 
 #define ACCEL_CALIB_SAMPLING_TIMES 2000
 
@@ -237,9 +238,17 @@ void mavlink_accel_calibration_handler(void)
 		    up_finished == true && down_finished == true &&
 		    left_finished == true && right_finished == true) {
 			send_mavlink_calibration_status_text("[cal] calibration done: accel");
-			config_imu_accel_scale_calib_setting(calib_x_p, calib_x_n,
-			                                     calib_y_p, calib_y_n,
-			                                     calib_z_p, calib_z_n);
+
+			float x_scale = (calib_x_p - calib_x_n) / (2.0f * 9.81);
+			float y_scale = (calib_y_p - calib_y_n) / (2.0f * 9.81);
+			float z_scale = (calib_z_p - calib_z_n) / (2.0f * 9.81);
+
+			config_imu_accel_scale_calib_setting(x_scale, y_scale, z_scale);
+
+			set_sys_param_float(CAL_ACC0_XSCALE, x_scale);
+			set_sys_param_float(CAL_ACC0_YSCALE, y_scale);
+			set_sys_param_float(CAL_ACC0_ZSCALE, z_scale);
+
 			return;
 		}
 	}
@@ -367,11 +376,18 @@ void shell_accel_calibration_handler(void)
 			        calib_x_p, calib_x_n,
 			        calib_y_p, calib_y_n,
 			        calib_z_p, calib_z_n);
-
 			shell_puts(s);
-			config_imu_accel_scale_calib_setting(calib_x_p, calib_x_n,
-			                                     calib_y_p, calib_y_n,
-			                                     calib_z_p, calib_z_n);
+
+			float x_scale = (calib_x_p - calib_x_n) / (2.0f * 9.81);
+			float y_scale = (calib_y_p - calib_y_n) / (2.0f * 9.81);
+			float z_scale = (calib_z_p - calib_z_n) / (2.0f * 9.81);
+
+			config_imu_accel_scale_calib_setting(x_scale, y_scale, z_scale);
+
+			set_sys_param_float(CAL_ACC0_XSCALE, x_scale);
+			set_sys_param_float(CAL_ACC0_YSCALE, y_scale);
+			set_sys_param_float(CAL_ACC0_ZSCALE, z_scale);
+
 			return;
 		}
 	}

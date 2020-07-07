@@ -7,10 +7,10 @@
 TaskHandle_t calib_task_handle;
 int calibration_type;
 
-void wakeup_calibration_task(int _calibration_type)
+void wakeup_calibration_task(int type)
 {
 	if(calibration_type == NO_CALIBRATION) {
-		calibration_type = _calibration_type;
+		calibration_type = type;
 		vTaskResume(calib_task_handle);
 	}
 }
@@ -23,12 +23,13 @@ void task_calibration(void *param)
 			mavlink_accel_calibration_handler();
 			break;
 		case COMPASS_CALIBRATION:
+			mavlink_compass_calibration_handler();
 			break;
 		case RADIO_CALIBRATION:
 			break;
 		}
 
-		/* calibration finished, freeze the calibration task */
+		/* calibration finished, freeze the task */
 		calibration_type = NO_CALIBRATION;
 		vTaskSuspend(NULL);
 	}

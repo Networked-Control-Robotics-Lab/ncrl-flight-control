@@ -8,7 +8,7 @@ enum {
 	RADIO_CALIBRATION = 3
 } CALIBRATION_TYPE;
 
-void wakeup_calibration_task(int calibration_type);
+void wakeup_calibration_task(int type);
 void task_calibration(void *param);
 
 #endif

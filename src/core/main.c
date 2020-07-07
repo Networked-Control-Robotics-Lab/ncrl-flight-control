@@ -96,7 +96,7 @@ int main(void)
 #endif
 
 	/* device calibration task, inactivated by default, awakened by shell
-         * or ground station */
+	 * or ground station */
 	xTaskCreate(task_calibration, "calibration", 512, NULL,
 	            tskIDLE_PRIORITY + 2, &calib_task_handle);
 	vTaskSuspend(calib_task_handle);
