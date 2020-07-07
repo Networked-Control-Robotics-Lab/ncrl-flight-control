@@ -11,6 +11,7 @@
 #include "sys_param.h"
 #include "common_list.h"
 #include "calibration_task.h"
+#include "uart.h"
 
 #define ACCEL_CALIB_SAMPLING_TIMES 2000
 
@@ -296,13 +297,20 @@ void shell_accel_calibration_handler(void)
 
 	float accel[3] = {0.0f};
 
-	/* trigger qgroundcontrol to show the calibration window */
-	shell_puts("[cal] calibration started: 2 accel\n\r");
+	shell_puts("press [q] to stop.\n\r"
+	           "[cal] calibration started: 2 accel\n\r");
 
 	float curr_time;
 	float last_time = get_sys_time_s();
 
+	char c;
+
+	/* acceleromter scale calibration */
 	while(1) {
+		if(uart3_getc(&c, 0) == true) {
+			if(c == 'q') return;
+		}
+
 		/* read sensor data */
 		get_imu_filtered_accel(accel);
 
@@ -395,16 +403,6 @@ void shell_accel_calibration_handler(void)
 		if(front_finished == true && back_finished == true &&
 		    up_finished == true && down_finished == true &&
 		    left_finished == true && right_finished == true) {
-			char s[300] = {0};
-			sprintf(s, "[cal] calibration done: accel\n\r"
-			        "x max:%.2f, min:%f\n\r"
-			        "y max:%.2f, min:%f\n\r"
-			        "z max:%.2f, min:%f\n\r",
-			        calib_x_p, calib_x_n,
-			        calib_y_p, calib_y_n,
-			        calib_z_p, calib_z_n);
-			shell_puts(s);
-
 			float x_scale = (calib_x_p - calib_x_n) / (2.0f * 9.81);
 			float y_scale = (calib_y_p - calib_y_n) / (2.0f * 9.81);
 			float z_scale = (calib_z_p - calib_z_n) / (2.0f * 9.81);
@@ -415,7 +413,46 @@ void shell_accel_calibration_handler(void)
 			set_sys_param_float(CAL_ACC0_YSCALE, y_scale);
 			set_sys_param_float(CAL_ACC0_ZSCALE, z_scale);
 
-			return;
+			char s[300] = {0};
+			sprintf(s, "[cal] calibration done: accel\n\r"
+			        "x scale: %f\n\r"
+			        "y scale: %f\n\r"
+			        "z scale: %f\n\r",
+			        x_scale, y_scale, z_scale);
+			shell_puts(s);
+
+			break;
 		}
 	}
+
+	/* accelerometer offset calibration */
+	shell_puts("press enter to start level horizon calibration\n\r");
+
+	while(1) {
+		if(uart3_getc(&c, 0) == true) {
+			if(c == 13) break;
+		}
+	}
+
+	shell_puts("[cal] calibration started: 2 level\n\r");
+
+	get_imu_filtered_accel(accel);
+
+	float x_offset = 0.0f - accel[0];
+	float y_offset = 0.0f - accel[1];
+	float z_offset = (-9.81f) - accel[2];
+
+	config_imu_accel_offset_calib_setting(x_offset, y_offset, z_offset);
+
+	set_sys_param_float(CAL_ACC0_XOFF, x_offset);
+	set_sys_param_float(CAL_ACC0_YOFF, y_offset);
+	set_sys_param_float(CAL_ACC0_ZOFF, z_offset);
+
+	char s[300] = {0};
+	sprintf(s, "[cal] calibration done: level\n\r"
+	        "x offset: %f\n\r"
+	        "y offset: %f\n\r"
+	        "z offset: %f\n\r",
+	        x_offset, y_offset, z_offset);
+	shell_puts(s);
 }
