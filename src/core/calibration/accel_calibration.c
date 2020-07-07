@@ -165,7 +165,7 @@ void mavlink_accel_scale_calibration_handler(void)
 		}
 
 		/* collect calibration data if imu is motionless over 5 seconds */
-		if((curr_time - last_time) < 5.0f) {
+		if((curr_time - last_time) < 3.0f) {
 			continue;
 		}
 
@@ -323,7 +323,7 @@ void shell_accel_calibration_handler(void)
 		}
 
 		/* collect calibration data if imu is motionless over 5 seconds */
-		if((curr_time - last_time) < 5.0f) {
+		if((curr_time - last_time) < 3.0f) {
 			continue;
 		}
 
