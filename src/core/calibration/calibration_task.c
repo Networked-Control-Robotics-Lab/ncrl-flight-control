@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include "FreeRTOS.h"
 #include "task.h"
 #include "calibration_task.h"
@@ -6,6 +7,7 @@
 
 TaskHandle_t calib_task_handle;
 int calibration_type;
+int calibration_is_cancelled = false;
 
 void wakeup_calibration_task(int type)
 {
@@ -13,6 +15,23 @@ void wakeup_calibration_task(int type)
 		calibration_type = type;
 		vTaskResume(calib_task_handle);
 	}
+}
+
+void cancel_device_calibration(void)
+{
+	if(calibration_type != NO_CALIBRATION) {
+		calibration_is_cancelled = true;
+	}
+}
+
+bool is_device_calibration_cancelled(void)
+{
+	return calibration_is_cancelled;
+}
+
+void reset_calibration_cancelled_state(void)
+{
+	calibration_is_cancelled = false;
 }
 
 void task_calibration(void *param)

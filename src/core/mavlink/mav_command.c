@@ -82,7 +82,7 @@ static void mav_cmd_preflight_calibration(mavlink_message_t *received_msg,
 	    (int)cmd_long->param3 == 0 && (int)cmd_long->param4 == 0 &&
 	    (int)cmd_long->param5 == 0 && (int)cmd_long->param6 == 0 &&
 	    (int)cmd_long->param7 == 0) {
-		send_mavlink_status_text("[cal] calibration cancelled", 6, 0, 0);
+		cancel_device_calibration();
 	}
 }
 

@@ -10,6 +10,7 @@
 #include "mavlink_task.h"
 #include "sys_param.h"
 #include "common_list.h"
+#include "calibration_task.h"
 
 #define ACCEL_CALIB_SAMPLING_TIMES 2000
 
@@ -145,6 +146,12 @@ void mavlink_accel_scale_calibration_handler(void)
 	float last_time = get_sys_time_s();
 
 	while(1) {
+		if(is_device_calibration_cancelled() == true) {
+			reset_calibration_cancelled_state();
+			send_mavlink_calibration_status_text("[cal] calibration cancelled");
+			return;
+		}
+
 		/* read sensor data */
 		get_imu_filtered_accel(accel);
 

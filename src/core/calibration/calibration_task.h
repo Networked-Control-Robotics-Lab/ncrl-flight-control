@@ -9,7 +9,12 @@ enum {
 	RADIO_CALIBRATION = 4
 } CALIBRATION_TYPE;
 
+void cancel_device_calibration(void);
+bool is_device_calibration_cancelled(void);
+void reset_calibration_cancelled_state(void);
+
 void wakeup_calibration_task(int type);
+
 void task_calibration(void *param);
 
 #endif
