@@ -81,6 +81,7 @@ int main(void)
 
 	mavlink_queue_init();
 
+	/* compass driver task for handling software i2c protocol */
 	//xTaskCreate(task_compass, "compass handler", 512, NULL, tskIDLE_PRIORITY + 5, NULL); //XXX
 
 	xTaskCreate(task_flight_ctrl, "flight control", 4096, NULL, tskIDLE_PRIORITY + 4, NULL);
@@ -94,7 +95,8 @@ int main(void)
 	xTaskCreate(shell_task, "shell", 1024, NULL, tskIDLE_PRIORITY + 3, NULL);
 #endif
 
-
+	/* device calibration task, inactivated by default, awakened by shell
+         * or ground station */
 	xTaskCreate(task_calibration, "calibration", 512, NULL,
 	            tskIDLE_PRIORITY + 2, &calib_task_handle);
 	vTaskSuspend(calib_task_handle);
