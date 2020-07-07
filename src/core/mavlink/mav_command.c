@@ -6,6 +6,7 @@
 #include "accel_calibration.h"
 #include "compass_calibration.h"
 #include "../mavlink/publisher.h"
+#include "calibration_task.h"
 
 static void mavlink_send_capability(void)
 {
@@ -59,9 +60,9 @@ static void mav_cmd_preflight_calibration(mavlink_message_t *received_msg,
 	send_mavlink_msg_to_uart(&msg);
 
 	if((int)cmd_long->param5 == 1 ) {
-		mavlink_accel_calibration_handler();
+		wakeup_calibration_task(ACCEL_CALIBRATION);
 	} else if((int)cmd_long->param2 == 1) {
-		mavlink_compass_calibration_handler();
+		wakeup_calibration_task(COMPASS_CALIBRATION);
 	} else {
 		/* not supported type calibration */
 		send_mavlink_status_text("[cal] calibration cancelled", 6, 0, 0);

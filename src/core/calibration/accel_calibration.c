@@ -8,6 +8,7 @@
 #include "imu.h"
 #include "sys_time.h"
 #include "quadshell.h"
+#include "mavlink_task.h"
 
 #define ACCEL_CALIB_SAMPLING_TIMES 2000
 
@@ -137,7 +138,7 @@ void mavlink_accel_calibration_handler(void)
 	float accel[3] = {0.0f};
 
 	/* trigger qgroundcontrol to show the calibration window */
-	send_mavlink_status_text("[cal] calibration started: 2 accel", 6, 0, 0);
+	send_mavlink_calibration_status_text("[cal] calibration started: 2 accel");
 
 	float curr_time;
 	float last_time = get_sys_time_s();
@@ -170,9 +171,9 @@ void mavlink_accel_calibration_handler(void)
 		case ACCEL_CALIB_FRONT: {
 			if(front_finished == true) break;
 
-			send_mavlink_status_text("[cal] front orientation detected", 6, 0, 0);
+			send_mavlink_calibration_status_text("[cal] front orientation detected");
 			calib_x_n = capture_accel_gavity_vaule_x(true);
-			send_mavlink_status_text("[cal] front side done, rotate to a different side", 6, 0, 0);
+			send_mavlink_calibration_status_text("[cal] front side done, rotate to a different side");
 
 			front_finished = true;
 			break;
@@ -180,9 +181,9 @@ void mavlink_accel_calibration_handler(void)
 		case ACCEL_CALIB_BACK: {
 			if(back_finished == true) break;
 
-			send_mavlink_status_text("[cal] back orientation detected", 6, 0, 0);
+			send_mavlink_calibration_status_text("[cal] back orientation detected");
 			calib_x_p = capture_accel_gavity_vaule_x(false);
-			send_mavlink_status_text("[cal] back side done, rotate to a different side", 6, 0, 0);
+			send_mavlink_calibration_status_text("[cal] back side done, rotate to a different side");
 
 			back_finished = true;
 			break;
@@ -190,9 +191,9 @@ void mavlink_accel_calibration_handler(void)
 		case ACCEL_CALIB_UP: {
 			if(up_finished == true) break;
 
-			send_mavlink_status_text("[cal] up orientation detected", 6, 0, 0);
+			send_mavlink_calibration_status_text("[cal] up orientation detected");
 			calib_z_p = capture_accel_gavity_vaule_z(false);
-			send_mavlink_status_text("[cal] up side done, rotate to a different side", 6, 0, 0);
+			send_mavlink_calibration_status_text("[cal] up side done, rotate to a different side");
 
 			up_finished = true;
 			break;
@@ -200,9 +201,9 @@ void mavlink_accel_calibration_handler(void)
 		case ACCEL_CALIB_DOWN: {
 			if(down_finished == true) break;
 
-			send_mavlink_status_text("[cal] down orientation detected", 6, 0, 0);
+			send_mavlink_calibration_status_text("[cal] down orientation detected");
 			calib_z_n = capture_accel_gavity_vaule_z(true);
-			send_mavlink_status_text("[cal] down side done, rotate to a different side", 6, 0, 0);
+			send_mavlink_calibration_status_text("[cal] down side done, rotate to a different side");
 
 			down_finished = true;
 			break;
@@ -210,9 +211,9 @@ void mavlink_accel_calibration_handler(void)
 		case ACCEL_CALIB_LEFT: {
 			if(left_finished == true) break;
 
-			send_mavlink_status_text("[cal] left orientation detected", 6, 0, 0);
+			send_mavlink_calibration_status_text("[cal] left orientation detected");
 			calib_y_p = capture_accel_gavity_vaule_y(false);
-			send_mavlink_status_text("[cal] left side done, rotate to a different side", 6, 0, 0);
+			send_mavlink_calibration_status_text("[cal] left side done, rotate to a different side");
 
 			left_finished = true;
 			break;
@@ -220,9 +221,9 @@ void mavlink_accel_calibration_handler(void)
 		case ACCEL_CALIB_RIGHT: {
 			if(right_finished == true) break;
 
-			send_mavlink_status_text("[cal] right orientation detected", 6, 0, 0);
+			send_mavlink_calibration_status_text("[cal] right orientation detected");
 			calib_y_n = capture_accel_gavity_vaule_y(true);
-			send_mavlink_status_text("[cal] right side done, rotate to a different side", 6, 0, 0);
+			send_mavlink_calibration_status_text("[cal] right side done, rotate to a different side");
 
 			right_finished = true;
 			break;
@@ -235,7 +236,7 @@ void mavlink_accel_calibration_handler(void)
 		if(front_finished == true && back_finished == true &&
 		    up_finished == true && down_finished == true &&
 		    left_finished == true && right_finished == true) {
-			send_mavlink_status_text("[cal] calibration done: accel", 6, 0, 0);
+			send_mavlink_calibration_status_text("[cal] calibration done: accel");
 			config_imu_accel_scale_calib_setting(calib_x_p, calib_x_n,
 			                                     calib_y_p, calib_y_n,
 			                                     calib_z_p, calib_z_n);

@@ -30,8 +30,11 @@
 #include "compass_task.h"
 #include "crc.h"
 #include "ublox_m8n.h"
+#include "calibration_task.h"
 
 extern SemaphoreHandle_t flight_ctl_semphr;
+
+extern TaskHandle_t calib_task_handle;
 
 perf_t perf_list[] = {
 	DEF_PERF(PERF_AHRS, "ahrs")
@@ -78,18 +81,23 @@ int main(void)
 
 	mavlink_queue_init();
 
-	//xTaskCreate(task_compass, "compass handler", 512, NULL, tskIDLE_PRIORITY + 4, NULL); //XXX
+	//xTaskCreate(task_compass, "compass handler", 512, NULL, tskIDLE_PRIORITY + 5, NULL); //XXX
 
-	xTaskCreate(task_flight_ctrl, "flight control", 4096, NULL, tskIDLE_PRIORITY + 3, NULL);
+	xTaskCreate(task_flight_ctrl, "flight control", 4096, NULL, tskIDLE_PRIORITY + 4, NULL);
 
 #if (SELECT_TELEM == TELEM_DEBUG_LINK)
-	xTaskCreate(task_debug_link, "debug link", 512, NULL, tskIDLE_PRIORITY + 1, NULL);
+	xTaskCreate(task_debug_link, "debug link", 512, NULL, tskIDLE_PRIORITY + 3, NULL);
 #elif (SELECT_TELEM == TELEM_MAVLINK)
-	xTaskCreate(mavlink_tx_task, "mavlink publisher", 1024, NULL, tskIDLE_PRIORITY + 1, NULL);
-	xTaskCreate(mavlink_rx_task, "mavlink receiver", 2048, NULL, tskIDLE_PRIORITY + 1, NULL);
+	xTaskCreate(mavlink_tx_task, "mavlink publisher", 1024, NULL, tskIDLE_PRIORITY + 3, NULL);
+	xTaskCreate(mavlink_rx_task, "mavlink receiver", 2048, NULL, tskIDLE_PRIORITY + 3, NULL);
 #elif (SELECT_TELEM == TELEM_SHELL)
-	xTaskCreate(shell_task, "shell", 1024, NULL, tskIDLE_PRIORITY + 1, NULL);
+	xTaskCreate(shell_task, "shell", 1024, NULL, tskIDLE_PRIORITY + 3, NULL);
 #endif
+
+
+	xTaskCreate(task_calibration, "calibration", 512, NULL,
+	            tskIDLE_PRIORITY + 2, &calib_task_handle);
+	vTaskSuspend(calib_task_handle);
 
 	/* start freertos scheduler */
 	vTaskStartScheduler();

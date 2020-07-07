@@ -19,7 +19,13 @@ typedef struct {
 	mavlink_message_t mav_msg;
 } mavlink_queue_item_t;
 
+/* queue item data type for calibration status text message*/
+typedef struct {
+	char status_text[50];
+} mavlink_calib_status_text_item_t;
+
 QueueHandle_t mavlink_queue;
+QueueHandle_t mavlink_calib_status_text_queue;
 
 mavlink_message_t mavlink_recpt_msg;
 
@@ -28,6 +34,24 @@ volatile uint8_t received_mavlink_msg;
 void mavlink_queue_init(void)
 {
 	mavlink_queue = xQueueCreate(MAVLINK_QUEUE_SIZE, sizeof(mavlink_queue_item_t));
+	mavlink_calib_status_text_queue = xQueueCreate(5, sizeof(mavlink_calib_status_text_item_t));
+}
+
+void send_mavlink_calibration_status_text(char *status_text)
+{
+	mavlink_calib_status_text_item_t calib_queue_item;
+	strcpy(calib_queue_item.status_text, status_text);
+
+	while(xQueueSendToBack(mavlink_calib_status_text_queue,
+	                       &calib_queue_item, portMAX_DELAY) != pdTRUE);
+}
+
+void mavlink_calibration_handler(void)
+{
+	mavlink_calib_status_text_item_t recept_calib_queue_item;
+	if(xQueueReceive(mavlink_calib_status_text_queue, &recept_calib_queue_item, 0) == pdTRUE) {
+		send_mavlink_status_text(recept_calib_queue_item.status_text, 6, 0, 0);
+	}
 }
 
 void mavlink_tx_task(void *param)
@@ -82,6 +106,8 @@ void mavlink_tx_task(void *param)
 		//send_mavlink_attitude();
 		//send_mavlink_current_waypoint();
 		//send_mavlink_reached_waypoint();
+
+		mavlink_calibration_handler();
 
 		if(xQueueReceive(mavlink_queue, &recept_mav_queue_item, 0) == pdTRUE) {
 			parse_mavlink_received_msg(&recept_mav_queue_item.mav_msg);
