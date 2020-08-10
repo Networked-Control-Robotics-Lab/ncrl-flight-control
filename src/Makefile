@@ -101,7 +101,8 @@ SRC+=./common/delay.c \
 	./common/matrix.c \
 	./common/se3_math.c \
 	./common/quaternion.c \
-	./common/polynomial.c
+	./common/polynomial.c \
+	./common/hash.c
 
 SRC+=./drivers/periph/uart.c \
 	./drivers/periph/spi.c \
