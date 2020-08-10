@@ -19,10 +19,74 @@ void mav_param_request_list(mavlink_message_t *received_msg)
 	send_param = true;
 }
 
+void mav_param_resend_missing_item(int index)
+{
+	mavlink_message_t msg;
+
+	char *param_name;
+	float param_val = 0.0f;
+	uint8_t param_type = 0;
+
+	uint8_t data_u8;
+	int8_t data_s8;
+	uint16_t data_u16;
+	int16_t data_s16;
+	uint32_t data_u32;
+	int32_t data_s32;
+	float data_float;
+
+	get_sys_param_name(index, &param_name);
+	get_sys_param_type(index, &param_type);
+
+	switch(param_type) {
+	case SYS_PARAM_U8:
+		get_sys_param_u8(index, &data_u8);
+		param_val = (float)data_u8;
+		break;
+	case SYS_PARAM_S8:
+		get_sys_param_s8(index, &data_s8);
+		param_val = (float)data_s8;
+		break;
+	case SYS_PARAM_U16:
+		get_sys_param_u16(index, &data_u16);
+		param_val = (float)data_u16;
+		break;
+	case SYS_PARAM_S16:
+		get_sys_param_s16(index, &data_s16);
+		param_val = (float)data_s16;
+		break;
+	case SYS_PARAM_U32:
+		get_sys_param_u32(index, &data_u32);
+		param_val = (float)data_u32;
+		break;
+	case SYS_PARAM_S32:
+		get_sys_param_s32(index, &data_s32);
+		param_val = (float)data_s32;
+		break;
+	case SYS_PARAM_FLOAT:
+		get_sys_param_float(index, &data_float);
+		param_val = (float)data_float;
+		break;
+	default:
+		return;
+	}
+
+	mavlink_msg_param_value_pack_chan(1, 1, MAVLINK_COMM_1, &msg, param_name,
+	                                  param_val, param_type, send_count, index);
+	send_mavlink_msg_to_uart(&msg);
+}
+
+
 void mav_param_request_read(mavlink_message_t *received_msg)
 {
 	mavlink_param_request_read_t mav_param_rq;
 	mavlink_msg_param_request_read_decode(received_msg, &mav_param_rq);
+
+	/* empty param_id means qgs requests parameter resending */
+	if(mav_param_rq.param_id[0] == '\0') {
+		mav_param_resend_missing_item(mav_param_rq.param_index);
+		return;
+	}
 
 	mavlink_message_t msg;
 
