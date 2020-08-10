@@ -180,6 +180,8 @@ void mpu6500_init(imu_t *imu)
 void mpu6500_accel_scale_config_reset_default(void)
 {
 	set_sys_param_float(IMU_FINISH_CALIB, 0);
+	set_sys_param_float(CAL_ACC0_ID, 0);
+	set_sys_param_float(CAL_ACC1_ID, 0);
 	mpu6500.accel_rescale_x = 1.0f;
 	mpu6500.accel_rescale_y = 1.0f;
 	mpu6500.accel_rescale_z = 1.0f;

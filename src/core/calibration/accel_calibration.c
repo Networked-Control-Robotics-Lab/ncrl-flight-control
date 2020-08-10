@@ -320,6 +320,8 @@ void mavlink_accel_scale_calibration_handler(void)
 			config_imu_accel_scale_calib_setting(x_scale, y_scale, z_scale);
 
 			set_sys_param_float(IMU_FINISH_CALIB, 1.0f);
+			set_sys_param_float(CAL_ACC0_ID, 1);
+			set_sys_param_float(CAL_ACC1_ID, 2);
 			set_sys_param_float(CAL_ACC0_XSCALE, x_scale);
 			set_sys_param_float(CAL_ACC0_YSCALE, y_scale);
 			set_sys_param_float(CAL_ACC0_ZSCALE, z_scale);
@@ -485,6 +487,9 @@ void shell_accel_calibration_handler(void)
 
 			config_imu_accel_scale_calib_setting(x_scale, y_scale, z_scale);
 
+			set_sys_param_float(IMU_FINISH_CALIB, 1.0f);
+			set_sys_param_float(CAL_ACC0_ID, 1);
+			set_sys_param_float(CAL_ACC1_ID, 2);
 			set_sys_param_float(CAL_ACC0_XSCALE, x_scale);
 			set_sys_param_float(CAL_ACC0_YSCALE, y_scale);
 			set_sys_param_float(CAL_ACC0_ZSCALE, z_scale);
@@ -520,7 +525,6 @@ void shell_accel_calibration_handler(void)
 
 	config_imu_accel_offset_calib_setting(x_offset, y_offset, z_offset);
 
-	set_sys_param_float(IMU_FINISH_CALIB, 1.0f);
 	set_sys_param_float(CAL_ACC0_XOFF, x_offset);
 	set_sys_param_float(CAL_ACC0_YOFF, y_offset);
 	set_sys_param_float(CAL_ACC0_ZOFF, z_offset);
