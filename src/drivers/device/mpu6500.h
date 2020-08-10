@@ -66,7 +66,7 @@ enum {
 
 typedef struct {
 	int16_t gyro_bias[3];
-	int16_t accel_bias[3];
+	float accel_bias[3];
 	int accel_fs;
 	int gyro_fs;
 	float accel_scale;
@@ -75,12 +75,6 @@ typedef struct {
 	volatile bool init_finished;
 
 	/* calibration */
-	float gx_min;
-	float gx_max;
-	float gy_min;
-	float gy_max;
-	float gz_min;
-	float gz_max;
 	float accel_rescale_x;
 	float accel_rescale_y;
 	float accel_rescale_z;

@@ -8,6 +8,8 @@
 #include "mpu6500.h"
 #include "lpf.h"
 #include "imu.h"
+#include "sys_param.h"
+#include "common_list.h"
 
 #define IMU_CALIB_SAMPLE_CNT 10000
 
@@ -20,12 +22,6 @@ mpu6500_t mpu6500 = {
 	.gyro_fs = MPU6500_GYRO_FS_2000_DPS,
 	.calib_mode = false,
 	.init_finished = false,
-	.gx_min = -2004,
-	.gx_max = +2017,
-	.gy_min = -1740,
-	.gy_max = +2420,
-	.gz_min = -2110,
-	.gz_max = +2080
 };
 
 static uint8_t mpu6500_read_byte(uint8_t address)
@@ -66,23 +62,23 @@ static void mpu6500_bias_calc(int16_t *gyro, int16_t *accel)
 	static int imu_bias_sampling_cnt = IMU_CALIB_SAMPLE_CNT;
 
 	static float _gyro_bias[3] = {0.0f, 0.0f, 0.0f};
-	static float _accel_bias[3] = {0.0f, 0.0f, 0.0f};
+	//static float _accel_bias[3] = {0.0f, 0.0f, 0.0f};
 
 	_gyro_bias[0] += (float)gyro[0] / (float)IMU_CALIB_SAMPLE_CNT;
 	_gyro_bias[1] += (float)gyro[1] / (float)IMU_CALIB_SAMPLE_CNT;
 	_gyro_bias[2] += (float)gyro[2] / (float)IMU_CALIB_SAMPLE_CNT;
-	_accel_bias[0] += (float)accel[0] / (float)IMU_CALIB_SAMPLE_CNT;
-	_accel_bias[1] += (float)accel[1] / (float)IMU_CALIB_SAMPLE_CNT;
-	_accel_bias[2] += (float)accel[2] / (float)IMU_CALIB_SAMPLE_CNT;
+	//_accel_bias[0] += (float)accel[0] / (float)IMU_CALIB_SAMPLE_CNT;
+	//_accel_bias[1] += (float)accel[1] / (float)IMU_CALIB_SAMPLE_CNT;
+	//_accel_bias[2] += (float)accel[2] / (float)IMU_CALIB_SAMPLE_CNT;
 
 	imu_bias_sampling_cnt--;
 	if(imu_bias_sampling_cnt == 0) {
 		mpu6500.gyro_bias[0] = (int16_t)_gyro_bias[0];
 		mpu6500.gyro_bias[1] = (int16_t)_gyro_bias[1];
 		mpu6500.gyro_bias[2] = (int16_t)_gyro_bias[2];
-		mpu6500.accel_bias[0] = (int16_t)_accel_bias[0];
-		mpu6500.accel_bias[1] = (int16_t)_accel_bias[1];
-		mpu6500.accel_bias[2] = 0;  //(int16_t)(_accel_bias[2] - (-9.8f / mpu6500.accel_scale));
+		//mpu6500.accel_bias[0] = (int16_t)_accel_bias[0];
+		//mpu6500.accel_bias[1] = (int16_t)_accel_bias[1];
+		//mpu6500.accel_bias[2] = 0;  //(int16_t)(_accel_bias[2] - (-9.8f / mpu6500.accel_scale));
 		mpu6500.init_finished = true;
 	}
 }
@@ -96,35 +92,39 @@ void mpu6500_init(imu_t *imu)
 
 	mpu6500_reset();
 
-	float gravity_full_scale = 0.0f;
+	//float gravity_full_scale = 0.0f;
 
 	switch(mpu6500.accel_fs) {
 	case MPU6500_GYRO_FS_2G:
 		mpu6500.accel_scale = 9.8 / 16384.0f;
-		gravity_full_scale = 16384.0f * 2.0f;
+		//gravity_full_scale = 16384.0f * 2.0f;
 		mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x00);
 		break;
 	case MPU6500_GYRO_FS_4G:
 		mpu6500.accel_scale = 9.8f / 8192.0f;
-		gravity_full_scale = 8192.0f * 2.0f;
+		//gravity_full_scale = 8192.0f * 2.0f;
 		mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x08);
 		break;
 	case MPU6500_GYRO_FS_8G:
 		mpu6500.accel_scale = 9.8f / 4096.0f;
-		gravity_full_scale = 4096.0f * 2;
+		//gravity_full_scale = 4096.0f * 2;
 		mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x10);
 		break;
 	case MPU6500_GYRO_FS_16G:
 		mpu6500.accel_scale = 9.8f / 2048.0f;
-		gravity_full_scale = 2048.0f * 2;
+		//gravity_full_scale = 2048.0f * 2;
 		mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x18);
 		break;
 	}
 	blocked_delay_ms(100);
 
-	mpu6500.accel_rescale_x = gravity_full_scale / (mpu6500.gx_max - mpu6500.gx_min);
-	mpu6500.accel_rescale_y = gravity_full_scale / (mpu6500.gy_max - mpu6500.gy_min);
-	mpu6500.accel_rescale_z = gravity_full_scale / (mpu6500.gz_max - mpu6500.gz_min);
+	/* TODO: generate log when error occured */
+	get_sys_param_float(CAL_ACC0_XSCALE, &mpu6500.accel_rescale_x);
+	get_sys_param_float(CAL_ACC0_YSCALE, &mpu6500.accel_rescale_y);
+	get_sys_param_float(CAL_ACC0_ZSCALE, &mpu6500.accel_rescale_z);
+	get_sys_param_float(CAL_ACC0_XOFF, &mpu6500.accel_bias[0]);
+	get_sys_param_float(CAL_ACC0_YOFF, &mpu6500.accel_bias[1]);
+	get_sys_param_float(CAL_ACC0_ZOFF, &mpu6500.accel_bias[2]);
 
 	switch(mpu6500.gyro_fs) {
 	case MPU6500_GYRO_FS_250_DPS:
