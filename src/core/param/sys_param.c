@@ -34,6 +34,17 @@ int get_sys_param_name(int index, char **name)
 	return SYS_PARAM_SUCCEED;
 }
 
+int get_sys_param_hash(int index, unsigned long *param_hash)
+{
+	if((index < 0) || (index > list_last_index)) {
+		return SYS_PARAM_INDEX_OUT_OF_RANGE;
+	}
+
+	*param_hash = sys_param_list[index].hash;
+
+	return SYS_PARAM_SUCCEED;
+}
+
 int get_sys_param_type(int index, uint8_t *type)
 {
 	if((index < 0) || (index > list_last_index)) {

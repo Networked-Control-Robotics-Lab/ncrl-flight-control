@@ -67,6 +67,7 @@ typedef struct {
 void init_sys_param_list(sys_param_data *list, int _list_size);
 int get_sys_param_list_size(void);
 int get_sys_param_name(int index, char **name);
+int get_sys_param_hash(int index, unsigned long *param_hash);
 int get_sys_param_type(int index, uint8_t *type);
 
 int init_sys_param_u8(int index, char *name, uint8_t val);
