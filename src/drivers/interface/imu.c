@@ -5,6 +5,21 @@
 #include "ist8310.h"
 #include "debug_link.h"
 
+bool imu_calibration_not_finished(void)
+{
+	return mpu6500_calibration_not_finished();
+}
+
+void imu_accel_scale_config_reset_default(void)
+{
+	mpu6500_accel_scale_config_reset_default();
+}
+
+void imu_accel_bias_config_reset_default(void)
+{
+	mpu6500_accel_bias_config_reset_default();
+}
+
 void config_imu_accel_scale_calib_setting(float x_scale, float y_scale, float z_scale)
 {
 	mpu6500_config_scale_calib_setting(x_scale, y_scale, z_scale);

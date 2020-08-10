@@ -82,22 +82,32 @@ void rc_yaw_setpoint_handler(float *desired_yaw, float rc_yaw_cmd, float dt)
 
 void task_flight_ctrl(void *param)
 {
+#if (SELECT_CONTROLLER == QUADROTOR_USE_PID)
+	multirotor_pid_controller_init();
+#elif (SELECT_CONTROLLER == QUADROTOR_USE_GEOMETRY)
+	geometry_ctrl_init();
+#endif
+
 	mpu6500_init(&imu);
 	ms5611_init();
 	motor_init();
 
 	ahrs_init();
 
-	multirotor_pid_controller_init();
-	geometry_ctrl_init();
+	rc_safety_protection();
+
+	float desired_yaw = 0.0f;
+
+	while(imu_calibration_not_finished() == true) {
+		led_on(LED_R);
+		led_off(LED_G);
+		led_on(LED_B);
+		freertos_task_delay(2.5);
+	}
 
 	led_off(LED_R);
 	led_off(LED_G);
 	led_on(LED_B);
-
-	rc_safety_protection();
-
-	float desired_yaw = 0.0f;
 
 	while(1) {
 		perf_start(PERF_FLIGHT_CONTROL_TRIGGER_TIME);

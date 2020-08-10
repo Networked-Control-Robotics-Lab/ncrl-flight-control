@@ -22,6 +22,10 @@ typedef struct {
 void config_imu_accel_scale_calib_setting(float x_scale, float y_scale, float z_scale);
 void config_imu_accel_offset_calib_setting(float x_offset, float y_offset, float z_offset);
 
+void imu_accel_scale_config_reset_default(void);
+void imu_accel_bias_config_reset_default(void);
+
+bool imu_calibration_not_finished(void);
 void get_imu_raw_accel(float *accel);
 void get_imu_filtered_accel(float *accel);
 float get_imu_accel_update_freq(void);

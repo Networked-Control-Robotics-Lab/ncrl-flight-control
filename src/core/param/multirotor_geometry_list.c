@@ -30,4 +30,6 @@ void init_multirotor_geometry_param_list(void)
 	init_sys_param_float(MR_GEO_INERTIA_JXX, "INERTIA_JXX", 0.01466f);
 	init_sys_param_float(MR_GEO_INERTIA_JYY, "INERTIA_JYY", 0.01466f);
 	init_sys_param_float(MR_GEO_INERTIA_JZZ, "INERTIA_JZZ", 0.02848f);
+
+	load_param_list_from_flash();
 }

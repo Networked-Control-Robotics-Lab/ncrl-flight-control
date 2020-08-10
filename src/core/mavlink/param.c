@@ -41,18 +41,23 @@ void mav_param_request_read(mavlink_message_t *received_msg)
 	int32_t data_s32;
 	float data_float;
 
-	unsigned long search_hash = hash_djb2((unsigned char *)param_name);
+	/* warning: mavlink char array doesn't deal with string end symbol \0, therefore
+	 * the following preprocessing is required! */
+	char proper_str[50] = {0};
+	strncpy(proper_str, mav_param_rq.param_id, 16);
+
+	unsigned long search_hash = hash_djb2((unsigned char *)proper_str);
 
 	/* find the parameter ground station ask to read */
 	int i;
 	for(i = 0 ; i < param_list_size; i++) {
-		get_sys_param_name(i, &param_name);
-
 		/* use hash code comparison to accelerate parameter searching */
+		get_sys_param_hash(i, &param_hash);
 		if(search_hash != param_hash) continue;
 
 		/* compare paramameter name */
-		if(strcmp(param_name, mav_param_rq.param_id) != 0) continue;
+		get_sys_param_name(i, &param_name);
+		if(strcmp(param_name, proper_str) != 0) continue;
 
 		get_sys_param_type(i, &param_type);
 
@@ -117,19 +122,23 @@ void mav_param_set(mavlink_message_t *received_msg)
 	int32_t data_s32;
 	float data_float;
 
-	unsigned long search_hash = hash_djb2((unsigned char *)param_name);
+	/* warning: mavlink char array doesn't deal with string end symbol \0, therefore
+	 * the following preprocessing is required! */
+	char proper_str[50] = {0};
+	strncpy(proper_str, mav_param_set.param_id, 16);
+
+	unsigned long search_hash = hash_djb2((unsigned char *)proper_str);
 
 	/* find the parameter ground station ask to write */
 	int i;
 	for(i = 0 ; i < param_list_size; i++) {
-		get_sys_param_name(i, &param_name);
-		get_sys_param_hash(i, &param_hash);
-
 		/* use hash code comparison to accelerate parameter searching */
+		get_sys_param_hash(i, &param_hash);
 		if(search_hash != param_hash) continue;
 
 		/* compare paramameter name */
-		if(strcmp(param_name, mav_param_set.param_id) != 0) continue;
+		get_sys_param_name(i, &param_name);
+		if(strcmp(param_name, proper_str) != 0) continue;
 
 		get_sys_param_type(i, &param_type);
 

@@ -82,6 +82,10 @@ typedef struct {
 
 void mpu6500_init(imu_t *imu);
 void mpu6500_int_handler(void);
+bool mpu6500_calibration_not_finished(void);
+
+void mpu6500_accel_scale_config_reset_default(void);
+void mpu6500_accel_bias_config_reset_default(void);
 
 void mpu6500_config_scale_calib_setting(float x_scale, float y_scale, float z_scale);
 void mpu6500_config_offset_calib_setting(float x_offset, float y_offset, float z_offset);

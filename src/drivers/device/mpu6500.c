@@ -1,3 +1,4 @@
+#include "math.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -10,6 +11,7 @@
 #include "imu.h"
 #include "sys_param.h"
 #include "common_list.h"
+#include "led.h"
 
 #define IMU_CALIB_SAMPLE_CNT 10000
 
@@ -83,6 +85,18 @@ static void mpu6500_bias_calc(int16_t *gyro, int16_t *accel)
 	}
 }
 
+bool mpu6500_calibration_not_finished(void)
+{
+	float imu_finished_calib = 0;
+	get_sys_param_float(IMU_FINISH_CALIB, &imu_finished_calib);
+	if(fabs(imu_finished_calib) < 0.001) {
+		return true;
+	} else {
+		return false;
+	}
+
+}
+
 void mpu6500_init(imu_t *imu)
 {
 	imu_mpu6500 = imu;
@@ -119,12 +133,21 @@ void mpu6500_init(imu_t *imu)
 	blocked_delay_ms(100);
 
 	/* TODO: generate log when error occured */
-	get_sys_param_float(CAL_ACC0_XSCALE, &mpu6500.accel_rescale_x);
-	get_sys_param_float(CAL_ACC0_YSCALE, &mpu6500.accel_rescale_y);
-	get_sys_param_float(CAL_ACC0_ZSCALE, &mpu6500.accel_rescale_z);
-	get_sys_param_float(CAL_ACC0_XOFF, &mpu6500.accel_bias[0]);
-	get_sys_param_float(CAL_ACC0_YOFF, &mpu6500.accel_bias[1]);
-	get_sys_param_float(CAL_ACC0_ZOFF, &mpu6500.accel_bias[2]);
+	if(mpu6500_calibration_not_finished() == true) {
+		mpu6500.accel_rescale_x = 1.0f;
+		mpu6500.accel_rescale_y = 1.0f;
+		mpu6500.accel_rescale_z = 1.0f;
+		mpu6500.accel_bias[0] = 0.0f;
+		mpu6500.accel_bias[1] = 0.0f;
+		mpu6500.accel_bias[2] = 0.0f;
+	} else {
+		get_sys_param_float(CAL_ACC0_XSCALE, &mpu6500.accel_rescale_x);
+		get_sys_param_float(CAL_ACC0_YSCALE, &mpu6500.accel_rescale_y);
+		get_sys_param_float(CAL_ACC0_ZSCALE, &mpu6500.accel_rescale_z);
+		get_sys_param_float(CAL_ACC0_XOFF, &mpu6500.accel_bias[0]);
+		get_sys_param_float(CAL_ACC0_YOFF, &mpu6500.accel_bias[1]);
+		get_sys_param_float(CAL_ACC0_ZOFF, &mpu6500.accel_bias[2]);
+	}
 
 	switch(mpu6500.gyro_fs) {
 	case MPU6500_GYRO_FS_250_DPS:
@@ -154,14 +177,30 @@ void mpu6500_init(imu_t *imu)
 	while(mpu6500.init_finished == false);
 }
 
-static void mpu6500_apply_calibration(int16_t *accel_unscaled, int16_t *gyro_unscaled)
+void mpu6500_accel_scale_config_reset_default(void)
 {
-	accel_unscaled[0] = ((float)accel_unscaled[0] - mpu6500.accel_bias[0]) *
-	                    mpu6500.accel_rescale_x;
-	accel_unscaled[1] = ((float)accel_unscaled[1] - mpu6500.accel_bias[1]) *
-	                    mpu6500.accel_rescale_y;
-	accel_unscaled[2] = ((float)accel_unscaled[2] - mpu6500.accel_bias[2]);
+	set_sys_param_float(IMU_FINISH_CALIB, 0);
+	mpu6500.accel_rescale_x = 1.0f;
+	mpu6500.accel_rescale_y = 1.0f;
+	mpu6500.accel_rescale_z = 1.0f;
+}
 
+void mpu6500_accel_bias_config_reset_default(void)
+{
+	mpu6500.accel_bias[0] = 0.0f;
+	mpu6500.accel_bias[1] = 0.0f;
+	mpu6500.accel_bias[2] = 0.0f;
+}
+
+static void mpu6500_accel_apply_calibration(float *accel_scaled)
+{
+	accel_scaled[0] = ((float)accel_scaled[0] * mpu6500.accel_rescale_x) - mpu6500.accel_bias[0];
+	accel_scaled[1] = ((float)accel_scaled[1] * mpu6500.accel_rescale_y) - mpu6500.accel_bias[1];
+	accel_scaled[2] = ((float)accel_scaled[2] * mpu6500.accel_rescale_z) - mpu6500.accel_bias[2];
+}
+
+static void mpu6500_gyro_apply_calibration(int16_t *gyro_unscaled)
+{
 	gyro_unscaled[0] -= mpu6500.gyro_bias[0];
 	gyro_unscaled[1] -= mpu6500.gyro_bias[1];
 	gyro_unscaled[2] -= mpu6500.gyro_bias[2];
@@ -223,38 +262,38 @@ void mpu6500_int_handler(void)
 		return;
 	}
 
-	/* cancel sensor bias and fix slope */
-	if(mpu6500.calib_mode == true) {
-		lpf((float)imu_mpu6500->accel_unscaled[0], &(imu_mpu6500->accel_unscaled_lpf[0]), 0.0001);
-		lpf((float)imu_mpu6500->accel_unscaled[1], &(imu_mpu6500->accel_unscaled_lpf[1]), 0.0001);
-		lpf((float)imu_mpu6500->accel_unscaled[2], &(imu_mpu6500->accel_unscaled_lpf[2]), 0.0001);
-	} else {
-		mpu6500_apply_calibration(imu_mpu6500->accel_unscaled, imu_mpu6500->gyro_unscaled);
-	}
+	/* cancel gyro bias */
+	mpu6500_gyro_apply_calibration(imu_mpu6500->gyro_unscaled);
 
 	/* sensor data unit conversion */
 	mpu6500_accel_convert_to_scale(imu_mpu6500->accel_unscaled, imu_mpu6500->accel_raw);
 	mpu6500_gyro_convert_to_scale(imu_mpu6500->gyro_unscaled, imu_mpu6500->gyro_raw);
 	mpu6500_temp_convert_to_scale(&imu_mpu6500->temp_unscaled, &imu_mpu6500->temp_raw);
 
+	/* cancel accel bias and fix slope */
+	mpu6500_accel_apply_calibration(imu_mpu6500->accel_raw);
+
 	/* low pass filtering for accelerometer, gyroscope do not require this process */
-	lpf(imu_mpu6500->accel_raw[0], &(imu_mpu6500->accel_lpf[0]), 0.02);
-	lpf(imu_mpu6500->accel_raw[1], &(imu_mpu6500->accel_lpf[1]), 0.02);
-	lpf(imu_mpu6500->accel_raw[2], &(imu_mpu6500->accel_lpf[2]), 0.02);
-	lpf(imu_mpu6500->gyro_raw[0], &(imu_mpu6500->gyro_lpf[0]), 0.03);
-	lpf(imu_mpu6500->gyro_raw[1], &(imu_mpu6500->gyro_lpf[1]), 0.03);
-	lpf(imu_mpu6500->gyro_raw[2], &(imu_mpu6500->gyro_lpf[2]), 0.03);
-	//imu_mpu6500->gyro_lpf[0] = imu_mpu6500->gyro_raw[0];
-	//imu_mpu6500->gyro_lpf[1] = imu_mpu6500->gyro_raw[1];
-	//imu_mpu6500->gyro_lpf[2] = imu_mpu6500->gyro_raw[2];
+	lpf(imu_mpu6500->accel_raw[0], &(imu_mpu6500->accel_lpf[0]), 0.03);
+	lpf(imu_mpu6500->accel_raw[1], &(imu_mpu6500->accel_lpf[1]), 0.03);
+	lpf(imu_mpu6500->accel_raw[2], &(imu_mpu6500->accel_lpf[2]), 0.03);
+	imu_mpu6500->gyro_lpf[0] = imu_mpu6500->gyro_raw[0];
+	imu_mpu6500->gyro_lpf[1] = imu_mpu6500->gyro_raw[1];
+	imu_mpu6500->gyro_lpf[2] = imu_mpu6500->gyro_raw[2];
 }
 
 void mpu6500_config_scale_calib_setting(float x_scale, float y_scale, float z_scale)
 {
+	mpu6500.accel_rescale_x = x_scale;
+	mpu6500.accel_rescale_y = y_scale;
+	mpu6500.accel_rescale_z = z_scale;
 }
 
 void mpu6500_config_offset_calib_setting(float x_offset, float y_offset, float z_offset)
 {
+	mpu6500.accel_bias[0] = x_offset;
+	mpu6500.accel_bias[1] = y_offset;
+	mpu6500.accel_bias[2] = z_offset;
 }
 
 void mpu6500_get_raw_accel(float *accel)

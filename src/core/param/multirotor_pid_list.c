@@ -27,4 +27,6 @@ void init_multirotor_pid_param_list(void)
 	init_sys_param_float(MR_PID_GAIN_POS_Z_I, "GAIN_POS_Z_I", 0.0f);
 	init_sys_param_float(MR_PID_GAIN_POS_Z_D, "GAIN_POS_Z_D", 0.1f);
 	init_sys_param_float(MR_PID_HEIGHT_FEEDFOWARD_PWM, "HEIGHT_FEEDFOWARD_PWM", 45.0f);
+
+	load_param_list_from_flash();
 }

@@ -151,6 +151,9 @@ void send_progress_update_message(int stage)
 
 void mavlink_accel_scale_calibration_handler(void)
 {
+	imu_accel_scale_config_reset_default();
+	imu_accel_bias_config_reset_default();
+
 	bool front_finished = false;
 	bool back_finished = false;
 	bool left_finished = false;
@@ -310,17 +313,19 @@ void mavlink_accel_scale_calibration_handler(void)
 		if(front_finished == true && back_finished == true &&
 		    up_finished == true && down_finished == true &&
 		    left_finished == true && right_finished == true) {
-			send_mavlink_calibration_status_text("[cal] calibration done: accel");
-
-			float x_scale = (calib_x_p - calib_x_n) / (2.0f * 9.81);
-			float y_scale = (calib_y_p - calib_y_n) / (2.0f * 9.81);
-			float z_scale = (calib_z_p - calib_z_n) / (2.0f * 9.81);
+			float x_scale = (2.0f * 9.81) / (calib_x_p - calib_x_n);
+			float y_scale = (2.0f * 9.81) / (calib_y_p - calib_y_n);
+			float z_scale = (2.0f * 9.81) / (calib_z_p - calib_z_n);
 
 			config_imu_accel_scale_calib_setting(x_scale, y_scale, z_scale);
 
+			set_sys_param_float(IMU_FINISH_CALIB, 1.0f);
 			set_sys_param_float(CAL_ACC0_XSCALE, x_scale);
 			set_sys_param_float(CAL_ACC0_YSCALE, y_scale);
 			set_sys_param_float(CAL_ACC0_ZSCALE, z_scale);
+			save_param_list_to_flash();
+
+			send_mavlink_calibration_status_text("[cal] calibration done: accel");
 
 			return;
 		}
@@ -329,26 +334,32 @@ void mavlink_accel_scale_calibration_handler(void)
 
 void mavlink_accel_offset_calibration_handler(void)
 {
+	imu_accel_bias_config_reset_default();
+
 	send_mavlink_calibration_status_text("[cal] calibration started: 2 level");
 
 	float accel[3];
 	get_imu_filtered_accel(accel);
 
-	float x_offset = 0.0f - accel[0];
-	float y_offset = 0.0f - accel[1];
-	float z_offset = (-9.81f) - accel[2];
+	float x_offset = accel[0] - 0.0f;
+	float y_offset = accel[1] - 0.0f;
+	float z_offset = accel[2] - (-9.8f);
 
 	config_imu_accel_offset_calib_setting(x_offset, y_offset, z_offset);
 
 	set_sys_param_float(CAL_ACC0_XOFF, x_offset);
 	set_sys_param_float(CAL_ACC0_YOFF, y_offset);
 	set_sys_param_float(CAL_ACC0_ZOFF, z_offset);
+	save_param_list_to_flash();
 
 	send_mavlink_calibration_status_text("[cal] calibration done: level");
 }
 
 void shell_accel_calibration_handler(void)
 {
+	imu_accel_scale_config_reset_default();
+	imu_accel_bias_config_reset_default();
+
 	bool front_finished = false;
 	bool back_finished = false;
 	bool left_finished = false;
@@ -468,9 +479,9 @@ void shell_accel_calibration_handler(void)
 		if(front_finished == true && back_finished == true &&
 		    up_finished == true && down_finished == true &&
 		    left_finished == true && right_finished == true) {
-			float x_scale = (calib_x_p - calib_x_n) / (2.0f * 9.81);
-			float y_scale = (calib_y_p - calib_y_n) / (2.0f * 9.81);
-			float z_scale = (calib_z_p - calib_z_n) / (2.0f * 9.81);
+			float x_scale = (2.0f * 9.81) / (calib_x_p - calib_x_n);
+			float y_scale = (2.0f * 9.81) / (calib_y_p - calib_y_n);
+			float z_scale = (2.0f * 9.81) / (calib_z_p - calib_z_n);
 
 			config_imu_accel_scale_calib_setting(x_scale, y_scale, z_scale);
 
@@ -503,15 +514,17 @@ void shell_accel_calibration_handler(void)
 
 	get_imu_filtered_accel(accel);
 
-	float x_offset = 0.0f - accel[0];
-	float y_offset = 0.0f - accel[1];
-	float z_offset = (-9.81f) - accel[2];
+	float x_offset = accel[0] - 0.0f;
+	float y_offset = accel[1] - 0.0f;
+	float z_offset = accel[2] - (-9.81f);
 
 	config_imu_accel_offset_calib_setting(x_offset, y_offset, z_offset);
 
+	set_sys_param_float(IMU_FINISH_CALIB, 1.0f);
 	set_sys_param_float(CAL_ACC0_XOFF, x_offset);
 	set_sys_param_float(CAL_ACC0_YOFF, y_offset);
 	set_sys_param_float(CAL_ACC0_ZOFF, z_offset);
+	save_param_list_to_flash();
 
 	char s[300] = {0};
 	sprintf(s, "[cal] calibration done: level\n\r"

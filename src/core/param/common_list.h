@@ -2,8 +2,16 @@
 #define __COMMON_LIST_H__
 
 enum {
+	/*********************************************
+	 * ncrl flight controller defined parameters *
+	 *********************************************/
+	IMU_FINISH_CALIB = 0,
+
+	/*****************************
+	 * px4 compatible parameters *
+	 *****************************/
 	/* airframe */
-	MAV_TYPE = 0,
+	MAV_TYPE,
 	/* sensor calibration */
 	CAL_ACC0_EN,
 	CAL_ACC0_ID,
