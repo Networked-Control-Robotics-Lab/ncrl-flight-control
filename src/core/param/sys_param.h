@@ -51,6 +51,8 @@ typedef struct {
 	char *name;
 	uint8_t type;
 
+	unsigned long hash;
+
 	union {
 		uint8_t u8_val; 
 		int8_t s8_val;

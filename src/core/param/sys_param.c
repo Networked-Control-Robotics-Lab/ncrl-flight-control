@@ -3,6 +3,7 @@
 #include "flash.h"
 #include "crc.h"
 #include "sys_param.h"
+#include "hash.h"
 
 sys_param_data *sys_param_list = NULL;
 int list_size = 0;
@@ -136,6 +137,7 @@ int init_sys_param_u8(int index, char *name, uint8_t val)
 	sys_param_list[index].name = name;
 	sys_param_list[index].u8_val = val;
 	sys_param_list[index].type = SYS_PARAM_U8;
+	sys_param_list[index].hash = hash_djb2((unsigned char *)name);
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -149,6 +151,7 @@ int init_sys_param_s8(int index, char *name, int8_t val)
 	sys_param_list[index].name = name;
 	sys_param_list[index].s8_val = val;
 	sys_param_list[index].type = SYS_PARAM_S8;
+	sys_param_list[index].hash = hash_djb2((unsigned char *)name);
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -162,6 +165,7 @@ int init_sys_param_u16(int index, char *name, uint16_t val)
 	sys_param_list[index].name = name;
 	sys_param_list[index].u16_val = val;
 	sys_param_list[index].type = SYS_PARAM_U16;
+	sys_param_list[index].hash = hash_djb2((unsigned char *)name);
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -175,6 +179,7 @@ int init_sys_param_s16(int index, char *name, int16_t val)
 	sys_param_list[index].name = name;
 	sys_param_list[index].s16_val = val;
 	sys_param_list[index].type = SYS_PARAM_S16;
+	sys_param_list[index].hash = hash_djb2((unsigned char *)name);
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -188,6 +193,7 @@ int init_sys_param_u32(int index, char *name, uint32_t val)
 	sys_param_list[index].name = name;
 	sys_param_list[index].u32_val = val;
 	sys_param_list[index].type = SYS_PARAM_U32;
+	sys_param_list[index].hash = hash_djb2((unsigned char *)name);
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -201,6 +207,7 @@ int init_sys_param_s32(int index, char *name, int32_t val)
 	sys_param_list[index].name = name;
 	sys_param_list[index].s32_val = val;
 	sys_param_list[index].type = SYS_PARAM_S32;
+	sys_param_list[index].hash = hash_djb2((unsigned char *)name);
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -214,6 +221,7 @@ int init_sys_param_float(int index, char *name, float val)
 	sys_param_list[index].name = name;
 	sys_param_list[index].float_val = val;
 	sys_param_list[index].type = SYS_PARAM_FLOAT;
+	sys_param_list[index].hash = hash_djb2((unsigned char *)name);
 
 	return SYS_PARAM_SUCCEED;
 }
