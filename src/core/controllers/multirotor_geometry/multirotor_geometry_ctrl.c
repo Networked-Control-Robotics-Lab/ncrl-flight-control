@@ -6,7 +6,7 @@
 #include "sbus_radio.h"
 #include "ahrs.h"
 #include "matrix.h"
-#include "motor_thrust.h"
+#include "motor_thrust_fitting.h"
 #include "motor.h"
 #include "bound.h"
 #include "se3_math.h"

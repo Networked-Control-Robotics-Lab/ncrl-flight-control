@@ -2,7 +2,7 @@
 #include "debug_link.h"
 #include "delay.h"
 #include "multirotor_pid_ctrl.h"
-#include "motor_thrust.h"
+#include "motor_thrust_fitting.h"
 #include "optitrack.h"
 #include "multirotor_geometry_ctrl.h"
 #include "free_fall.h"

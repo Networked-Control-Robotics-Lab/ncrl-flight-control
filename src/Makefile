@@ -72,7 +72,7 @@ SRC+=./core/main.c \
 	./core/controllers/multirotor_pid/multirotor_pid_list.c \
 	./core/controllers/multirotor_geometry/multirotor_geometry_ctrl.c \
 	./core/controllers/multirotor_geometry/multirotor_geometry_list.c \
-	./core/controllers/motor_thrust.c \
+	./core/controllers/motor_thrust_fitting.c \
 	./core/controllers/autopilot.c \
 	./core/tasks/fc_task.c \
 	./core/tasks/mavlink_task.c \
