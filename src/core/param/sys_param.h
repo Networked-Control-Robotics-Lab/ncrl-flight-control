@@ -50,8 +50,9 @@ enum {
 typedef struct {
 	char *name;
 	uint8_t type;
-
 	unsigned long hash;
+
+	void *update_var_ptr;
 
 	union {
 		uint8_t u8_val; 
@@ -69,6 +70,7 @@ int get_sys_param_list_size(void);
 int get_sys_param_name(int index, char **name);
 int get_sys_param_hash(int index, unsigned long *param_hash);
 int get_sys_param_type(int index, uint8_t *type);
+int set_sys_param_update_var_addr(int index, void *var_addr);
 
 int init_sys_param_u8(int index, char *name, uint8_t val);
 int init_sys_param_s8(int index, char *name, int8_t val);

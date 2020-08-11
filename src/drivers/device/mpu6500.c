@@ -22,7 +22,6 @@ mpu6500_t mpu6500 = {
 	.accel_bias = {0, 0, 0},
 	.accel_fs = MPU6500_GYRO_FS_16G,
 	.gyro_fs = MPU6500_GYRO_FS_2000_DPS,
-	.calib_mode = false,
 	.init_finished = false,
 };
 
@@ -119,7 +118,7 @@ void mpu6500_init(imu_t *imu)
 	}
 	blocked_delay_ms(100);
 
-	/* TODO: generate log when error occured */
+	/* load calibration data from parameter list */
 	if(mpu6500_calibration_not_finished() == true) {
 		mpu6500.accel_rescale_x = 1.0f;
 		mpu6500.accel_rescale_y = 1.0f;
@@ -135,6 +134,14 @@ void mpu6500_init(imu_t *imu)
 		get_sys_param_float(CAL_ACC0_YOFF, &mpu6500.accel_bias[1]);
 		get_sys_param_float(CAL_ACC0_ZOFF, &mpu6500.accel_bias[2]);
 	}
+
+	/* link mpu6500 variables with parameter list */
+	set_sys_param_update_var_addr(CAL_ACC0_XSCALE, &mpu6500.accel_rescale_x);
+	set_sys_param_update_var_addr(CAL_ACC0_YSCALE, &mpu6500.accel_rescale_y);
+	set_sys_param_update_var_addr(CAL_ACC0_ZSCALE, &mpu6500.accel_rescale_z);
+	set_sys_param_update_var_addr(CAL_ACC0_XOFF, &mpu6500.accel_bias[0]);
+	set_sys_param_update_var_addr(CAL_ACC0_XOFF, &mpu6500.accel_bias[1]);
+	set_sys_param_update_var_addr(CAL_ACC0_XOFF, &mpu6500.accel_bias[2]);
 
 	switch(mpu6500.gyro_fs) {
 	case MPU6500_GYRO_FS_250_DPS:

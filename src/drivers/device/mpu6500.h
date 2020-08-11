@@ -71,7 +71,6 @@ typedef struct {
 	int gyro_fs;
 	float accel_scale;
 	float gyro_scale;
-	bool calib_mode;
 	volatile bool init_finished;
 
 	/* calibration */

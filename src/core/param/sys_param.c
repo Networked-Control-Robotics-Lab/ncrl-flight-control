@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 #include "flash.h"
@@ -52,6 +53,17 @@ int get_sys_param_type(int index, uint8_t *type)
 	}
 
 	*type = sys_param_list[index].type;
+
+	return SYS_PARAM_SUCCEED;
+}
+
+int set_sys_param_update_var_addr(int index, void *var_addr)
+{
+	if((index < 0) || (index > list_last_index)) {
+		return SYS_PARAM_INDEX_OUT_OF_RANGE;
+	}
+
+	sys_param_list[index].update_var_ptr = var_addr;
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -149,6 +161,7 @@ int init_sys_param_u8(int index, char *name, uint8_t val)
 	sys_param_list[index].u8_val = val;
 	sys_param_list[index].type = SYS_PARAM_U8;
 	sys_param_list[index].hash = hash_djb2((unsigned char *)name);
+	sys_param_list[index].update_var_ptr = NULL;
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -163,6 +176,7 @@ int init_sys_param_s8(int index, char *name, int8_t val)
 	sys_param_list[index].s8_val = val;
 	sys_param_list[index].type = SYS_PARAM_S8;
 	sys_param_list[index].hash = hash_djb2((unsigned char *)name);
+	sys_param_list[index].update_var_ptr = NULL;
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -177,6 +191,7 @@ int init_sys_param_u16(int index, char *name, uint16_t val)
 	sys_param_list[index].u16_val = val;
 	sys_param_list[index].type = SYS_PARAM_U16;
 	sys_param_list[index].hash = hash_djb2((unsigned char *)name);
+	sys_param_list[index].update_var_ptr = NULL;
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -191,6 +206,7 @@ int init_sys_param_s16(int index, char *name, int16_t val)
 	sys_param_list[index].s16_val = val;
 	sys_param_list[index].type = SYS_PARAM_S16;
 	sys_param_list[index].hash = hash_djb2((unsigned char *)name);
+	sys_param_list[index].update_var_ptr = NULL;
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -205,6 +221,7 @@ int init_sys_param_u32(int index, char *name, uint32_t val)
 	sys_param_list[index].u32_val = val;
 	sys_param_list[index].type = SYS_PARAM_U32;
 	sys_param_list[index].hash = hash_djb2((unsigned char *)name);
+	sys_param_list[index].update_var_ptr = NULL;
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -219,6 +236,7 @@ int init_sys_param_s32(int index, char *name, int32_t val)
 	sys_param_list[index].s32_val = val;
 	sys_param_list[index].type = SYS_PARAM_S32;
 	sys_param_list[index].hash = hash_djb2((unsigned char *)name);
+	sys_param_list[index].update_var_ptr = NULL;
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -233,6 +251,7 @@ int init_sys_param_float(int index, char *name, float val)
 	sys_param_list[index].float_val = val;
 	sys_param_list[index].type = SYS_PARAM_FLOAT;
 	sys_param_list[index].hash = hash_djb2((unsigned char *)name);
+	sys_param_list[index].update_var_ptr = NULL;
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -248,6 +267,10 @@ int set_sys_param_u8(int index, uint8_t val)
 
 	sys_param_list[index].u8_val = val;
 
+	if(sys_param_list[index].update_var_ptr != NULL) {
+		*(uint8_t *)sys_param_list[index].update_var_ptr = val;
+	}
+
 	return SYS_PARAM_SUCCEED;
 }
 
@@ -257,6 +280,10 @@ int set_sys_param_s8(int index, int8_t val)
 		return SYS_PARAM_INDEX_OUT_OF_RANGE;
 	}
 	sys_param_list[index].s8_val = val;
+
+	if(sys_param_list[index].update_var_ptr != NULL) {
+		*(int8_t *)sys_param_list[index].update_var_ptr = val;
+	}
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -269,6 +296,10 @@ int set_sys_param_u16(int index, uint16_t val)
 
 	sys_param_list[index].u16_val = val;
 
+	if(sys_param_list[index].update_var_ptr != NULL) {
+		*(uint16_t *)sys_param_list[index].update_var_ptr = val;
+	}
+
 	return SYS_PARAM_SUCCEED;
 }
 
@@ -279,6 +310,10 @@ int set_sys_param_s16(int index, int16_t val)
 	}
 
 	sys_param_list[index].s16_val = val;
+
+	if(sys_param_list[index].update_var_ptr != NULL) {
+		*(int16_t *)sys_param_list[index].update_var_ptr = val;
+	}
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -291,6 +326,10 @@ int set_sys_param_u32(int index, uint32_t val)
 
 	sys_param_list[index].u32_val = val;
 
+	if(sys_param_list[index].update_var_ptr != NULL) {
+		*(uint32_t *)sys_param_list[index].update_var_ptr = val;
+	}
+
 	return SYS_PARAM_SUCCEED;
 }
 
@@ -302,6 +341,10 @@ int set_sys_param_s32(int index, int32_t val)
 
 	sys_param_list[index].s32_val = val;
 
+	if(sys_param_list[index].update_var_ptr != NULL) {
+		*(int32_t *)sys_param_list[index].update_var_ptr = val;
+	}
+
 	return SYS_PARAM_SUCCEED;
 }
 
@@ -312,6 +355,10 @@ int set_sys_param_float(int index, float val)
 	}
 
 	sys_param_list[index].float_val = val;
+
+	if(sys_param_list[index].update_var_ptr != NULL) {
+		*(float *)sys_param_list[index].update_var_ptr = val;
+	}
 
 	return SYS_PARAM_SUCCEED;
 }
