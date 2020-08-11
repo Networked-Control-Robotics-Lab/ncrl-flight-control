@@ -68,8 +68,10 @@ SRC+=./core/main.c \
 	./core/estimators/comp_ahrs.c \
 	./core/estimators/madgwick_ahrs.c \
 	./core/estimators/free_fall.c \
-	./core/controllers/multirotor_pid_ctrl.c \
-	./core/controllers/multirotor_geometry_ctrl.c \
+	./core/controllers/multirotor_pid/multirotor_pid_ctrl.c \
+	./core/controllers/multirotor_pid/multirotor_pid_list.c \
+	./core/controllers/multirotor_geometry/multirotor_geometry_ctrl.c \
+	./core/controllers/multirotor_geometry/multirotor_geometry_list.c \
 	./core/controllers/motor_thrust.c \
 	./core/controllers/autopilot.c \
 	./core/tasks/fc_task.c \
@@ -89,8 +91,6 @@ SRC+=./core/main.c \
 	./core/perf/perf.c \
 	./core/param/sys_param.c \
 	./core/param/common_list.c \
-	./core/param/multirotor_geometry_list.c \
-	./core/param/multirotor_pid_list.c \
 	./core/radio_events/multirotor_rc.c \
 	./core/calibration/accel_calibration.c \
 	./core/calibration/compass_calibration.c \
@@ -131,6 +131,8 @@ CFLAGS+=-I./platform
 CFLAGS+=-I./core
 CFLAGS+=-I./core/estimators
 CFLAGS+=-I./core/controllers
+CFLAGS+=-I./core/controllers/multirotor_pid
+CFLAGS+=-I./core/controllers/multirotor_geometry
 CFLAGS+=-I./core/debug_link
 CFLAGS+=-I./core/tasks
 CFLAGS+=-I./core/mavlink
