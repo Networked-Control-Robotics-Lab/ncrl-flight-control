@@ -1,7 +1,7 @@
 #include <stdint.h>
-
 #include "delay.h"
 #include "motor.h"
+#include "bound.h"
 
 void set_motor_pwm_pulse(volatile uint32_t *motor, uint16_t pulse)
 {
@@ -12,6 +12,40 @@ void set_motor_pwm_pulse(volatile uint32_t *motor, uint16_t pulse)
 	} else {
 		*motor = pulse;
 	}
+}
+
+/* input range: 0~100 [%] */
+void set_motor_value(volatile uint32_t *motor, float percentage)
+{
+	bound_float(&percentage, 100.0f, 0.0f);
+
+	float scale = percentage / 100.0f;
+	float pwm_val = REVERSIBLE_MOTOR_PULSE_MIN;
+
+	pwm_val = (REVERSIBLE_MOTOR_PULSE_STOP - REVERSIBLE_MOTOR_PULSE_MIN) * scale +
+	          REVERSIBLE_MOTOR_PULSE_STOP;
+
+	*motor = (uint32_t)pwm_val;
+}
+
+
+/* input range: -100~100 [%] */
+void set_reversible_motor_value(volatile uint32_t *motor, float percentage)
+{
+	bound_float(&percentage, 100.0f, -100.0f);
+
+	float scale = percentage / 100.0f;
+	float pwm_val = REVERSIBLE_MOTOR_PULSE_STOP;
+
+	if(percentage <= 0) {
+		pwm_val = (REVERSIBLE_MOTOR_PULSE_STOP - REVERSIBLE_MOTOR_PULSE_MIN) * scale +
+		          REVERSIBLE_MOTOR_PULSE_STOP;
+	} else if(percentage > 0) {
+		pwm_val = (REVERSIBLE_MOTOR_PULSE_MAX - REVERSIBLE_MOTOR_PULSE_STOP) * scale +
+		          REVERSIBLE_MOTOR_PULSE_STOP;
+	}
+
+	*motor = (uint32_t)pwm_val;
 }
 
 void motor_init(void)

@@ -3,11 +3,14 @@
 
 #include "stm32f4xx.h"
 
-#define DJI_ESC_PULSE_MAX 20750
-#define DJI_ESC_PULSE_MIN 10900
+/* non-reversible esc pwm range*/
+#define MOTOR_PULSE_MAX 20750
+#define MOTOR_PULSE_MIN 10900
 
-#define MOTOR_PULSE_MAX DJI_ESC_PULSE_MAX
-#define MOTOR_PULSE_MIN DJI_ESC_PULSE_MIN
+/* reversible esc pwm range (we use blue robotics' basic esc here) */
+#define REVERSIBLE_MOTOR_PULSE_MAX  19000 //1900ms
+#define REVERSIBLE_MOTOR_PULSE_STOP 15000 //1500ms
+#define REVERSIBLE_MOTOR_PULSE_MIN  11000 //1100ms
 
 #define MOTOR1 &TIM4->CCR1
 #define MOTOR2 &TIM4->CCR2
