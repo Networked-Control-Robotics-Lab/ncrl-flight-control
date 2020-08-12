@@ -92,6 +92,7 @@ static void mav_cmd_preflight_storage(mavlink_message_t *received_msg,
 {
 	/* reset parmater list to default */
 	if((int)cmd_long->param1 == 2) {
+		//TODO: should be allowed only in preflight mode!
 		reset_sys_param_list_to_default();
 		save_param_list_to_flash();
 	}
