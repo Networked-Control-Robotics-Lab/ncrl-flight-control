@@ -31,6 +31,7 @@
 #include "crc.h"
 #include "ublox_m8n.h"
 #include "calibration_task.h"
+#include "flash.h"
 
 extern SemaphoreHandle_t flight_ctl_semphr;
 
@@ -53,6 +54,7 @@ int main(void)
 	flight_ctl_semphr = xSemaphoreCreateBinary();
 
 	/* driver initialization */
+	flash_init();
 	crc_init();
 	led_init();
 	ext_switch_init();

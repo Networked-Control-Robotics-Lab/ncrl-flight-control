@@ -4,6 +4,8 @@
 #include "flash.h"
 #include "uart.h"
 
+SemaphoreHandle_t flash_write_semphr;
+
 uint32_t get_flash_sector_num(uint32_t addr)
 {
 	uint32_t sector = 0;
@@ -37,8 +39,16 @@ uint32_t get_flash_sector_num(uint32_t addr)
 	return sector;
 }
 
+void flash_init(void)
+{
+	flash_write_semphr = xSemaphoreCreateBinary();
+	xSemaphoreGive(flash_write_semphr);
+}
+
 int flash_write(uint32_t start_addr, uint32_t *data_arr, volatile int size)
 {
+	xSemaphoreTake(flash_write_semphr, portMAX_DELAY); //critical section start
+
 	FLASH_Unlock();
 
 	volatile uint32_t end_addr = start_addr + size;
@@ -80,6 +90,9 @@ int flash_write(uint32_t start_addr, uint32_t *data_arr, volatile int size)
 	}
 
 	FLASH_Lock();
+
+	xSemaphoreTake(flash_write_semphr, portMAX_DELAY); //critical section end
+
 	return FLASH_WR_SUCCEED;
 }
 

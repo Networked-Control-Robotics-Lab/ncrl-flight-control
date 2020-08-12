@@ -21,7 +21,9 @@ enum {
 	FLASH_ERASE_TIMEOUT = 3
 } FLASH_RET_VAL;
 
+void flash_init(void);
 int flash_write(uint32_t start_addr, uint32_t *data_arr, int size);
+
 void debug_print_flash(uint32_t start_address, int size);
 
 #endif
