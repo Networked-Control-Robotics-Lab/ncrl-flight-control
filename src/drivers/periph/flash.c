@@ -91,7 +91,7 @@ int flash_write(uint32_t start_addr, uint32_t *data_arr, volatile int size)
 
 	FLASH_Lock();
 
-	xSemaphoreTake(flash_write_semphr, portMAX_DELAY); //critical section end
+	xSemaphoreGive(flash_write_semphr); //critical section end
 
 	return FLASH_WR_SUCCEED;
 }
