@@ -19,6 +19,14 @@ void init_sys_param_list(sys_param_data *list, int _list_size)
 	}
 }
 
+void reset_sys_param_list_to_default(void)
+{
+	int i;
+	for(i = 0; i < list_size; i++) {
+		sys_param_list[i].curr = sys_param_list[i]._default;
+	}
+}
+
 int get_sys_param_list_size(void)
 {
 	return list_size;

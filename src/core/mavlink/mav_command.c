@@ -7,6 +7,7 @@
 #include "compass_calibration.h"
 #include "../mavlink/publisher.h"
 #include "calibration_task.h"
+#include "sys_param.h"
 
 static void mavlink_send_capability(void)
 {
@@ -86,6 +87,16 @@ static void mav_cmd_preflight_calibration(mavlink_message_t *received_msg,
 	}
 }
 
+static void mav_cmd_preflight_storage(mavlink_message_t *received_msg,
+                                      mavlink_command_long_t *cmd_long)
+{
+	/* reset parmater list to default */
+	if((int)cmd_long->param1 == 2) {
+		reset_sys_param_list_to_default();
+		save_param_list_to_flash();
+	}
+}
+
 void mav_command_long(mavlink_message_t *received_msg)
 {
 	mavlink_command_long_t mav_command_long;
@@ -108,6 +119,9 @@ void mav_command_long(mavlink_message_t *received_msg)
 		break;
 	case MAV_CMD_PREFLIGHT_CALIBRATION:
 		mav_cmd_preflight_calibration(received_msg, &mav_command_long);
+		break;
+	case MAV_CMD_PREFLIGHT_STORAGE:
+		mav_cmd_preflight_storage(received_msg, &mav_command_long);
 		break;
 	}
 }
