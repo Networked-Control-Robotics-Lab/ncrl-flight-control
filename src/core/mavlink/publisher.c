@@ -20,7 +20,7 @@ void send_mavlink_msg_to_uart(mavlink_message_t *msg)
 
 void send_mavlink_heartbeat(void)
 {
-	uint32_t custom_mode = 65566;
+	uint32_t custom_mode = 65536;
 	uint8_t base_mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
 	base_mode |= MAV_MODE_STABILIZE_DISARMED;
 	//base_mode |= MAV_MODE_STABILIZE_ARMED;
