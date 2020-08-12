@@ -82,6 +82,15 @@ void motor_thrust_test(float ch1_motor_percentage)
 	while(1);
 }
 
+void reversible_thrust_test(float ch1_motor_percentage)
+{
+	set_reversible_motor_value(MOTOR1, 0);
+	blocked_delay_ms(3000);
+
+	set_reversible_motor_value(MOTOR1, ch1_motor_percentage);
+	while(1);
+}
+
 void esc_calibrate(void)
 {
 	set_motor_pwm_pulse(MOTOR1, MOTOR_PULSE_MAX);

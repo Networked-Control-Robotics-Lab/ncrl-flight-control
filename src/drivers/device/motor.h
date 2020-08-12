@@ -24,6 +24,8 @@ void motor_init(void);
 void motor_halt(void);
 
 void motor_thrust_test(float ch1_motor_percentage);
+void reversible_thrust_test(float ch1_motor_percentage);
+
 void esc_calibrate(void);
 
 #endif
