@@ -325,6 +325,8 @@ void mavlink_accel_scale_calibration_handler(void)
 			set_sys_param_float(CAL_ACC0_XSCALE, x_scale);
 			set_sys_param_float(CAL_ACC0_YSCALE, y_scale);
 			set_sys_param_float(CAL_ACC0_ZSCALE, z_scale);
+
+			/* update parameter list to flash */
 			save_param_list_to_flash();
 
 			send_mavlink_calibration_status_text("[cal] calibration done: accel");
@@ -352,6 +354,8 @@ void mavlink_accel_offset_calibration_handler(void)
 	set_sys_param_float(CAL_ACC0_XOFF, x_offset);
 	set_sys_param_float(CAL_ACC0_YOFF, y_offset);
 	set_sys_param_float(CAL_ACC0_ZOFF, z_offset);
+
+	/* update parameter list to flash */
 	save_param_list_to_flash();
 
 	send_mavlink_calibration_status_text("[cal] calibration done: level");
@@ -528,6 +532,8 @@ void shell_accel_calibration_handler(void)
 	set_sys_param_float(CAL_ACC0_XOFF, x_offset);
 	set_sys_param_float(CAL_ACC0_YOFF, y_offset);
 	set_sys_param_float(CAL_ACC0_ZOFF, z_offset);
+
+	/* update parameter list to flash */
 	save_param_list_to_flash();
 
 	char s[300] = {0};

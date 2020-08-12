@@ -246,6 +246,9 @@ void mav_param_set(mavlink_message_t *received_msg)
 			return;
 		}
 
+		/* update parameter list to flash */
+		save_param_list_to_flash();
+
 		mavlink_msg_param_value_pack_chan(1, 1, MAVLINK_COMM_1, &msg, param_name,
 		                                  param_val, param_type, param_list_size, i);
 		send_mavlink_msg_to_uart(&msg);
