@@ -1,5 +1,5 @@
-#ifndef __MULTIROTOR_GEOMETRY_H__
-#define __MULTIROTOR_GEOMETRY_H__
+#ifndef __MULTIROTOR_GEOMETRY_PARAM_H__
+#define __MULTIROTOR_GEOMETRY_PARAM_H__
 
 #include "common_list.h"
 

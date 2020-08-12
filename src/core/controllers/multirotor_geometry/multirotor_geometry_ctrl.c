@@ -15,7 +15,7 @@
 #include "ahrs.h"
 #include "autopilot.h"
 #include "debug_link.h"
-#include "multirotor_geometry_list.h"
+#include "multirotor_geometry_param.h"
 #include "localization_system.h"
 #include "multirotor_rc.h"
 
