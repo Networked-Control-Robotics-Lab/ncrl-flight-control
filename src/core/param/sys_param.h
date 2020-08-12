@@ -47,6 +47,16 @@ enum {
 	SYS_PARAM_FLASH_SIZE_INCORRECT = 5
 } SYS_PARAM_FLASH_RETVAL;
 
+typedef union {
+	uint8_t u8_val; 
+	int8_t s8_val;
+	uint16_t u16_val;
+	int16_t s16_val;
+	uint32_t u32_val;
+	int32_t s32_val;
+	float float_val;
+} param_data_t;
+
 typedef struct {
 	char *name;
 	uint8_t type;
@@ -54,15 +64,8 @@ typedef struct {
 
 	void *update_var_ptr;
 
-	union {
-		uint8_t u8_val; 
-		int8_t s8_val;
-		uint16_t u16_val;
-		int16_t s16_val;
-		uint32_t u32_val;
-		int32_t s32_val;
-		float float_val;
-	};
+	param_data_t curr;
+	param_data_t _default;
 } sys_param_data;
 
 void init_sys_param_list(sys_param_data *list, int _list_size);

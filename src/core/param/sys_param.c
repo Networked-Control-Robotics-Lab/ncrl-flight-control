@@ -77,7 +77,7 @@ int get_sys_param_u8(int index, uint8_t *retval)
 		return SYS_PARAM_INDEX_OUT_OF_RANGE;
 	}
 
-	*retval = sys_param_list[index].u8_val;
+	*retval = sys_param_list[index].curr.u8_val;
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -88,7 +88,7 @@ int get_sys_param_s8(int index, int8_t *retval)
 		return SYS_PARAM_INDEX_OUT_OF_RANGE;
 	}
 
-	*retval = sys_param_list[index].s8_val;
+	*retval = sys_param_list[index].curr.s8_val;
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -99,7 +99,7 @@ int get_sys_param_u16(int index, uint16_t *retval)
 		return SYS_PARAM_INDEX_OUT_OF_RANGE;
 	}
 
-	*retval = sys_param_list[index].u16_val;
+	*retval = sys_param_list[index].curr.u16_val;
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -110,7 +110,7 @@ int get_sys_param_s16(int index, int16_t *retval)
 		return SYS_PARAM_INDEX_OUT_OF_RANGE;
 	}
 
-	*retval = sys_param_list[index].s16_val;
+	*retval = sys_param_list[index].curr.s16_val;
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -121,7 +121,7 @@ int get_sys_param_u32(int index, uint32_t *retval)
 		return SYS_PARAM_INDEX_OUT_OF_RANGE;
 	}
 
-	*retval = sys_param_list[index].u32_val;
+	*retval = sys_param_list[index].curr.u32_val;
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -132,7 +132,7 @@ int get_sys_param_s32(int index, int32_t *retval)
 		return SYS_PARAM_INDEX_OUT_OF_RANGE;
 	}
 
-	*retval = sys_param_list[index].s32_val;
+	*retval = sys_param_list[index].curr.s32_val;
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -143,7 +143,7 @@ int get_sys_param_float(int index, float *retval)
 		return SYS_PARAM_INDEX_OUT_OF_RANGE;
 	}
 
-	*retval = sys_param_list[index].float_val;
+	*retval = sys_param_list[index].curr.float_val;
 
 	return SYS_PARAM_SUCCEED;
 }
@@ -158,7 +158,8 @@ int init_sys_param_u8(int index, char *name, uint8_t val)
 	}
 
 	sys_param_list[index].name = name;
-	sys_param_list[index].u8_val = val;
+	sys_param_list[index].curr.u8_val = val;
+	sys_param_list[index]._default.u8_val = val;
 	sys_param_list[index].type = SYS_PARAM_U8;
 	sys_param_list[index].hash = hash_djb2((unsigned char *)name);
 	sys_param_list[index].update_var_ptr = NULL;
@@ -173,7 +174,8 @@ int init_sys_param_s8(int index, char *name, int8_t val)
 	}
 
 	sys_param_list[index].name = name;
-	sys_param_list[index].s8_val = val;
+	sys_param_list[index].curr.s8_val = val;
+	sys_param_list[index]._default.s8_val = val;
 	sys_param_list[index].type = SYS_PARAM_S8;
 	sys_param_list[index].hash = hash_djb2((unsigned char *)name);
 	sys_param_list[index].update_var_ptr = NULL;
@@ -188,7 +190,8 @@ int init_sys_param_u16(int index, char *name, uint16_t val)
 	}
 
 	sys_param_list[index].name = name;
-	sys_param_list[index].u16_val = val;
+	sys_param_list[index].curr.u16_val = val;
+	sys_param_list[index]._default.u16_val = val;
 	sys_param_list[index].type = SYS_PARAM_U16;
 	sys_param_list[index].hash = hash_djb2((unsigned char *)name);
 	sys_param_list[index].update_var_ptr = NULL;
@@ -203,7 +206,8 @@ int init_sys_param_s16(int index, char *name, int16_t val)
 	}
 
 	sys_param_list[index].name = name;
-	sys_param_list[index].s16_val = val;
+	sys_param_list[index].curr.s16_val = val;
+	sys_param_list[index]._default.s16_val = val;
 	sys_param_list[index].type = SYS_PARAM_S16;
 	sys_param_list[index].hash = hash_djb2((unsigned char *)name);
 	sys_param_list[index].update_var_ptr = NULL;
@@ -218,7 +222,8 @@ int init_sys_param_u32(int index, char *name, uint32_t val)
 	}
 
 	sys_param_list[index].name = name;
-	sys_param_list[index].u32_val = val;
+	sys_param_list[index].curr.u32_val = val;
+	sys_param_list[index]._default.u32_val = val;
 	sys_param_list[index].type = SYS_PARAM_U32;
 	sys_param_list[index].hash = hash_djb2((unsigned char *)name);
 	sys_param_list[index].update_var_ptr = NULL;
@@ -233,7 +238,8 @@ int init_sys_param_s32(int index, char *name, int32_t val)
 	}
 
 	sys_param_list[index].name = name;
-	sys_param_list[index].s32_val = val;
+	sys_param_list[index].curr.s32_val = val;
+	sys_param_list[index]._default.s32_val = val;
 	sys_param_list[index].type = SYS_PARAM_S32;
 	sys_param_list[index].hash = hash_djb2((unsigned char *)name);
 	sys_param_list[index].update_var_ptr = NULL;
@@ -248,7 +254,8 @@ int init_sys_param_float(int index, char *name, float val)
 	}
 
 	sys_param_list[index].name = name;
-	sys_param_list[index].float_val = val;
+	sys_param_list[index].curr.float_val = val;
+	sys_param_list[index]._default.float_val = val;
 	sys_param_list[index].type = SYS_PARAM_FLOAT;
 	sys_param_list[index].hash = hash_djb2((unsigned char *)name);
 	sys_param_list[index].update_var_ptr = NULL;
@@ -265,7 +272,7 @@ int set_sys_param_u8(int index, uint8_t val)
 		return SYS_PARAM_INDEX_OUT_OF_RANGE;
 	}
 
-	sys_param_list[index].u8_val = val;
+	sys_param_list[index].curr.u8_val = val;
 
 	if(sys_param_list[index].update_var_ptr != NULL) {
 		*(uint8_t *)sys_param_list[index].update_var_ptr = val;
@@ -279,7 +286,7 @@ int set_sys_param_s8(int index, int8_t val)
 	if((index < 0) || (index > list_last_index)) {
 		return SYS_PARAM_INDEX_OUT_OF_RANGE;
 	}
-	sys_param_list[index].s8_val = val;
+	sys_param_list[index].curr.s8_val = val;
 
 	if(sys_param_list[index].update_var_ptr != NULL) {
 		*(int8_t *)sys_param_list[index].update_var_ptr = val;
@@ -294,7 +301,7 @@ int set_sys_param_u16(int index, uint16_t val)
 		return SYS_PARAM_INDEX_OUT_OF_RANGE;
 	}
 
-	sys_param_list[index].u16_val = val;
+	sys_param_list[index].curr.u16_val = val;
 
 	if(sys_param_list[index].update_var_ptr != NULL) {
 		*(uint16_t *)sys_param_list[index].update_var_ptr = val;
@@ -309,7 +316,7 @@ int set_sys_param_s16(int index, int16_t val)
 		return SYS_PARAM_INDEX_OUT_OF_RANGE;
 	}
 
-	sys_param_list[index].s16_val = val;
+	sys_param_list[index].curr.s16_val = val;
 
 	if(sys_param_list[index].update_var_ptr != NULL) {
 		*(int16_t *)sys_param_list[index].update_var_ptr = val;
@@ -324,7 +331,7 @@ int set_sys_param_u32(int index, uint32_t val)
 		return SYS_PARAM_INDEX_OUT_OF_RANGE;
 	}
 
-	sys_param_list[index].u32_val = val;
+	sys_param_list[index].curr.u32_val = val;
 
 	if(sys_param_list[index].update_var_ptr != NULL) {
 		*(uint32_t *)sys_param_list[index].update_var_ptr = val;
@@ -339,7 +346,7 @@ int set_sys_param_s32(int index, int32_t val)
 		return SYS_PARAM_INDEX_OUT_OF_RANGE;
 	}
 
-	sys_param_list[index].s32_val = val;
+	sys_param_list[index].curr.s32_val = val;
 
 	if(sys_param_list[index].update_var_ptr != NULL) {
 		*(int32_t *)sys_param_list[index].update_var_ptr = val;
@@ -354,7 +361,7 @@ int set_sys_param_float(int index, float val)
 		return SYS_PARAM_INDEX_OUT_OF_RANGE;
 	}
 
-	sys_param_list[index].float_val = val;
+	sys_param_list[index].curr.float_val = val;
 
 	if(sys_param_list[index].update_var_ptr != NULL) {
 		*(float *)sys_param_list[index].update_var_ptr = val;
@@ -375,25 +382,25 @@ int save_param_list_to_flash(void)
 	for(i = 0; i < list_size; i++) {
 		switch(sys_param_list[i].type) {
 		case SYS_PARAM_U8:
-			memcpy(&save_buf[i + 2], &sys_param_list[i].u8_val, sizeof(uint8_t));
+			memcpy(&save_buf[i + 2], &sys_param_list[i].curr.u8_val, sizeof(uint8_t));
 			break;
 		case SYS_PARAM_S8:
-			memcpy(&save_buf[i + 2], &sys_param_list[i].s8_val, sizeof(int8_t));
+			memcpy(&save_buf[i + 2], &sys_param_list[i].curr.s8_val, sizeof(int8_t));
 			break;
 		case SYS_PARAM_U16:
-			memcpy(&save_buf[i + 2], &sys_param_list[i].u16_val, sizeof(uint16_t));
+			memcpy(&save_buf[i + 2], &sys_param_list[i].curr.u16_val, sizeof(uint16_t));
 			break;
 		case SYS_PARAM_S16:
-			memcpy(&save_buf[i + 2], &sys_param_list[i].s16_val, sizeof(int16_t));
+			memcpy(&save_buf[i + 2], &sys_param_list[i].curr.s16_val, sizeof(int16_t));
 			break;
 		case SYS_PARAM_U32:
-			memcpy(&save_buf[i + 2], &sys_param_list[i].u32_val, sizeof(uint32_t));
+			memcpy(&save_buf[i + 2], &sys_param_list[i].curr.u32_val, sizeof(uint32_t));
 			break;
 		case SYS_PARAM_S32:
-			memcpy(&save_buf[i + 2], &sys_param_list[i].s32_val, sizeof(int32_t));
+			memcpy(&save_buf[i + 2], &sys_param_list[i].curr.s32_val, sizeof(int32_t));
 			break;
 		case SYS_PARAM_FLOAT:
-			memcpy(&save_buf[i + 2], &sys_param_list[i].float_val, sizeof(float));
+			memcpy(&save_buf[i + 2], &sys_param_list[i].curr.float_val, sizeof(float));
 			break;
 		}
 	}
@@ -455,25 +462,25 @@ int load_param_list_from_flash(void)
 	for(i = 0; i < list_size; i++) {
 		switch(sys_param_list[i].type) {
 		case SYS_PARAM_U8:
-			memcpy(&sys_param_list[i].u8_val, &read_buf[i], sizeof(uint8_t));
+			memcpy(&sys_param_list[i].curr.u8_val, &read_buf[i], sizeof(uint8_t));
 			break;
 		case SYS_PARAM_S8:
-			memcpy(&sys_param_list[i].s8_val, &read_buf[i], sizeof(int8_t));
+			memcpy(&sys_param_list[i].curr.s8_val, &read_buf[i], sizeof(int8_t));
 			break;
 		case SYS_PARAM_U16:
-			memcpy(&sys_param_list[i].u16_val, &read_buf[i], sizeof(uint16_t));
+			memcpy(&sys_param_list[i].curr.u16_val, &read_buf[i], sizeof(uint16_t));
 			break;
 		case SYS_PARAM_S16:
-			memcpy(&sys_param_list[i].s16_val, &read_buf[i], sizeof(int16_t));
+			memcpy(&sys_param_list[i].curr.s16_val, &read_buf[i], sizeof(int16_t));
 			break;
 		case SYS_PARAM_U32:
-			memcpy(&sys_param_list[i].u32_val, &read_buf[i], sizeof(uint32_t));
+			memcpy(&sys_param_list[i].curr.u32_val, &read_buf[i], sizeof(uint32_t));
 			break;
 		case SYS_PARAM_S32:
-			memcpy(&sys_param_list[i].s32_val, &read_buf[i], sizeof(int32_t));
+			memcpy(&sys_param_list[i].curr.s32_val, &read_buf[i], sizeof(int32_t));
 			break;
 		case SYS_PARAM_FLOAT:
-			memcpy(&sys_param_list[i].float_val, &read_buf[i], sizeof(float));
+			memcpy(&sys_param_list[i].curr.float_val, &read_buf[i], sizeof(float));
 			break;
 		}
 	}
