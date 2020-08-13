@@ -4,7 +4,7 @@
 /* using polynomial functions for thrust curve line fitting */
 float thrust_max = 845.0f; //[g]
 float coeff_c_to_t[6] = {-2842.8f, 3951.7f, -1925.4f, 1381.3f, 257.37f, -7.0118f};
-float coeff_t_to_c[6] = {1.169e-14, 2.264e-11, 1.697e-08, -6.715e-06, 2.336e-03, 3.082e-02};
+float coeff_t_to_c[6] = {1.169e-14, -2.264e-11, 1.697e-08, -6.715e-06, 2.336e-03, 3.082e-02};
 
 //FIXME: Current range is 0~0.1 rather than 0%~100%
 float convert_motor_cmd_to_thrust(float percentage)
