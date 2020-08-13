@@ -6,6 +6,10 @@ void init_common_params(void)
 	/* imu finished calibration */
 	INIT_SYS_PARAM_FLOAT(IMU_FINISH_CALIB, 0);
 
+	/* user assigned ahrs offset */
+	INIT_SYS_PARAM_FLOAT(ROLL_ANG_OFFSET, 0);
+	INIT_SYS_PARAM_FLOAT(PITCH_ANG_OFFSET, 0);
+
 	/* airframe */
 	INIT_SYS_PARAM_FLOAT(MAV_TYPE, 2);
 	/* mavlink */

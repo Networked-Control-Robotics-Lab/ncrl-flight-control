@@ -6,6 +6,8 @@ enum {
 	 * ncrl flight controller defined parameters *
 	 *********************************************/
 	IMU_FINISH_CALIB = 0,
+	ROLL_ANG_OFFSET,
+	PITCH_ANG_OFFSET,
 
 	/*****************************
 	 * px4 compatible parameters *
