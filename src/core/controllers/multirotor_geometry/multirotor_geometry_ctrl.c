@@ -25,7 +25,6 @@
 #define COEFFICIENT_YAW 1.0f
 
 #define newton_to_grams_force(n) (n * 101.97f) //[newton * m] to [gram force * m]
-#define g_to_kg(w) (w * 0.001)
 
 MAT_ALLOC(J, 3, 3);
 MAT_ALLOC(R, 3, 3);
@@ -130,7 +129,7 @@ void geometry_ctrl_init(void)
 	_mat_(J)[2*3 + 2] = 0.02848f; //Izz [kg*m^2]
 
 	/* uav mass */
-	uav_mass = 1150.0f; //[g]
+	uav_mass = 1.15f; //[kg]
 
 	/* attitude controller */
 	/* roll gains */
@@ -300,9 +299,9 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	float force_ff_ned[3] = {0.0f};
 	float accel_ff_ned[3] = {0.0f};
 	assign_vector_3x1_eun_to_ned(accel_ff_ned, autopilot.wp_now.acc_feedforward);
-	force_ff_ned[0] = newton_to_grams_force(g_to_kg(uav_mass) * accel_ff_ned[0]);
-	force_ff_ned[1] = newton_to_grams_force(g_to_kg(uav_mass) * accel_ff_ned[1]);
-	force_ff_ned[2] = newton_to_grams_force(g_to_kg(uav_mass) * accel_ff_ned[2]);
+	force_ff_ned[0] = newton_to_grams_force(uav_mass * accel_ff_ned[0]);
+	force_ff_ned[1] = newton_to_grams_force(uav_mass * accel_ff_ned[1]);
+	force_ff_ned[2] = newton_to_grams_force(uav_mass * accel_ff_ned[2]);
 
 	tracking_error_integral[0] += k_tracking_i_gain[0] * (pos_error[0]) * dt;
 	tracking_error_integral[1] += k_tracking_i_gain[1] * (pos_error[1]) * dt;
@@ -314,7 +313,7 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 
 	/* the output force unit is gram force [gf], which is equal to the value of the mass,
 	 * it should be refined later since it may cause ambiguity */
-	float uav_weight = uav_mass;
+	float uav_weight = uav_mass * 1000; //FIXME: refine force init from [g] to [N]
 
 	_mat_(kxex_kvev_mge3_mxd_dot_dot)[0] = -kpx*pos_error[0] - kvx*vel_error[0] +
 	                                       force_ff_ned[0] - tracking_error_integral[0];
