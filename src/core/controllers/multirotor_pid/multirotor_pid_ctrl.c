@@ -76,23 +76,23 @@ void multirotor_pid_controller_init(void)
 	pid_yaw.output_max = 35.0f;
 
 	/* positon and velocity controllers */
-	pid_pos_x.kp = 0.15f;
-	pid_pos_x.ki = 0.006f;
-	pid_pos_x.kd = 0.067f;
+	pid_pos_x.kp = 15.0f;
+	pid_pos_x.ki = 0.6f;
+	pid_pos_x.kd = 6.7f;
 	pid_pos_x.output_min = -25.0f;
 	pid_pos_x.output_max = +25.0f;
 
-	pid_pos_y.kp = 0.15f;
-	pid_pos_y.ki = 0.006f;
-	pid_pos_y.kd = 0.067f;
+	pid_pos_y.kp = 15.0f;
+	pid_pos_y.ki = 0.6f;
+	pid_pos_y.kd = 6.7f;
 	pid_pos_y.output_min = -25.0f;
 	pid_pos_y.output_max = +25.0f;
 
-	pid_alt.kp = 3.5f;
+	pid_alt.kp = 350.0f;
 	pid_alt.ki = 0.0f;
 	pid_alt.kd = 0.0f;
 
-	pid_alt_vel.kp = 0.1f;
+	pid_alt_vel.kp = 10.0f;
 	pid_alt_vel.ki = 0.0f;
 	pid_alt_vel.kd = 0.0f;
 	pid_alt_vel.feedfoward = 45.0f; //% of basis throttle power against the gravity

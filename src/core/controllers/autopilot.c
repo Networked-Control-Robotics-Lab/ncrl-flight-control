@@ -33,10 +33,10 @@ void autopilot_init(autopilot_t *_autopilot)
 	autopilot_ptr->mode = AUTOPILOT_MANUAL_FLIGHT_MODE;
 	autopilot_ptr->armed = false;
 	autopilot_ptr->motor_locked = false;
-	autopilot_ptr->landing_speed = 0.13;                 //XXX: fix unit
-	autopilot_ptr->takeoff_speed = 0.08;                 //XXX: fix unit
-	autopilot_ptr->takeoff_height = 100;          //[cm] //XXX: fix unit
-	autopilot_ptr->landing_accept_height = 15.0f; //[cm] //XXX: fix unit
+	autopilot_ptr->landing_speed = 0.0013;        //[m/s]
+	autopilot_ptr->takeoff_speed = 0.0008;        //[m/s]
+	autopilot_ptr->takeoff_height = 1.0f;         //[m]
+	autopilot_ptr->landing_accept_height = 0.15f; //[m]
 }
 
 void autopilot_update_uav_state(float pos_enu[3], float vel_enu[3])
@@ -134,15 +134,14 @@ void autopilot_assign_trajactory_waypoint(float time)
 	float *ax_traj_coeff = autopilot_ptr->trajectory_segments[curr_traj].ax_poly_coeff;
 	float *ay_traj_coeff = autopilot_ptr->trajectory_segments[curr_traj].ay_poly_coeff;
 
-	//TODO: unifiy the unit
 	/* update position/velocity setpoint to controller */
-	float x_target = 100.0f * calc_7th_polynomial(x_traj_coeff, time);
-	float y_target = 100.0f * calc_7th_polynomial(y_traj_coeff, time);
-	float vx_target = 100.0f * calc_6th_polynomial(vx_traj_coeff, time);
-	float vy_target = 100.0f * calc_6th_polynomial(vy_traj_coeff, time);
+	float x_target = calc_7th_polynomial(x_traj_coeff, time);
+	float y_target = calc_7th_polynomial(y_traj_coeff, time);
+	float vx_target = calc_6th_polynomial(vx_traj_coeff, time);
+	float vy_target = calc_6th_polynomial(vy_traj_coeff, time);
 	float vz_target = 0.0f;
-	float ax_feedforward = 100.0f * calc_5th_polynomial(ax_traj_coeff, time);
-	float ay_feedforward = 100.0f * calc_5th_polynomial(ay_traj_coeff, time);
+	float ax_feedforward = calc_5th_polynomial(ax_traj_coeff, time);
+	float ay_feedforward = calc_5th_polynomial(ay_traj_coeff, time);
 	float az_feedforward = 0;
 
 	autopilot_assign_pos_target_x(x_target);
@@ -157,10 +156,9 @@ void autopilot_assign_trajactory_waypoint(float time)
 
 void autopilot_set_enu_rectangular_fence(float origin[3], float lx, float ly, float height)
 {
-	//XXX: fix unit
-	autopilot_ptr->geo_fence.lx = lx * 100.0f; //convet unit from [m] to [cm]
-	autopilot_ptr->geo_fence.ly = ly * 100.0f;
-	autopilot_ptr->geo_fence.height = height * 100.0f;
+	autopilot_ptr->geo_fence.lx = lx; //[m]
+	autopilot_ptr->geo_fence.ly = ly; //[m]
+	autopilot_ptr->geo_fence.height = height; //[m]
 }
 
 static bool autopilot_test_point_in_rectangular_fence(float p[3])

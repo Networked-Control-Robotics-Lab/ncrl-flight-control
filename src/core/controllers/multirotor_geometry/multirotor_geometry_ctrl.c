@@ -25,7 +25,6 @@
 #define COEFFICIENT_YAW 1.0f
 
 #define newton_to_grams_force(n) (n * 101.97f) //[newton * m] to [gram force * m]
-#define cm_to_m(l) (l * 0.01)
 #define g_to_kg(w) (w * 0.001)
 
 MAT_ALLOC(J, 3, 3);
@@ -149,14 +148,14 @@ void geometry_ctrl_init(void)
 
 	/* tracking controller */
 	/* x-axis tracking gains */
-	kpx = 9.5f;
-	kvx = 7.0f;
+	kpx = 950.0f;
+	kvx = 700.0f;
 	/* y-axis tracking gains */
-	kpy = 11.5f;
-	kvy = 8.0f;
+	kpy = 1150.0f;
+	kvy = 800.0f;
 	/* z-axis tracking gains */
-	kpz = 8.7f;
-	kvz = 4.0f;
+	kpz = 870.0f;
+	kvz = 400.0f;
 
 	k_tracking_i_gain[0] = 0.0f;
 	k_tracking_i_gain[1] = 0.0f;
@@ -298,13 +297,12 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	vel_error[1] = curr_vel_ned[1] - vel_des_ned[1];
 	vel_error[2] = curr_vel_ned[2] - vel_des_ned[2];
 
-	/* XXX: refine the unit! */
 	float force_ff_ned[3] = {0.0f};
 	float accel_ff_ned[3] = {0.0f};
 	assign_vector_3x1_eun_to_ned(accel_ff_ned, autopilot.wp_now.acc_feedforward);
-	force_ff_ned[0] = newton_to_grams_force(g_to_kg(uav_mass) * cm_to_m(accel_ff_ned[0]));
-	force_ff_ned[1] = newton_to_grams_force(g_to_kg(uav_mass) * cm_to_m(accel_ff_ned[1]));
-	force_ff_ned[2] = newton_to_grams_force(g_to_kg(uav_mass) * cm_to_m(accel_ff_ned[2]));
+	force_ff_ned[0] = newton_to_grams_force(g_to_kg(uav_mass) * accel_ff_ned[0]);
+	force_ff_ned[1] = newton_to_grams_force(g_to_kg(uav_mass) * accel_ff_ned[1]);
+	force_ff_ned[2] = newton_to_grams_force(g_to_kg(uav_mass) * accel_ff_ned[2]);
 
 	tracking_error_integral[0] += k_tracking_i_gain[0] * (pos_error[0]) * dt;
 	tracking_error_integral[1] += k_tracking_i_gain[1] * (pos_error[1]) * dt;
@@ -576,7 +574,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	lock_motor |= check_motor_lock_condition(rc->throttle < 10.0f &&
 	                autopilot_is_manual_flight_mode());
 	//lock motor if current height is lower than auto-landing threshold value
-	lock_motor |= check_motor_lock_condition(autopilot.wp_now.pos[2] < 15.0f &&
+	lock_motor |= check_motor_lock_condition(autopilot.wp_now.pos[2] < 0.15f &&
 	                autopilot_is_auto_flight_mode());
 	//lock motor if motors are locked by autopilot
 	lock_motor |= check_motor_lock_condition(autopilot_is_motor_locked_mode());

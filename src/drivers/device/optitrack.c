@@ -184,10 +184,14 @@ void optitrack_read_vel(float *vel_enu)
 
 void send_optitrack_position_debug_message(debug_msg_t *payload)
 {
+	float px = optitrack.pos[0] * 100.0f; //[cm]
+	float py = optitrack.pos[1] * 100.0f; //[cm]
+	float pz = optitrack.pos[2] * 100.0f; //[cm]
+
 	pack_debug_debug_message_header(payload, MESSAGE_ID_OPTITRACK_POSITION);
-	pack_debug_debug_message_float(&optitrack.pos[0], payload);
-	pack_debug_debug_message_float(&optitrack.pos[1], payload);
-	pack_debug_debug_message_float(&optitrack.pos[2], payload);
+	pack_debug_debug_message_float(&px, payload);
+	pack_debug_debug_message_float(&py, payload);
+	pack_debug_debug_message_float(&pz, payload);
 }
 
 void send_optitrack_quaternion_debug_message(debug_msg_t *payload)
@@ -201,12 +205,19 @@ void send_optitrack_quaternion_debug_message(debug_msg_t *payload)
 
 void send_optitrack_velocity_debug_message(debug_msg_t *payload)
 {
+	float vx_raw = optitrack.vel_raw[0] * 100.0f; //[cm/s]
+	float vy_raw = optitrack.vel_raw[1] * 100.0f; //[cm/s]
+	float vz_raw = optitrack.vel_raw[2] * 100.0f; //[cm/s]
+	float vx_filtered = optitrack.vel_filtered[0] * 100.0f; //[cm/s]
+	float vy_filtered = optitrack.vel_filtered[1] * 100.0f; //[cm/s]
+	float vz_filtered = optitrack.vel_filtered[2] * 100.0f; //[cm/s]
+
 	pack_debug_debug_message_header(payload, MESSAGE_ID_OPTITRACK_VELOCITY);
-	pack_debug_debug_message_float(&optitrack.vel_raw[0], payload);
-	pack_debug_debug_message_float(&optitrack.vel_raw[1], payload);
-	pack_debug_debug_message_float(&optitrack.vel_raw[2], payload);
-	pack_debug_debug_message_float(&optitrack.vel_filtered[0], payload);
-	pack_debug_debug_message_float(&optitrack.vel_filtered[1], payload);
-	pack_debug_debug_message_float(&optitrack.vel_filtered[2], payload);
+	pack_debug_debug_message_float(&vx_raw, payload);
+	pack_debug_debug_message_float(&vy_raw, payload);
+	pack_debug_debug_message_float(&vz_raw, payload);
+	pack_debug_debug_message_float(&vx_filtered, payload);
+	pack_debug_debug_message_float(&vy_filtered, payload);
+	pack_debug_debug_message_float(&vz_filtered, payload);
 	pack_debug_debug_message_float(&optitrack.recv_freq, payload);
 }

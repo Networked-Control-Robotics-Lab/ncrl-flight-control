@@ -10,10 +10,10 @@
 typedef struct {
 	uint8_t id;
 
-	/* position [cm] */
+	/* position [m] */
 	float pos[3];
 
-	/* velocity (numerical onboard calcuation) */
+	/* velocity (numerical differentiation) [m/s] */
 	float vel_raw[3];
 	float vel_filtered[3];
 
