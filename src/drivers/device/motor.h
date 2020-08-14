@@ -20,6 +20,7 @@
 #define MOTOR6 &TIM4->CCR4
 
 void set_motor_pwm_pulse(volatile uint32_t *motor, uint16_t pulse);
+void set_motor_value(volatile uint32_t *motor, float percentage);
 void motor_init(void);
 void motor_halt(void);
 

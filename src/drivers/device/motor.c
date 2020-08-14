@@ -14,16 +14,15 @@ void set_motor_pwm_pulse(volatile uint32_t *motor, uint16_t pulse)
 	}
 }
 
-/* input range: 0~100 [%] */
+/* input range: 0~1 (since 1% means 0.01) */
 void set_motor_value(volatile uint32_t *motor, float percentage)
 {
-	bound_float(&percentage, 100.0f, 0.0f);
+	bound_float(&percentage, 1.0f, 0.0f);
 
-	float scale = percentage / 100.0f;
 	float pwm_val = REVERSIBLE_MOTOR_PULSE_MIN;
 
-	pwm_val = (REVERSIBLE_MOTOR_PULSE_STOP - REVERSIBLE_MOTOR_PULSE_MIN) * scale +
-	          REVERSIBLE_MOTOR_PULSE_STOP;
+	pwm_val = (MOTOR_PULSE_MAX - MOTOR_PULSE_MIN) * percentage +
+	          MOTOR_PULSE_MIN;
 
 	*motor = (uint32_t)pwm_val;
 }

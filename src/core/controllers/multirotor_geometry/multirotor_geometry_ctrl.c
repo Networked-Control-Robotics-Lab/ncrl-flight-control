@@ -422,37 +422,26 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	output_moments[2] = -krz*_mat_(eR)[2] -kwz*_mat_(eW)[2] + newton_to_grams_force(_mat_(inertia_effect)[2]);
 }
 
-#define l_div_4_pos (+0.25f * (1.0f / MOTOR_TO_CG_LENGTH_M))
-#define l_div_4_neg (-0.25f * (1.0f / MOTOR_TO_CG_LENGTH_M))
-#define b_div_4_pos (+0.25f * (1.0f / COEFFICIENT_YAW))
-#define b_div_4_neg (-0.25f * (1.0f / COEFFICIENT_YAW))
+#define l_div_4 (0.25f * (1.0f / MOTOR_TO_CG_LENGTH_M))
+#define b_div_4 (+0.25f * (1.0f / COEFFICIENT_YAW))
 void mr_geometry_ctrl_thrust_allocation(float *moment, float total_force)
 {
-	float motor_pwm[4], motor_force[4];
-
+	/* quadrotor thrust allocation */
 	float distributed_force = total_force *= 0.25; //split force to 4 motors
+	float motor_force[4];
+	motor_force[0] = -l_div_4 * moment[0] + l_div_4 * moment[1] +
+	                 -b_div_4 * moment[2] + distributed_force;
+	motor_force[1] = +l_div_4 * moment[0] + l_div_4 * moment[1] +
+	                 +b_div_4 * moment[2] + distributed_force;
+	motor_force[2] = +l_div_4 * moment[0] - l_div_4 * moment[1] +
+	                 -b_div_4 * moment[2] + distributed_force;
+	motor_force[3] = -l_div_4 * moment[0] - l_div_4 * moment[1] +
+	                 +b_div_4 * moment[2] + distributed_force;
 
-	motor_force[0] = l_div_4_neg * moment[0] + l_div_4_pos * moment[1] + b_div_4_neg * moment[2] + distributed_force;
-	motor_force[1] = l_div_4_pos * moment[0] + l_div_4_pos * moment[1] + b_div_4_pos * moment[2] + distributed_force;
-	motor_force[2] = l_div_4_pos * moment[0] + l_div_4_neg * moment[1] + b_div_4_neg * moment[2] + distributed_force;
-	motor_force[3] = l_div_4_neg * moment[0] + l_div_4_neg * moment[1] + b_div_4_pos * moment[2] + distributed_force;
-
-	/* convert force to pwm */
-	float percentage_to_pwm = (MOTOR_PULSE_MAX - MOTOR_PULSE_MIN);
-	motor_pwm[0] = convert_motor_thrust_to_cmd(motor_force[0]) * percentage_to_pwm + MOTOR_PULSE_MIN;
-	motor_pwm[1] = convert_motor_thrust_to_cmd(motor_force[1]) * percentage_to_pwm + MOTOR_PULSE_MIN;
-	motor_pwm[2] = convert_motor_thrust_to_cmd(motor_force[2]) * percentage_to_pwm + MOTOR_PULSE_MIN;
-	motor_pwm[3] = convert_motor_thrust_to_cmd(motor_force[3]) * percentage_to_pwm + MOTOR_PULSE_MIN;
-
-	bound_float(&motor_pwm[0], MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
-	bound_float(&motor_pwm[1], MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
-	bound_float(&motor_pwm[2], MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
-	bound_float(&motor_pwm[3], MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
-
-	set_motor_pwm_pulse(MOTOR1, (uint16_t)(motor_pwm[0]));
-	set_motor_pwm_pulse(MOTOR2, (uint16_t)(motor_pwm[1]));
-	set_motor_pwm_pulse(MOTOR3, (uint16_t)(motor_pwm[2]));
-	set_motor_pwm_pulse(MOTOR4, (uint16_t)(motor_pwm[3]));
+	set_motor_value(MOTOR1, convert_motor_thrust_to_cmd(motor_force[0]));
+	set_motor_value(MOTOR2, convert_motor_thrust_to_cmd(motor_force[1]));
+	set_motor_value(MOTOR3, convert_motor_thrust_to_cmd(motor_force[2]));
+	set_motor_value(MOTOR4, convert_motor_thrust_to_cmd(motor_force[3]));
 }
 
 void rc_mode_handler_geometry_ctrl(radio_t *rc)
@@ -555,7 +544,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 		                     localization_available);
 
 		/* generate total thrust for quadrotor using rc in manual mode */
-		control_force = 4.0f * convert_motor_cmd_to_thrust(rc->throttle / 100.0f); //FIXME
+		control_force = 4.0f * convert_motor_cmd_to_thrust(rc->throttle * 0.01 /* [%] */);
 	}
 
 	if(rc->safety == true) {
