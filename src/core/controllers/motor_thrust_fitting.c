@@ -18,6 +18,7 @@ float convert_motor_cmd_to_thrust(float percentage)
 	float x_pow4 = x_pow3 * x;
 	float x_pow5 = x_pow4 * x;
 
+	/* 5-th polynomial fitting, input:pwm percentage, output:gram force */
 	float thrust = coeff_c_to_t[0] * x_pow5 +
 	               coeff_c_to_t[1] * x_pow4 +
 	               coeff_c_to_t[2] * x_pow3 +
@@ -27,7 +28,8 @@ float convert_motor_cmd_to_thrust(float percentage)
 
 	bound_float(&thrust, thrust_max, 0);
 
-	//TODO: convert thrust unit from [g.f] to [N]
+	//convert thrust unit from [g.f] to [N]
+	thrust *= 0.00980665;
 
 	return thrust;
 }
@@ -36,10 +38,12 @@ float convert_motor_cmd_to_thrust(float percentage)
  * output: control command, 0%~100% (which means the output variable "percentage" varies between 0~1) */
 float convert_motor_thrust_to_cmd(float thrust)
 {
-	//TODO: convert thrust unit from [N] to [g.f]
-
 	bound_float(&thrust, thrust_max, 0.0f);
 
+	//convert thrust unit from [N] to [g.f]
+	thrust *= 101.97;
+
+	/* 5-th polynomial fitting, input:gram force, output:pwm percentage */
 	float x = thrust;
 	float x_pow2 = x * x;
 	float x_pow3 = x_pow2 * x;

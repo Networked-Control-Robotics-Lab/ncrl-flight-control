@@ -24,8 +24,6 @@
 #define MOTOR_TO_CG_LENGTH_M (MOTOR_TO_CG_LENGTH * 0.01) //[m]
 #define COEFFICIENT_YAW 1.0f
 
-#define newton_to_grams_force(n) (n * 101.97f) //[newton * m] to [gram force * m]
-
 MAT_ALLOC(J, 3, 3);
 MAT_ALLOC(R, 3, 3);
 MAT_ALLOC(Rd, 3, 3);
@@ -133,17 +131,17 @@ void geometry_ctrl_init(void)
 
 	/* attitude controller */
 	/* roll gains */
-	krx = 300.0f;
-	kwx = 37.0f;
+	krx = 2.95f;
+	kwx = 0.36;
 	/* pitch gains */
-	kry = 300.0f;
-	kwy = 37.0f;
+	kry = 2.95f;
+	kwy = 0.36f;
 	/* yaw gains */
-	krz = 2900.0f;
-	kwz = 200.0;
+	krz = 28.4f;
+	kwz = 1.96;
 	/* yaw rate gains
 	 * if heading sensor is not presented then switch to yaw rate control mode */
-	yaw_rate_ctrl_gain = 2750.0f;
+	yaw_rate_ctrl_gain = 26.9f;
 
 	/* tracking controller */
 	/* x-axis tracking gains */
@@ -273,9 +271,9 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 #endif
 
 	/* control input M1, M2, M3 */
-	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0] + newton_to_grams_force(_mat_(inertia_effect)[0]);
-	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1] + newton_to_grams_force(_mat_(inertia_effect)[1]);
-	output_moments[2] = -_krz*_mat_(eR)[2] -_kwz*_mat_(eW)[2] + newton_to_grams_force(_mat_(inertia_effect)[2]);
+	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0] + _mat_(inertia_effect)[0];
+	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1] + _mat_(inertia_effect)[1];
+	output_moments[2] = -_krz*_mat_(eR)[2] -_kwz*_mat_(eW)[2] + _mat_(inertia_effect)[2];
 }
 
 void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *curr_pos_ned,
@@ -299,9 +297,9 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	float force_ff_ned[3] = {0.0f};
 	float accel_ff_ned[3] = {0.0f};
 	assign_vector_3x1_eun_to_ned(accel_ff_ned, autopilot.wp_now.acc_feedforward);
-	force_ff_ned[0] = newton_to_grams_force(uav_mass * accel_ff_ned[0]);
-	force_ff_ned[1] = newton_to_grams_force(uav_mass * accel_ff_ned[1]);
-	force_ff_ned[2] = newton_to_grams_force(uav_mass * accel_ff_ned[2]);
+	force_ff_ned[0] = uav_mass * accel_ff_ned[0];
+	force_ff_ned[1] = uav_mass * accel_ff_ned[1];
+	force_ff_ned[2] = uav_mass * accel_ff_ned[2];
 
 	tracking_error_integral[0] += k_tracking_i_gain[0] * (pos_error[0]) * dt;
 	tracking_error_integral[1] += k_tracking_i_gain[1] * (pos_error[1]) * dt;
@@ -417,9 +415,9 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	_mat_(inertia_effect)[2] = _mat_(WJW)[2];
 
 	/* control input M1, M2, M3 */
-	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0] + newton_to_grams_force(_mat_(inertia_effect)[0]);
-	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1] + newton_to_grams_force(_mat_(inertia_effect)[1]);
-	output_moments[2] = -krz*_mat_(eR)[2] -kwz*_mat_(eW)[2] + newton_to_grams_force(_mat_(inertia_effect)[2]);
+	output_moments[0] = -krx*_mat_(eR)[0] -kwx*_mat_(eW)[0] + _mat_(inertia_effect)[0];
+	output_moments[1] = -kry*_mat_(eR)[1] -kwy*_mat_(eW)[1] + _mat_(inertia_effect)[1];
+	output_moments[2] = -krz*_mat_(eR)[2] -kwz*_mat_(eW)[2] + _mat_(inertia_effect)[2];
 }
 
 #define l_div_4 (0.25f * (1.0f / MOTOR_TO_CG_LENGTH_M))
