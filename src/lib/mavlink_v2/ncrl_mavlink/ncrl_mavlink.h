@@ -53,8 +53,10 @@ typedef enum POLYNOMIAL_TRAJECTORY_ACK_VALUES
    TRAJECTORY_ACK_OK=0, /* Trajectory set succeeded | */
    TRAJECTORY_ACK_BUSY=1, /* Trajectory set failed, UAV is busy | */
    TRAJECTORY_ACK_LIST_EMPTY=2, /* Trajectory set failed, UAV trajectory list is empty | */
-   TRAJECTORY_ACK_ERROR=3, /* Trajectory set failed, undefined/universal type error | */
-   POLYNOMIAL_TRAJECTORY_ACK_VALUES_ENUM_END=4, /*  | */
+   TRAJECTORY_ACK_LIST_FULL=3, /* Trajectory set failed, UAV trajectory list is full | */
+   TRAJECTORY_ACK_LIST_TOO_LARGE=4, /* Trajectory set failed, UAV trajectory list is too large | */
+   TRAJECTORY_ACK_ERROR=5, /* Trajectory set failed, undefined/universal type error | */
+   POLYNOMIAL_TRAJECTORY_ACK_VALUES_ENUM_END=6, /*  | */
 } POLYNOMIAL_TRAJECTORY_ACK_VALUES;
 #endif
 

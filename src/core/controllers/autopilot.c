@@ -403,7 +403,7 @@ int autopilot_set_yaw_trajectory(int index, float *yaw_traj_coeff, float fligt_t
 int autopilot_config_trajectory_following(int traj_num, bool z_traj, bool yaw_traj)
 {
 	if(traj_num >= WAYPOINT_NUM_MAX) {
-		return AUTOPILOT_TRAJ_LIST_FULL;
+		return AUTOPILOT_TRAJ_LIST_TOO_LARGE;
 	}
 
 	if(autopilot_ptr->mode == AUTOPILOT_TRAJECTORY_FOLLOWING_MODE) {
