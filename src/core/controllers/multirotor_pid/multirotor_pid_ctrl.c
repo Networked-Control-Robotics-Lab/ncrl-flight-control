@@ -70,7 +70,7 @@ void multirotor_pid_controller_init(void)
 
 	pid_yaw.kp = 0.3f;
 	pid_yaw.ki = 0.0f;
-	pid_yaw.kd = -0.15f;
+	pid_yaw.kd = 0.15f;
 	pid_yaw.setpoint = 0.0f;
 	pid_yaw.output_min = -35.0f;
 	pid_yaw.output_max = 35.0f;
@@ -146,7 +146,7 @@ void yaw_pd_control(pid_control_t *pid, float desired_heading, float ahrs_yaw, f
 		}
 	}
 
-	pid->error_derivative = yaw_rate;
+	pid->error_derivative = -yaw_rate;
 	pid->p_final = pid->kp * pid->error_current;
 	pid->d_final = pid->kd * pid->error_derivative;
 	pid->output = pid->p_final + pid->d_final;
@@ -312,7 +312,7 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desire
 	if(pid_pos_x.enable == true && pid_pos_y.enable == true && optitrack_available() == true) {
 		/* auto-flight */
 		final_roll_cmd = nav_ctl_pitch_command; //enu-y direction (north) control
-		final_pitch_cmd = -nav_ctl_roll_command; //enu-x direction (east) controll  XXX:fix sign!
+		final_pitch_cmd = -nav_ctl_roll_command; //enu-x direction (east) control  XXX:fix sign!
 	} else {
 		/* manual flight */
 		final_roll_cmd = -rc->roll;
