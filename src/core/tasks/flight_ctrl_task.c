@@ -31,16 +31,16 @@
 
 extern optitrack_t optitrack;
 
-SemaphoreHandle_t flight_ctl_semphr;
+SemaphoreHandle_t flight_ctrl_semphr;
 
 imu_t imu;
 ahrs_t ahrs;
 radio_t rc;
 
-void flight_ctl_semaphore_handler(void)
+void flight_ctrl_semaphore_handler(void)
 {
 	static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	xSemaphoreGiveFromISR(flight_ctl_semphr, &xHigherPriorityTaskWoken);
+	xSemaphoreGiveFromISR(flight_ctrl_semphr, &xHigherPriorityTaskWoken);
 	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }
 
@@ -111,7 +111,7 @@ void task_flight_ctrl(void *param)
 
 	while(1) {
 		perf_start(PERF_FLIGHT_CONTROL_TRIGGER_TIME);
-		while(xSemaphoreTake(flight_ctl_semphr, 9) == pdFALSE);
+		while(xSemaphoreTake(flight_ctrl_semphr, 9) == pdFALSE);
 
 		//gpio_on(EXT_SW);
 		perf_start(PERF_FLIGHT_CONTROL_LOOP);

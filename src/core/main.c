@@ -33,7 +33,7 @@
 #include "calibration_task.h"
 #include "flash.h"
 
-extern SemaphoreHandle_t flight_ctl_semphr;
+extern SemaphoreHandle_t flight_ctrl_semphr;
 
 extern TaskHandle_t calib_task_handle;
 
@@ -51,7 +51,7 @@ int main(void)
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 
 	/* freertos initialization */
-	flight_ctl_semphr = xSemaphoreCreateBinary();
+	flight_ctrl_semphr = xSemaphoreCreateBinary();
 
 	/* driver initialization */
 	flash_init();

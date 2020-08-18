@@ -38,7 +38,7 @@ void timer12_init(void)
 
 void TIM8_BRK_TIM12_IRQHandler(void)
 {
-	static int flight_ctl_cnt = FLIGHT_CTL_PRESCALER_RELOAD;
+	static int flight_ctrl_cnt = FLIGHT_CTL_PRESCALER_RELOAD;
 	//static int led_ctrl_cnt = LED_CTRL_PRESCALER_RELOAD;
 
 	if(TIM_GetITStatus(TIM12, TIM_IT_Update) == SET) {
@@ -46,9 +46,9 @@ void TIM8_BRK_TIM12_IRQHandler(void)
 
 		sys_time_update_handler();
 
-		if((flight_ctl_cnt--) == 0) {
-			flight_ctl_cnt = FLIGHT_CTL_PRESCALER_RELOAD;
-			flight_ctl_semaphore_handler();
+		if((flight_ctrl_cnt--) == 0) {
+			flight_ctrl_cnt = FLIGHT_CTL_PRESCALER_RELOAD;
+			flight_ctrl_semaphore_handler();
 		}
 
 #if 0
