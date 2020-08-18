@@ -7,6 +7,7 @@
 #include "sys_time.h"
 #include "optitrack.h"
 #include "sbus_radio.h"
+#include "localization_system.h"
 
 extern ahrs_t ahrs;
 
@@ -115,15 +116,8 @@ void send_mavlink_local_position_ned(void)
 {
 	float pos[3];
 	float vel[3];
-	optitrack_read_pos(pos); //XXX: add abstraction layer for this
-	optitrack_read_vel(vel);
-
-	pos[0] *= 0.01f;
-	pos[1] *= 0.01f;
-	pos[2] *= 0.01f;
-	vel[0] *= 0.01f;
-	vel[1] *= 0.01f;
-	vel[2] *= 0.01f;
+	get_enu_position(pos);
+	get_enu_velocity(vel);
 
 	uint32_t curr_time_ms = (uint32_t)get_sys_time_ms();
 
