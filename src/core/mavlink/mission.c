@@ -53,7 +53,7 @@ void mav_mission_count(mavlink_message_t *received_msg)
 	mission_manager.recvd_mission_type = mission_count.mission_type;
 
 	/* reject mission if waypoint number exceeded maximum acceptable size */
-	if(mission_manager.recept_cnt > WAYPOINT_NUM_MAX) {
+	if(mission_manager.recept_cnt > TRAJ_WP_MAX_NUM) {
 		/* do ack */
 		mavlink_msg_mission_ack_pack_chan(1, 1, MAVLINK_COMM_1, &msg,
 		                                  received_msg->sysid, received_msg->compid,

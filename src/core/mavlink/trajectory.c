@@ -69,10 +69,10 @@ void mav_polynomial_trajectory_write(mavlink_message_t *received_msg)
 	                traj_msg_manager.yaw_planned);
 
 	switch(ret_val) {
-	case AUTOPILOT_TRAJ_LIST_TOO_LARGE:
+	case AUTOPILOT_TRAJACTORY_LIST_TOO_LARGE:
 		trigger_polynomial_trajectory_ack_sending(TRAJECTORY_ACK_LIST_TOO_LARGE);
 		break;
-	case AUTOPILOT_TRAJ_EXECUTING:
+	case AUTOPILOT_TRAJACTORY_FOLLOWING_BUSY:
 		trigger_polynomial_trajectory_ack_sending(TRAJECTORY_ACK_BUSY);
 		break;
 	case AUTOPILOT_SET_SUCCEED:
@@ -113,7 +113,7 @@ void mav_polynomial_trajectory_cmd(mavlink_message_t *received_msg)
 
 	/* send trajectory ack message */
 	switch(ret_val) {
-	case AUTOPILOT_TRAJ_LIST_EMPTY:
+	case AUTOPILOT_TRAJACTORY_LIST_EMPTY:
 		trigger_polynomial_trajectory_ack_sending(TRAJECTORY_ACK_LIST_EMPTY);
 		break;
 	case AUTOPILOT_SET_SUCCEED:
@@ -168,10 +168,10 @@ void mav_polynomial_trajectory_item(mavlink_message_t *received_msg)
 	}
 
 	switch(ret_val) {
-	case AUTOPILOT_TRAJ_EXECUTING:
+	case AUTOPILOT_TRAJACTORY_FOLLOWING_BUSY:
 		trigger_polynomial_trajectory_ack_sending(TRAJECTORY_ACK_BUSY);
 		break;
-	case AUTOPILOT_TRAJ_LIST_FULL:
+	case AUTOPILOT_TRAJACTORY_LIST_FULL:
 		trigger_polynomial_trajectory_ack_sending(TRAJECTORY_ACK_LIST_FULL);
 		break;
 	case AUTOPILOT_SET_SUCCEED:

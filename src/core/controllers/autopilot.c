@@ -264,8 +264,8 @@ bool autopilot_get_waypoint_gps_mavlink(int index, int32_t *latitude, int32_t *l
 int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec, float radius)
 {
 	if(autopilot_test_point_in_rectangular_fence(pos) == false) {
-		return AUTOPILOT_WP_OUT_OF_FENCE;
-	} else if(autopilot_ptr->wp_num <= WAYPOINT_NUM_MAX) {
+		return AUTOPILOT_WAYPOINT_OUT_OF_FENCE;
+	} else if(autopilot_ptr->wp_num <= TRAJ_WP_MAX_NUM) {
 		autopilot_ptr->wp_list[autopilot_ptr->wp_num].pos[0] = pos[0];
 		autopilot_ptr->wp_list[autopilot_ptr->wp_num].pos[1] = pos[1];
 		autopilot_ptr->wp_list[autopilot_ptr->wp_num].pos[2] = pos[2];
@@ -275,7 +275,7 @@ int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec,
 		autopilot_ptr->wp_num++;
 		return AUTOPILOT_SET_SUCCEED;
 	} else {
-		return AUTOPILOT_WP_LIST_FULL;
+		return AUTOPILOT_WAYPOINT_LIST_FULL;
 	}
 }
 
@@ -284,7 +284,7 @@ int autopilot_add_new_waypoint_gps_mavlink(int32_t latitude, int32_t longitude,
 {
 	//TODO: add geo-fence protection
 
-	if(autopilot_ptr->wp_num <= WAYPOINT_NUM_MAX) {
+	if(autopilot_ptr->wp_num <= TRAJ_WP_MAX_NUM) {
 		autopilot_ptr->wp_list[autopilot_ptr->wp_num].latitude = latitude;
 		autopilot_ptr->wp_list[autopilot_ptr->wp_num].longitude = longitude;
 		autopilot_ptr->wp_list[autopilot_ptr->wp_num].height = height;
@@ -299,18 +299,18 @@ int autopilot_add_new_waypoint_gps_mavlink(int32_t latitude, int32_t longitude,
 		autopilot_ptr->wp_num++;
 		return AUTOPILOT_SET_SUCCEED;
 	} else {
-		return AUTOPILOT_WP_LIST_FULL;
+		return AUTOPILOT_WAYPOINT_LIST_FULL;
 	}
 }
 
 int autopilot_set_x_trajectory(int index, float *x_traj_coeff, float fligt_time)
 {
-	if(index >= (WAYPOINT_NUM_MAX - 1)) {
-		return AUTOPILOT_TRAJ_LIST_FULL;
+	if(index >= (TRAJ_WP_MAX_NUM - 1)) {
+		return AUTOPILOT_TRAJACTORY_LIST_FULL;
 	}
 
 	if(autopilot_ptr->mode == AUTOPILOT_TRAJECTORY_FOLLOWING_MODE) {
-		return AUTOPILOT_TRAJ_EXECUTING;
+		return AUTOPILOT_TRAJACTORY_FOLLOWING_BUSY;
 	}
 
 	/* save position trajectory */
@@ -330,12 +330,12 @@ int autopilot_set_x_trajectory(int index, float *x_traj_coeff, float fligt_time)
 
 int autopilot_set_y_trajectory(int index, float *y_traj_coeff, float fligt_time)
 {
-	if(index >= (WAYPOINT_NUM_MAX - 1)) {
-		return AUTOPILOT_TRAJ_LIST_FULL;
+	if(index >= (TRAJ_WP_MAX_NUM - 1)) {
+		return AUTOPILOT_TRAJACTORY_LIST_FULL;
 	}
 
 	if(autopilot_ptr->mode == AUTOPILOT_TRAJECTORY_FOLLOWING_MODE) {
-		return AUTOPILOT_TRAJ_EXECUTING;
+		return AUTOPILOT_TRAJACTORY_FOLLOWING_BUSY;
 	}
 
 	/* save position trajectory */
@@ -355,12 +355,12 @@ int autopilot_set_y_trajectory(int index, float *y_traj_coeff, float fligt_time)
 
 int autopilot_set_z_trajectory(int index, float *z_traj_coeff, float fligt_time)
 {
-	if(index >= (WAYPOINT_NUM_MAX - 1)) {
-		return AUTOPILOT_TRAJ_LIST_FULL;
+	if(index >= (TRAJ_WP_MAX_NUM - 1)) {
+		return AUTOPILOT_TRAJACTORY_LIST_FULL;
 	}
 
 	if(autopilot_ptr->mode == AUTOPILOT_TRAJECTORY_FOLLOWING_MODE) {
-		return AUTOPILOT_TRAJ_EXECUTING;
+		return AUTOPILOT_TRAJACTORY_FOLLOWING_BUSY;
 	}
 
 	/* save position trajectory */
@@ -380,12 +380,12 @@ int autopilot_set_z_trajectory(int index, float *z_traj_coeff, float fligt_time)
 
 int autopilot_set_yaw_trajectory(int index, float *yaw_traj_coeff, float fligt_time)
 {
-	if(index >= (WAYPOINT_NUM_MAX - 1)) {
-		return AUTOPILOT_TRAJ_LIST_FULL;
+	if(index >= (TRAJ_WP_MAX_NUM - 1)) {
+		return AUTOPILOT_TRAJACTORY_LIST_FULL;
 	}
 
 	if(autopilot_ptr->mode == AUTOPILOT_TRAJECTORY_FOLLOWING_MODE) {
-		return AUTOPILOT_TRAJ_EXECUTING;
+		return AUTOPILOT_TRAJACTORY_FOLLOWING_BUSY;
 	}
 
 	/* save yaw trajectory */
@@ -402,12 +402,12 @@ int autopilot_set_yaw_trajectory(int index, float *yaw_traj_coeff, float fligt_t
 
 int autopilot_config_trajectory_following(int traj_num, bool z_traj, bool yaw_traj)
 {
-	if(traj_num >= WAYPOINT_NUM_MAX) {
-		return AUTOPILOT_TRAJ_LIST_TOO_LARGE;
+	if(traj_num >= TRAJ_WP_MAX_NUM) {
+		return AUTOPILOT_TRAJACTORY_LIST_TOO_LARGE;
 	}
 
 	if(autopilot_ptr->mode == AUTOPILOT_TRAJECTORY_FOLLOWING_MODE) {
-		return AUTOPILOT_TRAJ_EXECUTING;
+		return AUTOPILOT_TRAJACTORY_FOLLOWING_BUSY;
 	}
 
 	autopilot_ptr->traj_num = traj_num;
@@ -424,7 +424,7 @@ int autopilot_clear_waypoint_list(void)
 		autopilot_ptr->curr_wp = 0;
 		return AUTOPILOT_SET_SUCCEED;
 	} else {
-		return AUTOPILOT_MISSION_EXECUTING;
+		return AUTOPILOT_WAYPOINT_FOLLOWING_BUSY;
 	}
 }
 
@@ -442,7 +442,7 @@ int autopilot_goto_waypoint_now(float pos[3], bool change_height)
 		autopilot_ptr->curr_wp = 0; //reset waypoint list pointer
 		return AUTOPILOT_SET_SUCCEED;
 	} else {
-		return AUTOPILOT_WP_OUT_OF_FENCE;
+		return AUTOPILOT_WAYPOINT_OUT_OF_FENCE;
 	}
 }
 
@@ -453,7 +453,7 @@ int autopilot_halt_waypoint_mission(void)
 		autopilot_ptr->halt_flag = true;
 		return AUTOPILOT_SET_SUCCEED;
 	} else {
-		return AUTOPILOT_NO_EXECUTING_MISSION;
+		return AUTOPILOT_NOT_IN_WAYPOINT_MODE;
 	}
 }
 
@@ -463,7 +463,7 @@ int autopilot_resume_waypoint_mission(void)
 		autopilot_ptr->mode = AUTOPILOT_FOLLOW_WAYPOINT_MODE;
 		return AUTOPILOT_SET_SUCCEED;
 	} else {
-		return AUTOPILOT_NO_EXECUTING_MISSION;
+		return AUTOPILOT_NO_HALTED_WAYPOINT_MISSION;
 	}
 }
 
@@ -487,7 +487,7 @@ int autopilot_waypoint_mission_start(bool loop_mission)
 		autopilot_assign_zero_acc_feedforward();
 		return AUTOPILOT_SET_SUCCEED;
 	} else {
-		return AUTOPILOT_WP_LIST_EMPYT;
+		return AUTOPILOT_WAYPOINT_LIST_EMPYT;
 	}
 }
 
@@ -495,7 +495,7 @@ int autopilot_trajectory_following_start(bool loop_trajectory)
 {
 	/* return error if trajectory list is empty */
 	if(autopilot_ptr->traj_num <= 0) {
-		return AUTOPILOT_TRAJ_LIST_EMPTY;
+		return AUTOPILOT_TRAJACTORY_LIST_EMPTY;
 	}
 
 	/* trajectory following mode can only be triggered if uav is hovering at a
@@ -527,7 +527,7 @@ int autopilot_trigger_auto_landing(void)
 		autopilot_ptr->mode = AUTOPILOT_LANDING_MODE;
 		return AUTOPILOT_SET_SUCCEED;
 	} else {
-		return AUTOPILOT_POSITION_NOT_FIXED;
+		return AUTOPILOT_NOT_IN_HOVERING_MODE;
 	}
 }
 
@@ -553,7 +553,7 @@ int autopilot_trigger_auto_takeoff(void)
 		autopilot_ptr->mode = AUTOPILOT_TAKEOFF_MODE;
 		return AUTOPILOT_SET_SUCCEED;
 	} else {
-		return AUTOPILOT_UAV_ALREADY_TAKEOFF;
+		return AUTOPILOT_ALREADY_TAKEOFF;
 	}
 }
 

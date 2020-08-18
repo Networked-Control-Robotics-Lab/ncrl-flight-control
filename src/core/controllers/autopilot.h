@@ -3,10 +3,7 @@
 
 #include <stdbool.h>
 
-#define WAYPOINT_NUM_MAX 50
-
-#define TRAJECTORY_WP_UPDATE_FREQ 100
-#define TRAJECTORY_WP_UPDATE_TIME (1.0f / TRAJECTORY_WP_UPDATE_FREQ)
+#define TRAJ_WP_MAX_NUM 50
 
 enum {
 	/* user manual flight mode */
@@ -29,20 +26,20 @@ enum {
 
 enum {
 	AUTOPILOT_SET_SUCCEED,
-	AUTOPILOT_WP_OUT_OF_FENCE,
-	AUTOPILOT_WP_LIST_FULL,
-	AUTOPILOT_MISSION_EXECUTING,
-	AUTOPILOT_NO_EXECUTING_MISSION,
-	AUTOPILOT_WP_LIST_EMPYT,
-	AUTOPILOT_TRAJ_LIST_EMPTY,
-	AUTOPILOT_TRAJ_LIST_FULL,
-	AUTOPILOT_TRAJ_LIST_TOO_LARGE,
-	AUTOPILOT_TRAJ_EXECUTING,
-	AUTOPILOT_POSITION_NOT_FIXED,
-	AUTOPILOT_UAV_ALREADY_TAKEOFF,
+	AUTOPILOT_WAYPOINT_OUT_OF_FENCE,
+	AUTOPILOT_WAYPOINT_LIST_FULL,
+	AUTOPILOT_WAYPOINT_FOLLOWING_BUSY,
+	AUTOPILOT_WAYPOINT_LIST_EMPYT,
+	AUTOPILOT_NO_HALTED_WAYPOINT_MISSION,
+	AUTOPILOT_TRAJACTORY_LIST_EMPTY,
+	AUTOPILOT_TRAJACTORY_LIST_FULL,
+	AUTOPILOT_TRAJACTORY_LIST_TOO_LARGE,
+	AUTOPILOT_TRAJACTORY_FOLLOWING_BUSY,
 	AUTOPILOT_NOT_IN_HOVERING_MODE,
-	AUTOPILOT_NOT_IN_TRAJECTORY_MODE
-} AUTOPILOT_SET_RETVAL;
+	AUTOPILOT_NOT_IN_WAYPOINT_MODE,
+	AUTOPILOT_NOT_IN_TRAJECTORY_MODE,
+	AUTOPILOT_ALREADY_TAKEOFF
+} AUTOPILOT_RETVAL;
 
 struct trajectory_segment_t
 {
@@ -71,8 +68,8 @@ struct waypoint_t {
 	float touch_radius;  //[m]
 
 	/* compatible with mavlink design */
-	int32_t latitude;  //[deg], latitude which scaled by 1/1e7
-	int32_t longitude; //[deg], latitude which scaled by 1/1e7
+	int32_t latitude;  //[deg], scaled by 1/1e7
+	int32_t longitude; //[deg], scaled by 1/1e7
 	float height;      //[m]
 	uint16_t command;  //check MAV_CMD enum
 };
@@ -110,12 +107,12 @@ typedef struct {
 	bool motor_locked;
 
 	/* for waypoint following (representing setpoint with waypoints) */
-	struct waypoint_t wp_list[WAYPOINT_NUM_MAX]; //enu frame
+	struct waypoint_t wp_list[TRAJ_WP_MAX_NUM]; //enu frame
 	int curr_wp; //waypoint index, indicates which waypoint to track
 	int wp_num;  //total waypoint number
 
 	/* for trajectory following (representing setpoint with 7th ordered polynomials) */
-	struct trajectory_segment_t trajectory_segments[WAYPOINT_NUM_MAX];
+	struct trajectory_segment_t trajectory_segments[TRAJ_WP_MAX_NUM];
 	float trajectory_update_time;
 	int curr_traj;  //trajectory segment index, indicates which trajectory to track
 	int traj_num;   //total trajectory number
