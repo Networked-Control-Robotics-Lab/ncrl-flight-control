@@ -38,10 +38,10 @@ float convert_motor_cmd_to_thrust(float percentage)
  * output: control command, 0%~100% (which means the output variable "percentage" varies between 0~1) */
 float convert_motor_thrust_to_cmd(float thrust)
 {
-	bound_float(&thrust, thrust_max, 0.0f);
-
 	//convert thrust unit from [N] to [g.f]
-	thrust *= 101.97;
+	thrust *= 101.9716;
+
+	bound_float(&thrust, thrust_max, 0.0f);
 
 	/* 5-th polynomial fitting, input:gram force, output:pwm percentage */
 	float x = thrust;

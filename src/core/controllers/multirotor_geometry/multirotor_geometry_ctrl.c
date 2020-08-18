@@ -145,14 +145,14 @@ void geometry_ctrl_init(void)
 
 	/* tracking controller */
 	/* x-axis tracking gains */
-	kpx = 950.0f;
-	kvx = 700.0f;
+	kpx = 9.31f;
+	kvx = 6.86f;
 	/* y-axis tracking gains */
-	kpy = 1150.0f;
-	kvy = 800.0f;
+	kpy = 11.27f;
+	kvy = 7.84f;
 	/* z-axis tracking gains */
-	kpz = 870.0f;
-	kvz = 400.0f;
+	kpz = 8.53f;
+	kvz = 3.92f;
 
 	k_tracking_i_gain[0] = 0.0f;
 	k_tracking_i_gain[1] = 0.0f;
@@ -309,16 +309,13 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	bound_float(&tracking_error_integral[1], 150, -150);
 	bound_float(&tracking_error_integral[2], 50, -50);
 
-	/* the output force unit is gram force [gf], which is equal to the value of the mass,
-	 * it should be refined later since it may cause ambiguity */
-	float uav_weight = uav_mass * 1000; //FIXME: refine force init from [g] to [N]
-
 	_mat_(kxex_kvev_mge3_mxd_dot_dot)[0] = -kpx*pos_error[0] - kvx*vel_error[0] +
 	                                       force_ff_ned[0] - tracking_error_integral[0];
 	_mat_(kxex_kvev_mge3_mxd_dot_dot)[1] = -kpy*pos_error[1] - kvy*vel_error[1] +
 	                                       force_ff_ned[1] - tracking_error_integral[1];
 	_mat_(kxex_kvev_mge3_mxd_dot_dot)[2] = -kpz*pos_error[2] - kvz*vel_error[2] +
-	                                       force_ff_ned[2] - tracking_error_integral[2] - uav_weight;
+	                                       force_ff_ned[2] - tracking_error_integral[2] -
+	                                       uav_mass * 9.81;
 
 	/* calculate the denominator of b3d */
 	float b3d_denominator; //caution: this term should not be 0
