@@ -19,7 +19,7 @@
 #include "motor.h"
 #include "debug_link.h"
 #include "multirotor_pid_ctrl.h"
-#include "fc_task.h"
+#include "flight_ctrl_task.h"
 #include "shell_task.h"
 #include "proj_config.h"
 #include "mavlink_task.h"

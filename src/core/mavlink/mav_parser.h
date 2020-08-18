@@ -1,5 +1,5 @@
-#ifndef __MAVLINK_PARSER_H__
-#define __MAVLINK_PARSER_H__
+#ifndef __MAV_PARSER_H__
+#define __MAV_PARSER_H__
 
 #include <stdint.h>
 #include "mavlink.h"

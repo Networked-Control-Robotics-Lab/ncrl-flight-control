@@ -1,5 +1,5 @@
-#ifndef __MAVLINK_PUBLISHER_H__
-#define __MAVLINK_PUBLISHER_H__
+#ifndef __MAV_PUBLISHER_H__
+#define __MAV_PUBLISHER_H__
 
 void send_mavlink_msg_to_uart(mavlink_message_t *msg);
 

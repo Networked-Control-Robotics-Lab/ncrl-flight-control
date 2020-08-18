@@ -3,7 +3,7 @@
 #include "task.h"
 #include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"
 #include "ncrl_mavlink.h"
-#include "./publisher.h"
+#include "./mavlink/mav_publisher.h"
 #include "sys_param.h"
 #include "delay.h"
 #include "hash.h"

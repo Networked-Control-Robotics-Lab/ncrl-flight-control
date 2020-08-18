@@ -1,9 +1,9 @@
 #include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"
 #include "ncrl_mavlink.h"
-#include "../mavlink/parser.h"
-#include "../mavlink/mission.h"
-#include "../mavlink/param.h"
-#include "../mavlink/trajectory.h"
+#include "../mavlink/mav_parser.h"
+#include "../mavlink/mav_mission.h"
+#include "../mavlink/mav_param.h"
+#include "../mavlink/mav_trajectory.h"
 #include "../mavlink/mav_command.h"
 
 /* enumerate mavlink handler function */

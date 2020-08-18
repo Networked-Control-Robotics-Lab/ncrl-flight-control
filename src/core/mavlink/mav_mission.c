@@ -5,9 +5,9 @@
 #include "ncrl_mavlink.h"
 #include "autopilot.h"
 #include "sys_time.h"
-#include "mission.h"
 #include "delay.h"
-#include "../mavlink/publisher.h"
+#include "../mavlink/mav_mission.h"
+#include "../mavlink/mav_publisher.h"
 
 #define MISSION_TIMEOUT_TIME 2.0f //[s]
 #define MISSION_RETRY_TIMES 5

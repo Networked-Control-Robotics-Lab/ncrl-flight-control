@@ -1,5 +1,5 @@
-#ifndef __PARAM_H__
-#define __PARAM_H__
+#ifndef __MAV_PARAM_H__
+#define __MAV_PARAM_H__
 
 #include "mavlink.h"
 

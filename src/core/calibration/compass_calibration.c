@@ -3,7 +3,7 @@
 #include "delay.h"
 #include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"
 #include "ncrl_mavlink.h"
-#include "../mavlink/publisher.h"
+#include "../mavlink/mav_publisher.h"
 #include "mavlink_task.h"
 
 void mavlink_compass_calibration_handler(void)

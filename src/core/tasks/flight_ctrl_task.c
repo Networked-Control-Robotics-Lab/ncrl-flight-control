@@ -19,7 +19,7 @@
 #include "multirotor_pid_ctrl.h"
 #include "multirotor_geometry_ctrl.h"
 #include "motor_thrust_fitting.h"
-#include "fc_task.h"
+#include "flight_ctrl_task.h"
 #include "sys_time.h"
 #include "proj_config.h"
 #include "debug_link.h"

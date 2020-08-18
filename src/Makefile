@@ -74,7 +74,7 @@ SRC+=./core/main.c \
 	./core/controllers/multirotor_geometry/multirotor_geometry_param.c \
 	./core/controllers/motor_thrust_fitting.c \
 	./core/controllers/autopilot.c \
-	./core/tasks/fc_task.c \
+	./core/tasks/flight_ctrl_task.c \
 	./core/tasks/mavlink_task.c \
 	./core/tasks/debug_link_task.c \
 	./core/tasks/shell_task.c \
@@ -82,11 +82,11 @@ SRC+=./core/main.c \
 	./core/shell/quadshell.c \
 	./core/shell/shell_cmds.c \
 	./core/debug_link/debug_link.c \
-	./core/mavlink/publisher.c \
-	./core/mavlink/parser.c \
-	./core/mavlink/mission.c \
-	./core/mavlink/param.c \
-	./core/mavlink/trajectory.c \
+	./core/mavlink/mav_publisher.c \
+	./core/mavlink/mav_parser.c \
+	./core/mavlink/mav_mission.c \
+	./core/mavlink/mav_param.c \
+	./core/mavlink/mav_trajectory.c \
 	./core/mavlink/mav_command.c \
 	./core/perf/perf.c \
 	./core/param/sys_param.c \

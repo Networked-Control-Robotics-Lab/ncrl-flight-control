@@ -1,11 +1,11 @@
 #include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"
 #include "ncrl_mavlink.h"
-#include "../mavlink/publisher.h"
 #include "autopilot.h"
 #include "sys_time.h"
 #include "optitrack.h"
 #include "localization_system.h"
-#include "trajectory.h"
+#include "../mavlink/mav_publisher.h"
+#include "../mavlink/mav_trajectory.h"
 
 traj_msg_manager_t traj_msg_manager;
 

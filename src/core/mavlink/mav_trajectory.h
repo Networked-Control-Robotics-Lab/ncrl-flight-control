@@ -1,5 +1,5 @@
-#ifndef __MAVLINK_TRAJECTORY_H__
-#define __MAVLINK_TRAJECTORY_H__
+#ifndef __MAV_TRAJECTORY_H__
+#define __MAV_TRAJECTORY_H__
 
 #include "mavlink.h"
 

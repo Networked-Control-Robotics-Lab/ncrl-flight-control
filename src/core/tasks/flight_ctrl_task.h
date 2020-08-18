@@ -1,5 +1,5 @@
-#ifndef __FC_TASK_H__
-#define __FC_TASK_H__
+#ifndef __FLIGHT_CTRL_TASK_H__
+#define __FLIGHT_CTRL_TASK_H__
 
 #include "debug_link.h"
 

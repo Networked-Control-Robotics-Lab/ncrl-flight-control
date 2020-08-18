@@ -1,5 +1,5 @@
-#ifndef __MISSION_H__
-#define __MISSION_H__
+#ifndef __MAV_MISSION_H__
+#define __MAV_MISSION_H__
 
 #include <stdint.h>
 #include <stdbool.h>

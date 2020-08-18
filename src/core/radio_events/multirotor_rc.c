@@ -16,7 +16,7 @@ void multirotor_free_fall_rc(radio_t *rc)
 {
 	static int aux1_mode_last = RC_AUX_MODE1;
 
-	const float recovery_height = 150.0f; //XXX:Change the unit
+	const float recovery_height = 1.5f; //[m]
 
 	/* aux1 button: upper position */
 	if(rc->aux1_mode == RC_AUX_MODE1) {

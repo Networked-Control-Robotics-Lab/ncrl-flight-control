@@ -2,10 +2,10 @@
 #include "ncrl_mavlink.h"
 #include "autopilot.h"
 #include "sys_time.h"
-#include "mission.h"
 #include "accel_calibration.h"
 #include "compass_calibration.h"
-#include "../mavlink/publisher.h"
+#include "../mavlink/mav_mission.h"
+#include "../mavlink/mav_publisher.h"
 #include "calibration_task.h"
 #include "sys_param.h"
 

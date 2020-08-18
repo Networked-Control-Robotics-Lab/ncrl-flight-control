@@ -610,7 +610,7 @@ void autopilot_guidance_handler(void)
 		break;
 	}
 	case AUTOPILOT_LANDING_MODE: {
-		/* slowly change the height setpoint to indicate uav to the sky */
+		/* slowly change the height setpoint for takeoff */
 		autopilot_ptr->wp_now.pos[2] -= autopilot_ptr->landing_speed;
 		autopilot_assign_zero_vel_target();
 		autopilot_assign_zero_acc_feedforward();
@@ -620,7 +620,7 @@ void autopilot_guidance_handler(void)
 		break;
 	}
 	case AUTOPILOT_TAKEOFF_MODE: {
-		/* slowly change the height setpoint to indicate uav to the ground */
+		/* slowly change the height setpoint for landing */
 		autopilot_ptr->wp_now.pos[2] += autopilot_ptr->takeoff_speed;
 		if(autopilot_ptr->uav_state.pos[2] > autopilot_ptr->takeoff_height) {
 			autopilot_ptr->mode = AUTOPILOT_HOVERING_MODE;
@@ -632,7 +632,7 @@ void autopilot_guidance_handler(void)
 	}
 	case AUTOPILOT_WAIT_NEXT_WAYPOINT_MODE: {
 		curr_time = get_sys_time_s();
-		/* check if time is up */
+		/* check if the time is up */
 		if((curr_time - start_time) >
 		    autopilot_ptr->wp_list[autopilot_ptr->curr_wp].halt_time_sec) {
 			/* continue next waypoint if exist */

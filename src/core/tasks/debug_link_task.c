@@ -6,7 +6,7 @@
 #include "optitrack.h"
 #include "multirotor_geometry_ctrl.h"
 #include "free_fall.h"
-#include "fc_task.h"
+#include "flight_ctrl_task.h"
 
 void task_debug_link(void *param)
 {
