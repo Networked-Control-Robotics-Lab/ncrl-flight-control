@@ -121,6 +121,8 @@ typedef struct {
 	bool yaw_traj;
 } autopilot_t;
 
+bool check_motor_lock_condition(bool condition);
+
 void autopilot_init(autopilot_t *_autopilot);
 void autopilot_update_uav_state(float pos_enu[3], float vel_enu[3]);
 

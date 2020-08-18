@@ -477,11 +477,6 @@ void rc_mode_handler_geometry_ctrl(radio_t *rc)
 	auto_flight_mode_last = rc->auto_flight;
 }
 
-bool check_motor_lock_condition(bool condition)
-{
-	return condition; //true: lock, false: unlock
-}
-
 void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desired_heading)
 {
 	/* check rc events */

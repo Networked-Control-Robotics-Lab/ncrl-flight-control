@@ -77,18 +77,18 @@ void multirotor_pid_controller_init(void)
 
 	/* positon and velocity controllers */
 	pid_pos_x.kp = 15.0f;
-	pid_pos_x.ki = 0.6f;
-	pid_pos_x.kd = 6.7f;
+	pid_pos_x.ki = 0.0f;
+	pid_pos_x.kd = 13.0f;
 	pid_pos_x.output_min = -25.0f;
 	pid_pos_x.output_max = +25.0f;
 
 	pid_pos_y.kp = 15.0f;
-	pid_pos_y.ki = 0.6f;
-	pid_pos_y.kd = 6.7f;
+	pid_pos_y.ki = 0.0f;
+	pid_pos_y.kd = 13.0f;
 	pid_pos_y.output_min = -25.0f;
 	pid_pos_y.output_max = +25.0f;
 
-	pid_alt.kp = 350.0f;
+	pid_alt.kp = 3.5f;
 	pid_alt.ki = 0.0f;
 	pid_alt.kd = 0.0f;
 
@@ -334,6 +334,15 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desire
 	yaw_rate_p_control(&pid_yaw_rate, -rc->yaw, imu->gyro_lpf[2]); //used if magnetometer/optitrack not performed
 	yaw_pd_control(&pid_yaw, *desired_heading, ahrs->attitude.yaw, imu->gyro_lpf[2], 0.0025);
 
+	if(rc->safety == true) {
+		led_on(LED_B);
+		led_off(LED_R);
+		set_yaw_pd_setpoint(&pid_yaw, ahrs->attitude.yaw);
+	} else {
+		led_on(LED_R);
+		led_off(LED_B);
+	}
+
 	/* disable control output if sensor not available */
 	float yaw_ctrl_output = pid_yaw.output;
 	if(optitrack_available() == false) {
@@ -341,35 +350,25 @@ void multirotor_pid_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desire
 		pid_alt_vel.output = 0.0f;
 	}
 
-	bool halt_motor;
-	if((rc->throttle < 10.0f && autopilot_get_mode() == AUTOPILOT_MANUAL_FLIGHT_MODE) ||
-	    (autopilot.wp_now.pos[2] < 15.0f && autopilot_get_mode() != AUTOPILOT_MANUAL_FLIGHT_MODE) ||
-	    autopilot_get_mode() == AUTOPILOT_MOTOR_LOCKED_MODE) {
-		halt_motor = true;
-	} else {
-		halt_motor = false;
-	}
+	bool lock_motor = false;
 
-	if(rc->safety == false) {
-		if(halt_motor == false) {
-			led_on(LED_R);
-			led_off(LED_B);
-			thrust_pwm_allocate_quadrotor(throttle_cmd, pid_roll.output, pid_pitch.output, yaw_ctrl_output);
-		} else {
-			led_on(LED_B);
-			led_off(LED_R);
-			set_yaw_pd_setpoint(&pid_yaw, ahrs->attitude.yaw);
-			motor_halt();
-		}
+	//lock motor if throttle values is lower than 10% during manual flight
+	lock_motor |= check_motor_lock_condition(rc->throttle < 10.0f &&
+	                autopilot_is_manual_flight_mode());
+	//lock motor if current height is lower than auto-landing threshold value
+	lock_motor |= check_motor_lock_condition(autopilot.wp_now.pos[2] < 0.15f &&
+	                autopilot_is_auto_flight_mode());
+	//lock motor if motors are locked by autopilot
+	lock_motor |= check_motor_lock_condition(autopilot_is_motor_locked_mode());
+	//lock motor if radio safety botton is on
+	lock_motor |= check_motor_lock_condition(rc->safety == true);
+	//lock motor if autopilot locked it
+	lock_motor |= check_motor_lock_condition(autopilot_motor_ls_lock() == true);
+
+	if(lock_motor == false) {
+		thrust_pwm_allocate_quadrotor(throttle_cmd, pid_roll.output,
+		                              pid_pitch.output, yaw_ctrl_output);
 	} else {
-		if(rc->auto_flight == true) {
-			autopilot_set_mode(AUTOPILOT_HOVERING_MODE);
-		} else {
-			autopilot_set_mode(AUTOPILOT_MANUAL_FLIGHT_MODE);
-		}
-		led_on(LED_B);
-		led_off(LED_R);
-		set_yaw_pd_setpoint(&pid_yaw, ahrs->attitude.yaw);
 		motor_halt();
 	}
 }

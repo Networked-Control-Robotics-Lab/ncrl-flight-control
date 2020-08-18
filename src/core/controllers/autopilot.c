@@ -20,6 +20,11 @@ void latitude_longitude_to_cartesian(float latitude, float longitude, float *x, 
 	//*z = EARTH_RADIUS * arm_sin_f32(latitude);
 }
 
+bool check_motor_lock_condition(bool condition)
+{
+	return condition; //true: lock, false: unlock
+}
+
 void assign_vector_3x1_eun_to_ned(float *ned, float *enu)
 {
 	ned[0] = enu[1];
