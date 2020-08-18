@@ -305,72 +305,111 @@ int autopilot_add_new_waypoint_gps_mavlink(int32_t latitude, int32_t longitude,
 
 int autopilot_set_x_trajectory(int index, float *x_traj_coeff, float fligt_time)
 {
-	//TODO: check trajectory list size
-	//TODO: check autopilot mode
-	//TODO: derive velocity coefficients from position coefficients
+	if(index >= (WAYPOINT_NUM_MAX - 1)) {
+		return AUTOPILOT_TRAJ_LIST_FULL;
+	}
+
+	if(autopilot_ptr->mode == AUTOPILOT_TRAJECTORY_FOLLOWING_MODE) {
+		return AUTOPILOT_TRAJ_EXECUTING;
+	}
+
+	/* save position trajectory */
 	copy_7th_polynomial_coefficients(autopilot_ptr->trajectory_segments[index].x_poly_coeff,
 	                                 x_traj_coeff);
-	autopilot_ptr->trajectory_segments[index].flight_time = fligt_time;
+	/* calculate velocity trajectory */
 	differentiate_7th_polynomial(autopilot_ptr->trajectory_segments[index].x_poly_coeff,
 	                             autopilot_ptr->trajectory_segments[index].vx_poly_coeff);
+	/* calculate acceleration trajectory */
 	differentiate_6th_polynomial(autopilot_ptr->trajectory_segments[index].vx_poly_coeff,
 	                             autopilot_ptr->trajectory_segments[index].ax_poly_coeff);
+
+	autopilot_ptr->trajectory_segments[index].flight_time = fligt_time;
 
 	return AUTOPILOT_SET_SUCCEED;
 }
 
 int autopilot_set_y_trajectory(int index, float *y_traj_coeff, float fligt_time)
 {
-	//TODO: check trajectory list size
-	//TODO: check autopilot mode
-	//TODO: derive velocity coefficients from position coefficients
+	if(index >= (WAYPOINT_NUM_MAX - 1)) {
+		return AUTOPILOT_TRAJ_LIST_FULL;
+	}
+
+	if(autopilot_ptr->mode == AUTOPILOT_TRAJECTORY_FOLLOWING_MODE) {
+		return AUTOPILOT_TRAJ_EXECUTING;
+	}
+
+	/* save position trajectory */
 	copy_7th_polynomial_coefficients(autopilot_ptr->trajectory_segments[index].y_poly_coeff,
 	                                 y_traj_coeff);
-	autopilot_ptr->trajectory_segments[index].flight_time = fligt_time;
+	/* calculate velocity trajectory */
 	differentiate_7th_polynomial(autopilot_ptr->trajectory_segments[index].y_poly_coeff,
 	                             autopilot_ptr->trajectory_segments[index].vy_poly_coeff);
+	/* calculate acceleration trajectotry */
 	differentiate_6th_polynomial(autopilot_ptr->trajectory_segments[index].vy_poly_coeff,
 	                             autopilot_ptr->trajectory_segments[index].ay_poly_coeff);
 
+	autopilot_ptr->trajectory_segments[index].flight_time = fligt_time;
 
 	return AUTOPILOT_SET_SUCCEED;
 }
 
 int autopilot_set_z_trajectory(int index, float *z_traj_coeff, float fligt_time)
 {
-	//TODO: check trajectory list size
-	//TODO: check autopilot mode
-	//TODO: derive velocity coefficients from position coefficients
+	if(index >= (WAYPOINT_NUM_MAX - 1)) {
+		return AUTOPILOT_TRAJ_LIST_FULL;
+	}
+
+	if(autopilot_ptr->mode == AUTOPILOT_TRAJECTORY_FOLLOWING_MODE) {
+		return AUTOPILOT_TRAJ_EXECUTING;
+	}
+
+	/* save position trajectory */
 	copy_7th_polynomial_coefficients(autopilot_ptr->trajectory_segments[index].z_poly_coeff,
 	                                 z_traj_coeff);
-	autopilot_ptr->trajectory_segments[index].flight_time = fligt_time;
+	/* calculate velocity trajectory */
 	differentiate_7th_polynomial(autopilot_ptr->trajectory_segments[index].z_poly_coeff,
 	                             autopilot_ptr->trajectory_segments[index].vz_poly_coeff);
+	/* calculate acceleration trajectory */
 	differentiate_6th_polynomial(autopilot_ptr->trajectory_segments[index].vz_poly_coeff,
 	                             autopilot_ptr->trajectory_segments[index].az_poly_coeff);
+
+	autopilot_ptr->trajectory_segments[index].flight_time = fligt_time;
 
 	return AUTOPILOT_SET_SUCCEED;
 }
 
 int autopilot_set_yaw_trajectory(int index, float *yaw_traj_coeff, float fligt_time)
 {
-	//TODO: check trajectory list size
-	//TODO: check autopilot mode
-	//TODO: derive velocity coefficients from position coefficients
+	if(index >= (WAYPOINT_NUM_MAX - 1)) {
+		return AUTOPILOT_TRAJ_LIST_FULL;
+	}
+
+	if(autopilot_ptr->mode == AUTOPILOT_TRAJECTORY_FOLLOWING_MODE) {
+		return AUTOPILOT_TRAJ_EXECUTING;
+	}
+
+	/* save yaw trajectory */
 	copy_3th_polynomial_coefficients(autopilot_ptr->trajectory_segments[index].yaw_poly_coeff,
 	                                 yaw_traj_coeff);
-	autopilot_ptr->trajectory_segments[index].flight_time = fligt_time;
+	/* calculate yaw rate trajectory */
 	differentiate_3th_polynomial(autopilot_ptr->trajectory_segments[index].yaw_poly_coeff,
 	                             autopilot_ptr->trajectory_segments[index].yaw_rate_poly_coeff);
+
+	autopilot_ptr->trajectory_segments[index].flight_time = fligt_time;
 
 	return AUTOPILOT_SET_SUCCEED;
 }
 
 int autopilot_config_trajectory_following(int traj_num, bool z_traj, bool yaw_traj)
 {
-	//TODO: check trajectory list size
-	//TODO: check autopilot mode
-	//TODO: derive velocity coefficients from position coefficients
+	if(traj_num >= WAYPOINT_NUM_MAX) {
+		return AUTOPILOT_TRAJ_LIST_FULL;
+	}
+
+	if(autopilot_ptr->mode == AUTOPILOT_TRAJECTORY_FOLLOWING_MODE) {
+		return AUTOPILOT_TRAJ_EXECUTING;
+	}
+
 	autopilot_ptr->traj_num = traj_num;
 	autopilot_ptr->z_traj = z_traj;
 	autopilot_ptr->yaw_traj = yaw_traj;
