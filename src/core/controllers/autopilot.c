@@ -129,29 +129,46 @@ void autopilot_assign_trajactory_waypoint(float time)
 	int curr_traj = autopilot_ptr->curr_traj;
 	float *x_traj_coeff = autopilot_ptr->trajectory_segments[curr_traj].x_poly_coeff;
 	float *y_traj_coeff = autopilot_ptr->trajectory_segments[curr_traj].y_poly_coeff;
+	float *z_traj_coeff = autopilot_ptr->trajectory_segments[curr_traj].z_poly_coeff;
+
 	float *vx_traj_coeff = autopilot_ptr->trajectory_segments[curr_traj].vx_poly_coeff;
 	float *vy_traj_coeff = autopilot_ptr->trajectory_segments[curr_traj].vy_poly_coeff;
+	float *vz_traj_coeff = autopilot_ptr->trajectory_segments[curr_traj].vz_poly_coeff;
+
 	float *ax_traj_coeff = autopilot_ptr->trajectory_segments[curr_traj].ax_poly_coeff;
 	float *ay_traj_coeff = autopilot_ptr->trajectory_segments[curr_traj].ay_poly_coeff;
+	float *az_traj_coeff = autopilot_ptr->trajectory_segments[curr_traj].az_poly_coeff;
 
 	/* update position/velocity setpoint to controller */
 	float x_target = calc_7th_polynomial(x_traj_coeff, time);
 	float y_target = calc_7th_polynomial(y_traj_coeff, time);
+	float z_target;
+
 	float vx_target = calc_6th_polynomial(vx_traj_coeff, time);
 	float vy_target = calc_6th_polynomial(vy_traj_coeff, time);
-	float vz_target = 0.0f;
+	float vz_target;
+
 	float ax_feedforward = calc_5th_polynomial(ax_traj_coeff, time);
 	float ay_feedforward = calc_5th_polynomial(ay_traj_coeff, time);
-	float az_feedforward = 0;
+	float az_feedforward;
+
+	if(autopilot_ptr->z_traj == false) {
+		//z_target = set by remote controller
+		vz_target = 0.0f;      //vz_target = zero speed
+		az_feedforward = 0.0f; //az_target = zero acceleration
+	} else {
+		z_target = calc_7th_polynomial(z_traj_coeff, time);
+		vz_target = calc_6th_polynomial(vz_traj_coeff, time);
+		az_feedforward = calc_5th_polynomial(az_traj_coeff, time);
+
+		autopilot_assign_pos_target_y(z_target);
+	}
 
 	autopilot_assign_pos_target_x(x_target);
 	autopilot_assign_pos_target_y(y_target);
 	autopilot_assign_vel_target(vx_target, vy_target, vz_target);
 	autopilot_assign_acc_feedforward(ax_feedforward, ay_feedforward, az_feedforward);
-	//autopilot_assign_zero_acc_feedforward();
-
-	//TODO: z planning mode
-	//TODO: yaw planning mode
+	//autopilot_assign_zero_acc_feedforward(); //disable acceleration feedforward control
 }
 
 void autopilot_set_enu_rectangular_fence(float origin[3], float lx, float ly, float height)
@@ -273,8 +290,8 @@ int autopilot_add_new_waypoint_gps_mavlink(int32_t latitude, int32_t longitude,
 		autopilot_ptr->wp_list[autopilot_ptr->wp_num].height = height;
 		autopilot_ptr->wp_list[autopilot_ptr->wp_num].command = cmd;
 
-		//XXX: no idea why mavlink don't support these parameters,
-		//     set default for now
+		//TODO: no idea why mavlink don't support these parameters,
+		//      set default for now
 		autopilot_ptr->wp_list[autopilot_ptr->wp_num].heading = 0.0;
 		autopilot_ptr->wp_list[autopilot_ptr->wp_num].halt_time_sec = 3.0;
 		autopilot_ptr->wp_list[autopilot_ptr->wp_num].touch_radius = 50.0;
@@ -493,8 +510,7 @@ void autopilot_unlock_motor(void)
 
 int autopilot_trigger_auto_takeoff(void)
 {
-	/* FIXME: should test motor output rather than absoulte height */
-	if(autopilot_ptr->uav_state.pos[2] < 15.0f) {
+	if(autopilot_ptr->uav_state.pos[2] < 0.2) {
 		autopilot_ptr->mode = AUTOPILOT_TAKEOFF_MODE;
 		return AUTOPILOT_SET_SUCCEED;
 	} else {
