@@ -17,7 +17,7 @@
 #include "ahrs.h"
 #include "madgwick_ahrs.h"
 #include "multirotor_pid_ctrl.h"
-#include "multirotor_geometry_ctrl.h"
+#include "multirotor_pid_param.h"
 #include "motor_thrust_fitting.h"
 #include "fc_task.h"
 #include "sys_time.h"
@@ -46,7 +46,7 @@ float motor1, motor2, motor3, motor4;
 
 void multirotor_pid_controller_init(void)
 {
-	//init_multirotor_pid_param_list();
+	init_multirotor_pid_param_list();
 
 	autopilot_init(&autopilot);
 
