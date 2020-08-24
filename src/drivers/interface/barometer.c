@@ -4,3 +4,18 @@ void barometer_set_sea_level(void)
 {
 	ms5611_set_sea_level();
 }
+
+float barometer_get_pressure(void)
+{
+	return ms5611_get_pressure();
+}
+
+float barometer_get_relative_altitude(void)
+{
+	return ms5611_get_relative_altitude();
+}
+
+float barometer_get_relative_altitude_rate(void)
+{
+	return ms5611_get_relative_altitude_rate();
+}

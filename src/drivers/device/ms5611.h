@@ -24,13 +24,16 @@ typedef struct {
 } ms5611_t;
 
 void ms5611_init(void);
-void ms5611_read_pressure(void);
 void ms5611_set_sea_level(void);
 
-void send_barometer_debug_message(debug_msg_t *payload);
+float ms5611_get_pressure(void);
+float ms5611_get_relative_altitude(void);
+float ms5611_get_relative_altitude_rate(void);
 
 void ms5611_driver_semaphore_handler(void);
 void ms5611_driver_task(void *param);
+
+void send_barometer_debug_message(debug_msg_t *payload);
 
 #endif
 

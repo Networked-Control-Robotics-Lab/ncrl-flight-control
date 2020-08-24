@@ -129,6 +129,21 @@ void ms5611_set_sea_level(void)
 	ms5611.press_sea_level = ms5611.press_lpf;
 }
 
+float ms5611_get_pressure(void)
+{
+	return ms5611.press_lpf;
+}
+
+float ms5611_get_relative_altitude(void)
+{
+	return ms5611.rel_alt;
+}
+
+float ms5611_get_relative_altitude_rate(void)
+{
+	return ms5611.rel_vel_lpf;
+}
+
 void send_barometer_debug_message(debug_msg_t *payload)
 {
 	float press_lpf_bar = ms5611.press_lpf * 0.001;
