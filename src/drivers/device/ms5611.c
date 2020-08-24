@@ -5,13 +5,7 @@
 #include "debug_link.h"
 #include "lpf.h"
 
-uint16_t c1, c2, c3, c4, c5, c6;
-
-float press_sea_level = 0.0f;
-float press_now, temp_now;
-
-float height_raw = 0.0f;
-float height_filtered = 0.0f;
+ms5611_t ms5611;
 
 void ms5611_reset(void)
 {
@@ -55,12 +49,12 @@ void ms5611_read_int24(uint8_t address, int32_t *data)
 void ms5611_read_prom(void)
 {
 	ms5611_chip_select();
-	ms5611_read_uint16(0xa2, &c1);
-	ms5611_read_uint16(0xa4, &c2);
-	ms5611_read_uint16(0xa6, &c3);
-	ms5611_read_uint16(0xa8, &c4);
-	ms5611_read_uint16(0xaa, &c5);
-	ms5611_read_uint16(0xac, &c6);
+	ms5611_read_uint16(0xa2, &ms5611.c1);
+	ms5611_read_uint16(0xa4, &ms5611.c2);
+	ms5611_read_uint16(0xa6, &ms5611.c3);
+	ms5611_read_uint16(0xa8, &ms5611.c4);
+	ms5611_read_uint16(0xaa, &ms5611.c5);
+	ms5611_read_uint16(0xac, &ms5611.c6);
 	ms5611_chip_deselect();
 }
 
@@ -81,8 +75,8 @@ void ms5611_read_pressure(void)
 	ms5611_read_int24(0x40, &d1);
 	ms5611_read_int24(0x50, &d2);
 
-	dt = (int64_t)d2 - (int64_t)c5 * (1 << 8);
-	int32_t temp32 = 2000 + (dt * (int64_t)c6) / (1 << 23);
+	dt = (int64_t)d2 - (int64_t)ms5611.c5 * (1 << 8);
+	int32_t temp32 = 2000 + (dt * (int64_t)ms5611.c6) / (1 << 23);
 
 	/* second order temperature compensation (<20 degree c) */
 	int64_t t2 = 0, sens2 = 0, off2 = 0;
@@ -97,33 +91,56 @@ void ms5611_read_pressure(void)
 		sens -= sens2;
 	}
 
-	off = (int64_t)c2 * (1 << 16) + ((int32_t)c4 * dt) / (1 << 7);
-	sens = (int64_t)c1 * (1 << 15) + ((int32_t)c3 * dt) / (1 << 8);
+	off = (int64_t)ms5611.c2 * (1 << 16) + ((int32_t)ms5611.c4 * dt) / (1 << 7);
+	sens = (int64_t)ms5611.c1 * (1 << 15) + ((int32_t)ms5611.c3 * dt) / (1 << 8);
 	int32_t pressure32 = ((d1 * sens) / (1 << 21) - off) / (1 << 15);
 
-	temp_now = (float)temp32 * 0.01f; //[deg c]
-	press_now = (float)pressure32 * 0.01f; //[mbar]
+	ms5611.temp_raw = (float)temp32 * 0.01f; //[deg c]
+	ms5611.press_raw = (float)pressure32 * 0.01f; //[mbar]
+
+	lpf(ms5611.press_raw, &ms5611.press_lpf, 0.045f);
 }
 
-float ms5611_get_relative_height(void)
+static void ms5611_calc_relative_altitude_and_velocity(float *height, float *velocity)
 {
-	height_raw = 44330.0f * (1.0f - pow(press_now / press_sea_level, 0.1902949f));
-	lpf(height_raw, &height_filtered, 0.05f);
+	/* calculate relative height */
+	ms5611.rel_alt = 44330.0f * (1.0f - pow(ms5611.press_lpf / ms5611.press_sea_level, 0.1902949f));
 
-	return height_filtered;
+	static int diff_prescaler = 4;
+
+	/* down-sampled numerical differentiation (relative velocity) */
+	diff_prescaler--;
+	if(diff_prescaler == 0) {
+		ms5611.rel_vel_raw = (ms5611.rel_alt - ms5611.rel_alt_last) * 100; //FIXME
+		ms5611.rel_alt_last = ms5611.rel_alt;
+		diff_prescaler = 4;
+
+		/* low pass filtering */
+		lpf(ms5611.rel_vel_raw, &ms5611.rel_vel_lpf, 0.1f);
+	}
+
+	*height = ms5611.rel_alt;
+	*velocity = ms5611.rel_vel_lpf; //need to fused with accelerometer later
+}
+
+void ms5611_update(float *altitude, float *altitude_rate)
+{
+	ms5611_read_pressure();
+	ms5611_calc_relative_altitude_and_velocity(altitude, altitude_rate);
 }
 
 void ms5611_set_sea_level(void)
 {
-	press_sea_level = press_now;
+	ms5611.press_sea_level = ms5611.press_lpf;
 }
 
 void send_barometer_debug_message(debug_msg_t *payload)
 {
-	float press_now_bar = press_now * 0.001f;
+	float press_lpf_bar = ms5611.press_lpf * 0.001;
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_BAROMETER);
-	pack_debug_debug_message_float(&press_now_bar, payload);
-	pack_debug_debug_message_float(&temp_now, payload);
-	pack_debug_debug_message_float(&height_filtered, payload);
+	pack_debug_debug_message_float(&press_lpf_bar, payload);
+	pack_debug_debug_message_float(&ms5611.temp_raw, payload);
+	pack_debug_debug_message_float(&ms5611.rel_alt, payload);
+	pack_debug_debug_message_float(&ms5611.rel_vel_lpf, payload);
 }

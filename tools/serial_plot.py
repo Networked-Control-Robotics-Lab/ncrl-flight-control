@@ -308,22 +308,28 @@ class serial_plotter_class:
         	self.show_subplot()
 
         elif (message_id == 16):
-          	plt.subplot(311)
+          	plt.subplot(411)
         	plt.ylabel('pressure [mbar]')
         	plt.ylim([-0.75, 1.5])
         	self.create_curve('pressure', 'red')
         	self.show_subplot()
 
-          	plt.subplot(312)
+          	plt.subplot(412)
         	plt.ylabel('temperature [deg c]')
         	plt.ylim([-30, 75])
         	self.create_curve('temperature', 'red')
         	self.show_subplot()
 
-          	plt.subplot(313)
+          	plt.subplot(413)
         	plt.ylabel('height [m]')
         	plt.ylim([-0.15, 2.0])
         	self.create_curve('height', 'red')
+        	self.show_subplot()
+
+          	plt.subplot(414)
+        	plt.ylabel('velocity [m/s]')
+        	plt.ylim([-5.0, 5.0])
+        	self.create_curve('velocity', 'red')
         	self.show_subplot()
 
     def show_graph(self):
