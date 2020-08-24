@@ -89,7 +89,6 @@ void task_flight_ctrl(void *param)
 #endif
 
 	mpu6500_init(&imu);
-	ms5611_init();
 	motor_init();
 
 	ahrs_init();

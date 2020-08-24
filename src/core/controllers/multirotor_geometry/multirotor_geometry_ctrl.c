@@ -497,10 +497,6 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 		assign_vector_3x1_eun_to_ned(curr_vel_ned, curr_vel_enu);
 	}
 
-	/* update relative altitude and altitude rate from barometer */
-	//float rel_alt, rel_alt_rate;
-	//barometer_update(&rel_alt, &rel_alt_rate);
-
 	/* prepare gyroscope data */
 	float gyro[3] = {0.0};
 	gyro[0] = deg_to_rad(imu->gyro_lpf[0]);

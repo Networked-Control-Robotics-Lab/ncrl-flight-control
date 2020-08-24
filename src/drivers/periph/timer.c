@@ -7,6 +7,7 @@
 #include "flight_ctrl_task.h"
 #include "sys_time.h"
 #include "led.h"
+#include "ms5611.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 1000 //400Hz
 #define LED_CTRL_PRESCALER_RELOAD  16000 //25Hz
@@ -36,6 +37,30 @@ void timer12_init(void)
 	TIM_Cmd(TIM12, ENABLE);
 }
 
+void timer14_init(void)
+{
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM14, ENABLE);
+
+	/* 90MHz / (225 * 1) = 400Hz */
+	TIM_TimeBaseInitTypeDef TimeBaseInitStruct = {
+		.TIM_Period = 225000 - 1,
+		.TIM_Prescaler = 1 - 1,
+		.TIM_CounterMode = TIM_CounterMode_Up
+	};
+	TIM_TimeBaseInit(TIM14, &TimeBaseInitStruct);
+
+	NVIC_InitTypeDef NVIC_InitStruct = {
+		.NVIC_IRQChannel = TIM8_TRG_COM_TIM14_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = SYS_TIMER_ISR_PRIORITY,
+		.NVIC_IRQChannelCmd = ENABLE
+	};
+	NVIC_Init(&NVIC_InitStruct);
+
+	TIM_ITConfig(TIM14, TIM_IT_Update, ENABLE);
+	TIM_Cmd(TIM14, ENABLE);
+
+}
+
 void TIM8_BRK_TIM12_IRQHandler(void)
 {
 	static int flight_ctrl_cnt = FLIGHT_CTL_PRESCALER_RELOAD;
@@ -57,5 +82,15 @@ void TIM8_BRK_TIM12_IRQHandler(void)
 			rgb_led_handler();
 		}
 #endif
+	}
+}
+
+void TIM8_TRG_COM_TIM14_IRQHandler(void)
+{
+	/* trigger ms5611 driver task (400Hz) */
+	if(TIM_GetITStatus(TIM14, TIM_IT_Update) == SET) {
+		TIM_ClearITPendingBit(TIM14, TIM_IT_Update);
+
+		ms5611_driver_semaphore_handler();
 	}
 }

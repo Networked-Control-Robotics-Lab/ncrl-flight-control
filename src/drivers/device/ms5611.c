@@ -1,9 +1,14 @@
 #include <stdint.h>
 #include <math.h>
+#include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
 #include "delay.h"
 #include "ms5611.h"
 #include "debug_link.h"
 #include "lpf.h"
+
+SemaphoreHandle_t ms5611_task_semphr;
 
 ms5611_t ms5611;
 
@@ -60,11 +65,10 @@ void ms5611_read_prom(void)
 
 void ms5611_init(void)
 {
+	ms5611_task_semphr = xSemaphoreCreateBinary();
+
 	ms5611_reset();
 	ms5611_read_prom();
-
-	ms5611_read_pressure();
-	ms5611_set_sea_level();
 }
 
 void ms5611_read_pressure(void)
@@ -101,7 +105,7 @@ void ms5611_read_pressure(void)
 	lpf(ms5611.press_raw, &ms5611.press_lpf, 0.045f);
 }
 
-static void ms5611_calc_relative_altitude_and_velocity(float *height, float *velocity)
+static void ms5611_calc_relative_altitude_and_velocity(void)
 {
 	/* calculate relative height */
 	ms5611.rel_alt = 44330.0f * (1.0f - pow(ms5611.press_lpf / ms5611.press_sea_level, 0.1902949f));
@@ -118,15 +122,6 @@ static void ms5611_calc_relative_altitude_and_velocity(float *height, float *vel
 		/* low pass filtering */
 		lpf(ms5611.rel_vel_raw, &ms5611.rel_vel_lpf, 0.1f);
 	}
-
-	*height = ms5611.rel_alt;
-	*velocity = ms5611.rel_vel_lpf; //need to fused with accelerometer later
-}
-
-void ms5611_update(float *altitude, float *altitude_rate)
-{
-	ms5611_read_pressure();
-	ms5611_calc_relative_altitude_and_velocity(altitude, altitude_rate);
 }
 
 void ms5611_set_sea_level(void)
@@ -143,4 +138,26 @@ void send_barometer_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_float(&ms5611.temp_raw, payload);
 	pack_debug_debug_message_float(&ms5611.rel_alt, payload);
 	pack_debug_debug_message_float(&ms5611.rel_vel_lpf, payload);
+}
+
+void ms5611_driver_semaphore_handler(void)
+{
+	static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	xSemaphoreGiveFromISR(ms5611_task_semphr, &xHigherPriorityTaskWoken);
+	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+}
+
+void ms5611_driver_task(void *param)
+{
+	/* initialize sea level for estimating relative altitude*/
+	ms5611_read_pressure();
+	ms5611_set_sea_level();
+
+	TickType_t sleep_time = OS_TICK / 4000; //1/4000s
+	while(1) {
+		while(xSemaphoreTake(ms5611_task_semphr, sleep_time) == pdFALSE);
+
+		ms5611_read_pressure();
+		ms5611_calc_relative_altitude_and_velocity();
+	}
 }
