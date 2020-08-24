@@ -18,6 +18,7 @@
 #include "multirotor_geometry_param.h"
 #include "localization_system.h"
 #include "multirotor_rc.h"
+#include "ms5611.h"
 
 #define dt 0.0025 //[s]
 #define MOTOR_TO_CG_LENGTH 16.25f //[cm]
@@ -496,6 +497,9 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 		assign_vector_3x1_eun_to_ned(curr_vel_ned, curr_vel_enu);
 	}
 
+	/* get height info from barometer */
+	//ms5611_read_pressure(); //FIXME
+
 	/* prepare gyroscope data */
 	float gyro[3] = {0.0};
 	gyro[0] = deg_to_rad(imu->gyro_lpf[0]);
@@ -538,6 +542,8 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	}
 
 	if(rc->safety == true) {
+		//ms5611_set_sea_level(); //FIXME
+
 		led_on(LED_B);
 		led_off(LED_R);
 		*desired_heading = ahrs->attitude.yaw;

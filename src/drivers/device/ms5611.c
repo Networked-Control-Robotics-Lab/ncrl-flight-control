@@ -2,10 +2,12 @@
 #include <math.h>
 #include "delay.h"
 #include "ms5611.h"
+#include "debug_link.h"
 
 uint16_t c1, c2, c3, c4, c5, c6;
 
-float press_sea_level;
+float press_sea_level = 0.0f;
+float press_now, temp_now;
 
 void ms5611_reset(void)
 {
@@ -35,7 +37,7 @@ void ms5611_read_int24(uint8_t address, int32_t *data)
 	ms5611_chip_select();
 	spi_read_write(SPI3, address);
 	ms5611_chip_deselect();
-	blocked_delay_ms(1);
+	freertos_task_delay(1);
 
 	ms5611_chip_select();
 	spi_read_write(SPI3, 0x00);
@@ -64,7 +66,7 @@ void ms5611_init(void)
 	ms5611_read_prom();
 }
 
-void ms5611_read_pressure(float *temp, float *pressure)
+void ms5611_read_pressure(void)
 {
 	int32_t d1, d2;
 	int64_t off, sens, dt;
@@ -92,22 +94,26 @@ void ms5611_read_pressure(float *temp, float *pressure)
 	sens = (int64_t)c1 * (1 << 15) + ((int32_t)c3 * dt) / (1 << 8);
 	int32_t pressure32 = ((d1 * sens) / (1 << 21) - off) / (1 << 15);
 
-	*temp = (float)temp32 * 0.01f; //[deg c]
-	*pressure = (float)pressure32 * 0.01f; //[mbar]
+	temp_now = (float)temp32 * 0.01f; //[deg c]
+	press_now = (float)pressure32 * 0.01f; //[mbar]
 }
 
-#if 0
 float ms5611_get_relative_height(void)
 {
-	float press_now, temp_now;
-	ms5611_read_pressure(&temp_now, &press_now);
 	return 44330.0f * (1.0f - pow(press_now / press_sea_level, 0.1902949f));
 }
 
-void m5611_set_sea_level(void)
+void ms5611_set_sea_level(void)
 {
-	float press, temp;
-	ms5611_read_pressure(&temp, &press);
-	press_sea_level = press;
+	press_sea_level = press_now;
 }
-#endif
+
+void send_barometer_debug_message(debug_msg_t *payload)
+{
+	float height = ms5611_get_relative_height();
+
+	pack_debug_debug_message_header(payload, MESSAGE_ID_BAROMETER);
+	pack_debug_debug_message_float(&press_now, payload);
+	pack_debug_debug_message_float(&temp_now, payload);
+	pack_debug_debug_message_float(&height, payload);
+}

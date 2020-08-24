@@ -7,6 +7,7 @@
 #include "multirotor_geometry_ctrl.h"
 #include "free_fall.h"
 #include "flight_ctrl_task.h"
+#include "ms5611.h"
 
 void task_debug_link(void *param)
 {
@@ -21,7 +22,7 @@ void task_debug_link(void *param)
 		//send_imu_debug_message(&payload);
 		//send_attitude_euler_debug_message(&payload);
 		//send_attitude_quaternion_debug_message(&payload);
-		send_attitude_imu_debug_message(&payload);
+		//send_attitude_imu_debug_message(&payload);
 		//send_pid_debug_message(&payload);
 		//send_motor_debug_message(&payload);
 		//send_optitrack_position_debug_message(&payload);
@@ -32,6 +33,7 @@ void task_debug_link(void *param)
 		//send_uav_dynamics_debug(&payload);
 		//send_free_fall_debug_message(&payload);
 		//send_compass_debug_message(&payload);
+		send_barometer_debug_message(&payload);
 
 		send_onboard_data(payload.s, payload.len);
 		freertos_task_delay(delay_time_ms);

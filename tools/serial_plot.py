@@ -288,7 +288,7 @@ class serial_plotter_class:
 
         elif (message_id == 15):
           	plt.subplot(311)
-        	plt.ylabel('magnetic induction (uT)')
+        	plt.ylabel('magnetic induction [uT]')
         	plt.ylim([-10000, 10000])
         	self.create_curve('mx', 'red')
                 self.create_curve('my', 'blue')
@@ -296,7 +296,7 @@ class serial_plotter_class:
         	self.show_subplot()
 
           	plt.subplot(312)
-        	plt.ylabel('magnetic field strength (uT)')
+        	plt.ylabel('magnetic field strength [uT]')
         	plt.ylim([0, 10000])
         	self.create_curve('mx', 'red')
         	self.show_subplot()
@@ -305,6 +305,25 @@ class serial_plotter_class:
         	plt.ylabel('update frequency')
         	plt.ylim([0, 100])
         	self.create_curve('mx', 'red')
+        	self.show_subplot()
+
+        elif (message_id == 16):
+          	plt.subplot(311)
+        	plt.ylabel('pressure [mbar]')
+        	plt.ylim([-3000, 3000])
+        	self.create_curve('pressure', 'red')
+        	self.show_subplot()
+
+          	plt.subplot(312)
+        	plt.ylabel('temperature [deg c]')
+        	plt.ylim([-30, 75])
+        	self.create_curve('temperature', 'red')
+        	self.show_subplot()
+
+          	plt.subplot(313)
+        	plt.ylabel('height [m]')
+        	plt.ylim([0, 2.5])
+        	self.create_curve('height', 'red')
         	self.show_subplot()
 
     def show_graph(self):
