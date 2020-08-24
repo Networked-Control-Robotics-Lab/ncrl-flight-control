@@ -310,7 +310,7 @@ class serial_plotter_class:
         elif (message_id == 16):
           	plt.subplot(311)
         	plt.ylabel('pressure [mbar]')
-        	plt.ylim([-3000, 3000])
+        	plt.ylim([-0.75, 1.5])
         	self.create_curve('pressure', 'red')
         	self.show_subplot()
 
@@ -322,7 +322,7 @@ class serial_plotter_class:
 
           	plt.subplot(313)
         	plt.ylabel('height [m]')
-        	plt.ylim([0, 2.5])
+        	plt.ylim([-0.15, 2.0])
         	self.create_curve('height', 'red')
         	self.show_subplot()
 

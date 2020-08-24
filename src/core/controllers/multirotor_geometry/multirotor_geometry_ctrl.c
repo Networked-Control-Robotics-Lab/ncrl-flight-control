@@ -499,6 +499,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 
 	/* get height info from barometer */
 	//ms5611_read_pressure(); //FIXME
+	//ms5611_get_relative_height();
 
 	/* prepare gyroscope data */
 	float gyro[3] = {0.0};

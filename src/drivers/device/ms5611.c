@@ -3,11 +3,15 @@
 #include "delay.h"
 #include "ms5611.h"
 #include "debug_link.h"
+#include "lpf.h"
 
 uint16_t c1, c2, c3, c4, c5, c6;
 
 float press_sea_level = 0.0f;
 float press_now, temp_now;
+
+float height_raw = 0.0f;
+float height_filtered = 0.0f;
 
 void ms5611_reset(void)
 {
@@ -64,6 +68,9 @@ void ms5611_init(void)
 {
 	ms5611_reset();
 	ms5611_read_prom();
+
+	ms5611_read_pressure();
+	ms5611_set_sea_level();
 }
 
 void ms5611_read_pressure(void)
@@ -100,7 +107,10 @@ void ms5611_read_pressure(void)
 
 float ms5611_get_relative_height(void)
 {
-	return 44330.0f * (1.0f - pow(press_now / press_sea_level, 0.1902949f));
+	height_raw = 44330.0f * (1.0f - pow(press_now / press_sea_level, 0.1902949f));
+	lpf(height_raw, &height_filtered, 0.05f);
+
+	return height_filtered;
 }
 
 void ms5611_set_sea_level(void)
@@ -110,10 +120,10 @@ void ms5611_set_sea_level(void)
 
 void send_barometer_debug_message(debug_msg_t *payload)
 {
-	float height = ms5611_get_relative_height();
+	float press_now_bar = press_now * 0.001f;
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_BAROMETER);
-	pack_debug_debug_message_float(&press_now, payload);
+	pack_debug_debug_message_float(&press_now_bar, payload);
 	pack_debug_debug_message_float(&temp_now, payload);
-	pack_debug_debug_message_float(&height, payload);
+	pack_debug_debug_message_float(&height_filtered, payload);
 }
