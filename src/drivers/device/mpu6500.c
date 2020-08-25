@@ -20,8 +20,8 @@ imu_t *imu_mpu6500;
 mpu6500_t mpu6500 = {
 	.gyro_bias = {0, 0, 0},
 	.accel_bias = {0, 0, 0},
-	.accel_fs = MPU6500_GYRO_FS_16G,
-	.gyro_fs = MPU6500_GYRO_FS_2000_DPS,
+	.accel_fs = MPU6500_GYRO_FS_8G,
+	.gyro_fs = MPU6500_GYRO_FS_1000_DPS,
 	.init_finished = false,
 };
 
