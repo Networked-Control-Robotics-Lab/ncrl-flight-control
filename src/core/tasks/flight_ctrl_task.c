@@ -26,6 +26,7 @@
 #include "perf.h"
 #include "perf_list.h"
 #include "ublox_m8n.h"
+#include "barometer.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 10
 
@@ -114,7 +115,7 @@ void task_flight_ctrl(void *param)
 		perf_start(PERF_FLIGHT_CONTROL_TRIGGER_TIME);
 		while(xSemaphoreTake(flight_ctrl_semphr, 9) == pdFALSE);
 
-		//gpio_on(EXT_SW);
+		gpio_on(EXT_SW);
 		perf_start(PERF_FLIGHT_CONTROL_LOOP);
 
 #if (SELECT_LOCALIZATION == LOCALIZATION_USE_GPS_MAG)
@@ -140,7 +141,7 @@ void task_flight_ctrl(void *param)
 
 		perf_end(PERF_FLIGHT_CONTROL_LOOP);
 		perf_end(PERF_FLIGHT_CONTROL_TRIGGER_TIME);
-		//gpio_off(EXT_SW);
+		gpio_off(EXT_SW);
 
 		taskYIELD();
 	}
