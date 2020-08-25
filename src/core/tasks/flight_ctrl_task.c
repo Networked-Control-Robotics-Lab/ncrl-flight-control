@@ -89,6 +89,8 @@ void task_flight_ctrl(void *param)
 #endif
 
 	mpu6500_init(&imu);
+	barometer_wait_until_stable();
+
 	motor_init();
 
 	ahrs_init();

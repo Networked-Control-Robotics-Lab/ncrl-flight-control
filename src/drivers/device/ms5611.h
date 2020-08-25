@@ -1,6 +1,7 @@
 #ifndef __MS5611_H__
 #define __MS5611_H__
 
+#include <stdbool.h>
 #include "stm32f4xx_conf.h"
 #include "spi.h"
 #include "debug_link.h"
@@ -13,6 +14,8 @@ typedef struct {
 
 	float temp_raw;        //raw temperature
 
+	bool init_finished;
+
 	float press_raw;       //raw pressure
 	float press_lpf;       //low pass filtered pressure
 	float press_sea_level; //sea leval presaure value
@@ -24,6 +27,7 @@ typedef struct {
 } ms5611_t;
 
 void ms5611_init(void);
+void ms5611_wait_until_stable(void);
 void ms5611_set_sea_level(void);
 
 float ms5611_get_pressure(void);

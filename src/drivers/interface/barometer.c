@@ -1,5 +1,10 @@
 #include "ms5611.h"
 
+void barometer_wait_until_stable(void)
+{
+	ms5611_wait_until_stable();
+}
+
 void barometer_set_sea_level(void)
 {
 	ms5611_set_sea_level();

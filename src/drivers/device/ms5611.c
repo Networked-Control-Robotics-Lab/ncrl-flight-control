@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdbool.h>
 #include <math.h>
 #include "FreeRTOS.h"
 #include "task.h"
@@ -71,6 +72,15 @@ void ms5611_init(void)
 	ms5611_read_prom();
 }
 
+void ms5611_wait_until_stable(void)
+{
+	/* wait until barometer is stable */
+	while(ms5611.press_lpf < 0 || ms5611.press_lpf > 2000);
+
+	ms5611.init_finished = true;
+	ms5611.press_sea_level = ms5611.press_lpf;
+}
+
 void ms5611_read_pressure(void)
 {
 	int32_t d1, d2;
@@ -107,6 +117,11 @@ void ms5611_read_pressure(void)
 
 static void ms5611_calc_relative_altitude_and_velocity(void)
 {
+	//wait until pressure data is stable
+	if(ms5611.init_finished == false) {
+		return;
+	}
+
 	/* calculate relative height */
 	ms5611.rel_alt = 44330.0f * (1.0f - pow(ms5611.press_lpf / ms5611.press_sea_level, 0.1902949f));
 
