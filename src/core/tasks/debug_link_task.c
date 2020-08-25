@@ -8,6 +8,7 @@
 #include "free_fall.h"
 #include "flight_ctrl_task.h"
 #include "ms5611.h"
+#include "altitude_est.h"
 
 void task_debug_link(void *param)
 {
@@ -33,7 +34,8 @@ void task_debug_link(void *param)
 		//send_uav_dynamics_debug(&payload);
 		//send_free_fall_debug_message(&payload);
 		//send_compass_debug_message(&payload);
-		send_barometer_debug_message(&payload);
+		//send_barometer_debug_message(&payload);
+		send_alt_est_debug_message(&payload);
 
 		send_onboard_data(payload.s, payload.len);
 		freertos_task_delay(delay_time_ms);

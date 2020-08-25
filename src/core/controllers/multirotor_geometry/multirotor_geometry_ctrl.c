@@ -19,6 +19,7 @@
 #include "localization_system.h"
 #include "multirotor_rc.h"
 #include "barometer.h"
+#include "altitude_est.h"
 
 #define dt 0.0025 //[s]
 #define MOTOR_TO_CG_LENGTH 16.25f //[cm]
@@ -517,6 +518,11 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 
 	/* prepare current attitude matrix (dcm) using quaternion */
 	quat_to_rotation_matrix(ahrs->q, _mat_(R), _mat_(Rt));
+
+	/* altitude rate estimation */
+	float barometer_alt_rate = barometer_get_relative_altitude_rate();
+	barometer_alt_rate_estimate(_mat_(R), barometer_alt_rate, imu->accel_lpf, 0.0025);
+
 
 	/* guidance system (autopilot) */
 	autopilot_update_uav_state(curr_pos_enu, curr_vel_enu);
