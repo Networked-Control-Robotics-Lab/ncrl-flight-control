@@ -488,6 +488,13 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	bool localization_available = is_localization_info_available();
 	bool heading_available = is_compass_present();
 
+	/* prepare current attitude matrix (dcm) using quaternion */
+	quat_to_rotation_matrix(ahrs->q, _mat_(R), _mat_(Rt));
+
+	/* altitude rate estimation */
+	float barometer_alt_rate = barometer_get_relative_altitude_rate();
+	barometer_alt_rate_estimate(_mat_(R), barometer_alt_rate, imu->accel_lpf, 0.0025);
+
 	/* prepare position and velocity data */
 	float curr_pos_enu[3] = {0.0f}, curr_pos_ned[3] = {0.0f};
 	float curr_vel_enu[3] = {0.0f}, curr_vel_ned[3] = {0.0f};
@@ -515,14 +522,6 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 		//yaw rate control mode
 		attitude_cmd.yaw = deg_to_rad(-rc->yaw);
 	}
-
-	/* prepare current attitude matrix (dcm) using quaternion */
-	quat_to_rotation_matrix(ahrs->q, _mat_(R), _mat_(Rt));
-
-	/* altitude rate estimation */
-	float barometer_alt_rate = barometer_get_relative_altitude_rate();
-	barometer_alt_rate_estimate(_mat_(R), barometer_alt_rate, imu->accel_lpf, 0.0025);
-
 
 	/* guidance system (autopilot) */
 	autopilot_update_uav_state(curr_pos_enu, curr_vel_enu);

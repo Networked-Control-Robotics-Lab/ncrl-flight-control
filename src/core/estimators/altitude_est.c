@@ -16,12 +16,13 @@ float barometer_alt_rate_estimate(float *dcm, float alt_rate, float *accel_body,
 
 	/* gravity cancellation */
 	accel_earth_z -= -9.81;
+	accel_earth_z *= -1; //FIXME
 
 	/* calculate altitude rate by doing numerical integration */
 	alt_rate_predict = alt_rate_last + (accel_earth_z * dt);
 
 	/* complementary filter */
-	const float a = 0.99;
+	const float a = 0.995;
 	alt_rate_fused = (a * alt_rate_predict) + ((1.0f - a) * alt_rate);
 
 	/* save fused altitude rate for next iteration */
