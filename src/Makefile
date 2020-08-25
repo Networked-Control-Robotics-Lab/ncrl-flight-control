@@ -3,6 +3,7 @@ EXECUTABLE=ncrl_fc.elf
 CC=arm-none-eabi-gcc
 OBJCOPY=arm-none-eabi-objcopy
 GDB=arm-none-eabi-gdb
+SIZE=arm-none-eabi-size
 
 CFLAGS=-g -O2 -mlittle-endian -mthumb
 CFLAGS+=-mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard
@@ -197,5 +198,8 @@ gdbauto:
 
 astyle:
 	astyle -r --exclude=lib --exclude=platform --style=linux --suffix=none --indent=tab=8  *.c *.h
+
+size:
+	$(SIZE)  $(EXECUTABLE)
 
 .PHONY:all clean flash openocd gdbauto
