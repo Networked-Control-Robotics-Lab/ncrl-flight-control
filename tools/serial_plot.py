@@ -333,12 +333,20 @@ class serial_plotter_class:
         	self.show_subplot()
 
         elif (message_id == 17):
-          	plt.subplot(111)
-        	plt.ylabel('velocity (baro) [m/s]')
+          	plt.subplot(211)
+        	plt.ylabel('height [m]')
+        	plt.ylim([-5.0, 5.0])
+        	self.create_curve('h_barometer', 'red')
+                self.create_curve('h_optitrack', 'blue')
+        	self.show_subplot()
+
+        	plt.subplot(212)
+        	plt.ylabel('velocity [m/s]')
         	plt.ylim([-5.0, 5.0])
         	self.create_curve('v_barometer', 'red')
                 self.create_curve('v_optitrack', 'blue')
         	self.show_subplot()
+
 
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \

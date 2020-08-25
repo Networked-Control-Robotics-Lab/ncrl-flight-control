@@ -1,5 +1,6 @@
 #include "debug_link.h"
 #include "optitrack.h"
+#include "barometer.h"
 
 float alt_rate_last = 0.0f;
 float alt_rate_predict = 0.0f;
@@ -33,10 +34,19 @@ float barometer_alt_rate_estimate(float *dcm, float alt_rate, float *accel_body,
 
 void send_alt_est_debug_message(debug_msg_t *payload)
 {
+	float altitude = 0.0f;
+	float optitrack_pos[3] = {0.0f};
+	altitude = barometer_get_relative_altitude();
+	optitrack_read_pos(optitrack_pos);
+
 	float optitrack_vel[3] = {0.0f};
 	optitrack_read_vel(optitrack_vel);
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_ALT_EST);
+	/* position */
+	pack_debug_debug_message_float(&altitude, payload);
+	pack_debug_debug_message_float(&optitrack_pos[2], payload);
+	/* velocity */
 	pack_debug_debug_message_float(&alt_rate_fused, payload);
 	pack_debug_debug_message_float(&optitrack_vel[2], payload);
 }
