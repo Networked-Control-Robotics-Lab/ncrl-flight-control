@@ -82,10 +82,10 @@ void convert_magnetic_field_to_quat(float *l, float *q)
 		q[0] = _sqrt / sqrt_2gamma;
 		q[1] = 0.0f;
 		q[2] = 0.0f;
-		q[3] = -l[2] / (sqrt_2 * _sqrt);
+		q[3] = -l[1] / (sqrt_2 * _sqrt);
 	} else {
 		arm_sqrt_f32(gamma - l[0]*sqrt_gamma, &_sqrt);
-		q[0] = l[2] / (sqrt_2 * _sqrt);
+		q[0] = l[1] / (sqrt_2 * _sqrt);
 		q[1] = 0.0f;
 		q[2] = 0.0f;
 		q[3] = -_sqrt / sqrt_2gamma;

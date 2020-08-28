@@ -150,6 +150,22 @@ void ahrs_estimate(ahrs_t *ahrs, float *accel, float *gyro)
 	align_ahrs_with_optitrack_yaw(ahrs->q);
 #endif
 
+#if 0	/* XXX: test code for compass heading */
+	float mag[3];
+	get_imu_compass_raw(mag);
+	if(mag[0] != 0.0f && mag[1] != 0.0f && mag[2] != 0.0f) {
+		normalize_3x1(mag);
+
+		float q_mag[4];
+		convert_magnetic_field_to_quat(mag, q_mag);
+
+		float q_no_heading[4];
+		reset_quaternion_yaw_angle(ahrs->q);
+		quaternion_copy(q_no_heading, ahrs->q);
+		quaternion_mult(q_mag, q_no_heading, ahrs->q);
+	}
+#endif
+
 	euler_t euler;
 	quat_to_euler(ahrs->q, &euler);
 	ahrs->attitude.roll = rad_to_deg(euler.roll);
