@@ -166,6 +166,17 @@ void ahrs_estimate(ahrs_t *ahrs, float *accel, float *gyro)
 	}
 #endif
 
+#if 0   /* XXX: test code of madgwick filter with compass */
+	float mag[3];
+	get_imu_compass_raw(mag);
+	if(mag[0] != 0.0f && mag[1] != 0.0f && mag[2] != 0.0f) {
+		madgwick_margs_ahrs(&madgwick_ahrs, gravity, gyro_rad, mag);
+	} else {
+		madgwick_imu_ahrs(&madgwick_ahrs, gravity, gyro_rad);
+	}
+	quaternion_copy(ahrs->q, madgwick_ahrs.q);
+#endif
+
 	euler_t euler;
 	quat_to_euler(ahrs->q, &euler);
 	ahrs->attitude.roll = rad_to_deg(euler.roll);
