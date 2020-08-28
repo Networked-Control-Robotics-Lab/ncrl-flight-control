@@ -111,11 +111,11 @@ void ist8310_read_sensor(void)
 	ist8310_read_bytes(IST8310_REG_DATA, buf, 6);
 
 	/* composite unscaled data */
-	ist8310.mag_unscaled[0] = (((int16_t)buf[1]) << 8 | buf[0]);
-	ist8310.mag_unscaled[1] = (((int16_t)buf[3]) << 8 | buf[2]);
+	ist8310.mag_unscaled[0] = (((int16_t)buf[3]) << 8 | buf[2]);
+	ist8310.mag_unscaled[1] = (((int16_t)buf[1]) << 8 | buf[0]);
 	ist8310.mag_unscaled[2] = (((int16_t)buf[5]) << 8 | buf[4]);
 
-	/* convert unscaled data to raw data */
+	/* convert unscaled data to raw data (NED frame) */
 	ist8310.mag_raw[0] = ist8310.mag_unscaled[0] * IST8310_RESOLUTION;
 	ist8310.mag_raw[1] = ist8310.mag_unscaled[1] * IST8310_RESOLUTION;
 	ist8310.mag_raw[2] = ist8310.mag_unscaled[2] * IST8310_RESOLUTION;
