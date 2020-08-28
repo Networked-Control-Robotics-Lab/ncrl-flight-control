@@ -8,6 +8,8 @@
 #include "se3_math.h"
 #include "quaternion.h"
 
+/* reference paper: Keeping a Good Attitude: A Quaternion-Based Orientation Filter for IMUs and MARGs */
+
 MAT_ALLOC(q_gyro, 4, 1);
 MAT_ALLOC(q, 4, 1);
 MAT_ALLOC(dq, 4, 1);
@@ -54,12 +56,39 @@ void convert_gravity_to_quat(float *a, float *q)
 		q[0] = -a[1] / _sqrt;
 		//q1
 		arm_sqrt_f32((1.0f - a[2]) * 0.5f, &_sqrt);
-		q[1] = +_sqrt;
+		q[1] = -_sqrt;
 		//q2
 		q[2] = 0.0f;
 		//q3
 		arm_sqrt_f32(2.0f * (1.0f - a[2]), &_sqrt);
-		q[3] = +a[0] / _sqrt;
+		q[3] = -a[0] / _sqrt;
+	}
+
+	quat_normalize(q);
+}
+
+void convert_magnetic_field_to_quat(float *l, float *q)
+{
+	float gamma = l[0]*l[0] + l[1]*l[1];
+	float sqrt_gamma, sqrt_2gamma, sqrt_2;
+	arm_sqrt_f32(gamma, &sqrt_gamma);
+	arm_sqrt_f32(2.0f * gamma, &sqrt_2gamma);
+	arm_sqrt_f32(2.0f, &sqrt_2); //TODO: this is constant!
+
+	float _sqrt;
+
+	if(l[0] >= 0.0f) {
+		arm_sqrt_f32(gamma + l[0]*sqrt_gamma, &_sqrt);
+		q[0] = _sqrt / sqrt_2gamma;
+		q[1] = 0.0f;
+		q[2] = 0.0f;
+		q[3] = -l[2] / (sqrt_2 * _sqrt);
+	} else {
+		arm_sqrt_f32(gamma - l[0]*sqrt_gamma, &_sqrt);
+		q[0] = l[2] / (sqrt_2 * _sqrt);
+		q[1] = 0.0f;
+		q[2] = 0.0f;
+		q[3] = -_sqrt / sqrt_2gamma;
 	}
 
 	quat_normalize(q);
