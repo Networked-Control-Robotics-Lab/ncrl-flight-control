@@ -289,7 +289,7 @@ class serial_plotter_class:
         elif (message_id == 15):
           	plt.subplot(311)
         	plt.ylabel('magnetic induction [uT]')
-        	plt.ylim([-10000, 10000])
+        	plt.ylim([-100, 100])
         	self.create_curve('mx', 'red')
                 self.create_curve('my', 'blue')
         	self.create_curve('mz', 'green')
@@ -297,7 +297,7 @@ class serial_plotter_class:
 
           	plt.subplot(312)
         	plt.ylabel('magnetic field strength [uT]')
-        	plt.ylim([0, 10000])
+        	plt.ylim([0, 100])
         	self.create_curve('mx', 'red')
         	self.show_subplot()
 
