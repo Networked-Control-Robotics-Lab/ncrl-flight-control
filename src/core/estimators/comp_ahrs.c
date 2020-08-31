@@ -45,10 +45,10 @@ void convert_gravity_to_quat(float *a, float *q)
 		q[0] = _sqrt;
 		//q1
 		arm_sqrt_f32(2.0f * (a[2] + 1.0f), &_sqrt);
-		q[1] = +a[1] / _sqrt;
+		q[1] = -a[1] / _sqrt;
 		//q2
 		arm_sqrt_f32(2.0f * (a[2] + 1.0f), &_sqrt);
-		q[2] = -a[0] / _sqrt;
+		q[2] = +a[0] / _sqrt;
 		//q3
 		q[3] = 0.0f;
 	} else {
@@ -57,12 +57,12 @@ void convert_gravity_to_quat(float *a, float *q)
 		q[0] = -a[1] / _sqrt;
 		//q1
 		arm_sqrt_f32((1.0f - a[2]) * 0.5f, &_sqrt);
-		q[1] = -_sqrt;
+		q[1] = _sqrt;
 		//q2
 		q[2] = 0.0f;
 		//q3
 		arm_sqrt_f32(2.0f * (1.0f - a[2]), &_sqrt);
-		q[3] = -a[0] / _sqrt;
+		q[3] = a[0] / _sqrt;
 	}
 
 	quat_normalize(q);
@@ -83,13 +83,13 @@ void convert_magnetic_field_to_quat(float *l, float *q)
 		q[0] = _sqrt / sqrt_2gamma;
 		q[1] = 0.0f;
 		q[2] = 0.0f;
-		q[3] = -l[1] / (sqrt_2 * _sqrt);
+		q[3] = l[1] / (sqrt_2 * _sqrt);
 	} else {
 		arm_sqrt_f32(gamma - l[0]*sqrt_gamma, &_sqrt);
 		q[0] = l[1] / (sqrt_2 * _sqrt);
 		q[1] = 0.0f;
 		q[2] = 0.0f;
-		q[3] = -_sqrt / sqrt_2gamma;
+		q[3] = _sqrt / sqrt_2gamma;
 	}
 
 	quat_normalize(q);
@@ -131,25 +131,38 @@ void ahrs_imu_complementary_filter_estimate(float *q_out, float *accel, float *g
 	MAT_ADD(&q, &dq, &q_gyro);  //calculate x = x + dq
 	quat_normalize(_mat_(q_gyro)); //renormalization
 
-	/* convert gravity vector to quaternion */
-	float q_gravity[4] = {0};
-	normalize_3x1(accel); //normalize acceleromter
-	convert_gravity_to_quat(accel, q_gravity);
+	/* normalize acceleromter */
+	normalize_3x1(accel);
 
-	/* fuse gyroscope and acceleromter using LERP algorithm */
-	float a = 0.995f;
-	_mat_(q)[0] = (_mat_(q_gyro)[0] * a) + (q_gravity[0]* (1.0 - a));
-	_mat_(q)[1] = (_mat_(q_gyro)[1] * a) + (q_gravity[1]* (1.0 - a));
-	_mat_(q)[2] = (_mat_(q_gyro)[2] * a) + (q_gravity[2]* (1.0 - a));
-	_mat_(q)[3] = (_mat_(q_gyro)[3] * a) + (q_gravity[3]* (1.0 - a));
-	/* renormalize the quaternion since LERP does not maintain
-	   the unit length propertety of the quaternion */
-	quat_normalize(_mat_(q));
+	/* weight of accelerometer for complementary filtering */
+	float a = 0.005f;
 
-	q_out[0] = _mat_(q)[0];
-	q_out[1] = _mat_(q)[1];
-	q_out[2] = _mat_(q)[2];
-	q_out[3] = _mat_(q)[3];
+	/* construct shortest-path's (in 4d space) quaternion for fusion */
+	float delta_q_acc[4];
+	float sqrt_tmp = sqrt(2.0f * (accel[2] + 1));
+	delta_q_acc[0] = sqrt((accel[2]) * 0.5);
+	delta_q_acc[1] = -accel[1] / sqrt_tmp;
+	delta_q_acc[2] = accel[0] / sqrt_tmp;
+	delta_q_acc[3] = 0.0f;
+
+	float q_identity[4] = {1.0f, 0.0f, 0.0f, 0.0f};
+	float bar_delta_q_acc[4];
+	bar_delta_q_acc[0] = ((1.0f - a) * q_identity[0]) + (a * delta_q_acc[0]);
+	bar_delta_q_acc[1] = ((1.0f - a) * q_identity[1]) + (a * delta_q_acc[1]);
+	bar_delta_q_acc[2] = ((1.0f - a) * q_identity[2]) + (a * delta_q_acc[2]);
+	bar_delta_q_acc[3] = ((1.0f - a) * q_identity[3]) + (a * delta_q_acc[3]);
+	quat_normalize(bar_delta_q_acc);
+
+	/* fuse two quaternion with LERP algorithm */
+	quaternion_mult(_mat_(q_gyro), bar_delta_q_acc, _mat_(q));
+
+	/* return the conjugated quaternion since we use opposite convention compared to the paper.
+	 * paper: quaternion of earth frame to body-fixed frame
+	 * us: quaternion of body-fixed frame to earth frame */
+	q_out[0] = +(_mat_(q)[0]);
+	q_out[1] = -(_mat_(q)[1]);
+	q_out[2] = -(_mat_(q)[2]);
+	q_out[3] = -(_mat_(q)[3]);
 }
 
 void ahrs_marg_complementary_filter_estimate(float *q_out, float *accel, float *gyro, float *mag)
