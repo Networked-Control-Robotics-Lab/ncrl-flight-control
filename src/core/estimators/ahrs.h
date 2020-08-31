@@ -9,6 +9,6 @@ typedef struct {
 } ahrs_t;
 
 void ahrs_init(void);
-void ahrs_estimate(ahrs_t *ahrs, float *_accel, float *_gyro);
+void ahrs_estimate(ahrs_t *ahrs, float *_accel, float *_gyro, float *_mag);
 
 #endif

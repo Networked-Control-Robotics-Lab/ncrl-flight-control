@@ -19,11 +19,23 @@ extern optitrack_t optitrack;
 
 madgwick_t madgwick_ahrs;
 
+bool use_compass;
+volatile bool mag_error;
+
 void ahrs_init(void)
 {
 	complementary_ahrs_init(0.0025);
 
 	madgwick_init(&madgwick_ahrs, 400, 0.3);
+
+	switch(SELECT_LOCALIZATION) {
+	case LOCALIZATION_USE_GPS_MAG:
+		use_compass = true;
+		break;
+	case LOCALIZATION_USE_OPTITRACK:
+	default:
+		use_compass = false;
+	}
 }
 
 void ahrs_gyro_integration(float *q, float *gyro, float time)
@@ -114,17 +126,7 @@ void reset_quaternion_yaw_angle(float *q)
 	quaternion_mult(q_negative_yaw, q_original, q);
 }
 
-void ahrs_selector(float *q, float *gravity, float *gyro_rad)
-{
-#if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
-	ahrs_complementary_filter_estimate(q, gravity, gyro_rad);
-#elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
-	madgwick_imu_ahrs(&madgwick_ahrs, gravity, gyro_rad);
-	quaternion_copy(q, madgwick_ahrs.q);
-#endif
-}
-
-void ahrs_estimate(ahrs_t *ahrs, float *accel, float *gyro)
+void ahrs_estimate(ahrs_t *ahrs, float *accel, float *gyro, float *mag)
 {
 	/* note that acceleromter senses the negative gravity acceleration (normal force)
 	 * a_imu = (R(phi, theta, psi) * a_translation) - (R(phi, theta, psi) * g) */
@@ -138,43 +140,30 @@ void ahrs_estimate(ahrs_t *ahrs, float *accel, float *gyro)
 	gyro_rad[1] = deg_to_rad(gyro[1]);
 	gyro_rad[2] = deg_to_rad(gyro[2]);
 
+	if(mag[0] == 0.0f && mag[1] == 0.0f && mag[2] == 0.0f) {
+		mag_error = true;
+	} else {
+		mag_error = false;
+	}
+
 #if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
-	ahrs_complementary_filter_estimate(ahrs->q, gravity, gyro_rad);
+	if(mag_error == false && use_compass == true) {
+		ahrs_marg_complementary_filter_estimate(ahrs->q, gravity, gyro_rad, mag);
+	} else {
+		ahrs_imu_complementary_filter_estimate(ahrs->q, gravity, gyro_rad);
+	}
 #elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
-	madgwick_imu_ahrs(&madgwick_ahrs, gravity, gyro_rad);
+	if(mag_error == false && use_compass == true) {
+		madgwick_margs_ahrs(&madgwick_ahrs, gravity, gyro_rad, mag);
+	} else {
+		madgwick_imu_ahrs(&madgwick_ahrs, gravity, gyro_rad);
+	}
 	quaternion_copy(ahrs->q, madgwick_ahrs.q);
 #endif
 
 #if (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
 	reset_quaternion_yaw_angle(ahrs->q);
 	align_ahrs_with_optitrack_yaw(ahrs->q);
-#endif
-
-#if 0	/* XXX: test code for compass heading */
-	float mag[3];
-	get_imu_compass_raw(mag);
-	if(mag[0] != 0.0f && mag[1] != 0.0f && mag[2] != 0.0f) {
-		normalize_3x1(mag);
-
-		float q_mag[4];
-		convert_magnetic_field_to_quat(mag, q_mag);
-
-		float q_no_heading[4];
-		reset_quaternion_yaw_angle(ahrs->q);
-		quaternion_copy(q_no_heading, ahrs->q);
-		quaternion_mult(q_mag, q_no_heading, ahrs->q);
-	}
-#endif
-
-#if 0   /* XXX: test code of madgwick filter with compass */
-	float mag[3];
-	get_imu_compass_raw(mag);
-	if(mag[0] != 0.0f && mag[1] != 0.0f && mag[2] != 0.0f) {
-		madgwick_margs_ahrs(&madgwick_ahrs, gravity, gyro_rad, mag);
-	} else {
-		madgwick_imu_ahrs(&madgwick_ahrs, gravity, gyro_rad);
-	}
-	quaternion_copy(ahrs->q, madgwick_ahrs.q);
 #endif
 
 	euler_t euler;

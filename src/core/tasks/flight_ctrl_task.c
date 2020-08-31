@@ -128,7 +128,9 @@ void task_flight_ctrl(void *param)
 		rc_yaw_setpoint_handler(&desired_yaw, -rc.yaw, 0.0025);
 
 		perf_start(PERF_AHRS);
-		ahrs_estimate(&ahrs, imu.accel_lpf, imu.gyro_lpf);
+		float mag_raw[3]; //XXX
+		get_imu_compass_raw(mag_raw);
+		ahrs_estimate(&ahrs, imu.accel_lpf, imu.gyro_lpf, mag_raw);
 		perf_end(PERF_AHRS);
 
 		perf_start(PERF_CONTROLLER);

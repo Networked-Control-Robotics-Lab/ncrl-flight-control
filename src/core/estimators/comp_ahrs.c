@@ -8,7 +8,8 @@
 #include "se3_math.h"
 #include "quaternion.h"
 
-/* reference paper: Keeping a Good Attitude: A Quaternion-Based Orientation Filter for IMUs and MARGs */
+/* check the paper: Keeping a Good Attitude: A Quaternion-Based Orientation Filter for IMUs and MA
+ * by Roberto G. Valenti, Ivan Dryanovski and Jizhong Xiao */
 
 MAT_ALLOC(q_gyro, 4, 1);
 MAT_ALLOC(q, 4, 1);
@@ -100,11 +101,8 @@ void ahrs_complementary_filter_set_quat(float *_q)
 	quaternion_copy(_mat_(q), _q);
 }
 
-void ahrs_complementary_filter_estimate(float *q_out, float *accel, float *gyro)
+void ahrs_imu_complementary_filter_estimate(float *q_out, float *accel, float *gyro)
 {
-	/* check the paper: Keeping a Good Attitude: A Quaternion-Based Orientation Filter for IMUs and MA
-	 * by Roberto G. Valenti, Ivan Dryanovski and Jizhong Xiao */
-
 	/* construct system transition function f */
 	float half_q0_dt = 0.5f * _mat_(q)[0] * comp_ahrs_dt;
 	float half_q1_dt = 0.5f * _mat_(q)[1] * comp_ahrs_dt;
@@ -144,8 +142,8 @@ void ahrs_complementary_filter_estimate(float *q_out, float *accel, float *gyro)
 	_mat_(q)[1] = (_mat_(q_gyro)[1] * a) + (q_gravity[1]* (1.0 - a));
 	_mat_(q)[2] = (_mat_(q_gyro)[2] * a) + (q_gravity[2]* (1.0 - a));
 	_mat_(q)[3] = (_mat_(q_gyro)[3] * a) + (q_gravity[3]* (1.0 - a));
-	//it is crucial to renormalize the quaternion since LERP don't maintain
-	//the unit length propertety of the quaternion
+	/* renormalize the quaternion since LERP does not maintain
+	   the unit length propertety of the quaternion */
 	quat_normalize(_mat_(q));
 
 	q_out[0] = _mat_(q)[0];
@@ -154,3 +152,62 @@ void ahrs_complementary_filter_estimate(float *q_out, float *accel, float *gyro)
 	q_out[3] = _mat_(q)[3];
 }
 
+void ahrs_marg_complementary_filter_estimate(float *q_out, float *accel, float *gyro, float *mag)
+{
+	/* construct system transition function f */
+	float half_q0_dt = 0.5f * _mat_(q)[0] * comp_ahrs_dt;
+	float half_q1_dt = 0.5f * _mat_(q)[1] * comp_ahrs_dt;
+	float half_q2_dt = 0.5f * _mat_(q)[2] * comp_ahrs_dt;
+	float half_q3_dt = 0.5f * _mat_(q)[3] * comp_ahrs_dt;
+	_mat_(f)[0] = -half_q1_dt;
+	_mat_(f)[1] = -half_q2_dt;
+	_mat_(f)[2] = -half_q3_dt;
+	_mat_(f)[3] = +half_q0_dt;
+	_mat_(f)[4] = -half_q3_dt;
+	_mat_(f)[5] = +half_q2_dt;
+	_mat_(f)[6] = +half_q3_dt;
+	_mat_(f)[7] = +half_q0_dt;
+	_mat_(f)[8] = -half_q1_dt;
+	_mat_(f)[9] = -half_q2_dt;
+	_mat_(f)[10] = +half_q1_dt;
+	_mat_(f)[11] = +half_q0_dt;
+
+	/* angular rate from rate gyro */
+	_mat_(w)[0] = gyro[0];
+	_mat_(w)[1] = gyro[1];
+	_mat_(w)[2] = gyro[2];
+
+	/* rate gyro integration */
+	MAT_MULT(&f, &w, &dq); //calculate dq = f * w
+	MAT_ADD(&q, &dq, &q_gyro);  //calculate x = x + dq
+	quat_normalize(_mat_(q_gyro)); //renormalization
+
+	/* convert gravity vector to quaternion */
+	float q_gravity[4] = {0};
+	normalize_3x1(accel); //normalize acceleromter
+	convert_gravity_to_quat(accel, q_gravity);
+
+	/* convert magnetic field vector to quaternion */
+	float q_mag[4] = {0};
+	normalize_3x1(mag); //normalize magnetometer
+	convert_magnetic_field_to_quat(mag, q_mag);
+
+	/* generate quaternion using accelerometer and magnetometer */
+	float q_gravity_mag[4] = {0};
+	quaternion_mult(q_mag, q_gravity, q_gravity_mag);
+
+	/* fuse gyroscope and acceleromter using LERP algorithm */
+	float a = 0.995f;
+	_mat_(q)[0] = (_mat_(q_gyro)[0] * a) + (q_gravity_mag[0]* (1.0 - a));
+	_mat_(q)[1] = (_mat_(q_gyro)[1] * a) + (q_gravity_mag[1]* (1.0 - a));
+	_mat_(q)[2] = (_mat_(q_gyro)[2] * a) + (q_gravity_mag[2]* (1.0 - a));
+	_mat_(q)[3] = (_mat_(q_gyro)[3] * a) + (q_gravity_mag[3]* (1.0 - a));
+	/* renormalize the quaternion since LERP does not maintain
+	   the unit length propertety of the quaternion */
+	quat_normalize(_mat_(q));
+
+	q_out[0] = _mat_(q)[0];
+	q_out[1] = _mat_(q)[1];
+	q_out[2] = _mat_(q)[2];
+	q_out[3] = _mat_(q)[3];
+}
