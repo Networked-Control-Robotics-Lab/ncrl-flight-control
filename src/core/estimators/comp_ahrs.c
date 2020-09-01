@@ -11,6 +11,8 @@
 /* check the paper: Keeping a Good Attitude: A Quaternion-Based Orientation Filter for IMUs and MA
  * by Roberto G. Valenti, Ivan Dryanovski and Jizhong Xiao */
 
+const float sqrt_2 = sqrt(2);
+
 MAT_ALLOC(q, 4, 1);
 MAT_ALLOC(R_gyro, 3, 3);
 MAT_ALLOC(accel_vec, 3, 1);
@@ -73,10 +75,9 @@ void convert_gravity_to_quat(float *a, float *q)
 void convert_magnetic_field_to_quat(float *l, float *q)
 {
 	float gamma = l[0]*l[0] + l[1]*l[1];
-	float sqrt_gamma, sqrt_2gamma, sqrt_2;
+	float sqrt_gamma, sqrt_2gamma;
 	arm_sqrt_f32(gamma, &sqrt_gamma);
 	arm_sqrt_f32(2.0f * gamma, &sqrt_2gamma);
-	arm_sqrt_f32(2.0f, &sqrt_2); //TODO: this is constant!
 
 	float _sqrt;
 
@@ -162,16 +163,18 @@ void ahrs_imu_complementary_filter_estimate(float *q_out, float *accel, float *g
 	_mat_(accel_vec)[2] = accel[2];
 	MAT_MULT(&R_gyro, &accel_vec, &g_predict);
 
-	/* fuse gyroscope and accelerometer with LERP */
+	float q_identity[4] = {1.0f, 0.0f, 0.0f, 0.0f};
+
+	/* calculate delta change of quaternion for fusing gyroscope and accelerometer */
+	float weight_accel = 0.005f; //alpha value for fusion
 	float delta_q_acc[4];
+	float bar_delta_q_acc[4];
 	convert_gravity_to_quat(_mat_(g_predict), delta_q_acc);
 	quat_normalize(delta_q_acc);
-
-	float q_identity[4] = {1.0f, 0.0f, 0.0f, 0.0f};
-	float bar_delta_q_acc[4];
-	float weight_accel = 0.005f; //alpha value for fusion
 	lerp(q_identity, delta_q_acc, weight_accel, bar_delta_q_acc);
 	quat_normalize(bar_delta_q_acc);
+
+	/* calculate the final result (gyroscope + acceleromter) */
 	quaternion_mult(q_gyro, bar_delta_q_acc, _mat_(q));
 
 	/* return the conjugated quaternion since we use opposite convention compared to the paper.
@@ -218,28 +221,27 @@ void ahrs_marg_complementary_filter_estimate(float *q_out, float *accel, float *
 	_mat_(mag_vec)[2] = mag[2];
 	MAT_MULT(&R_gyro, &mag_vec, &l_predict);
 
-	/* fuse gyroscope and accelerometer with LERP */
+	float q_identity[4] = {1.0f, 0.0f, 0.0f, 0.0f};
+
+	/* calculate delta change of quaternion for fusing gyroscope and accelerometer */
+	float weight_accel = 0.005f;
 	float delta_q_acc[4];
+	float bar_delta_q_acc[4];
 	convert_gravity_to_quat(_mat_(g_predict), delta_q_acc);
 	quat_normalize(delta_q_acc);
-
-	float q_identity[4] = {1.0f, 0.0f, 0.0f, 0.0f};
-	float bar_delta_q_acc[4];
-	float weight_accel = 0.005f; //alpha value for fusion
 	lerp(q_identity, delta_q_acc, weight_accel, bar_delta_q_acc);
 	quat_normalize(bar_delta_q_acc);
 
-	/* now fuse the result with magnetometer with LERP again */
+	/* calculate delta change of quaternion for fusing gyroscope and magnetometer */
+	float weight_mag = 0.005f;
 	float delta_q_mag[4];
+	float bar_delta_q_mag[4];
 	convert_magnetic_field_to_quat(_mat_(l_predict), delta_q_mag);
 	quat_normalize(delta_q_mag);
-
-	float bar_delta_q_mag[4];
-	float weight_mag = 0.005f; //alpha value for fusion
 	lerp(q_identity, delta_q_mag, weight_mag, bar_delta_q_mag);
 	quat_normalize(bar_delta_q_mag);
 
-	/* calculate the final result of the quaternion */
+	/* calculate the final result (gyroscope + acceleromter + magnetometer) */
 	float q_delta_acc_mag[4];
 	quaternion_mult(bar_delta_q_acc, bar_delta_q_mag, q_delta_acc_mag);
 	quaternion_mult(q_gyro, q_delta_acc_mag, _mat_(q));
@@ -248,5 +250,4 @@ void ahrs_marg_complementary_filter_estimate(float *q_out, float *accel, float *
 	 * paper: quaternion of earth frame to body-fixed frame
 	 * us: quaternion of body-fixed frame to earth frame */
 	quaternion_conj(_mat_(q), q_out);
-
 }
