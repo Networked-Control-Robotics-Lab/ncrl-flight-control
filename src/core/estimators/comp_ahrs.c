@@ -119,6 +119,14 @@ void prepare_body_to_earth_rotation_matrix(float *q, float *r)
 	r[2*3 + 2] = q0q0 - q1q1 - q2q2 + q3q3;
 }
 
+void lerp(float *q1, float *q2, float alpha, float *q_out)
+{
+	q_out[0] = ((1.0f - alpha) * q1[0]) + (alpha * q2[0]);
+	q_out[1] = ((1.0f - alpha) * q1[1]) + (alpha * q2[1]);
+	q_out[2] = ((1.0f - alpha) * q1[2]) + (alpha * q2[2]);
+	q_out[3] = ((1.0f - alpha) * q1[3]) + (alpha * q2[3]);
+}
+
 void ahrs_imu_complementary_filter_estimate(float *q_out, float *accel, float *gyro)
 {
 	/* quaternion integration (with gyroscope) */
@@ -150,22 +158,16 @@ void ahrs_imu_complementary_filter_estimate(float *q_out, float *accel, float *g
 	_mat_(accel_vec)[2] = accel[2];
 	MAT_MULT(&R_gyro, &accel_vec, &g_predict);
 
-	/* weight of accelerometer for complementary filtering */
-	float a = 0.005f;
-
+	/* fuse gyroscope and accelerometer with LERP */
 	float delta_q_acc[4];
 	convert_gravity_to_quat(_mat_(g_predict), delta_q_acc);
 	quat_normalize(delta_q_acc);
 
 	float q_identity[4] = {1.0f, 0.0f, 0.0f, 0.0f};
 	float bar_delta_q_acc[4];
-	bar_delta_q_acc[0] = ((1.0f - a) * q_identity[0]) + (a * delta_q_acc[0]);
-	bar_delta_q_acc[1] = ((1.0f - a) * q_identity[1]) + (a * delta_q_acc[1]);
-	bar_delta_q_acc[2] = ((1.0f - a) * q_identity[2]) + (a * delta_q_acc[2]);
-	bar_delta_q_acc[3] = ((1.0f - a) * q_identity[3]) + (a * delta_q_acc[3]);
+	float weight_accel = 0.005f; //alpha value for fusion
+	lerp(q_identity, delta_q_acc, weight_accel, bar_delta_q_acc);
 	quat_normalize(bar_delta_q_acc);
-
-	/* fuse two quaternion with LERP algorithm */
 	quaternion_mult(q_gyro, bar_delta_q_acc, _mat_(q));
 
 	/* return the conjugated quaternion since we use opposite convention compared to the paper.
