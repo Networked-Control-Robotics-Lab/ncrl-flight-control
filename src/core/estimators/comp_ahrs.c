@@ -8,7 +8,8 @@
 #include "se3_math.h"
 #include "quaternion.h"
 
-/* check the paper: Keeping a Good Attitude: A Quaternion-Based Orientation Filter for IMUs and MA
+/* check the paper:
+ * Keeping a Good Attitude: A Quaternion-Based Orientation Filter for IMUs and MARGs
  * by Roberto G. Valenti, Ivan Dryanovski and Jizhong Xiao */
 
 const float sqrt_2 = sqrt(2);
