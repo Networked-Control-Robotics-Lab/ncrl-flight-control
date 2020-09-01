@@ -14,7 +14,9 @@
 MAT_ALLOC(q, 4, 1);
 MAT_ALLOC(R_gyro, 3, 3);
 MAT_ALLOC(accel_vec, 3, 1);
+MAT_ALLOC(mag_vec, 3, 1);
 MAT_ALLOC(g_predict, 3, 1);
+MAT_ALLOC(l_predict, 3, 1);
 
 float comp_ahrs_dt = 0.0f;
 
@@ -23,7 +25,9 @@ void complementary_ahrs_init(float ahrs_dt)
 	MAT_INIT(q, 4, 1);
 	MAT_INIT(R_gyro, 3, 3);
 	MAT_INIT(accel_vec, 3, 1);
+	MAT_INIT(mag_vec, 3, 1);
 	MAT_INIT(g_predict, 3, 1);
+	MAT_INIT(l_predict, 3, 1);
 
 	comp_ahrs_dt = ahrs_dt;
 
@@ -178,4 +182,71 @@ void ahrs_imu_complementary_filter_estimate(float *q_out, float *accel, float *g
 
 void ahrs_marg_complementary_filter_estimate(float *q_out, float *accel, float *gyro, float *mag)
 {
+	/* quaternion integration (with gyroscope) */
+	float w[4];
+	w[0] = 0.0f;
+	w[1] = gyro[0];
+	w[2] = gyro[1];
+	w[3] = gyro[2];
+
+	float q_dot[4];
+	quaternion_mult(w, _mat_(q), q_dot);
+
+	float q_gyro[4];
+	float half_dt = -0.5 * comp_ahrs_dt;
+	q_gyro[0] = _mat_(q)[0] + (q_dot[0] * half_dt);
+	q_gyro[1] = _mat_(q)[1] + (q_dot[1] * half_dt);
+	q_gyro[2] = _mat_(q)[2] + (q_dot[2] * half_dt);
+	q_gyro[3] = _mat_(q)[3] + (q_dot[3] * half_dt);
+	quat_normalize(q_gyro);
+
+	float conj_q_gyro[4];
+	quaternion_conj(q_gyro, conj_q_gyro);
+	prepare_body_to_earth_rotation_matrix(conj_q_gyro, _mat_(R_gyro));
+
+	/* calculate predicted gravity vector */
+	normalize_3x1(accel); //normalize acceleromter
+	_mat_(accel_vec)[0] = accel[0];
+	_mat_(accel_vec)[1] = accel[1];
+	_mat_(accel_vec)[2] = accel[2];
+	MAT_MULT(&R_gyro, &accel_vec, &g_predict);
+
+	/* calculate predicted magnetic field vector */
+	normalize_3x1(mag); //normalize magnetometer
+	_mat_(mag_vec)[0] = mag[0];
+	_mat_(mag_vec)[1] = mag[1];
+	_mat_(mag_vec)[2] = mag[2];
+	MAT_MULT(&R_gyro, &mag_vec, &l_predict);
+
+	/* fuse gyroscope and accelerometer with LERP */
+	float delta_q_acc[4];
+	convert_gravity_to_quat(_mat_(g_predict), delta_q_acc);
+	quat_normalize(delta_q_acc);
+
+	float q_identity[4] = {1.0f, 0.0f, 0.0f, 0.0f};
+	float bar_delta_q_acc[4];
+	float weight_accel = 0.005f; //alpha value for fusion
+	lerp(q_identity, delta_q_acc, weight_accel, bar_delta_q_acc);
+	quat_normalize(bar_delta_q_acc);
+
+	/* now fuse the result with magnetometer with LERP again */
+	float delta_q_mag[4];
+	convert_magnetic_field_to_quat(_mat_(l_predict), delta_q_mag);
+	quat_normalize(delta_q_mag);
+
+	float bar_delta_q_mag[4];
+	float weight_mag = 0.005f; //alpha value for fusion
+	lerp(q_identity, delta_q_mag, weight_mag, bar_delta_q_mag);
+	quat_normalize(bar_delta_q_mag);
+
+	/* calculate the final result of the quaternion */
+	float q_delta_acc_mag[4];
+	quaternion_mult(bar_delta_q_acc, bar_delta_q_mag, q_delta_acc_mag);
+	quaternion_mult(q_gyro, q_delta_acc_mag, _mat_(q));
+
+	/* return the conjugated quaternion since we use opposite convention compared to the paper.
+	 * paper: quaternion of earth frame to body-fixed frame
+	 * us: quaternion of body-fixed frame to earth frame */
+	quaternion_conj(_mat_(q), q_out);
+
 }
