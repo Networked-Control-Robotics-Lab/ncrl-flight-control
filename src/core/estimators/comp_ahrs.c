@@ -42,32 +42,30 @@ void complementary_ahrs_init(float ahrs_dt)
 
 void convert_gravity_to_quat(float *a, float *q)
 {
-	float _sqrt;
+	float sqrt_tmp;
 
 	if(a[2] >= 0.0f) {
+		arm_sqrt_f32(2.0f * (a[2] + 1.0f), &sqrt_tmp);
+
 		//q0
-		arm_sqrt_f32(0.5f * (a[2] + 1.0f), &_sqrt);
-		q[0] = _sqrt;
+		arm_sqrt_f32(0.5f * (a[2] + 1.0f), &q[0]);
 		//q1
-		arm_sqrt_f32(2.0f * (a[2] + 1.0f), &_sqrt);
-		q[1] = -a[1] / _sqrt;
+		q[1] = -a[1] / sqrt_tmp;
 		//q2
-		arm_sqrt_f32(2.0f * (a[2] + 1.0f), &_sqrt);
-		q[2] = +a[0] / _sqrt;
+		q[2] = +a[0] / sqrt_tmp;
 		//q3
 		q[3] = 0.0f;
 	} else {
+		arm_sqrt_f32(2.0f * (1.0f - a[2]), &sqrt_tmp);
+
 		//q0
-		arm_sqrt_f32(2.0f * (1.0f - a[2]), &_sqrt);
-		q[0] = -a[1] / _sqrt;
+		q[0] = -a[1] / sqrt_tmp;
 		//q1
-		arm_sqrt_f32((1.0f - a[2]) * 0.5f, &_sqrt);
-		q[1] = _sqrt;
+		arm_sqrt_f32((1.0f - a[2]) * 0.5f, &q[1]);
 		//q2
 		q[2] = 0.0f;
 		//q3
-		arm_sqrt_f32(2.0f * (1.0f - a[2]), &_sqrt);
-		q[3] = a[0] / _sqrt;
+		q[3] = a[0] / sqrt_tmp;
 	}
 
 	quat_normalize(q);
