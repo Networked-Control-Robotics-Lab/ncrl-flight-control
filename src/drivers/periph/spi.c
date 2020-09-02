@@ -129,7 +129,9 @@ void SPI3_IRQHandler(void)
 		SPI_I2S_SendData(SPI3, spi3_tx_buf);
 		SPI_I2S_ITConfig(SPI3, SPI_I2S_IT_TXE, DISABLE);
 		xSemaphoreGiveFromISR(spi3_tx_semphr, &higher_priority_task_woken);
-	} else if(SPI_GetITStatus(SPI3, SPI_IT_RXNE) == SET) {
+	}
+
+	if(SPI_GetITStatus(SPI3, SPI_IT_RXNE) == SET) {
 		spi3_rx_buf = SPI_I2S_ReceiveData(SPI3);
 		SPI_I2S_ITConfig(SPI3, SPI_I2S_IT_RXNE, DISABLE);
 		xSemaphoreGiveFromISR(spi3_rx_semphr, &higher_priority_task_woken);
