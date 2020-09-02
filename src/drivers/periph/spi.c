@@ -144,10 +144,10 @@ uint8_t spi3_read_write(uint8_t data)
 {
 	spi3_tx_buf = data;
 
-	SPI_I2S_ITConfig(SPI3, SPI_I2S_IT_TXE, DISABLE);
+	SPI_I2S_ITConfig(SPI3, SPI_I2S_IT_TXE, ENABLE);
 	xSemaphoreTake(spi3_tx_semphr, portMAX_DELAY);
 
-	SPI_I2S_ITConfig(SPI3, SPI_I2S_IT_RXNE, DISABLE);
+	SPI_I2S_ITConfig(SPI3, SPI_I2S_IT_RXNE, ENABLE);
 	xSemaphoreTake(spi3_rx_semphr, portMAX_DELAY);
 
 	return spi3_rx_buf;
