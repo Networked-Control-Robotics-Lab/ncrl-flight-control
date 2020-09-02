@@ -1,5 +1,11 @@
 #include "stm32f4xx_conf.h"
 
+SemaphoreHandle_t spi3_tx_semphr;
+SemaphoreHandle_t spi3_rx_semphr;
+
+uint8_t spi3_tx_buf;
+uint8_t spi3_rx_buf;
+
 /* <spi1>
  * usage: mpu6500 (imu)
  * cs: gpio_pin_a_4
@@ -56,6 +62,9 @@ void spi1_init(void)
  */
 void spi3_init(void)
 {
+	spi3_tx_semphr = xSemaphoreCreateBinary();
+	spi3_rx_semphr = xSemaphoreCreateBinary();
+
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI3, ENABLE);
@@ -92,6 +101,14 @@ void spi3_init(void)
 	};
 	SPI_Init(SPI3, &SPI_InitStruct);
 
+	NVIC_InitTypeDef NVIC_InitStruct = {
+		.NVIC_IRQChannel = SPI3_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = BAROMETER_ISR_PRIORITY,
+		.NVIC_IRQChannelSubPriority = 0,
+		.NVIC_IRQChannelCmd = ENABLE
+	};
+	NVIC_Init(&NVIC_InitStruct);
+
 	SPI_Cmd(SPI3, ENABLE);
 }
 
@@ -99,6 +116,37 @@ uint8_t spi_read_write(SPI_TypeDef *spi_channel, uint8_t data)
 {
 	while(SPI_I2S_GetFlagStatus(spi_channel, SPI_FLAG_TXE) == RESET);
 	SPI_I2S_SendData(spi_channel, data);
+
 	while(SPI_I2S_GetFlagStatus(spi_channel, SPI_FLAG_RXNE) == RESET);
 	return SPI_I2S_ReceiveData(spi_channel);
+}
+
+void SPI3_IRQHandler(void)
+{
+	BaseType_t higher_priority_task_woken = pdFALSE;
+
+	if(SPI_GetITStatus(SPI3, SPI_IT_TXE) == SET) {
+		SPI_I2S_SendData(SPI3, spi3_tx_buf);
+		SPI_I2S_ITConfig(SPI3, SPI_I2S_IT_TXE, DISABLE);
+		xSemaphoreGiveFromISR(spi3_tx_semphr, &higher_priority_task_woken);
+	} else if(SPI_GetITStatus(SPI3, SPI_IT_RXNE) == SET) {
+		spi3_rx_buf = SPI_I2S_ReceiveData(SPI3);
+		SPI_I2S_ITConfig(SPI3, SPI_I2S_IT_RXNE, DISABLE);
+		xSemaphoreGiveFromISR(spi3_rx_semphr, &higher_priority_task_woken);
+	}
+
+	portEND_SWITCHING_ISR(higher_priority_task_woken);
+}
+
+uint8_t spi3_read_write(uint8_t data)
+{
+	spi3_tx_buf = data;
+
+	SPI_I2S_ITConfig(SPI3, SPI_I2S_IT_TXE, DISABLE);
+	xSemaphoreTake(spi3_tx_semphr, portMAX_DELAY);
+
+	SPI_I2S_ITConfig(SPI3, SPI_I2S_IT_RXNE, DISABLE);
+	xSemaphoreTake(spi3_rx_semphr, portMAX_DELAY);
+
+	return spi3_rx_buf;
 }
