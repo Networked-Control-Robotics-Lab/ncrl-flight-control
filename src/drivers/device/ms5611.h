@@ -34,7 +34,7 @@ float ms5611_get_pressure(void);
 float ms5611_get_relative_altitude(void);
 float ms5611_get_relative_altitude_rate(void);
 
-void ms5611_driver_semaphore_handler(void);
+void ms5611_driver_semaphore_handler(BaseType_t *higher_priority_task_woken);
 void ms5611_driver_task(void *param);
 
 void send_barometer_debug_message(debug_msg_t *payload);

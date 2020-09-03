@@ -6,6 +6,7 @@
 #include "delay.h"
 #include "ist8310.h"
 #include "sys_time.h"
+#include "gpio.h"
 
 SemaphoreHandle_t ist8310_semphr;
 
@@ -90,11 +91,9 @@ void ist8130_init(void)
 	ist8310.last_update_time = get_sys_time_s();
 }
 
-void ist8310_semaphore_handler(void)
+void ist8310_semaphore_handler(BaseType_t *higher_priority_task_woken)
 {
-	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	xSemaphoreGiveFromISR(ist8310_semphr, &xHigherPriorityTaskWoken);
-	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+	xSemaphoreGiveFromISR(ist8310_semphr, higher_priority_task_woken);
 }
 
 void ist8310_read_sensor(void)
@@ -155,12 +154,10 @@ void ist8310_task_handler(void)
 {
 	ist8130_init();
 
+	TickType_t sleep_time = OS_TICK / 500; //1/500s
 	while(1) {
-		ist8310_read_sensor();
+		while(xSemaphoreTake(ist8310_semphr, sleep_time) == pdFALSE);
 
-		/* output data rate (odr) = 50Hz
-		   without data ready interrupt, it requires at least 500Hz
-		   to check status registart via i2c and read the data */
-		freertos_task_delay(2);
+		ist8310_read_sensor();
 	}
 }

@@ -174,11 +174,9 @@ void send_barometer_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_float(&ms5611.rel_vel_lpf, payload);
 }
 
-void ms5611_driver_semaphore_handler(void)
+void ms5611_driver_semaphore_handler(BaseType_t *higher_priority_task_woken)
 {
-	static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	xSemaphoreGiveFromISR(ms5611_task_semphr, &xHigherPriorityTaskWoken);
-	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+	xSemaphoreGiveFromISR(ms5611_task_semphr, higher_priority_task_woken);
 }
 
 void ms5611_driver_task(void *param)

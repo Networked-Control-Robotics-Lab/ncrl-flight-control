@@ -38,6 +38,7 @@ typedef struct {
 } ist8310_t;
 
 void ist8130_init(void);
+void ist8310_semaphore_handler(BaseType_t *higher_priority_task_woken);
 void ist8310_task_handler(void);
 
 void ist8310_get_raw_mag(float *mag_raw);

@@ -55,9 +55,9 @@ void sw_i2c_init(void)
 
 	GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-	/* 90MHz / (225 * 1) = 4000Hz */
+	/* 90MHz / (900 * 1) = 100kHz */
 	TIM_TimeBaseInitTypeDef TimeBaseInitStruct = {
-		.TIM_Period = 225 - 1,
+		.TIM_Period = 900 - 1,
 		.TIM_Prescaler = 1 - 1,
 		.TIM_CounterMode = TIM_CounterMode_Up,
 		.TIM_ClockDivision = TIM_CKD_DIV1,
