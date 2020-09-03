@@ -154,9 +154,8 @@ void ist8310_task_handler(void)
 {
 	ist8130_init();
 
-	TickType_t sleep_time = OS_TICK / 500; //1/500s
 	while(1) {
-		while(xSemaphoreTake(ist8310_semphr, sleep_time) == pdFALSE);
+		while(xSemaphoreTake(ist8310_semphr, portMAX_DELAY) == pdFALSE);
 
 		ist8310_read_sensor();
 	}

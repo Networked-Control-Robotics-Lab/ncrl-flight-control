@@ -181,13 +181,8 @@ void ms5611_driver_semaphore_handler(BaseType_t *higher_priority_task_woken)
 
 void ms5611_driver_task(void *param)
 {
-	/* initialize sea level for estimating relative altitude*/
-	ms5611_read_pressure();
-	ms5611_set_sea_level();
-
-	TickType_t sleep_time = OS_TICK / 4000; //1/4000s
 	while(1) {
-		while(xSemaphoreTake(ms5611_task_semphr, sleep_time) == pdFALSE);
+		while(xSemaphoreTake(ms5611_task_semphr, portMAX_DELAY) == pdFALSE);
 
 		ms5611_read_pressure();
 		ms5611_calc_relative_altitude_and_velocity();

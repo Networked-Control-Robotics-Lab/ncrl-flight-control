@@ -77,20 +77,20 @@ int main(void)
 	pwm_timer4_init(); //motor
 	exti10_init(); //imu ext interrupt
 	spi1_init(); //imu
-	//sw_i2c_init(); //XXX
+	//sw_i2c_init();
 
 	/* barometer (ms5611) */
-	timer14_init();
-	spi3_init();
-	ms5611_init();
+	//timer3_init();
+	//spi3_init();
+	//ms5611_init();
 
 	blocked_delay_ms(1000);
 
 	mavlink_queue_init();
 
 	/* compass driver task for handling software i2c protocol */
-	//xTaskCreate(task_compass, "compass handler", 512, NULL, tskIDLE_PRIORITY + 5, NULL); //XXX
-	xTaskCreate(ms5611_driver_task, "ms5611 driver", 512, NULL, tskIDLE_PRIORITY + 5, NULL);
+	//xTaskCreate(task_compass, "compass handler", 512, NULL, tskIDLE_PRIORITY + 5, NULL);
+	//xTaskCreate(ms5611_driver_task, "ms5611 driver", 512, NULL, tskIDLE_PRIORITY + 5, NULL);
 
 	xTaskCreate(task_flight_ctrl, "flight control", 4096, NULL, tskIDLE_PRIORITY + 4, NULL);
 
