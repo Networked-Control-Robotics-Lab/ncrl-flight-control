@@ -39,15 +39,15 @@ void ms5611_read_int24(uint8_t address, int32_t *data)
 	uint8_t byte1, byte2, byte3;
 
 	ms5611_chip_select();
-	spi_read_write(SPI3, address);
+	spi3_read_write(address);
 	ms5611_chip_deselect();
 	freertos_task_delay(1);
 
 	ms5611_chip_select();
-	spi_read_write(SPI3, 0x00);
-	byte1 = spi_read_write(SPI3, 0x00);
-	byte2 = spi_read_write(SPI3, 0x00);
-	byte3 = spi_read_write(SPI3, 0x00);
+	spi3_read_write(0x00);
+	byte1 = spi3_read_write(0x00);
+	byte2 = spi3_read_write(0x00);
+	byte3 = spi3_read_write(0x00);
 	*data = ((int32_t)byte1 << 16) | ((int32_t)byte2 << 8) | (int32_t)byte3;
 	ms5611_chip_deselect();
 }
