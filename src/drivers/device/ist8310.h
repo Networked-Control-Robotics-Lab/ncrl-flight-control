@@ -2,6 +2,9 @@
 #define __IST8310_H__
 
 #include <stdint.h>
+#include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
 
 #define IST8310_ADDR 0xe
 
