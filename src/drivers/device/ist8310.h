@@ -40,6 +40,7 @@ typedef struct {
 	float update_freq;
 } ist8310_t;
 
+void ist8310_register_device(void);
 void ist8130_init(void);
 void ist8310_semaphore_handler(BaseType_t *higher_priority_task_woken);
 void ist8310_task_handler(void);

@@ -27,6 +27,7 @@
 #include "perf_list.h"
 #include "ublox_m8n.h"
 #include "barometer.h"
+#include "ist8310.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 10
 
@@ -90,6 +91,7 @@ void task_flight_ctrl(void *param)
 #endif
 
 	mpu6500_init(&imu);
+	//ist8130_init();
 	barometer_wait_until_stable();
 
 	motor_init();

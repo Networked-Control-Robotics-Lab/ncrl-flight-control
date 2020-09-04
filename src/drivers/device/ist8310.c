@@ -12,6 +12,8 @@ SemaphoreHandle_t ist8310_semphr;
 
 ist8310_t ist8310;
 
+
+
 uint8_t ist8310_read_byte(uint8_t addr)
 {
 	uint8_t data;
@@ -43,6 +45,38 @@ void ist8310_write_byte(uint8_t addr, uint8_t data)
 	sw_i2c_stop();
 }
 
+uint8_t ist8310_blocked_read_byte(uint8_t addr)
+{
+	uint8_t data;
+
+	sw_i2c_blocked_start();
+	sw_i2c_blocked_send_byte((IST8310_ADDR << 1) | 0);
+	sw_i2c_blocked_wait_ack();
+	sw_i2c_blocked_send_byte(addr);
+	sw_i2c_blocked_wait_ack();
+	sw_i2c_blocked_start();
+	sw_i2c_blocked_send_byte((IST8310_ADDR << 1) | 1);
+	sw_i2c_blocked_wait_ack();
+	data = sw_i2c_blocked_read_byte();
+	sw_i2c_blocked_nack();
+	sw_i2c_blocked_stop();
+
+	return data;
+}
+
+void ist8310_blocked_write_byte(uint8_t addr, uint8_t data)
+{
+	sw_i2c_blocked_start();
+	sw_i2c_blocked_send_byte((IST8310_ADDR << 1) | 0);
+	sw_i2c_blocked_wait_ack();
+	sw_i2c_blocked_send_byte(addr);
+	sw_i2c_blocked_wait_ack();
+	sw_i2c_blocked_send_byte(data);
+	sw_i2c_blocked_wait_ack();
+	sw_i2c_blocked_stop();
+}
+
+
 void ist8310_read_bytes(uint8_t addr, uint8_t *data, int size)
 {
 	sw_i2c_start();
@@ -68,25 +102,36 @@ void ist8310_read_bytes(uint8_t addr, uint8_t *data, int size)
 
 static uint8_t ist8310_read_who_i_am(void)
 {
-	uint8_t id = ist8310_read_byte(IST8310_REG_WIA);
+	uint8_t id = ist8310_blocked_read_byte(IST8310_REG_WIA);
 	blocked_delay_ms(5);
 	return id;
 }
 
-void ist8130_init(void)
+void ist8310_reset(void)
+{
+	ist8310_blocked_write_byte(IST8310_REG_CTRL2, 0); //set bit 0 to zero for triggering reset
+	blocked_delay_ms(100);
+}
+
+void ist8310_register_device(void)
 {
 	ist8310_semphr = xSemaphoreCreateBinary();
+}
 
+void ist8130_init(void)
+{
 	while(ist8310_read_who_i_am() != IST8310_CHIP_ID);
 
-	ist8310_write_byte(IST8310_REG_CTRL1, IST8310_ODR_50HZ);
-	blocked_delay_ms(10);
+	ist8310_reset();
 
-	ist8310_write_byte(IST8310_REG_AVG, IST8310_AVG_16);
-	blocked_delay_ms(10);
+	ist8310_blocked_write_byte(IST8310_REG_CTRL1, IST8310_ODR_50HZ);
+	blocked_delay_ms(100);
 
-	ist8310_write_byte(IST8310_REG_PDCTL, IST8310_PD_NORMAL);
-	blocked_delay_ms(10);
+	ist8310_blocked_write_byte(IST8310_REG_AVG, IST8310_AVG_16);
+	blocked_delay_ms(100);
+
+	ist8310_blocked_write_byte(IST8310_REG_PDCTL, IST8310_PD_NORMAL);
+	blocked_delay_ms(100);
 
 	ist8310.last_update_time = get_sys_time_s();
 }
@@ -152,8 +197,6 @@ float ist8310_get_update_freq(void)
 
 void ist8310_task_handler(void)
 {
-	ist8130_init();
-
 	while(1) {
 		while(xSemaphoreTake(ist8310_semphr, portMAX_DELAY) == pdFALSE);
 

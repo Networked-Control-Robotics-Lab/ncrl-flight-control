@@ -33,6 +33,7 @@
 #include "calibration_task.h"
 #include "flash.h"
 #include "ms5611.h"
+#include "ist8310.h"
 
 extern SemaphoreHandle_t flight_ctrl_semphr;
 
@@ -77,14 +78,17 @@ int main(void)
 	pwm_timer4_init(); //motor
 	exti10_init(); //imu ext interrupt
 	spi1_init(); //imu
+
+	blocked_delay_ms(1000);
+
+	/* compass (ist8310) */
 	//sw_i2c_init();
+	//ist8310_register_device();
 
 	/* barometer (ms5611) */
 	//timer3_init();
 	//spi3_init();
 	//ms5611_init();
-
-	blocked_delay_ms(1000);
 
 	mavlink_queue_init();
 
@@ -92,7 +96,7 @@ int main(void)
 	//xTaskCreate(task_compass, "compass handler", 512, NULL, tskIDLE_PRIORITY + 5, NULL);
 	//xTaskCreate(ms5611_driver_task, "ms5611 driver", 512, NULL, tskIDLE_PRIORITY + 5, NULL);
 
-	xTaskCreate(task_flight_ctrl, "flight control", 4096, NULL, tskIDLE_PRIORITY + 4, NULL);
+	xTaskCreate(task_flight_ctrl, "flight control", 4096, NULL, tskIDLE_PRIORITY + 6, NULL);
 
 #if (SELECT_TELEM == TELEM_DEBUG_LINK)
 	xTaskCreate(task_debug_link, "debug link", 512, NULL, tskIDLE_PRIORITY + 3, NULL);
