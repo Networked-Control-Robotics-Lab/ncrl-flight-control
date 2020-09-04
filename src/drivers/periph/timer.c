@@ -12,7 +12,8 @@
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 1000 //400Hz
 #define LED_CTRL_PRESCALER_RELOAD  16000 //25Hz
-#define COMPASS_PRESCALER_RELOAD       8 //5Hz
+#define COMPASS_PRESCALER_RELOAD       8 //50Hz
+#define BAROMETER_PRESCALER_RELOAD     1 //400Hz
 
 extern SemaphoreHandle_t flight_ctl_semphr;
 
@@ -43,7 +44,7 @@ void timer3_init(void)
 {
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
 
-	/* 90MHz / (225 * 1) = 400Hz */
+	/* 90MHz / (225000 * 10) = 400Hz */
 	TIM_TimeBaseInitTypeDef TimeBaseInitStruct = {
 		.TIM_Period = 22500 - 1,
 		.TIM_Prescaler = 10 - 1,
@@ -53,7 +54,7 @@ void timer3_init(void)
 
 	NVIC_InitTypeDef NVIC_InitStruct = {
 		.NVIC_IRQChannel = TIM3_IRQn,
-		.NVIC_IRQChannelPreemptionPriority = SYS_TIMER_ISR_PRIORITY,
+		.NVIC_IRQChannelPreemptionPriority = BAROMETER_ISR_PRIORITY,
 		.NVIC_IRQChannelCmd = ENABLE
 	};
 	NVIC_Init(&NVIC_InitStruct);
@@ -92,13 +93,18 @@ void TIM8_BRK_TIM12_IRQHandler(void)
 void TIM3_IRQHandler(void)
 {
 	static int compass_cnt = COMPASS_PRESCALER_RELOAD;
+	static int barometer_cnt = BAROMETER_PRESCALER_RELOAD;
 
 	/* trigger ms5611 driver task (400Hz) */
 	if(TIM_GetITStatus(TIM3, TIM_IT_Update) == SET) {
 		BaseType_t higher_priority_task_woken = pdFALSE;
 
 		/* barometer */
-		ms5611_driver_semaphore_handler(&higher_priority_task_woken);
+		barometer_cnt--;
+		if(barometer_cnt == 0) {
+			barometer_cnt = BAROMETER_PRESCALER_RELOAD;
+			ms5611_driver_semaphore_handler(&higher_priority_task_woken);
+		}
 
 		/* compass */
 		compass_cnt--;
