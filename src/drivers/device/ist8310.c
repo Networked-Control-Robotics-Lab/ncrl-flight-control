@@ -109,7 +109,7 @@ static uint8_t ist8310_read_who_i_am(void)
 
 void ist8310_reset(void)
 {
-	ist8310_blocked_write_byte(IST8310_REG_CTRL2, 0); //set bit 0 to zero for triggering reset
+	ist8310_blocked_write_byte(IST8310_REG_CTRL2, 0x01);
 	blocked_delay_ms(100);
 }
 
@@ -123,9 +123,6 @@ void ist8130_init(void)
 	while(ist8310_read_who_i_am() != IST8310_CHIP_ID);
 
 	ist8310_reset();
-
-	ist8310_blocked_write_byte(IST8310_REG_CTRL1, IST8310_ODR_50HZ);
-	blocked_delay_ms(100);
 
 	ist8310_blocked_write_byte(IST8310_REG_AVG, IST8310_AVG_16);
 	blocked_delay_ms(100);
@@ -143,14 +140,15 @@ void ist8310_semaphore_handler(BaseType_t *higher_priority_task_woken)
 
 void ist8310_read_sensor(void)
 {
-	/* check sensor data is ready or not */
-	uint8_t status = ist8310_read_byte(IST8310_REG_STAT1);
-	uint8_t data_ready = status & 0x01;
-	if(data_ready == 0) {
-		return;
-	}
+	/* check "IST8310 User Manual v1.5" for details */
 
-	/* read sensor datas via i2c */
+	//sigle measurement mode
+	ist8310_blocked_write_byte(IST8310_REG_CTRL1, IST8310_ODR_SINGLE);
+
+	//wait 6ms for 16x average
+	freertos_task_delay(6);
+
+	/* read sensor datas */
 	uint8_t buf[6];
 	ist8310_read_bytes(IST8310_REG_DATA, buf, 6);
 
