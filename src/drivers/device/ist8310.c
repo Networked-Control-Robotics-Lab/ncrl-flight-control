@@ -186,7 +186,7 @@ float ist8310_get_update_freq(void)
 	return ist8310.update_freq;
 }
 
-void ist8310_task_handler(void *param)
+void ist8310_driver_task(void *param)
 {
 	while(1) {
 		while(xSemaphoreTake(ist8310_semphr, portMAX_DELAY) == pdFALSE);
@@ -199,5 +199,5 @@ void ist8310_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_s
                            UBaseType_t priority)
 {
 	ist8310_semphr = xSemaphoreCreateBinary();
-	xTaskCreate(ist8310_task_handler, task_name, stack_size, NULL, priority, NULL);
+	xTaskCreate(ist8310_driver_task, task_name, stack_size, NULL, priority, NULL);
 }

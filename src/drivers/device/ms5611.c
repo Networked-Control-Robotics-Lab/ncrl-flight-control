@@ -188,3 +188,9 @@ void ms5611_driver_task(void *param)
 		ms5611_calc_relative_altitude_and_velocity();
 	}
 }
+
+void ms5611_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
+                          UBaseType_t priority)
+{
+	xTaskCreate(ms5611_driver_task, task_name, stack_size, NULL, priority, NULL);
+}

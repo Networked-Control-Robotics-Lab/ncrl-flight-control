@@ -89,13 +89,14 @@ int main(void)
 	spi3_init();
 	ms5611_init();
 
-	/* compass driver task for handling software i2c protocol */
+	/* register driver relative tasks */
 	ist8310_register_task("compass driver", 512, tskIDLE_PRIORITY + 5);
-	xTaskCreate(ms5611_driver_task, "ms5611 driver", 512, NULL, tskIDLE_PRIORITY + 5, NULL);
+	ms5611_register_task("barometer driver", 512, tskIDLE_PRIORITY + 5);
 #endif
 
 	mavlink_queue_init();
 
+	/* register flight control system relative tasks */
 	xTaskCreate(task_flight_ctrl, "flight control", 4096, NULL, tskIDLE_PRIORITY + 6, NULL);
 
 #if (SELECT_TELEM == TELEM_DEBUG_LINK)

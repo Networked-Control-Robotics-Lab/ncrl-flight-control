@@ -27,6 +27,8 @@ typedef struct {
 } ms5611_t;
 
 void ms5611_init(void);
+void ms5611_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
+                           UBaseType_t priority);
 void ms5611_wait_until_stable(void);
 void ms5611_set_sea_level(void);
 
