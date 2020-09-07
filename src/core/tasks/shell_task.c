@@ -61,3 +61,10 @@ void shell_task(void *param)
 		taskYIELD();
 	}
 }
+
+void shell_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
+                         UBaseType_t priority)
+{
+	xTaskCreate(shell_task, task_name, stack_size, NULL, priority, NULL);
+}
+

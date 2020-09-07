@@ -91,7 +91,6 @@ void task_flight_ctrl(void *param)
 #endif
 
 	mpu6500_init(&imu);
-	//ist8130_init();
 	barometer_wait_until_stable();
 
 	motor_init();
@@ -149,6 +148,13 @@ void task_flight_ctrl(void *param)
 
 		taskYIELD();
 	}
+}
+
+void flight_controller_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
+                                     UBaseType_t priority)
+{
+	flight_ctrl_semphr = xSemaphoreCreateBinary();
+	xTaskCreate(task_flight_ctrl, task_name, stack_size, NULL, priority, NULL);
 }
 
 void send_imu_debug_message(debug_msg_t *payload)

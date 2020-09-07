@@ -34,10 +34,6 @@
 #include "ms5611.h"
 #include "ist8310.h"
 
-extern SemaphoreHandle_t flight_ctrl_semphr;
-
-extern TaskHandle_t calib_task_handle;
-
 perf_t perf_list[] = {
 	DEF_PERF(PERF_AHRS, "ahrs")
 	DEF_PERF(PERF_CONTROLLER, "controller")
@@ -50,9 +46,6 @@ int main(void)
 	perf_init(perf_list, SIZE_OF_PERF_LIST(perf_list));
 
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
-
-	/* freertos initialization */
-	flight_ctrl_semphr = xSemaphoreCreateBinary();
 
 	/* driver initialization */
 	flash_init();
@@ -72,11 +65,11 @@ int main(void)
 	optitrack_init(UAV_ID); //setup tracker id for this MAV
 #endif
 
-	timer12_init(); //system timer and flight controller timer
+	timer12_init();    //system timer and flight controller timer
 	pwm_timer1_init(); //motor
 	pwm_timer4_init(); //motor
-	exti10_init(); //imu ext interrupt
-	spi1_init(); //imu
+	exti10_init();     //imu ext interrupt
+	spi1_init();       //imu
 
 	blocked_delay_ms(1000);
 
@@ -89,30 +82,27 @@ int main(void)
 	spi3_init();
 	ms5611_init();
 
-	/* register driver relative tasks */
+	/* driver relative tasks */
 	ist8310_register_task("compass driver", 512, tskIDLE_PRIORITY + 5);
 	ms5611_register_task("barometer driver", 512, tskIDLE_PRIORITY + 5);
 #endif
 
-	mavlink_queue_init();
+	/* flight controller task (highest priority) */
+	flight_controller_register_task("flight controller", 4096, tskIDLE_PRIORITY + 6);
 
-	/* register flight control system relative tasks */
-	xTaskCreate(task_flight_ctrl, "flight control", 4096, NULL, tskIDLE_PRIORITY + 6, NULL);
-
+	/* telemetry tasks */
 #if (SELECT_TELEM == TELEM_DEBUG_LINK)
-	xTaskCreate(task_debug_link, "debug link", 512, NULL, tskIDLE_PRIORITY + 3, NULL);
+	debug_link_register_task("debug_link", 512, tskIDLE_PRIORITY + 3);
 #elif (SELECT_TELEM == TELEM_MAVLINK)
-	xTaskCreate(mavlink_tx_task, "mavlink publisher", 1024, NULL, tskIDLE_PRIORITY + 3, NULL);
-	xTaskCreate(mavlink_rx_task, "mavlink receiver", 2048, NULL, tskIDLE_PRIORITY + 3, NULL);
+	mavlink_tx_register_task("mavlink publisher", 1024, tskIDLE_PRIORITY + 3);
+	mavlink_rx_register_task("mavlink receiver", 2048, tskIDLE_PRIORITY + 3);
 #elif (SELECT_TELEM == TELEM_SHELL)
-	xTaskCreate(shell_task, "shell", 1024, NULL, tskIDLE_PRIORITY + 3, NULL);
+	shell_register_task("shell", 1024, tskIDLE_PRIORITY + 3);
 #endif
 
-	/* device calibration task, inactivated by default, awakened by shell
-	 * or ground station */
-	xTaskCreate(task_calibration, "calibration", 1024, NULL,
-	            tskIDLE_PRIORITY + 2, &calib_task_handle);
-	vTaskSuspend(calib_task_handle);
+	/* sensor calibration task
+	 * inactivated by default, awakened by shell or ground station */
+	calibration_register_task("calibration", 1024, tskIDLE_PRIORITY + 2);
 
 	/* start freertos scheduler */
 	vTaskStartScheduler();

@@ -3,7 +3,8 @@
 
 #include "debug_link.h"
 
-void task_flight_ctrl(void *param);
+void flight_controller_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
+                                     UBaseType_t priority);
 void flight_ctrl_semaphore_handler(void);
 
 void send_imu_debug_message(debug_msg_t *payload);

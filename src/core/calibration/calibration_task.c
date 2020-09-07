@@ -56,3 +56,11 @@ void task_calibration(void *param)
 		vTaskSuspend(NULL);
 	}
 }
+
+void calibration_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
+                               UBaseType_t priority)
+{
+	xTaskCreate(task_calibration, task_name, stack_size, NULL, priority, &calib_task_handle);
+	vTaskSuspend(calib_task_handle);
+}
+

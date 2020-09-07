@@ -1,6 +1,10 @@
 #ifndef __CALIBRATION_TASK_H__
 #define __CALIBRATION_TASK_H__
 
+#include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
+
 enum {
 	NO_CALIBRATION = 0,
 	ACCEL_SCALE_CALIBRATION = 1,
@@ -15,6 +19,7 @@ void reset_calibration_cancelled_state(void);
 
 void wakeup_calibration_task(int type);
 
-void task_calibration(void *param);
+void calibration_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
+                               UBaseType_t priority);
 
 #endif

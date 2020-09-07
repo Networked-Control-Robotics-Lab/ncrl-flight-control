@@ -31,12 +31,6 @@ mavlink_message_t mavlink_recpt_msg;
 
 volatile uint8_t received_mavlink_msg;
 
-void mavlink_queue_init(void)
-{
-	mavlink_queue = xQueueCreate(MAVLINK_QUEUE_SIZE, sizeof(mavlink_queue_item_t));
-	mavlink_calib_status_text_queue = xQueueCreate(5, sizeof(mavlink_calib_status_text_item_t));
-}
-
 void send_mavlink_calibration_status_text(char *status_text)
 {
 	mavlink_calib_status_text_item_t calib_queue_item;
@@ -157,3 +151,16 @@ void mavlink_rx_task(void *param)
 	}
 }
 
+void mavlink_tx_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
+                              UBaseType_t priority)
+{
+	mavlink_calib_status_text_queue = xQueueCreate(5, sizeof(mavlink_calib_status_text_item_t));
+	xTaskCreate(mavlink_tx_task, task_name, stack_size, NULL, priority, NULL);
+}
+
+void mavlink_rx_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
+                              UBaseType_t priority)
+{
+	mavlink_queue = xQueueCreate(MAVLINK_QUEUE_SIZE, sizeof(mavlink_queue_item_t));
+	xTaskCreate(mavlink_rx_task, task_name, stack_size, NULL, priority, NULL);
+}
