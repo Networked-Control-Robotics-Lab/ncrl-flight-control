@@ -31,7 +31,12 @@
 #define IST8310_CNTRL2_DRPOL 0x04
 #define IST8310_CNTRL2_DRENA 0x08
 
-#define IST8310_RESOLUTION 0.3f //0.3uT/LSB
+/* according to the datasheet, the scale factor is 0.3.
+ * however, the user manual v1.5 says the scale factor is 3/20
+ * (which means 0.15).
+ * the latter one seems to be correct according to the experiment.
+ */
+#define IST8310_RESOLUTION 0.15f
 
 typedef struct {
 	int16_t mag_unscaled[3];
