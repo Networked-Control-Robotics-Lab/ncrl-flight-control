@@ -12,8 +12,6 @@ SemaphoreHandle_t ist8310_semphr;
 
 ist8310_t ist8310;
 
-
-
 uint8_t ist8310_read_byte(uint8_t addr)
 {
 	uint8_t data;
@@ -113,11 +111,6 @@ void ist8310_reset(void)
 	blocked_delay_ms(100);
 }
 
-void ist8310_register_device(void)
-{
-	ist8310_semphr = xSemaphoreCreateBinary();
-}
-
 void ist8130_init(void)
 {
 	while(ist8310_read_who_i_am() != IST8310_CHIP_ID);
@@ -193,11 +186,18 @@ float ist8310_get_update_freq(void)
 	return ist8310.update_freq;
 }
 
-void ist8310_task_handler(void)
+void ist8310_task_handler(void *param)
 {
 	while(1) {
 		while(xSemaphoreTake(ist8310_semphr, portMAX_DELAY) == pdFALSE);
 
 		ist8310_read_sensor();
 	}
+}
+
+void ist8310_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
+                           UBaseType_t priority)
+{
+	ist8310_semphr = xSemaphoreCreateBinary();
+	xTaskCreate(ist8310_task_handler, task_name, stack_size, NULL, priority, NULL);
 }

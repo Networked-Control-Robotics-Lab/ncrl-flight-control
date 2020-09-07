@@ -27,7 +27,6 @@
 #include "perf.h"
 #include "perf_list.h"
 #include "sw_i2c.h"
-#include "compass_task.h"
 #include "crc.h"
 #include "ublox_m8n.h"
 #include "calibration_task.h"
@@ -81,20 +80,21 @@ int main(void)
 
 	blocked_delay_ms(1000);
 
+#if (SELECT_LOCALIZATION == LOCALIZATION_USE_GPS_MAG)
 	/* compass (ist8310) */
-	//sw_i2c_init();
-	//ist8310_register_device();
+	sw_i2c_init();
 
 	/* barometer (ms5611) */
-	//timer3_init();
-	//spi3_init();
-	//ms5611_init();
-
-	mavlink_queue_init();
+	timer3_init();
+	spi3_init();
+	ms5611_init();
 
 	/* compass driver task for handling software i2c protocol */
-	//xTaskCreate(task_compass, "compass handler", 512, NULL, tskIDLE_PRIORITY + 5, NULL);
-	//xTaskCreate(ms5611_driver_task, "ms5611 driver", 512, NULL, tskIDLE_PRIORITY + 5, NULL);
+	ist8310_register_task("compass driver", 512, tskIDLE_PRIORITY + 5);
+	xTaskCreate(ms5611_driver_task, "ms5611 driver", 512, NULL, tskIDLE_PRIORITY + 5, NULL);
+#endif
+
+	mavlink_queue_init();
 
 	xTaskCreate(task_flight_ctrl, "flight control", 4096, NULL, tskIDLE_PRIORITY + 6, NULL);
 
