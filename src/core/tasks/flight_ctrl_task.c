@@ -28,6 +28,7 @@
 #include "ublox_m8n.h"
 #include "barometer.h"
 #include "ist8310.h"
+#include "esc_calibration.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 10
 
@@ -65,6 +66,9 @@ void rc_safety_protection(void)
 		}
 		sbus_rc_read(&rc);
 		vTaskDelay(1);
+
+		//force to leave the loop if user triggered the esc calibration
+		if(is_esc_calibration_triggered() == true) return;
 	} while(rc_safety_check(&rc) == 1);
 }
 
@@ -91,13 +95,14 @@ void task_flight_ctrl(void *param)
 #endif
 
 	mpu6500_init(&imu);
-	barometer_wait_until_stable();
-
-	motor_init();
-
-	ahrs_init();
 
 	rc_safety_protection();
+
+	if(is_esc_calibration_triggered() == true) {
+		esc_calibration();
+	}
+
+	motor_init();
 
 	float desired_yaw = 0.0f;
 
@@ -107,6 +112,9 @@ void task_flight_ctrl(void *param)
 		led_on(LED_B);
 		freertos_task_delay(2.5);
 	}
+
+	barometer_wait_until_stable();
+	ahrs_init();
 
 	led_off(LED_R);
 	led_off(LED_G);

@@ -95,6 +95,7 @@ SRC+=./core/main.c \
 	./core/radio_events/multirotor_rc.c \
 	./core/calibration/accel_calibration.c \
 	./core/calibration/compass_calibration.c \
+	./core/calibration/esc_calibration.c \
 	./core/calibration/calibration_task.c
 
 SRC+=./common/delay.c \
