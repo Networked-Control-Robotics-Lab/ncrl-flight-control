@@ -5,6 +5,8 @@
 #include "ncrl_mavlink.h"
 #include "../mavlink/mav_publisher.h"
 #include "mavlink_task.h"
+#include "uart.h"
+#include "imu.h"
 
 void mavlink_compass_calibration_handler(void)
 {
@@ -59,3 +61,20 @@ void mavlink_compass_calibration_handler(void)
 	freertos_task_delay(1000);
 }
 
+void print_compass_data_csv(void)
+{
+	char s[100];
+	float mag[3];
+	int len;
+
+	while(1) {
+		get_imu_compass_raw(mag);
+
+		sprintf(s, "%.3f,%.3f,%.3f\n", mag[0], mag[1], mag[2]);
+		len = strlen(s);
+
+		uart3_puts((char *)s, len);
+
+		freertos_task_delay(50);
+	}
+}
