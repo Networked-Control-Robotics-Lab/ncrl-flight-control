@@ -35,6 +35,8 @@ void shell_cmd_help(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 	          "radio, radio_raw\n\r"
 	          "accel, compass\n\r"
 	          "accel_calib\n\r"
+	          "motor_calib\n\r"
+	          "motor_test\n\r"
 	          "perf\n\r"
 	          "params\n\r";
 	shell_puts(s);
@@ -648,4 +650,24 @@ void shell_cmd_compass(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int 
 
 		freertos_task_delay(1000);
 	}
+}
+
+void shell_cmd_motor_calib(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
+	char user_agree[CMD_LEN_MAX];
+	struct shell_struct shell;
+	shell_init_struct(&shell, "confirm motor calibration command [y/n]: ", user_agree);
+	shell_cli(&shell);
+
+	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
+		shell_puts("entered to motor calibration mode.\n\r"
+		           "restart the system after calibration.\n\r");
+		trigger_esc_calibration();
+	} else {
+		shell_puts("abort.\n\r");
+	}
+}
+
+void shell_cmd_motor_test(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
 }

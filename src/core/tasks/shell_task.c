@@ -23,6 +23,8 @@ struct cmd_list_entry shell_cmd_list[] = {
 	DEF_SHELL_CMD(perf)
 	DEF_SHELL_CMD(param)
 	DEF_SHELL_CMD(compass)
+	DEF_SHELL_CMD(motor_calib)
+	DEF_SHELL_CMD(motor_test)
 };
 
 void shell_greeting(void)
