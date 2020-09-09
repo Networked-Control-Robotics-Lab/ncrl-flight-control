@@ -67,8 +67,11 @@ void rc_safety_protection(void)
 		sbus_rc_read(&rc);
 		vTaskDelay(1);
 
-		//force to leave the loop if user triggered the esc calibration
-		if(is_esc_calibration_triggered() == true) return;
+		//force to leave the loop if user triggered the motor esc range calibration
+		if(is_esc_range_calibration_triggered() == true) return;
+
+		//force to leave the loop if user triggered the motor thrust testing
+		if(is_motor_force_testing_triggered() == true) return;
 	} while(rc_safety_check(&rc) == 1);
 }
 
@@ -98,8 +101,12 @@ void task_flight_ctrl(void *param)
 
 	rc_safety_protection();
 
-	if(is_esc_calibration_triggered() == true) {
-		esc_calibration();
+	if(is_esc_range_calibration_triggered() == true) {
+		esc_range_calibration();
+	}
+
+	if(is_motor_force_testing_triggered() == true) {
+		motor_force_testing();
 	}
 
 	motor_init();

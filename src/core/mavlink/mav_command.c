@@ -76,7 +76,7 @@ static void mav_cmd_preflight_calibration(mavlink_message_t *received_msg,
 		wakeup_calibration_task(COMPASS_CALIBRATION);
 	} else if((int)cmd_long->param7 == 1) {
 		send_mavlink_status_text("esc calibration start", MAV_SEVERITY_WARNING, 0, 0);
-		trigger_esc_calibration();
+		trigger_esc_range_calibration();
 	} else {
 		/* not supported type calibration */
 		send_mavlink_status_text("[cal] calibration cancelled", 6, 0, 0);

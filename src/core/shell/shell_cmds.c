@@ -13,6 +13,7 @@
 #include "imu.h"
 #include "delay.h"
 #include "accel_calibration.h"
+#include "esc_calibration.h"
 
 static bool parse_float_from_str(char *str, float *value)
 {
@@ -662,7 +663,7 @@ void shell_cmd_motor_calib(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], 
 	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
 		shell_puts("entered to motor calibration mode.\n\r"
 		           "restart the system after calibration.\n\r");
-		trigger_esc_calibration();
+		trigger_esc_range_calibration();
 	} else {
 		shell_puts("abort.\n\r");
 	}
@@ -670,4 +671,42 @@ void shell_cmd_motor_calib(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], 
 
 void shell_cmd_motor_test(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
+	char user_agree[CMD_LEN_MAX];
+	struct shell_struct shell;
+	shell_init_struct(&shell, "confirm motor thrust testing command [y/n]: ", user_agree);
+	shell_cli(&shell);
+
+	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
+		shell_puts("entered to motor thrust testing mode.\n\r"
+		           "restart the system to end the testing.\n\r");
+		trigger_motor_force_testing();
+	} else {
+		shell_puts("abort.\n\r");
+		return;
+	}
+
+	char s[100] = {0};
+	char ret_str[100] = {0};
+	float curr_motor_signal = 0.0f;
+	float new_motor_signal = 0.0f;
+
+	while(1) {
+		curr_motor_signal = get_motor_force_testing_percentage();
+
+		sprintf(s, "current control signal is %.2f%%\n\r", curr_motor_signal * 100.0f);
+		shell_puts(s);
+
+		shell_init_struct(&shell, "please enter new command (0~100): ", ret_str);
+		shell_cli(&shell);
+
+		if(parse_float_from_str(ret_str, &new_motor_signal) == false) {
+			shell_puts("bad argument, not a number!\n\r");
+		} else {
+			if(new_motor_signal < 0.0f || new_motor_signal > 100.0f) {
+				shell_puts("bad argument, command out of range!\n\r");
+			} else {
+				set_motor_force_testing_percentage(new_motor_signal * 0.01f);
+			}
+		}
+	}
 }
