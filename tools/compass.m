@@ -3,7 +3,7 @@
 %csv format for this script: mx,my,mz\n
 
 %read sampling data from csv
-csv = csvread("compass.csv");
+csv = csvread("compass1.csv");
 mx = csv(:, 1);
 my = csv(:, 2);
 mz = csv(:, 3);
@@ -55,6 +55,7 @@ _b = [-xxyy_bar;
 x = inv(_A) * _b;
 
 %parameters of ellipsoid in general form
+disp('general form:');
 a = x(1)
 b = x(2)
 c = x(3)
@@ -65,6 +66,7 @@ f = x(6)
 disp('-------------')
 
 %parameters of ellipsoid in standard form
+disp('standard form:');
 x0 = -0.5 * c
 y0 = -d / (2.0 * a)
 z0 = -e / (2.0 * b)
@@ -82,7 +84,10 @@ mz_calib = (mz(:) - z0) / C;
 %%%%%%%%%%%%
 
 %raw data
-figure(1);
+figure('Name', 'raw data');
+hold on
+view(-35,45);
+%
 scatter3(mx,my,mz)
 %
 xlim([-100, 100])
@@ -95,7 +100,9 @@ daspect([1 1 1]) %set aspect ratio to 1:1:1
 grid on
 
 %calibrated data
-figure(2);
+figure('Name', 'after calibration');
+view(-35,45);
+%
 scatter3(mx_calib,my_calib,mz_calib)
 %
 xlim([-1, 1])
@@ -106,6 +113,25 @@ ylabel('my')
 zlabel('mz')
 daspect([1 1 1]) %set aspect ratio to 1:1:1
 grid on
+
+figure('Name', 'raw data and fitted ellipsoid');
+hold on
+view(-35,45);
+%
+[ellipsoid_x, ellipsoid_y, ellipsoid_z] = ellipsoid(x0, y0, z0, A, B, C, 30);
+surf(ellipsoid_x, ellipsoid_y, ellipsoid_z)
+%
+scatter3(mx,my,mz)
+%
+xlim([-100, 100])
+ylim([-100, 100])
+zlim([-100, 100])
+xlabel('mx (uT)')
+ylabel('my (uT)')
+zlabel('mz (uT)')
+daspect([1 1 1]) %set aspect ratio to 1:1:1
+grid on
+
 
 disp('press any key to leave')
 pause
