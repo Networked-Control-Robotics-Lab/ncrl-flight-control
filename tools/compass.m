@@ -119,7 +119,8 @@ hold on
 view(-35,45);
 %
 [ellipsoid_x, ellipsoid_y, ellipsoid_z] = ellipsoid(x0, y0, z0, A, B, C, 30);
-surf(ellipsoid_x, ellipsoid_y, ellipsoid_z)
+s = surf(ellipsoid_x, ellipsoid_y, ellipsoid_z)
+set(s, 'FaceAlpha', 0.5)
 %
 scatter3(mx,my,mz)
 %
