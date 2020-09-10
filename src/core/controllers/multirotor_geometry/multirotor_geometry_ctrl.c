@@ -486,7 +486,9 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	rc_mode_handler_geometry_ctrl(rc);
 
 	/* get sensor status */
-	bool localization_available = is_localization_info_available();
+	bool xy_pos_available = is_xy_position_info_available();
+	bool height_availabe = is_height_info_available();
+	bool localization_available = xy_pos_available & height_availabe; //XXX
 	bool heading_available = is_compass_present();
 
 	/* prepare current attitude matrix (dcm) using quaternion */

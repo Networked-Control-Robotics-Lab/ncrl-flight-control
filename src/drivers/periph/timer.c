@@ -99,19 +99,23 @@ void TIM3_IRQHandler(void)
 	if(TIM_GetITStatus(TIM3, TIM_IT_Update) == SET) {
 		BaseType_t higher_priority_task_woken = pdFALSE;
 
+#if (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_BAROMETER)
 		/* barometer */
 		barometer_cnt--;
 		if(barometer_cnt == 0) {
 			barometer_cnt = BAROMETER_PRESCALER_RELOAD;
 			ms5611_driver_semaphore_handler(&higher_priority_task_woken);
 		}
+#endif
 
+#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_COMPASS)
 		/* compass */
 		compass_cnt--;
 		if(compass_cnt == 0) {
 			compass_cnt = COMPASS_PRESCALER_RELOAD;
 			ist8310_semaphore_handler(&higher_priority_task_woken);
 		}
+#endif
 
 		TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
 		portEND_SWITCHING_ISR(higher_priority_task_woken);

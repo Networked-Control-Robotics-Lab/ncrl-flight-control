@@ -11,8 +11,8 @@ void get_compass_raw(float *mag)
 
 bool is_compass_present(void)
 {
-#if (SELECT_LOCALIZATION == LOCALIZATION_USE_GPS_MAG) || \
-    (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
+#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_COMPASS) || \
+    (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK)
 	return true;
 #else
 	return false;

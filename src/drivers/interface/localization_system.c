@@ -1,7 +1,12 @@
 #include "optitrack.h"
 #include "localization_system.h"
 
-bool is_localization_info_available(void)
+bool is_xy_position_info_available(void)
+{
+	return optitrack_available();
+}
+
+bool is_height_info_available(void)
 {
 	return optitrack_available();
 }

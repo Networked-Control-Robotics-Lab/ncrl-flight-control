@@ -1,7 +1,8 @@
 #ifndef __LOCALIZATION_SYSTEM_H__
 #define __LOCALIZATION_SYSTEM_H__
 
-bool is_localization_info_available(void);
+bool is_xy_position_info_available(void);
+bool is_height_info_available(void);
 
 void get_enu_position(float *pos);
 float get_enu_height(void);

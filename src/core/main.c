@@ -57,10 +57,10 @@ int main(void)
 	uart4_init(100000); //s-bus
 	uart6_init(115200);
 
-#if (SELECT_LOCALIZATION == LOCALIZATION_USE_GPS_MAG)
+#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_GPS)
 	uart7_init(38400); //gps
 	ublox_m8n_init();
-#elif (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
+#elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)
 	uart7_init(115200); //optitrack
 	optitrack_init(UAV_ID); //setup tracker id for this MAV
 #endif
@@ -73,19 +73,20 @@ int main(void)
 
 	blocked_delay_ms(1000);
 
-#if (SELECT_LOCALIZATION == LOCALIZATION_USE_GPS_MAG)
+#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_COMPASS)
 	/* compass (ist8310) */
 	sw_i2c_init();
+	ist8310_register_task("compass driver", 512, tskIDLE_PRIORITY + 5);
+#endif
 
+#if (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_BAROMETER)
 	/* barometer (ms5611) */
-	timer3_init();
 	spi3_init();
 	ms5611_init();
-
-	/* driver relative tasks */
-	ist8310_register_task("compass driver", 512, tskIDLE_PRIORITY + 5);
 	ms5611_register_task("barometer driver", 512, tskIDLE_PRIORITY + 5);
 #endif
+
+	timer3_init();
 
 	/* flight controller task (highest priority) */
 	flight_controller_register_task("flight controller", 4096, tskIDLE_PRIORITY + 6);

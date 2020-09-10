@@ -135,9 +135,9 @@ void task_flight_ctrl(void *param)
 		gpio_on(EXT_SW);
 		perf_start(PERF_FLIGHT_CONTROL_LOOP);
 
-#if (SELECT_LOCALIZATION == LOCALIZATION_USE_GPS_MAG)
+#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_GPS)
 		ublox_m8n_gps_update();
-#elif (SELECT_LOCALIZATION == LOCALIZATION_USE_OPTITRACK)
+#elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)
 		optitrack_update();
 #endif
 
