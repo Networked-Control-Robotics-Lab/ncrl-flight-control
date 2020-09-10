@@ -161,7 +161,7 @@ void ahrs_estimate(ahrs_t *ahrs, float *accel, float *gyro, float *mag)
 	quaternion_copy(ahrs->q, madgwick_ahrs.q);
 #endif
 
-#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_COMPASS)
+#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK)
 	reset_quaternion_yaw_angle(ahrs->q);
 	align_ahrs_with_optitrack_yaw(ahrs->q);
 #endif
