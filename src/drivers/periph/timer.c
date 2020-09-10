@@ -9,6 +9,7 @@
 #include "led.h"
 #include "ms5611.h"
 #include "ist8310.h"
+#include "proj_config.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 1000 //400Hz
 #define LED_CTRL_PRESCALER_RELOAD  16000 //25Hz
@@ -92,8 +93,13 @@ void TIM8_BRK_TIM12_IRQHandler(void)
 
 void TIM3_IRQHandler(void)
 {
-	static int compass_cnt = COMPASS_PRESCALER_RELOAD;
+#if (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_BAROMETER)
 	static int barometer_cnt = BAROMETER_PRESCALER_RELOAD;
+#endif
+
+#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_COMPASS)
+	static int compass_cnt = COMPASS_PRESCALER_RELOAD;
+#endif
 
 	/* trigger ms5611 driver task (400Hz) */
 	if(TIM_GetITStatus(TIM3, TIM_IT_Update) == SET) {
