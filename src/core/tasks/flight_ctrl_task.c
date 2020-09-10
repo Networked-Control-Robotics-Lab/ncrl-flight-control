@@ -146,7 +146,7 @@ void task_flight_ctrl(void *param)
 
 		perf_start(PERF_AHRS);
 		float mag_raw[3]; //XXX
-		get_imu_compass_raw(mag_raw);
+		get_compass_raw(mag_raw);
 		ahrs_estimate(&ahrs, imu.accel_lpf, imu.gyro_lpf, mag_raw);
 		perf_end(PERF_AHRS);
 

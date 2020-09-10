@@ -643,8 +643,8 @@ void shell_cmd_compass(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int 
 			if(c == 'q') break;
 		}
 
-		get_imu_compass_raw(mag);
-		update_freq = get_imu_compass_update_freq();
+		get_compass_raw(mag);
+		update_freq = get_compass_update_rate();
 
 		sprintf(s, "[%.0fHz] compass x:%.0f, y:%.0f, z:%.0f\n\r",
 		        update_freq, mag[0], mag[1], mag[2]);

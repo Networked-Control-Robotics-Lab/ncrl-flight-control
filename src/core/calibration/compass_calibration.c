@@ -69,7 +69,7 @@ void print_compass_data_csv(void)
 	int len;
 
 	while(1) {
-		get_imu_compass_raw(mag);
+		get_compass_raw(mag);
 
 		sprintf(s, "%.3f,%.3f,%.3f\n", mag[0], mag[1], mag[2]);
 		len = strlen(s);

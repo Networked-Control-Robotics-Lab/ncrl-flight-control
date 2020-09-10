@@ -158,18 +158,18 @@ void ist8310_read_sensor(void)
 	/* calculate update frequency */
 	float curr_time = get_sys_time_s();
 	float elapsed_time = curr_time - ist8310.last_update_time;
-	ist8310.update_freq = 1.0f / elapsed_time;
+	ist8310.update_rate = 1.0f / elapsed_time;
 	ist8310.last_update_time = curr_time;
 }
 
-void ist8310_get_raw_mag(float *mag_raw)
+void ist8310_get_mag_raw(float *mag_raw)
 {
 	mag_raw[0] = ist8310.mag_raw[0];
 	mag_raw[1] = ist8310.mag_raw[1];
 	mag_raw[2] = ist8310.mag_raw[2];
 }
 
-float ist8310_get_raw_mag_strength(void)
+float ist8310_get_mag_raw_strength(void)
 {
 	float mx = ist8310.mag_raw[0];
 	float my = ist8310.mag_raw[1];
@@ -181,9 +181,9 @@ float ist8310_get_raw_mag_strength(void)
 	return mag_strength;
 }
 
-float ist8310_get_update_freq(void)
+float ist8310_get_update_rate(void)
 {
-	return ist8310.update_freq;
+	return ist8310.update_rate;
 }
 
 void ist8310_driver_task(void *param)

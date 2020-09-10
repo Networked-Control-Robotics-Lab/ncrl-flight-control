@@ -22,7 +22,7 @@ typedef struct {
 
 	float time_now;
 	float time_last;
-	float recv_freq;
+	float update_rate;
 
 	volatile int buf_pos;
 	uint8_t buf[OPTITRACK_SERIAL_MSG_SIZE];

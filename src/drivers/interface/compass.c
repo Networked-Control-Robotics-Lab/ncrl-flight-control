@@ -4,9 +4,9 @@
 #include "ist8310.h"
 #include "debug_link.h"
 
-void get_imu_compass_raw(float *mag_raw)
+void get_compass_raw(float *mag)
 {
-	ist8310_get_raw_mag(mag_raw);
+	ist8310_get_mag_raw(mag);
 }
 
 bool is_compass_present(void)
@@ -19,23 +19,23 @@ bool is_compass_present(void)
 #endif
 }
 
-float get_imu_compass_update_freq(void)
+float get_compass_update_rate(void)
 {
-	return ist8310_get_update_freq();
+	return ist8310_get_update_rate();
 }
 
-float get_imu_compass_raw_strength(void)
+float get_compass_raw_strength(void)
 {
-	return ist8310_get_raw_mag_strength();
+	return ist8310_get_mag_raw_strength();
 }
 
 void send_compass_debug_message(debug_msg_t *payload)
 {
 	float mag_raw[3] = {0.0f};
-	get_imu_compass_raw(mag_raw);
+	get_compass_raw(mag_raw);
 
-	float mag_strength = get_imu_compass_raw_strength();
-	float update_freq = get_imu_compass_update_freq();
+	float mag_strength = get_compass_raw_strength();
+	float update_freq = get_compass_update_rate();
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_COMPASS);
 	pack_debug_debug_message_float(&mag_raw[0], payload);

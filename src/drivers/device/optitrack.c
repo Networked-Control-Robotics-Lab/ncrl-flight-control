@@ -106,7 +106,7 @@ void optitrack_numerical_vel_calc(void)
 	optitrack.vel_raw[2] = (optitrack.pos[2] - optitrack.pos_last[2]) / dt;
 
 	float received_period = (optitrack.time_now - optitrack.time_last) * 0.001;
-	optitrack.recv_freq = 1.0f / received_period;
+	optitrack.update_rate = 1.0f / received_period;
 
 	optitrack.vel_filtered[0] = optitrack.vel_raw[0];
 	optitrack.vel_filtered[1] = optitrack.vel_raw[1];
@@ -219,5 +219,5 @@ void send_optitrack_velocity_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_float(&vx_filtered, payload);
 	pack_debug_debug_message_float(&vy_filtered, payload);
 	pack_debug_debug_message_float(&vz_filtered, payload);
-	pack_debug_debug_message_float(&optitrack.recv_freq, payload);
+	pack_debug_debug_message_float(&optitrack.update_rate, payload);
 }
