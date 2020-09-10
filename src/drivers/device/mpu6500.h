@@ -83,16 +83,16 @@ void mpu6500_init(imu_t *imu);
 void mpu6500_int_handler(void);
 bool mpu6500_calibration_not_finished(void);
 
-void mpu6500_accel_scale_config_reset_default(void);
-void mpu6500_accel_bias_config_reset_default(void);
+void mpu6500_reset_scale_factor(void);
+void mpu6500_reset_bias(void);
 
-void mpu6500_config_scale_calib_setting(float x_scale, float y_scale, float z_scale);
-void mpu6500_config_offset_calib_setting(float x_offset, float y_offset, float z_offset);
+void mpu6500_set_scale_factor(float x_scale, float y_scale, float z_scale);
+void mpu6500_set_bias(float x_offset, float y_offset, float z_offset);
 
 void mpu6500_get_raw_accel(float *accel);
 void mpu6500_get_filtered_accel(float *accel);
-void mpu6500_get_raw_gyro(float *gyro);
-void mpu6500_get_filtered_gyro(float *gyro);
+void mpu6500_get_gyro_raw(float *gyro);
+void mpu6500_get_gyro_lpf(float *gyro);
 
 void debug_print_mpu6500_accel(void);
 void debug_print_mpu6500_unscaled_lpf_accel(void);

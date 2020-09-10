@@ -58,7 +58,7 @@ static float capture_accel_gavity_vaule_x(bool cap_neg)
 	int i;
 	for(i = 0; i < ACCEL_CALIB_SAMPLING_TIMES; i++) {
 		/* read sensor */
-		get_imu_filtered_accel(accel);
+		get_accel_lpf(accel);
 		gravity += accel[0] / ACCEL_CALIB_SAMPLING_TIMES;
 		freertos_task_delay(2.5);
 	}
@@ -75,7 +75,7 @@ static float capture_accel_gavity_vaule_y(bool cap_neg)
 	int i;
 	for(i = 0; i < ACCEL_CALIB_SAMPLING_TIMES; i++) {
 		/* read sensor */
-		get_imu_filtered_accel(accel);
+		get_accel_lpf(accel);
 		gravity += accel[1] / ACCEL_CALIB_SAMPLING_TIMES;
 		freertos_task_delay(2.5);
 	}
@@ -93,7 +93,7 @@ static float capture_accel_gavity_vaule_z(bool cap_neg)
 	int i;
 	for(i = 0; i < ACCEL_CALIB_SAMPLING_TIMES; i++) {
 		/* read sensor */
-		get_imu_filtered_accel(accel);
+		get_accel_lpf(accel);
 		gravity += accel[2] / ACCEL_CALIB_SAMPLING_TIMES;
 		freertos_task_delay(2.5);
 	}
@@ -151,8 +151,8 @@ void send_progress_update_message(int stage)
 
 void mavlink_accel_scale_calibration_handler(void)
 {
-	imu_accel_scale_config_reset_default();
-	imu_accel_bias_config_reset_default();
+	reset_accel_scale_factor();
+	reset_accel_bias();
 
 	bool front_finished = false;
 	bool back_finished = false;
@@ -185,7 +185,7 @@ void mavlink_accel_scale_calibration_handler(void)
 		}
 
 		/* read sensor data */
-		get_imu_filtered_accel(accel);
+		get_accel_lpf(accel);
 
 		/* read current time */
 		curr_time = get_sys_time_s();
@@ -317,7 +317,7 @@ void mavlink_accel_scale_calibration_handler(void)
 			float y_scale = (2.0f * 9.81) / (calib_y_p - calib_y_n);
 			float z_scale = (2.0f * 9.81) / (calib_z_p - calib_z_n);
 
-			config_imu_accel_scale_calib_setting(x_scale, y_scale, z_scale);
+			set_accel_scale_factor(x_scale, y_scale, z_scale);
 
 			set_sys_param_float(IMU_FINISH_CALIB, 1.0f);
 			set_sys_param_float(CAL_ACC0_ID, 1);
@@ -338,18 +338,18 @@ void mavlink_accel_scale_calibration_handler(void)
 
 void mavlink_accel_offset_calibration_handler(void)
 {
-	imu_accel_bias_config_reset_default();
+	reset_accel_bias();
 
 	send_mavlink_calibration_status_text("[cal] calibration started: 2 level");
 
 	float accel[3];
-	get_imu_filtered_accel(accel);
+	get_accel_lpf(accel);
 
 	float x_offset = accel[0] - 0.0f;
 	float y_offset = accel[1] - 0.0f;
 	float z_offset = accel[2] - (-9.8f);
 
-	config_imu_accel_offset_calib_setting(x_offset, y_offset, z_offset);
+	set_accel_bias(x_offset, y_offset, z_offset);
 
 	set_sys_param_float(CAL_ACC0_XOFF, x_offset);
 	set_sys_param_float(CAL_ACC0_YOFF, y_offset);
@@ -363,8 +363,8 @@ void mavlink_accel_offset_calibration_handler(void)
 
 void shell_accel_calibration_handler(void)
 {
-	imu_accel_scale_config_reset_default();
-	imu_accel_bias_config_reset_default();
+	reset_accel_scale_factor();
+	reset_accel_bias();
 
 	bool front_finished = false;
 	bool back_finished = false;
@@ -394,7 +394,7 @@ void shell_accel_calibration_handler(void)
 		}
 
 		/* read sensor data */
-		get_imu_filtered_accel(accel);
+		get_accel_lpf(accel);
 
 		/* read current time */
 		curr_time = get_sys_time_s();
@@ -489,7 +489,7 @@ void shell_accel_calibration_handler(void)
 			float y_scale = (2.0f * 9.81) / (calib_y_p - calib_y_n);
 			float z_scale = (2.0f * 9.81) / (calib_z_p - calib_z_n);
 
-			config_imu_accel_scale_calib_setting(x_scale, y_scale, z_scale);
+			set_accel_scale_factor(x_scale, y_scale, z_scale);
 
 			set_sys_param_float(IMU_FINISH_CALIB, 1.0f);
 			set_sys_param_float(CAL_ACC0_ID, 1);
@@ -521,13 +521,13 @@ void shell_accel_calibration_handler(void)
 
 	shell_puts("[cal] calibration started: 2 level\n\r");
 
-	get_imu_filtered_accel(accel);
+	get_accel_lpf(accel);
 
 	float x_offset = accel[0] - 0.0f;
 	float y_offset = accel[1] - 0.0f;
 	float z_offset = accel[2] - (-9.81f);
 
-	config_imu_accel_offset_calib_setting(x_offset, y_offset, z_offset);
+	set_accel_bias(x_offset, y_offset, z_offset);
 
 	set_sys_param_float(CAL_ACC0_XOFF, x_offset);
 	set_sys_param_float(CAL_ACC0_YOFF, y_offset);
