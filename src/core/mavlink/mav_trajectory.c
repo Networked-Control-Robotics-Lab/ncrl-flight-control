@@ -3,7 +3,7 @@
 #include "autopilot.h"
 #include "sys_time.h"
 #include "optitrack.h"
-#include "localization_system.h"
+#include "position_sensor.h"
 #include "../mavlink/mav_publisher.h"
 #include "../mavlink/mav_trajectory.h"
 

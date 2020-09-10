@@ -1,5 +1,5 @@
 #include "optitrack.h"
-#include "localization_system.h"
+#include "position_sensor.h"
 
 bool is_xy_position_info_available(void)
 {

@@ -1,6 +1,6 @@
 #include "sbus_radio.h"
 #include "autopilot.h"
-#include "localization_system.h"
+#include "position_sensor.h"
 
 void multirotor_free_fall_rc(radio_t *rc);
 

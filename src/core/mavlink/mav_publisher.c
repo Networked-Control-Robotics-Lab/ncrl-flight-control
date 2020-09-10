@@ -7,7 +7,7 @@
 #include "sys_time.h"
 #include "optitrack.h"
 #include "sbus_radio.h"
-#include "localization_system.h"
+#include "position_sensor.h"
 
 extern ahrs_t ahrs;
 
