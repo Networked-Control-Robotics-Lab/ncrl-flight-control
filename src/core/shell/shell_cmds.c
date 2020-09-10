@@ -14,6 +14,7 @@
 #include "delay.h"
 #include "accel_calibration.h"
 #include "esc_calibration.h"
+#include "compass.h"
 
 static bool parse_float_from_str(char *str, float *value)
 {

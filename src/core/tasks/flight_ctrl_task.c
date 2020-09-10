@@ -29,6 +29,7 @@
 #include "barometer.h"
 #include "ist8310.h"
 #include "esc_calibration.h"
+#include "compass.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 10
 

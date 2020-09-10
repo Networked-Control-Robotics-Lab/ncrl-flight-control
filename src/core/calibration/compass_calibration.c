@@ -7,6 +7,7 @@
 #include "mavlink_task.h"
 #include "uart.h"
 #include "imu.h"
+#include "compass.h"
 
 void mavlink_compass_calibration_handler(void)
 {

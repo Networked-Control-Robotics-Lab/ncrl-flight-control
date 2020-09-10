@@ -34,11 +34,4 @@ void get_imu_raw_gyro(float *gyro);
 void get_imu_filtered_gyro(float *gyro);
 float get_imu_gyro_update_freq(void);
 
-bool is_compass_present(void);
-void get_imu_compass_raw(float *mag_raw);
-float get_imu_compass_raw_strength(void);
-float get_imu_compass_update_freq(void);
-
-void send_compass_debug_message(debug_msg_t *payload);
-
 #endif

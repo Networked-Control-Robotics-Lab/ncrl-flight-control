@@ -20,6 +20,7 @@
 #include "multirotor_rc.h"
 #include "barometer.h"
 #include "altitude_est.h"
+#include "compass.h"
 
 #define dt 0.0025 //[s]
 #define MOTOR_TO_CG_LENGTH 16.25f //[cm]

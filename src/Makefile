@@ -127,7 +127,8 @@ SRC+=./drivers/periph/uart.c \
 	./drivers/device/ublox_m8n.c \
 	./drivers/interface/imu.c \
 	./drivers/interface/localization_system.c \
-	./drivers/interface/barometer.c
+	./drivers/interface/barometer.c \
+	./drivers/interface/compass.c
 
 CFLAGS+=-I./
 CFLAGS+=-I./platform
