@@ -13,12 +13,16 @@ bool is_height_info_available(void)
 
 void get_enu_position(float *pos)
 {
-	optitrack_read_pos(pos);
+	optitrack_read_pos_x(&pos[0]);
+	optitrack_read_pos_y(&pos[1]);
+	optitrack_read_pos_z(&pos[2]);
 }
 
 float get_enu_height(void)
 {
-	return optitrack_read_height();
+	float height;
+	optitrack_read_pos_z(&height);
+	return height;
 }
 
 void get_wgs84_position(float *latitude, float *longtitude, float *height)
@@ -27,5 +31,7 @@ void get_wgs84_position(float *latitude, float *longtitude, float *height)
 
 void get_enu_velocity(float *vel)
 {
-	optitrack_read_vel(vel);
+	optitrack_read_vel_x(&vel[0]);
+	optitrack_read_vel_y(&vel[1]);
+	optitrack_read_vel_z(&vel[2]);
 }

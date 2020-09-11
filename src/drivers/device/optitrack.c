@@ -163,23 +163,34 @@ int optitrack_serial_decoder(uint8_t *buf)
 	return 0;
 }
 
-void optitrack_read_pos(float *pos_enu)
+void optitrack_read_pos_x(float *x)
 {
-	pos_enu[0] = optitrack.pos[0];
-	pos_enu[1] = optitrack.pos[1];
-	pos_enu[2] = optitrack.pos[2];
+	*x = optitrack.pos[0];
 }
 
-float optitrack_read_height(void)
+void optitrack_read_pos_y(float *y)
 {
-	return optitrack.pos[2];
+	*y = optitrack.pos[1];
 }
 
-void optitrack_read_vel(float *vel_enu)
+void optitrack_read_pos_z(float *z)
 {
-	vel_enu[0] = optitrack.vel_raw[0];
-	vel_enu[1] = optitrack.vel_raw[1];
-	vel_enu[2] = optitrack.vel_raw[2];
+	*z = optitrack.pos[2];
+}
+
+void optitrack_read_vel_x(float *vx)
+{
+	*vx = optitrack.vel_raw[0];
+}
+
+void optitrack_read_vel_y(float *vy)
+{
+	*vy = optitrack.vel_raw[1];
+}
+
+void optitrack_read_vel_z(float *vz)
+{
+	*vz = optitrack.vel_raw[2];
 }
 
 void send_optitrack_position_debug_message(debug_msg_t *payload)

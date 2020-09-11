@@ -35,18 +35,18 @@ float barometer_alt_rate_estimate(float *dcm, float alt_rate, float *accel_body,
 void send_alt_est_debug_message(debug_msg_t *payload)
 {
 	float altitude = 0.0f;
-	float optitrack_pos[3] = {0.0f};
+	float optitrack_z = 0.0f;
 	altitude = barometer_get_relative_altitude();
-	optitrack_read_pos(optitrack_pos);
+	optitrack_read_pos_z(&optitrack_z);
 
-	float optitrack_vel[3] = {0.0f};
-	optitrack_read_vel(optitrack_vel);
+	float optitrack_vz = 0.0f;
+	optitrack_read_vel_z(&optitrack_vz);
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_ALT_EST);
 	/* position */
 	pack_debug_debug_message_float(&altitude, payload);
-	pack_debug_debug_message_float(&optitrack_pos[2], payload);
+	pack_debug_debug_message_float(&optitrack_z, payload);
 	/* velocity */
 	pack_debug_debug_message_float(&alt_rate_fused, payload);
-	pack_debug_debug_message_float(&optitrack_vel[2], payload);
+	pack_debug_debug_message_float(&optitrack_vz, payload);
 }
