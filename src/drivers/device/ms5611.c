@@ -13,6 +13,11 @@ SemaphoreHandle_t ms5611_task_semphr;
 
 ms5611_t ms5611;
 
+bool ms5611_available(void)
+{
+	return true; //TODO: data lost checking?
+}
+
 void ms5611_reset(void)
 {
 	ms5611_chip_select();

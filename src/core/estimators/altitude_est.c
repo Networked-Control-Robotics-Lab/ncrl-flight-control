@@ -7,7 +7,7 @@ float alt_rate_predict = 0.0f;
 float alt_rate_fused = 0.0f;
 
 /* altitude rate estimation using barometer and acceleromter with complementary filter algorithm */
-float barometer_alt_rate_estimate(float *dcm, float alt_rate, float *accel_body, float dt)
+void barometer_alt_rate_estimate(float *dcm, float alt_rate, float *accel_body, float dt)
 {
 	/* convert measured acceleration from body-fixed frame to earth frame and
 	 * take the z-direction component out only */
@@ -28,7 +28,10 @@ float barometer_alt_rate_estimate(float *dcm, float alt_rate, float *accel_body,
 
 	/* save fused altitude rate for next iteration */
 	alt_rate_last = alt_rate_fused;
+}
 
+float get_fused_barometer_relative_height(void)
+{
 	return alt_rate_fused;
 }
 
