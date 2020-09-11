@@ -80,7 +80,7 @@ float uav_dynamics_m_rot_frame[3] = {0.0f};
 
 autopilot_t autopilot;
 
-bool attitude_manual_height_auto = false;
+bool height_ctrl_only = false;
 
 void geometry_ctrl_init(void)
 {
@@ -201,7 +201,8 @@ void reset_geometry_tracking_error_integral(void)
 	tracking_error_integral[2] = 0.0f;
 }
 
-void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_moments, bool heading_present)
+void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_moments,
+                          bool heading_present)
 {
 	/* convert radio command (euler angle) to rotation matrix */
 	euler_to_rotation_matrix(rc, _mat_(Rd), _mat_(Rtd));
@@ -488,7 +489,6 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	/* get sensor status */
 	bool xy_pos_available = is_xy_position_info_available();
 	bool height_availabe = is_height_info_available();
-	bool localization_available = xy_pos_available & height_availabe; //XXX
 	bool heading_available = is_compass_present();
 
 	/* prepare current attitude matrix (dcm) using quaternion */
@@ -501,12 +501,10 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	/* prepare position and velocity data */
 	float curr_pos_enu[3] = {0.0f}, curr_pos_ned[3] = {0.0f};
 	float curr_vel_enu[3] = {0.0f}, curr_vel_ned[3] = {0.0f};
-	if(localization_available == true) {
-		get_enu_position(curr_pos_enu);
-		get_enu_velocity(curr_vel_enu);
-		assign_vector_3x1_eun_to_ned(curr_pos_ned, curr_pos_enu);
-		assign_vector_3x1_eun_to_ned(curr_vel_ned, curr_vel_enu);
-	}
+	get_enu_position(curr_pos_enu);
+	get_enu_velocity(curr_vel_enu);
+	assign_vector_3x1_eun_to_ned(curr_pos_ned, curr_pos_enu);
+	assign_vector_3x1_eun_to_ned(curr_vel_ned, curr_vel_enu);
 
 	/* prepare gyroscope data */
 	float gyro[3] = {0.0};
@@ -532,17 +530,21 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 
 	float control_moments[3] = {0.0f}, control_force = 0.0f;
 
-	if(rc->auto_flight == true && localization_available && heading_available) {
+	if(rc->auto_flight == true && height_availabe && heading_available) {
+		if(xy_pos_available == false) {
+			height_ctrl_only = true;
+		}
+
 		/* auto-flight mode (position, velocity and attitude control) */
 		geometry_tracking_ctrl(&attitude_cmd, ahrs->q, gyro, curr_pos_ned,
 		                       curr_vel_ned, control_moments, &control_force,
-		                       attitude_manual_height_auto);
+		                       height_ctrl_only);
 	} else {
 		/* manual flight mode (attitude control only) */
 		geometry_manual_ctrl(&attitude_cmd, ahrs->q, gyro, control_moments,
-		                     localization_available);
+		                     heading_available);
 
-		/* generate total thrust for quadrotor using rc in manual mode */
+		/* generate total thrust for quadrotor (open-loop) */
 		control_force = 4.0f * convert_motor_cmd_to_thrust(rc->throttle * 0.01 /* [%] */);
 	}
 
