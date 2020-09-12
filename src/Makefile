@@ -104,7 +104,8 @@ SRC+=./common/delay.c \
 	./common/se3_math.c \
 	./common/quaternion.c \
 	./common/polynomial.c \
-	./common/hash.c
+	./common/hash.c \
+	./common/ellipsoid_least_square.c
 
 SRC+=./drivers/periph/uart.c \
 	./drivers/periph/spi.c \
