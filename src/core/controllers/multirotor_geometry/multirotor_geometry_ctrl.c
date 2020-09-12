@@ -79,6 +79,10 @@ float uav_dynamics_m[3] = {0.0f};
 //M_rot = (J * W_dot)
 float uav_dynamics_m_rot_frame[3] = {0.0f};
 
+float coeff_cmd_to_thrust[6] = {0.0f};
+float coeff_thrust_to_cmd[6] = {0.0f};
+float motor_thrust_max = 0.0f;
+
 autopilot_t autopilot;
 
 bool height_ctrl_only = false;
@@ -184,6 +188,19 @@ void geometry_ctrl_init(void)
 	set_sys_param_update_var_addr(MR_GEO_INERTIA_JXX, &_mat_(J)[0*3 + 0]);
 	set_sys_param_update_var_addr(MR_GEO_INERTIA_JYY, &_mat_(J)[1*3 + 1]);
 	set_sys_param_update_var_addr(MR_GEO_INERTIA_JZZ, &_mat_(J)[2*3 + 2]);
+	set_sys_param_update_var_addr(PWM_TO_THRUST_C1, &coeff_cmd_to_thrust[0]);
+	set_sys_param_update_var_addr(PWM_TO_THRUST_C2, &coeff_cmd_to_thrust[1]);
+	set_sys_param_update_var_addr(PWM_TO_THRUST_C3, &coeff_cmd_to_thrust[2]);
+	set_sys_param_update_var_addr(PWM_TO_THRUST_C4, &coeff_cmd_to_thrust[3]);
+	set_sys_param_update_var_addr(PWM_TO_THRUST_C5, &coeff_cmd_to_thrust[4]);
+	set_sys_param_update_var_addr(PWM_TO_THRUST_C6, &coeff_cmd_to_thrust[5]);
+	set_sys_param_update_var_addr(THRUST_TO_PWM_C1, &coeff_thrust_to_cmd[0]);
+	set_sys_param_update_var_addr(THRUST_TO_PWM_C2, &coeff_thrust_to_cmd[1]);
+	set_sys_param_update_var_addr(THRUST_TO_PWM_C3, &coeff_thrust_to_cmd[2]);
+	set_sys_param_update_var_addr(THRUST_TO_PWM_C4, &coeff_thrust_to_cmd[3]);
+	set_sys_param_update_var_addr(THRUST_TO_PWM_C5, &coeff_thrust_to_cmd[4]);
+	set_sys_param_update_var_addr(THRUST_TO_PWM_C6, &coeff_thrust_to_cmd[5]);
+	set_sys_param_update_var_addr(THRUST_MAX, &motor_thrust_max);
 
 	/* load local variables previously stored in internal flash */
 	get_sys_param_float(MR_GEO_GAIN_ROLL_P, &krx);
@@ -206,6 +223,27 @@ void geometry_ctrl_init(void)
 	get_sys_param_float(MR_GEO_INERTIA_JXX, &_mat_(J)[0*3 + 0]);
 	get_sys_param_float(MR_GEO_INERTIA_JYY, &_mat_(J)[1*3 + 1]);
 	get_sys_param_float(MR_GEO_INERTIA_JZZ, &_mat_(J)[2*3 + 2]);
+	get_sys_param_float(PWM_TO_THRUST_C1, &coeff_cmd_to_thrust[0]);
+	get_sys_param_float(PWM_TO_THRUST_C2, &coeff_cmd_to_thrust[1]);
+	get_sys_param_float(PWM_TO_THRUST_C3, &coeff_cmd_to_thrust[2]);
+	get_sys_param_float(PWM_TO_THRUST_C4, &coeff_cmd_to_thrust[3]);
+	get_sys_param_float(PWM_TO_THRUST_C5, &coeff_cmd_to_thrust[4]);
+	get_sys_param_float(PWM_TO_THRUST_C6, &coeff_cmd_to_thrust[5]);
+	get_sys_param_float(THRUST_TO_PWM_C1, &coeff_thrust_to_cmd[0]);
+	get_sys_param_float(THRUST_TO_PWM_C2, &coeff_thrust_to_cmd[1]);
+	get_sys_param_float(THRUST_TO_PWM_C3, &coeff_thrust_to_cmd[2]);
+	get_sys_param_float(THRUST_TO_PWM_C4, &coeff_thrust_to_cmd[3]);
+	get_sys_param_float(THRUST_TO_PWM_C5, &coeff_thrust_to_cmd[4]);
+	get_sys_param_float(THRUST_TO_PWM_C6, &coeff_thrust_to_cmd[5]);
+	get_sys_param_float(THRUST_MAX, &motor_thrust_max);
+#endif
+
+#if 0
+	set_motor_max_thrust(motor_thrust_max);
+	set_motor_cmd_to_thrust_coeff(coeff_thrust_to_cmd[0], coeff_thrust_to_cmd[1], coeff_thrust_to_cmd[2],
+	                              coeff_thrust_to_cmd[3], coeff_thrust_to_cmd[4], coeff_thrust_to_cmd[5]);
+	set_motor_thrust_to_cmd_coeff(coeff_cmd_to_thrust[0], coeff_cmd_to_thrust[1], coeff_cmd_to_thrust[2],
+	                              coeff_cmd_to_thrust[3], coeff_cmd_to_thrust[4], coeff_cmd_to_thrust[5]);
 #endif
 }
 
