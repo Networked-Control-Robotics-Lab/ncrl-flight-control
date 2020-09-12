@@ -32,8 +32,8 @@
 #define IST8310_CNTRL2_DRENA 0x08
 
 /* according to the datasheet, the scale factor is 0.3.
- * however, the user manual v1.5 says the scale factor is 3/20
- * (which means 0.15).
+ * however, user manual v1.5 claims the scale factor is 3/20
+ * (which is equal to 0.15).
  * the latter one seems to be correct according to the experiment.
  */
 #define IST8310_RESOLUTION 0.15f
@@ -43,6 +43,16 @@ typedef struct {
 	float mag_raw[3];
 	float last_update_time;
 	float update_rate;
+
+	float bias_x;
+	float bias_y;
+	float bias_z;
+	float squared_semi_axis_size_x;
+	float squared_semi_axis_size_y;
+	float squared_semi_axis_size_z;
+	float div_squared_semi_axis_size_x;
+	float div_squared_semi_axis_size_y;
+	float div_squared_semi_axis_size_z;
 } ist8310_t;
 
 void ist8130_init(void);
@@ -53,5 +63,6 @@ void ist8310_semaphore_handler(BaseType_t *higher_priority_task_woken);
 void ist8310_get_mag_raw(float *mag_raw);
 float ist8310_get_update_rate(void);
 float ist8310_get_mag_raw_strength(void);
+void ist8310_undistortion(float *mag);
 
 #endif

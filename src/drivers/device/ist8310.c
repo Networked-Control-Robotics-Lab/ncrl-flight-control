@@ -10,7 +10,14 @@
 
 SemaphoreHandle_t ist8310_semphr;
 
-ist8310_t ist8310;
+ist8310_t ist8310 = {
+	.bias_x = 0.0f,
+	.bias_y = 0.0f,
+	.bias_z = 0.0f,
+	.squared_semi_axis_size_x = 1.0f,
+	.squared_semi_axis_size_y = 1.0f,
+	.squared_semi_axis_size_z = 1.0f
+};
 
 uint8_t ist8310_read_byte(uint8_t addr)
 {
@@ -131,6 +138,27 @@ void ist8310_semaphore_handler(BaseType_t *higher_priority_task_woken)
 	xSemaphoreGiveFromISR(ist8310_semphr, higher_priority_task_woken);
 }
 
+void ist8310_cancel_bias(float *mag)
+{
+	mag[0] -= ist8310.bias_x;
+	mag[1] -= ist8310.bias_y;
+	mag[2] -= ist8310.bias_z;
+}
+
+void ist8310_undistortion(float *mag)
+{
+	/* standard equation of ellipsoid:
+	 * (x - x0)^2/A + (y - y0)^2/B + (z - z0)^2/C = 1 */
+
+	/* resume distorted magnatic field from ellipsoid to sphere.
+	 * this operation do not preserve the actual size of the data,
+	 * and requires normalization before calculating the heading
+	 * angle */
+	mag[0] *= ist8310.div_squared_semi_axis_size_x;
+	mag[1] *= ist8310.div_squared_semi_axis_size_y;
+	mag[2] *= ist8310.div_squared_semi_axis_size_z;
+}
+
 void ist8310_read_sensor(void)
 {
 	/* check "IST8310 User Manual v1.5" for details */
@@ -167,6 +195,10 @@ void ist8310_get_mag_raw(float *mag_raw)
 	mag_raw[0] = ist8310.mag_raw[0];
 	mag_raw[1] = ist8310.mag_raw[1];
 	mag_raw[2] = ist8310.mag_raw[2];
+
+	/* apply calibration here since the function will called by the flight control task
+	 * (which has the highest priority) */
+	ist8310_cancel_bias(mag_raw);
 }
 
 float ist8310_get_mag_raw_strength(void)

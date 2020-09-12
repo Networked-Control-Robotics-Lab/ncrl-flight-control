@@ -14,6 +14,7 @@
 #include "se3_math.h"
 #include "quaternion.h"
 #include "free_fall.h"
+#include "compass.h"
 
 extern optitrack_t optitrack;
 
@@ -126,6 +127,18 @@ void reset_quaternion_yaw_angle(float *q)
 	quaternion_mult(q_negative_yaw, q_original, q);
 }
 
+bool compass_quality_is_good(float *mag)
+{
+	/* TODO: check magnetic field size (normally about 25 to 65 uT) */
+
+	/* no data output, bad connection and so forth */
+	if(mag[0] == 0.0f && mag[1] == 0.0f && mag[2] == 0.0f) {
+		return false;
+	} else {
+		return true;
+	}
+}
+
 void ahrs_estimate(ahrs_t *ahrs, float *accel, float *gyro, float *mag)
 {
 	/* note that acceleromter senses the negative gravity acceleration (normal force)
@@ -140,10 +153,11 @@ void ahrs_estimate(ahrs_t *ahrs, float *accel, float *gyro, float *mag)
 	gyro_rad[1] = deg_to_rad(gyro[1]);
 	gyro_rad[2] = deg_to_rad(gyro[2]);
 
-	if(mag[0] == 0.0f && mag[1] == 0.0f && mag[2] == 0.0f) {
-		mag_error = true;
-	} else {
+	if(compass_quality_is_good(mag) == true) {
+		compass_undistortion(mag);
 		mag_error = false;
+	} else {
+		mag_error = true;
 	}
 
 #if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
