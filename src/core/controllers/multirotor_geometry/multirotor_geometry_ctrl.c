@@ -21,6 +21,7 @@
 #include "barometer.h"
 #include "altitude_est.h"
 #include "compass.h"
+#include "sys_param.h"
 
 #define dt 0.0025 //[s]
 #define MOTOR_TO_CG_LENGTH 16.25f //[cm]
@@ -160,6 +161,52 @@ void geometry_ctrl_init(void)
 	k_tracking_i_gain[0] = 0.0f;
 	k_tracking_i_gain[1] = 0.0f;
 	k_tracking_i_gain[2] = 0.0f;
+
+#if 0
+	/* modify local variables when user change them via ground station */
+	set_sys_param_update_var_addr(MR_GEO_GAIN_ROLL_P, &krx);
+	set_sys_param_update_var_addr(MR_GEO_GAIN_ROLL_D, &kwx);
+	set_sys_param_update_var_addr(MR_GEO_GAIN_PITCH_P, &kry);
+	set_sys_param_update_var_addr(MR_GEO_GAIN_PITCH_D, &kwy);
+	set_sys_param_update_var_addr(MR_GEO_GAIN_YAW_P, &krz);
+	set_sys_param_update_var_addr(MR_GEO_GAIN_YAW_D, &kwz);
+	set_sys_param_update_var_addr(MR_GEO_GAIN_RATE_YAW, &yaw_rate_ctrl_gain);
+	set_sys_param_update_var_addr(MR_GEO_GAIN_POS_X, &kpx);
+	set_sys_param_update_var_addr(MR_GEO_GAIN_VEL_X, &kvx);
+	set_sys_param_update_var_addr(MR_GEO_GAIN_POS_Y, &kpy);
+	set_sys_param_update_var_addr(MR_GEO_GAIN_VEL_Y, &kvy);
+	set_sys_param_update_var_addr(MR_GEO_GAIN_POS_Z, &kpz);
+	set_sys_param_update_var_addr(MR_GEO_GAIN_VEL_Z, &kvz);
+	set_sys_param_update_var_addr(MR_GEO_GAIN_POS_X_I, &k_tracking_i_gain[0]);
+	set_sys_param_update_var_addr(MR_GEO_GAIN_POS_Y_I, &k_tracking_i_gain[1]);
+	set_sys_param_update_var_addr(MR_GEO_GAIN_POS_Z_I, &k_tracking_i_gain[2]);
+	set_sys_param_update_var_addr(MR_GEO_UAV_MASS, &uav_mass);
+	set_sys_param_update_var_addr(MR_GEO_INERTIA_JXX, &_mat_(J)[0*3 + 0]);
+	set_sys_param_update_var_addr(MR_GEO_INERTIA_JYY, &_mat_(J)[1*3 + 1]);
+	set_sys_param_update_var_addr(MR_GEO_INERTIA_JZZ, &_mat_(J)[2*3 + 2]);
+
+	/* load local variables previously stored in internal flash */
+	get_sys_param_float(MR_GEO_GAIN_ROLL_P, &krx);
+	get_sys_param_float(MR_GEO_GAIN_ROLL_D, &kwx);
+	get_sys_param_float(MR_GEO_GAIN_PITCH_P, &kry);
+	get_sys_param_float(MR_GEO_GAIN_PITCH_D, &kwy);
+	get_sys_param_float(MR_GEO_GAIN_YAW_P, &krz);
+	get_sys_param_float(MR_GEO_GAIN_YAW_D, &kwz);
+	get_sys_param_float(MR_GEO_GAIN_RATE_YAW, &yaw_rate_ctrl_gain);
+	get_sys_param_float(MR_GEO_GAIN_POS_X, &kpx);
+	get_sys_param_float(MR_GEO_GAIN_VEL_X, &kvx);
+	get_sys_param_float(MR_GEO_GAIN_POS_Y, &kpy);
+	get_sys_param_float(MR_GEO_GAIN_VEL_Y, &kvy);
+	get_sys_param_float(MR_GEO_GAIN_POS_Z, &kpz);
+	get_sys_param_float(MR_GEO_GAIN_VEL_Z, &kvz);
+	get_sys_param_float(MR_GEO_GAIN_POS_X_I, &k_tracking_i_gain[0]);
+	get_sys_param_float(MR_GEO_GAIN_POS_Y_I, &k_tracking_i_gain[1]);
+	get_sys_param_float(MR_GEO_GAIN_POS_Z_I, &k_tracking_i_gain[2]);
+	get_sys_param_float(MR_GEO_UAV_MASS, &uav_mass);
+	get_sys_param_float(MR_GEO_INERTIA_JXX, &_mat_(J)[0*3 + 0]);
+	get_sys_param_float(MR_GEO_INERTIA_JYY, &_mat_(J)[1*3 + 1]);
+	get_sys_param_float(MR_GEO_INERTIA_JZZ, &_mat_(J)[2*3 + 2]);
+#endif
 }
 
 void estimate_uav_dynamics(float *gyro, float *moments, float *m_rot_frame)

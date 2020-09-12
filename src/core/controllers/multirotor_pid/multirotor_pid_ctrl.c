@@ -24,6 +24,7 @@
 #include "proj_config.h"
 #include "debug_link.h"
 #include "autopilot.h"
+#include "sys_param.h"
 
 extern optitrack_t optitrack;
 
@@ -98,6 +99,45 @@ void multirotor_pid_controller_init(void)
 	pid_alt_vel.feedfoward = 45.0f; //% of basis throttle power against the gravity
 	pid_alt_vel.output_min = -100.0f;
 	pid_alt_vel.output_max = +100.0f;
+
+#if 0
+	/* modify local variables when user change them via ground station */
+	set_sys_param_update_var_addr(MR_PID_GAIN_ROLL_P, &pid_roll.kp);
+	set_sys_param_update_var_addr(MR_PID_GAIN_ROLL_D, &pid_roll.kd);
+	set_sys_param_update_var_addr(MR_PID_GAIN_PITCH_P, &pid_pitch.kp);
+	set_sys_param_update_var_addr(MR_PID_GAIN_PITCH_D, &pid_pitch.kd);
+	set_sys_param_update_var_addr(MR_PID_GAIN_YAW_P, &pid_yaw.kp);
+	set_sys_param_update_var_addr(MR_PID_GAIN_YAW_D, &pid_yaw.kd);
+	set_sys_param_update_var_addr(MR_PID_GAIN_RATE_YAW, &pid_yaw_rate.kp);
+	set_sys_param_update_var_addr(MR_PID_GAIN_POS_X_P, &pid_pitch.kd);
+	set_sys_param_update_var_addr(MR_PID_GAIN_POS_X_I, &pid_pos_x.ki);
+	set_sys_param_update_var_addr(MR_PID_GAIN_POS_X_D, &pid_pos_x.kd);
+	set_sys_param_update_var_addr(MR_PID_GAIN_POS_Y_P, &pid_pos_y.kp);
+	set_sys_param_update_var_addr(MR_PID_GAIN_POS_X_I, &pid_pos_y.ki);
+	set_sys_param_update_var_addr(MR_PID_GAIN_POS_Y_D, &pid_pos_y.kd);
+	set_sys_param_update_var_addr(MR_PID_GAIN_POS_Z_P, &pid_alt.kp);
+	set_sys_param_update_var_addr(MR_PID_GAIN_POS_Z_I, &pid_alt.ki);
+	set_sys_param_update_var_addr(MR_PID_GAIN_VEL_Z_P, &pid_alt_vel.kp);
+	set_sys_param_update_var_addr(MR_PID_HEIGHT_FEEDFOWARD_PWM, &pid_alt_vel.feedfoward);
+	/* modify local variables when user change them via ground station */
+	get_sys_param_float(MR_PID_GAIN_ROLL_P, &pid_roll.kp);
+	get_sys_param_float(MR_PID_GAIN_ROLL_D, &pid_roll.kd);
+	get_sys_param_float(MR_PID_GAIN_PITCH_P, &pid_pitch.kp);
+	get_sys_param_float(MR_PID_GAIN_PITCH_D, &pid_pitch.kd);
+	get_sys_param_float(MR_PID_GAIN_YAW_P, &pid_yaw.kp);
+	get_sys_param_float(MR_PID_GAIN_YAW_D, &pid_yaw.kd);
+	get_sys_param_float(MR_PID_GAIN_RATE_YAW, &pid_yaw_rate.kp);
+	get_sys_param_float(MR_PID_GAIN_POS_X_P, &pid_pitch.kd);
+	get_sys_param_float(MR_PID_GAIN_POS_X_I, &pid_pos_x.ki);
+	get_sys_param_float(MR_PID_GAIN_POS_X_D, &pid_pos_x.kd);
+	get_sys_param_float(MR_PID_GAIN_POS_Y_P, &pid_pos_y.kp);
+	get_sys_param_float(MR_PID_GAIN_POS_X_I, &pid_pos_y.ki);
+	get_sys_param_float(MR_PID_GAIN_POS_Y_D, &pid_pos_y.kd);
+	get_sys_param_float(MR_PID_GAIN_POS_Z_P, &pid_alt.kp);
+	get_sys_param_float(MR_PID_GAIN_POS_Z_I, &pid_alt.ki);
+	get_sys_param_float(MR_PID_GAIN_VEL_Z_P, &pid_alt_vel.kp);
+	get_sys_param_float(MR_PID_HEIGHT_FEEDFOWARD_PWM, &pid_alt_vel.feedfoward);
+#endif
 }
 
 void attitude_pid_control(pid_control_t *pid, float ahrs_attitude,
