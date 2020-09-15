@@ -129,44 +129,6 @@ void geometry_ctrl_init(void)
 	MAT_INIT(b2d, 3, 1);
 	MAT_INIT(b3d, 3, 1);
 
-	/* uav inertia matrix */
-	_mat_(J)[0*3 + 0] = 0.01466f; //Ixx [kg*m^2]
-	_mat_(J)[1*3 + 1] = 0.01466f; //Iyy [kg*m^2]
-	_mat_(J)[2*3 + 2] = 0.02848f; //Izz [kg*m^2]
-
-	/* uav mass */
-	uav_mass = 1.15f; //[kg]
-
-	/* attitude controller */
-	/* roll gains */
-	krx = 2.95f;
-	kwx = 0.36;
-	/* pitch gains */
-	kry = 2.95f;
-	kwy = 0.36f;
-	/* yaw gains */
-	krz = 28.4f;
-	kwz = 1.96;
-	/* yaw rate gains
-	 * if heading sensor is not presented then switch to yaw rate control mode */
-	yaw_rate_ctrl_gain = 26.9f;
-
-	/* tracking controller */
-	/* x-axis tracking gains */
-	kpx = 9.31f;
-	kvx = 6.86f;
-	/* y-axis tracking gains */
-	kpy = 11.27f;
-	kvy = 7.84f;
-	/* z-axis tracking gains */
-	kpz = 8.53f;
-	kvz = 3.92f;
-
-	k_tracking_i_gain[0] = 0.0f;
-	k_tracking_i_gain[1] = 0.0f;
-	k_tracking_i_gain[2] = 0.0f;
-
-#if 0
 	/* modify local variables when user change them via ground station */
 	set_sys_param_update_var_addr(MR_GEO_GAIN_ROLL_P, &krx);
 	set_sys_param_update_var_addr(MR_GEO_GAIN_ROLL_D, &kwx);
@@ -236,15 +198,12 @@ void geometry_ctrl_init(void)
 	get_sys_param_float(THRUST_TO_PWM_C5, &coeff_thrust_to_cmd[4]);
 	get_sys_param_float(THRUST_TO_PWM_C6, &coeff_thrust_to_cmd[5]);
 	get_sys_param_float(THRUST_MAX, &motor_thrust_max);
-#endif
 
-#if 0
 	set_motor_max_thrust(motor_thrust_max);
-	set_motor_cmd_to_thrust_coeff(coeff_thrust_to_cmd[0], coeff_thrust_to_cmd[1], coeff_thrust_to_cmd[2],
-	                              coeff_thrust_to_cmd[3], coeff_thrust_to_cmd[4], coeff_thrust_to_cmd[5]);
-	set_motor_thrust_to_cmd_coeff(coeff_cmd_to_thrust[0], coeff_cmd_to_thrust[1], coeff_cmd_to_thrust[2],
+	set_motor_cmd_to_thrust_coeff(coeff_cmd_to_thrust[0], coeff_cmd_to_thrust[1], coeff_cmd_to_thrust[2],
 	                              coeff_cmd_to_thrust[3], coeff_cmd_to_thrust[4], coeff_cmd_to_thrust[5]);
-#endif
+	set_motor_thrust_to_cmd_coeff(coeff_thrust_to_cmd[0], coeff_thrust_to_cmd[1], coeff_thrust_to_cmd[2],
+	                              coeff_thrust_to_cmd[3], coeff_thrust_to_cmd[4], coeff_thrust_to_cmd[5]);
 }
 
 void estimate_uav_dynamics(float *gyro, float *moments, float *m_rot_frame)
