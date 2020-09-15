@@ -54,53 +54,21 @@ void multirotor_pid_controller_init(void)
 	float geo_fence_origin[3] = {0.0f, 0.0f, 0.0f};
 	autopilot_set_enu_rectangular_fence(geo_fence_origin, 2.5f, 1.3f, 3.0f);
 
-	/* attitude controllers */
-	pid_roll.kp = 0.41f;
-	pid_roll.ki = 0.0f;
-	pid_roll.kd = 0.05f;
-
-	pid_pitch.kp = 0.41f;
-	pid_pitch.ki = 0.0f;
-	pid_pitch.kd = 0.05f;
-
-	pid_yaw_rate.kp = 0.3f;
-	pid_yaw_rate.ki = 0.0f;
-	pid_yaw_rate.kd = 0.0f;
 	pid_yaw_rate.output_min = -35.0f;
-	pid_yaw_rate.output_max = 35.0f;
+	pid_yaw_rate.output_max = +35.0f;
 
-	pid_yaw.kp = 0.3f;
-	pid_yaw.ki = 0.0f;
-	pid_yaw.kd = 0.15f;
-	pid_yaw.setpoint = 0.0f;
 	pid_yaw.output_min = -35.0f;
-	pid_yaw.output_max = 35.0f;
+	pid_yaw.output_max = +35.0f;
 
-	/* positon and velocity controllers */
-	pid_pos_x.kp = 15.0f;
-	pid_pos_x.ki = 0.0f;
-	pid_pos_x.kd = 13.0f;
 	pid_pos_x.output_min = -25.0f;
 	pid_pos_x.output_max = +25.0f;
 
-	pid_pos_y.kp = 15.0f;
-	pid_pos_y.ki = 0.0f;
-	pid_pos_y.kd = 13.0f;
 	pid_pos_y.output_min = -25.0f;
 	pid_pos_y.output_max = +25.0f;
 
-	pid_alt.kp = 3.5f;
-	pid_alt.ki = 0.0f;
-	pid_alt.kd = 0.0f;
-
-	pid_alt_vel.kp = 10.0f;
-	pid_alt_vel.ki = 0.0f;
-	pid_alt_vel.kd = 0.0f;
-	pid_alt_vel.feedfoward = 45.0f; //% of basis throttle power against the gravity
 	pid_alt_vel.output_min = -100.0f;
 	pid_alt_vel.output_max = +100.0f;
 
-#if 0
 	/* modify local variables when user change them via ground station */
 	set_sys_param_update_var_addr(MR_PID_GAIN_ROLL_P, &pid_roll.kp);
 	set_sys_param_update_var_addr(MR_PID_GAIN_ROLL_D, &pid_roll.kd);
@@ -109,7 +77,7 @@ void multirotor_pid_controller_init(void)
 	set_sys_param_update_var_addr(MR_PID_GAIN_YAW_P, &pid_yaw.kp);
 	set_sys_param_update_var_addr(MR_PID_GAIN_YAW_D, &pid_yaw.kd);
 	set_sys_param_update_var_addr(MR_PID_GAIN_RATE_YAW, &pid_yaw_rate.kp);
-	set_sys_param_update_var_addr(MR_PID_GAIN_POS_X_P, &pid_pitch.kd);
+	set_sys_param_update_var_addr(MR_PID_GAIN_POS_X_P, &pid_pos_x.kp);
 	set_sys_param_update_var_addr(MR_PID_GAIN_POS_X_I, &pid_pos_x.ki);
 	set_sys_param_update_var_addr(MR_PID_GAIN_POS_X_D, &pid_pos_x.kd);
 	set_sys_param_update_var_addr(MR_PID_GAIN_POS_Y_P, &pid_pos_y.kp);
@@ -119,6 +87,7 @@ void multirotor_pid_controller_init(void)
 	set_sys_param_update_var_addr(MR_PID_GAIN_POS_Z_I, &pid_alt.ki);
 	set_sys_param_update_var_addr(MR_PID_GAIN_VEL_Z_P, &pid_alt_vel.kp);
 	set_sys_param_update_var_addr(MR_PID_HEIGHT_FEEDFOWARD_PWM, &pid_alt_vel.feedfoward);
+
 	/* modify local variables when user change them via ground station */
 	get_sys_param_float(MR_PID_GAIN_ROLL_P, &pid_roll.kp);
 	get_sys_param_float(MR_PID_GAIN_ROLL_D, &pid_roll.kd);
@@ -127,7 +96,7 @@ void multirotor_pid_controller_init(void)
 	get_sys_param_float(MR_PID_GAIN_YAW_P, &pid_yaw.kp);
 	get_sys_param_float(MR_PID_GAIN_YAW_D, &pid_yaw.kd);
 	get_sys_param_float(MR_PID_GAIN_RATE_YAW, &pid_yaw_rate.kp);
-	get_sys_param_float(MR_PID_GAIN_POS_X_P, &pid_pitch.kd);
+	get_sys_param_float(MR_PID_GAIN_POS_X_P, &pid_pos_x.kp);
 	get_sys_param_float(MR_PID_GAIN_POS_X_I, &pid_pos_x.ki);
 	get_sys_param_float(MR_PID_GAIN_POS_X_D, &pid_pos_x.kd);
 	get_sys_param_float(MR_PID_GAIN_POS_Y_P, &pid_pos_y.kp);
@@ -137,7 +106,6 @@ void multirotor_pid_controller_init(void)
 	get_sys_param_float(MR_PID_GAIN_POS_Z_I, &pid_alt.ki);
 	get_sys_param_float(MR_PID_GAIN_VEL_Z_P, &pid_alt_vel.kp);
 	get_sys_param_float(MR_PID_HEIGHT_FEEDFOWARD_PWM, &pid_alt_vel.feedfoward);
-#endif
 }
 
 void attitude_pid_control(pid_control_t *pid, float ahrs_attitude,

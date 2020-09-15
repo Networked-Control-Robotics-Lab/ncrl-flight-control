@@ -10,23 +10,23 @@ void init_multirotor_pid_param_list(void)
 
 	init_common_params();
 
-	INIT_SYS_PARAM_FLOAT(MR_PID_GAIN_ROLL_P, 0.41f);
-	INIT_SYS_PARAM_FLOAT(MR_PID_GAIN_ROLL_D, 0.05f);
-	INIT_SYS_PARAM_FLOAT(MR_PID_GAIN_PITCH_P, 0.41f);
-	INIT_SYS_PARAM_FLOAT(MR_PID_GAIN_PITCH_D, 0.05f);
-	INIT_SYS_PARAM_FLOAT(MR_PID_GAIN_YAW_P, 0.3f);
-	INIT_SYS_PARAM_FLOAT(MR_PID_GAIN_YAW_D, 0.15f);
-	INIT_SYS_PARAM_FLOAT(MR_PID_GAIN_RATE_YAW, 0.3f);
-	INIT_SYS_PARAM_FLOAT(MR_PID_GAIN_POS_X_P, 15.0f);
-	INIT_SYS_PARAM_FLOAT(MR_PID_GAIN_POS_X_I, 0.0f);
-	INIT_SYS_PARAM_FLOAT(MR_PID_GAIN_POS_X_D, 13.0f);
-	INIT_SYS_PARAM_FLOAT(MR_PID_GAIN_POS_Y_P, 15.0f);
-	INIT_SYS_PARAM_FLOAT(MR_PID_GAIN_POS_Y_I, 0.0f);
-	INIT_SYS_PARAM_FLOAT(MR_PID_GAIN_POS_Y_D, 13.0f);
-	INIT_SYS_PARAM_FLOAT(MR_PID_GAIN_POS_Z_P, 3.5f);
-	INIT_SYS_PARAM_FLOAT(MR_PID_GAIN_POS_Z_I, 0.0f);
-	INIT_SYS_PARAM_FLOAT(MR_PID_GAIN_VEL_Z_P, 10.0f);
-	INIT_SYS_PARAM_FLOAT(MR_PID_HEIGHT_FEEDFOWARD_PWM, 45.0f);
+	init_sys_param_float(MR_PID_GAIN_ROLL_P, "ROLL_KP", 0.41f);
+	init_sys_param_float(MR_PID_GAIN_ROLL_D, "ROLL_KD", 0.05f);
+	init_sys_param_float(MR_PID_GAIN_PITCH_P, "PITCH_KP", 0.41f);
+	init_sys_param_float(MR_PID_GAIN_PITCH_D, "PITCH_KD", 0.05f);
+	init_sys_param_float(MR_PID_GAIN_YAW_P, "YAW_KP", 0.3f);
+	init_sys_param_float(MR_PID_GAIN_YAW_D, "YAW_KD", 0.15f);
+	init_sys_param_float(MR_PID_GAIN_RATE_YAW, "YAW_RATE_GAIN", 0.3f);
+	init_sys_param_float(MR_PID_GAIN_POS_X_P, "POS_X_KP", 15.0f);
+	init_sys_param_float(MR_PID_GAIN_POS_X_I, "POS_X_KI", 0.0f);
+	init_sys_param_float(MR_PID_GAIN_POS_X_D, "POS_X_KD", 13.0f);
+	init_sys_param_float(MR_PID_GAIN_POS_Y_P, "POS_Y_KD", 15.0f);
+	init_sys_param_float(MR_PID_GAIN_POS_Y_I, "POS_Y_KI", 0.0f);
+	init_sys_param_float(MR_PID_GAIN_POS_Y_D, "POS_Y_KD", 13.0f);
+	init_sys_param_float(MR_PID_GAIN_POS_Z_P, "POS_Z_KP", 3.5f);
+	init_sys_param_float(MR_PID_GAIN_POS_Z_I, "POS_Z_KI", 0.0f);
+	init_sys_param_float(MR_PID_GAIN_VEL_Z_P, "VEL_Z_KP", 10.0f);
+	init_sys_param_float(MR_PID_HEIGHT_FEEDFOWARD_PWM, "HEIGHT_PWM_FF", 45.0f);
 
 	load_param_list_from_flash();
 }
