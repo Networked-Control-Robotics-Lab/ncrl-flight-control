@@ -30,7 +30,7 @@ void barometer_alt_rate_estimate(float *dcm, float alt_rate, float *accel_body, 
 	alt_rate_last = alt_rate_fused;
 }
 
-float get_fused_barometer_relative_height(void)
+float get_fused_barometer_relative_altitude_rate(void)
 {
 	return alt_rate_fused;
 }

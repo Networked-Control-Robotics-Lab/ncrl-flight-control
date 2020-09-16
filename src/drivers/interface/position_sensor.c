@@ -1,6 +1,8 @@
 #include "optitrack.h"
 #include "position_sensor.h"
 #include "altitude_est.h"
+#include "proj_config.h"
+#include "ms5611.h"
 
 bool is_xy_position_info_available(void)
 {
@@ -54,7 +56,7 @@ float get_enu_height(void)
 	optitrack_read_pos_z(&height);
 	return height;
 #elif (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_BAROMETER)
-	return ms5611_get_relative_altitude;
+	return ms5611_get_relative_altitude();
 #else
 	return 0.0f;
 #endif
@@ -81,7 +83,7 @@ void get_enu_velocity(float *vel)
 #if (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_OPTITRACK)
 	optitrack_read_vel_z(&vel[2]);
 #elif (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_BAROMETER)
-	vel[2] = get_fused_barometer_relative_height();
+	vel[2] = get_fused_barometer_relative_altitude_rate();
 #else
 	vel[2] = 0.0f;
 #endif
