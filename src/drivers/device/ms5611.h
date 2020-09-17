@@ -15,6 +15,7 @@ typedef struct {
 	float temp_raw;        //raw temperature
 
 	bool init_finished;
+	bool velocity_ready;
 
 	float press_raw;       //raw pressure
 	float press_lpf;       //low pass filtered pressure
