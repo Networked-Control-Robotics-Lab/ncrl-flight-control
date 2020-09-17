@@ -82,6 +82,8 @@ void ms5611_wait_until_stable(void)
 	/* wait until barometer is stable */
 	while(ms5611.press_lpf < 0 || ms5611.press_lpf > 2000);
 
+	while(fabs(ms5611.rel_alt) > 0.3f);
+
 	ms5611.init_finished = true;
 	ms5611.press_sea_level = ms5611.press_lpf;
 }
@@ -117,7 +119,7 @@ void ms5611_read_pressure(void)
 	ms5611.temp_raw = (float)temp32 * 0.01f; //[deg c]
 	ms5611.press_raw = (float)pressure32 * 0.01f; //[mbar]
 
-	lpf(ms5611.press_raw, &ms5611.press_lpf, 0.015f);
+	lpf(ms5611.press_raw, &ms5611.press_lpf, 0.08f);
 }
 
 static void ms5611_calc_relative_altitude_and_velocity(void)
@@ -132,23 +134,15 @@ static void ms5611_calc_relative_altitude_and_velocity(void)
 
 	if(ms5611.velocity_ready == false) {
 		ms5611.velocity_ready = true;
-	}
-
-	const float main_loop_freq = 400;
-	const float velocity_update_rate = 200;
-	const float prescaler_reload_val = main_loop_freq / velocity_update_rate;
-
-	static int diff_prescaler = prescaler_reload_val;
-
-	/* down-sampled numerical differentiation (relative velocity) */
-	diff_prescaler--;
-	if(diff_prescaler == 0) {
-		ms5611.rel_vel_raw = (ms5611.rel_alt - ms5611.rel_alt_last) * velocity_update_rate;
+		ms5611.rel_vel_lpf = 0.0f;
+		ms5611.rel_vel_raw = 0.0f;
+		ms5611.rel_alt_last = 0.0f;
+	} else {
+		ms5611.rel_vel_raw = (ms5611.rel_alt - ms5611.rel_alt_last) / 400.0f;
 		ms5611.rel_alt_last = ms5611.rel_alt;
-		diff_prescaler = prescaler_reload_val;
 
 		/* low pass filtering */
-		lpf(ms5611.rel_vel_raw, &ms5611.rel_vel_lpf, 0.075f);
+		ms5611.rel_vel_lpf = ms5611.rel_vel_raw;
 	}
 }
 
