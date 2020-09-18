@@ -141,7 +141,7 @@ static void ms5611_calc_relative_altitude_and_velocity(void)
 		/* low pass filtering */
 		ms5611.rel_vel_raw = (ms5611.rel_alt - ms5611.rel_alt_last) * 400;
 		ms5611.rel_alt_last = ms5611.rel_alt;
-		lpf(ms5611.rel_vel_raw, &ms5611.rel_vel_lpf, 0.65);
+		lpf(ms5611.rel_vel_raw, &ms5611.rel_vel_lpf, 0.5);
 	}
 }
 
