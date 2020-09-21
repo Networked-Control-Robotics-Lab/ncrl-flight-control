@@ -123,7 +123,7 @@ void ms5611_read_pressure(void)
 	ms5611.temp_raw = (float)temp32 * 0.01f; //[deg c]
 	ms5611.press_raw = (float)pressure32 * 0.01f; //[mbar]
 
-	lpf(ms5611.press_raw, &ms5611.press_lpf, 0.02f);
+	lpf(ms5611.press_raw, &ms5611.press_lpf, 0.03f);
 }
 
 static void ms5611_calc_relative_altitude_and_velocity(void)

@@ -43,7 +43,7 @@ void get_enu_position(float *pos)
 #if (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_OPTITRACK)
 	optitrack_read_pos_z(&pos[2]);
 #elif (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_BAROMETER)
-	pos[2] = ms5611_get_relative_altitude();
+	pos[2] = get_fused_barometer_relative_altitude();
 #else
 	pos[2] = 0.0f;
 #endif
@@ -56,7 +56,7 @@ float get_enu_height(void)
 	optitrack_read_pos_z(&height);
 	return height;
 #elif (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_BAROMETER)
-	return ms5611_get_relative_altitude();
+	return get_fused_barometer_relative_altitude();
 #else
 	return 0.0f;
 #endif

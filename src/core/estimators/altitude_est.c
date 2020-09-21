@@ -6,9 +6,18 @@ float alt_rate_last = 0.0f;
 float alt_rate_predict = 0.0f;
 float alt_rate_fused = 0.0f;
 
+float alt_last = 0.0f;
+float alt_predict = 0.0f;
+float alt_fused = 0.0f;
+
 /* altitude rate estimation using barometer and acceleromter with complementary filter algorithm */
-void barometer_alt_rate_estimate(float *dcm, float alt_rate, float *accel_body, float dt)
+void barometer_alt_rate_estimate(float *dcm, float barometer_alt, float barometer_alt_rate,
+                                 float *accel_body, float dt)
 {
+	/****************************
+	 * altitude rate estimation *
+	 ****************************/
+
 	/* convert measured acceleration from body-fixed frame to earth frame and
 	 * take the z-direction component out only */
 	float accel_earth_z = dcm[2*3 + 0] * accel_body[0] +
@@ -17,17 +26,36 @@ void barometer_alt_rate_estimate(float *dcm, float alt_rate, float *accel_body, 
 
 	/* gravity cancellation */
 	accel_earth_z -= -9.81;
-	accel_earth_z *= -1; //FIXME
+	accel_earth_z *= -1; //convert from NED frame to ENU frame
 
-	/* calculate altitude rate by doing numerical integration */
+	/* predict altitude rate by doing numerical integration */
 	alt_rate_predict = alt_rate_last + (accel_earth_z * dt);
 
-	/* complementary filter */
-	const float a = 0.995;
-	alt_rate_fused = (a * alt_rate_predict) + ((1.0f - a) * alt_rate);
+	/* complementary filter for velocity estimation */
+	const float a_vel = 0.995;
+	alt_rate_fused = (a_vel * alt_rate_predict) + ((1.0f - a_vel) * barometer_alt_rate);
 
 	/* save fused altitude rate for next iteration */
 	alt_rate_last = alt_rate_fused;
+
+	/***********************
+	 * altitude estimation *
+	 ***********************/
+
+	/* predict altitude by doing numerical integration */
+	alt_predict = alt_last + (alt_rate_fused * dt);
+
+	/* complementary filter for altitude estimation */
+	const float a_alt = 0.995;
+	alt_fused = (a_alt * alt_predict) + ((1.0f - a_alt) * barometer_alt);
+
+	/* save fused altitude for next iteration */
+	alt_last = alt_fused;
+}
+
+float get_fused_barometer_relative_altitude(void)
+{
+	return alt_fused;
 }
 
 float get_fused_barometer_relative_altitude_rate(void)
@@ -39,7 +67,7 @@ void send_alt_est_debug_message(debug_msg_t *payload)
 {
 	float altitude = 0.0f;
 	float optitrack_z = 0.0f;
-	altitude = barometer_get_relative_altitude();
+	altitude = get_fused_barometer_relative_altitude();
 	optitrack_read_pos_z(&optitrack_z);
 
 	float optitrack_vz = 0.0f;
