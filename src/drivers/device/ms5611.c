@@ -84,7 +84,7 @@ void ms5611_wait_until_stable(void)
 		freertos_task_delay(1);
 	}
 
-	while(fabs(ms5611.rel_alt) > 0.3f) {
+	while(fabs(ms5611.rel_alt_lpf) > 0.3f) {
 		freertos_task_delay(1);
 	}
 
@@ -136,8 +136,7 @@ static void ms5611_calc_relative_altitude_and_velocity(void)
 	/* calculate relative height */
 	ms5611.rel_alt_raw = 44330.0f * (1.0f - pow(ms5611.press_raw / ms5611.press_sea_level, 0.1902949f));
 
-	lpf(ms5611.rel_alt_raw, &ms5611.rel_alt_lpf, 0.02);
-	ms5611.rel_alt = ms5611.rel_alt_lpf;
+	lpf(ms5611.rel_alt_raw, &ms5611.rel_alt_lpf, 0.025);
 
 	if(ms5611.velocity_ready == false) {
 		ms5611.velocity_ready = true;
@@ -146,9 +145,9 @@ static void ms5611_calc_relative_altitude_and_velocity(void)
 		ms5611.rel_alt_last = 0.0f;
 	} else {
 		/* low pass filtering */
-		ms5611.rel_vel_raw = (ms5611.rel_alt - ms5611.rel_alt_last) * 400;
-		ms5611.rel_alt_last = ms5611.rel_alt;
-		lpf(ms5611.rel_vel_raw, &ms5611.rel_vel_lpf, 0.5);
+		ms5611.rel_vel_raw = (ms5611.rel_alt_lpf - ms5611.rel_alt_last) * 400;
+		ms5611.rel_alt_last = ms5611.rel_alt_lpf;
+		lpf(ms5611.rel_vel_raw, &ms5611.rel_vel_lpf, 1.0);
 	}
 }
 
@@ -164,7 +163,7 @@ float ms5611_get_pressure(void)
 
 float ms5611_get_relative_altitude(void)
 {
-	return ms5611.rel_alt;
+	return ms5611.rel_alt_lpf;
 }
 
 float ms5611_get_relative_altitude_rate(void)
@@ -179,7 +178,7 @@ void send_barometer_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_header(payload, MESSAGE_ID_BAROMETER);
 	pack_debug_debug_message_float(&press_lpf_bar, payload);
 	pack_debug_debug_message_float(&ms5611.temp_raw, payload);
-	pack_debug_debug_message_float(&ms5611.rel_alt, payload);
+	pack_debug_debug_message_float(&ms5611.rel_alt_lpf, payload);
 	pack_debug_debug_message_float(&ms5611.rel_vel_lpf, payload);
 }
 

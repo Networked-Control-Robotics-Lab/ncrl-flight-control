@@ -21,10 +21,8 @@ typedef struct {
 	float press_lpf;       //low pass filtered pressure
 	float press_sea_level; //sea leval presaure value
 
-	float rel_alt;      //relative altitude [m]
-
-	float rel_alt_raw;
-	float rel_alt_lpf;
+	float rel_alt_raw;  //barometer raw altitude [m]
+	float rel_alt_lpf;  //barometer lpf altitude [m]
 
 	float rel_alt_last; //save for numerical differentiation
 	float rel_vel_raw;  //raw data of relative altitude rate [m/s]
