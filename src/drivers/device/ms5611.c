@@ -80,9 +80,13 @@ void ms5611_init(void)
 void ms5611_wait_until_stable(void)
 {
 	/* wait until barometer is stable */
-	while(ms5611.press_lpf < 0 || ms5611.press_lpf > 2000);
+	while(ms5611.press_lpf < 800 || ms5611.press_lpf > 1200) {
+		freertos_task_delay(1);
+	}
 
-	while(fabs(ms5611.rel_alt) > 0.3f);
+	while(fabs(ms5611.rel_alt) > 0.3f) {
+		freertos_task_delay(1);
+	}
 
 	ms5611.init_finished = true;
 	ms5611.press_sea_level = ms5611.press_lpf;
@@ -130,7 +134,10 @@ static void ms5611_calc_relative_altitude_and_velocity(void)
 	}
 
 	/* calculate relative height */
-	ms5611.rel_alt = 44330.0f * (1.0f - pow(ms5611.press_lpf / ms5611.press_sea_level, 0.1902949f));
+	ms5611.rel_alt_raw = 44330.0f * (1.0f - pow(ms5611.press_raw / ms5611.press_sea_level, 0.1902949f));
+
+	lpf(ms5611.rel_alt_raw, &ms5611.rel_alt_lpf, 0.02);
+	ms5611.rel_alt = ms5611.rel_alt_lpf;
 
 	if(ms5611.velocity_ready == false) {
 		ms5611.velocity_ready = true;
