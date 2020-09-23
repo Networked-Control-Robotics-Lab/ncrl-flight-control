@@ -10,19 +10,19 @@ void init_multirotor_geometry_param_list(void)
 
 	init_common_params();
 
-	init_sys_param_float(MR_GEO_GAIN_ROLL_P, "KR_X", 2.95f);
-	init_sys_param_float(MR_GEO_GAIN_ROLL_D, "KW_X", 0.36f);
-	init_sys_param_float(MR_GEO_GAIN_PITCH_P, "KR_Y", 2.95f);
-	init_sys_param_float(MR_GEO_GAIN_PITCH_D, "KW_Y", 0.36f);
-	init_sys_param_float(MR_GEO_GAIN_YAW_P, "KR_Z", 28.4f);
-	init_sys_param_float(MR_GEO_GAIN_YAW_D, "KY_Z", 1.96f);
+	init_sys_param_float(MR_GEO_GAIN_ROLL_P, "ROLL_KP", 2.95f);
+	init_sys_param_float(MR_GEO_GAIN_ROLL_D, "ROKK_KD", 0.36f);
+	init_sys_param_float(MR_GEO_GAIN_PITCH_P, "PITCH_KP", 2.95f);
+	init_sys_param_float(MR_GEO_GAIN_PITCH_D, "PITCH_KD", 0.36f);
+	init_sys_param_float(MR_GEO_GAIN_YAW_P, "YAW_KP", 28.4f);
+	init_sys_param_float(MR_GEO_GAIN_YAW_D, "YAW_KD", 1.96f);
 	init_sys_param_float(MR_GEO_GAIN_RATE_YAW, "YAW_RATE_GAIN", 26.9f);
-	init_sys_param_float(MR_GEO_GAIN_POS_X, "KP_X", 9.31f);
-	init_sys_param_float(MR_GEO_GAIN_VEL_X, "KV_X", 6.86f);
-	init_sys_param_float(MR_GEO_GAIN_POS_Y, "KP_Y", 11.27f);
-	init_sys_param_float(MR_GEO_GAIN_VEL_Y, "KV_Y", 7.84f);
-	init_sys_param_float(MR_GEO_GAIN_POS_Z, "KP_Z", 8.53f);
-	init_sys_param_float(MR_GEO_GAIN_VEL_Z, "KV_Z", 3.92f);
+	init_sys_param_float(MR_GEO_GAIN_POS_X, "POS_X_KP", 9.31f);
+	init_sys_param_float(MR_GEO_GAIN_VEL_X, "POS_X_KD", 6.86f);
+	init_sys_param_float(MR_GEO_GAIN_POS_Y, "POS_Y_KP", 11.27f);
+	init_sys_param_float(MR_GEO_GAIN_VEL_Y, "POS_Y_KD", 7.84f);
+	init_sys_param_float(MR_GEO_GAIN_POS_Z, "POS_Z_KP", 8.53f);
+	init_sys_param_float(MR_GEO_GAIN_VEL_Z, "POS_Z_KD", 3.92f);
 	init_sys_param_float(MR_GEO_GAIN_POS_X_I, "POS_I_GAIN_X", 0.0f);
 	init_sys_param_float(MR_GEO_GAIN_POS_Y_I, "POS_I_GAIN_Y", 0.0f);
 	init_sys_param_float(MR_GEO_GAIN_POS_Z_I, "POS_I_GAIN_Z", 0.0f);
