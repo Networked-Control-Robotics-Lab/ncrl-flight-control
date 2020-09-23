@@ -86,10 +86,6 @@ void ms5611_wait_until_stable(void)
 		freertos_task_delay(1);
 	}
 
-	while(fabs(ms5611.rel_alt) > 0.3f) {
-		freertos_task_delay(1);
-	}
-
 	ms5611.init_finished = true;
 	ms5611.press_sea_level = ms5611.press_lpf;
 }

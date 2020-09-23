@@ -538,9 +538,14 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	/* prepare current attitude matrix (dcm) using quaternion */
 	quat_to_rotation_matrix(ahrs->q, _mat_(R), _mat_(Rt));
 
-	/* altitude rate estimation */
-	float barometer_alt_rate = barometer_get_relative_altitude_rate(); //raw data from barometer
-	barometer_alt_rate_estimate(_mat_(R), barometer_alt_rate, imu->accel_lpf, 0.0025); //fused with accel
+	/* read altitude raw data from barometer */
+	float barometer_alt = barometer_get_relative_altitude();
+	/* read altitude rate raw data from barometer */
+	float barometer_alt_rate = barometer_get_relative_altitude_rate();
+
+	/* fuse barometer data with accelerometer */
+	barometer_alt_rate_estimate(_mat_(R), barometer_alt, barometer_alt_rate,
+	                            imu->accel_lpf, 0.0025);
 
 	/* prepare position and velocity data */
 	float curr_pos_enu[3] = {0.0f}, curr_pos_ned[3] = {0.0f};
