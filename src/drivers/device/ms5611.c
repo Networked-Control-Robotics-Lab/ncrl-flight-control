@@ -9,6 +9,8 @@
 #include "debug_link.h"
 #include "lpf.h"
 
+#define MBAR_TO_PASCAL(press) (press * 100.0f)
+
 SemaphoreHandle_t ms5611_task_semphr;
 
 ms5611_t ms5611;
@@ -84,7 +86,7 @@ void ms5611_wait_until_stable(void)
 		freertos_task_delay(1);
 	}
 
-	while(fabs(ms5611.rel_alt_lpf) > 0.3f) {
+	while(fabs(ms5611.rel_alt) > 0.3f) {
 		freertos_task_delay(1);
 	}
 
@@ -123,7 +125,7 @@ void ms5611_read_pressure(void)
 	ms5611.temp_raw = (float)temp32 * 0.01f; //[deg c]
 	ms5611.press_raw = (float)pressure32 * 0.01f; //[mbar]
 
-	lpf(ms5611.press_raw, &ms5611.press_lpf, 0.04f);
+	lpf(ms5611.press_raw, &ms5611.press_lpf, 0.013f);
 }
 
 static void ms5611_calc_relative_altitude_and_velocity(void)
@@ -133,10 +135,14 @@ static void ms5611_calc_relative_altitude_and_velocity(void)
 		return;
 	}
 
-	/* calculate relative height */
-	ms5611.rel_alt_raw = 44330.0f * (1.0f - pow(ms5611.press_raw / ms5611.press_sea_level, 0.1902949f));
-
-	lpf(ms5611.rel_alt_raw, &ms5611.rel_alt_lpf, 0.03);
+	//pressure: [pascal] = [N/m^2] = [kg/(m*s^2)]
+	//air density: 1.2754[kg/m^3]
+	//gravitational acceleration: 9.81[m/s^2]
+	//--------------------------------------------------
+	//linear equation for calculating altitude (valid under ~500m)
+	//height = pressure_diff / (air_density * gravity)
+	float press_diff = ms5611.press_sea_level - ms5611.press_lpf;
+	ms5611.rel_alt = MBAR_TO_PASCAL(press_diff) * 0.07992535611;
 
 	if(ms5611.velocity_ready == false) {
 		ms5611.velocity_ready = true;
@@ -145,8 +151,8 @@ static void ms5611_calc_relative_altitude_and_velocity(void)
 		ms5611.rel_alt_last = 0.0f;
 	} else {
 		/* low pass filtering */
-		ms5611.rel_vel_raw = (ms5611.rel_alt_lpf - ms5611.rel_alt_last) * 400;
-		ms5611.rel_alt_last = ms5611.rel_alt_lpf;
+		ms5611.rel_vel_raw = (ms5611.rel_alt - ms5611.rel_alt_last) * 400;
+		ms5611.rel_alt_last = ms5611.rel_alt;
 		lpf(ms5611.rel_vel_raw, &ms5611.rel_vel_lpf, 1.0);
 	}
 }
@@ -163,7 +169,7 @@ float ms5611_get_pressure(void)
 
 float ms5611_get_relative_altitude(void)
 {
-	return ms5611.rel_alt_lpf;
+	return ms5611.rel_alt;
 }
 
 float ms5611_get_relative_altitude_rate(void)
@@ -178,7 +184,7 @@ void send_barometer_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_header(payload, MESSAGE_ID_BAROMETER);
 	pack_debug_debug_message_float(&press_lpf_bar, payload);
 	pack_debug_debug_message_float(&ms5611.temp_raw, payload);
-	pack_debug_debug_message_float(&ms5611.rel_alt_lpf, payload);
+	pack_debug_debug_message_float(&ms5611.rel_alt, payload);
 	pack_debug_debug_message_float(&ms5611.rel_vel_lpf, payload);
 }
 
