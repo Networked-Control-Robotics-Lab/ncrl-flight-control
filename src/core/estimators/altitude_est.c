@@ -32,7 +32,7 @@ void barometer_alt_rate_estimate(float *dcm, float barometer_alt, float baromete
 	alt_rate_predict = alt_rate_last + (accel_earth_z * dt);
 
 	/* complementary filter for velocity estimation */
-	const float a_vel = 0.995;
+	const float a_vel = 0.997;
 	alt_rate_fused = (a_vel * alt_rate_predict) + ((1.0f - a_vel) * barometer_alt_rate);
 
 	/* save fused altitude rate for next iteration */
@@ -46,7 +46,7 @@ void barometer_alt_rate_estimate(float *dcm, float barometer_alt, float baromete
 	alt_predict = alt_last + (alt_rate_fused * dt);
 
 	/* complementary filter for altitude estimation */
-	const float a_alt = 0.995;
+	const float a_alt = 0.8;
 	alt_fused = (a_alt * alt_predict) + ((1.0f - a_alt) * barometer_alt);
 
 	/* save fused altitude for next iteration */
@@ -67,6 +67,7 @@ void send_alt_est_debug_message(debug_msg_t *payload)
 {
 	float altitude = 0.0f;
 	float optitrack_z = 0.0f;
+	//altitude = barometer_get_relative_altitude();
 	altitude = get_fused_barometer_relative_altitude();
 	optitrack_read_pos_z(&optitrack_z);
 
