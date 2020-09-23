@@ -128,6 +128,8 @@ void task_flight_ctrl(void *param)
 	led_off(LED_G);
 	led_on(LED_B);
 
+	//TODO: wait until sensor data and fusion algorithm are stable
+
 	while(1) {
 		perf_start(PERF_FLIGHT_CONTROL_TRIGGER_TIME);
 		while(xSemaphoreTake(flight_ctrl_semphr, 9) == pdFALSE);
