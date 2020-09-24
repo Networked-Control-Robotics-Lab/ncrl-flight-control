@@ -121,7 +121,10 @@ void task_flight_ctrl(void *param)
 		freertos_task_delay(2.5);
 	}
 
+#if (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_BAROMETER)
 	barometer_wait_until_stable();
+#endif
+
 	ahrs_init();
 
 	led_off(LED_R);
