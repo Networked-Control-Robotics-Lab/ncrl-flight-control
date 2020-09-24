@@ -40,7 +40,7 @@ void init_multirotor_geometry_param_list(void)
 	init_sys_param_float(THRUST_TO_PWM_C2, "THRUST_TO_PWM_C2", -2.264e-11);
 	init_sys_param_float(THRUST_TO_PWM_C3, "THRUST_TO_PWM_C3", 1.697e-08);
 	init_sys_param_float(THRUST_TO_PWM_C4, "THRUST_TO_PWM_C4", -6.715e-06);
-	init_sys_param_float(THRUST_TO_PWM_C5, "THRUST_TO_PWM_C6", 2.336e-03);
+	init_sys_param_float(THRUST_TO_PWM_C5, "THRUST_TO_PWM_C5", 2.336e-03);
 	init_sys_param_float(THRUST_TO_PWM_C6, "THRUST_TO_PWM_C6", 3.082e-02);
 	init_sys_param_float(THRUST_MAX, "THRUST_MAX", 845.0f);
 
