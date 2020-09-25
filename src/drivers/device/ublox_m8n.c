@@ -212,8 +212,8 @@ void ublox_decode_nav_pvt_msg(void)
 	memcpy(&ublox.vel_e, (ublox_payload_addr + 52), sizeof(int32_t));
 	memcpy(&ublox.vel_d, (ublox_payload_addr + 56), sizeof(int32_t));
 	memcpy(&ublox.ground_speed, (ublox_payload_addr + 60), sizeof(int32_t));
-	memcpy(&ublox.h_acc, (ublox_payload_addr + 40), sizeof(int32_t));
-	memcpy(&ublox.v_acc, (ublox_payload_addr + 44), sizeof(int32_t));
+	memcpy(&ublox.h_acc, (ublox_payload_addr + 40), sizeof(uint32_t));
+	memcpy(&ublox.v_acc, (ublox_payload_addr + 44), sizeof(uint32_t));
 	memcpy(&ublox.heading, (ublox_payload_addr + 64), sizeof(int32_t));
 	memcpy(&ublox.fix_type, (ublox_payload_addr + 20), sizeof(uint8_t));
 	memcpy(&ublox.num_sv, (ublox_payload_addr + 23), sizeof(uint8_t));
