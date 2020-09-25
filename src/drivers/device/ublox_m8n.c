@@ -90,16 +90,23 @@ void ublox_m8n_init(void)
 
 void ublox_m8n_get_longitude_latitude_height(float *longitude, float *latitude, float *height)
 {
-	*longitude = (float)ublox.longitude;
-	*latitude = (float)ublox.latitude;
-	*height = (float)ublox.height_msl;
+	*longitude = (float)ublox.longitude * 1e-7;
+	*latitude = (float)ublox.latitude * 1e-7;
+	*height = (float)ublox.height_msl * 1e-3;
 }
 
 void ublox_m8n_get_velocity_ned(float *vx, float *vy, float *vz)
 {
-	*vx = (float)ublox.vel_n * 0.001; //[mm/s] to [m/s]
-	*vy = (float)ublox.vel_e * 0.001;
-	*vz = (float)ublox.vel_d * 0.001;
+	*vx = (float)ublox.vel_n * 1e-3; //[mm/s] to [m/s]
+	*vy = (float)ublox.vel_e * 1e-3;
+	*vz = (float)ublox.vel_d * 1e-3;
+}
+
+float ublox_m8n_get_dilution_of_precision(float *pdop, float *hdop, float *vdop)
+{
+	*pdop = (float)ublox.pdop * 1e2;
+	*hdop = (float)ublox.pdop * 1e2;
+	*vdop = (float)ublox.pdop * 1e2;
 }
 
 int ublox_m8n_get_satellite_numbers(void)
@@ -164,10 +171,6 @@ void ublox_decode_nav_pvt_msg(void)
 	memcpy(&ublox.fix_type, (ublox_payload_addr + 20), sizeof(uint8_t));
 	memcpy(&ublox.num_sv, (ublox_payload_addr + 23), sizeof(uint8_t));
 	memcpy(&ublox.pdop, (ublox_payload_addr + 76), sizeof(uint16_t));
-
-	ublox.longitude *= 1e-7;
-	ublox.latitude *=  1e-7;
-	ublox.pdop *= 1e2;
 }
 
 void ublox_m8n_gps_update(void)

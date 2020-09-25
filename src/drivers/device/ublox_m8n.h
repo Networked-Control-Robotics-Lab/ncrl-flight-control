@@ -66,5 +66,6 @@ void ublox_m8n_gps_update(void);
 void ublox_m8n_get_longitude_latitude_height(float *longitude, float *latitude, float *height);
 void ublox_m8n_get_velocity_ned(float *vx, float *vy, float *vz);
 int ublox_m8n_get_satellite_numbers(void);
+float ublox_m8n_get_dilution_of_precision(float *pdop, float *hdop, float *vdop);
 
 #endif
