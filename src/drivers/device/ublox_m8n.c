@@ -92,7 +92,7 @@ void ublox_m8n_get_longitude_latitude_height(float *longitude, float *latitude, 
 {
 	*longitude = (float)ublox.longitude;
 	*latitude = (float)ublox.latitude;
-	*height = (float)ublox.height;
+	*height = (float)ublox.height_msl;
 }
 
 void ublox_m8n_get_velocity_ned(float *vx, float *vy, float *vz)
@@ -143,9 +143,6 @@ void ublox_decode_nav_pvt_msg(void)
 		return;
 	}
 
-	int32_t lon32, lat32;
-	int16_t pdop16;
-
 	uint8_t *ublox_payload_addr = ublox.recept_buf + 4;
 	memcpy(&ublox.year, (ublox_payload_addr + 4), sizeof(uint16_t));
 	memcpy(&ublox.month, (ublox_payload_addr + 6), sizeof(uint8_t));
@@ -153,17 +150,24 @@ void ublox_decode_nav_pvt_msg(void)
 	memcpy(&ublox.hour, (ublox_payload_addr + 8), sizeof(uint8_t));
 	memcpy(&ublox.minute, (ublox_payload_addr + 9), sizeof(uint8_t));
 	memcpy(&ublox.second, (ublox_payload_addr + 10), sizeof(uint8_t));
-	memcpy(&lon32, (ublox_payload_addr + 24), sizeof(int32_t));
-	memcpy(&lat32, (ublox_payload_addr + 28), sizeof(int32_t));
+	memcpy(&ublox.longitude, (ublox_payload_addr + 24), sizeof(int32_t));
+	memcpy(&ublox.latitude, (ublox_payload_addr + 28), sizeof(int32_t));
+	memcpy(&ublox.height_ellipsoid, (ublox_payload_addr + 32), sizeof(int32_t));
+	memcpy(&ublox.height_msl, (ublox_payload_addr + 36), sizeof(int32_t));
 	memcpy(&ublox.vel_n, (ublox_payload_addr + 48), sizeof(int32_t));
 	memcpy(&ublox.vel_e, (ublox_payload_addr + 52), sizeof(int32_t));
+	memcpy(&ublox.vel_d, (ublox_payload_addr + 56), sizeof(int32_t));
+	memcpy(&ublox.ground_speed, (ublox_payload_addr + 60), sizeof(int32_t));
+	memcpy(&ublox.h_acc, (ublox_payload_addr + 40), sizeof(int32_t));
+	memcpy(&ublox.v_acc, (ublox_payload_addr + 44), sizeof(int32_t));
+	memcpy(&ublox.heading, (ublox_payload_addr + 64), sizeof(int32_t));
 	memcpy(&ublox.fix_type, (ublox_payload_addr + 20), sizeof(uint8_t));
 	memcpy(&ublox.num_sv, (ublox_payload_addr + 23), sizeof(uint8_t));
-	memcpy(&pdop16, (ublox_payload_addr + 76), sizeof(uint16_t));
+	memcpy(&ublox.pdop, (ublox_payload_addr + 76), sizeof(uint16_t));
 
-	ublox.longitude = lon32 * 1e-7;
-	ublox.latitude = lat32 * 1e-7;
-	ublox.pdop = 0.01 * pdop16;
+	ublox.longitude *= 1e-7;
+	ublox.latitude *=  1e-7;
+	ublox.pdop *= 1e2;
 }
 
 void ublox_m8n_gps_update(void)

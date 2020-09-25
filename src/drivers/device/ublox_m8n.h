@@ -45,10 +45,15 @@ typedef struct {
 	uint8_t second;
 	int32_t longitude;
 	int32_t latitude;
-	int32_t height;
+	int32_t height_ellipsoid; //height above ellipsoid
+	int32_t height_msl;       //height above mean sea level
+	int32_t h_acc;            //horizontal accuracy
+	int32_t v_acc;            //vertical accuracy
 	int32_t vel_n;
 	int32_t vel_e;
 	int32_t vel_d;
+	int32_t ground_speed;
+	int32_t heading;
 	uint8_t fix_type;
 	uint8_t num_sv;
 	uint16_t pdop;
