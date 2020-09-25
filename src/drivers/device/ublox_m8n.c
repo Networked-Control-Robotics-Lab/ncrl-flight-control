@@ -151,12 +151,12 @@ void ublox_decode_nav_pvt_msg(void)
 	}
 
 	uint8_t *ublox_payload_addr = ublox.recept_buf + 4;
-	memcpy(&ublox.year, (ublox_payload_addr + 4), sizeof(uint16_t));
-	memcpy(&ublox.month, (ublox_payload_addr + 6), sizeof(uint8_t));
-	memcpy(&ublox.day, (ublox_payload_addr + 7), sizeof(uint8_t));
-	memcpy(&ublox.hour, (ublox_payload_addr + 8), sizeof(uint8_t));
-	memcpy(&ublox.minute, (ublox_payload_addr + 9), sizeof(uint8_t));
-	memcpy(&ublox.second, (ublox_payload_addr + 10), sizeof(uint8_t));
+	//memcpy(&ublox.year, (ublox_payload_addr + 4), sizeof(uint16_t));
+	//memcpy(&ublox.month, (ublox_payload_addr + 6), sizeof(uint8_t));
+	//memcpy(&ublox.day, (ublox_payload_addr + 7), sizeof(uint8_t));
+	//memcpy(&ublox.hour, (ublox_payload_addr + 8), sizeof(uint8_t));
+	//memcpy(&ublox.minute, (ublox_payload_addr + 9), sizeof(uint8_t));
+	//memcpy(&ublox.second, (ublox_payload_addr + 10), sizeof(uint8_t));
 	memcpy(&ublox.longitude, (ublox_payload_addr + 24), sizeof(int32_t));
 	memcpy(&ublox.latitude, (ublox_payload_addr + 28), sizeof(int32_t));
 	memcpy(&ublox.height_ellipsoid, (ublox_payload_addr + 32), sizeof(int32_t));
