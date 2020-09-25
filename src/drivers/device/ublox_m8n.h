@@ -45,8 +45,10 @@ typedef struct {
 	uint8_t second;
 	int32_t longitude;
 	int32_t latitude;
+	int32_t height;
 	int32_t vel_n;
 	int32_t vel_e;
+	int32_t vel_d;
 	uint8_t fix_type;
 	uint8_t num_sv;
 	uint16_t pdop;
@@ -55,5 +57,9 @@ typedef struct {
 void ublox_m8n_init(void);
 void ublox_m8n_isr_handler(uint8_t c);
 void ublox_m8n_gps_update(void);
+
+void ublox_m8n_get_longitude_latitude_height(float *longitude, float *latitude, float *height);
+void ublox_m8n_get_velocity_ned(float *vx, float *vy, float *vz);
+int ublox_m8n_get_satellite_numbers(void);
 
 #endif

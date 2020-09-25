@@ -101,14 +101,33 @@ void send_mavlink_attitude_quaternion(void)
 
 void send_mavlink_gps(void)
 {
-	float latitude = 0.0f, longitude = 0.0f, altitude = 0.0f;
-	float gps_vel_x = 0.0f, gps_vel_y = 0.0f;
-	float heading = 0.0f;
 	uint32_t curr_time_ms = (uint32_t)get_sys_time_ms();
 
+	float longitude, latitude, height;
+	uint8_t sv_num = get_gps_satellite_numbers();;
+	uint8_t fix_type = GPS_FIX_TYPE_3D_FIX;
+	uint16_t hdop = 1.3 * 1e2;
+	uint16_t vdop = 1.8 * 1e2;
+	uint16_t ground_speed = 0;
+	uint16_t cog = 0;
+	uint32_t altitude_above_ground = 0;
+	uint32_t h_acc = 0;
+	uint32_t v_acc = 0;
+	uint32_t vel_acc = 0;
+	uint32_t heading_acc = 0;
+	uint16_t gps_yaw = 0;
+
+	get_gps_longitude_latitude_height(&longitude, &latitude, &height);
+	latitude *= 1e7;
+	longitude *= 1e7;
+
 	mavlink_message_t msg;
-	mavlink_msg_global_position_int_pack(1, 1, &msg, curr_time_ms, latitude, longitude, altitude, 0,
-	                                     gps_vel_x, gps_vel_y, altitude, heading);
+
+	mavlink_msg_gps_raw_int_pack(1, 1, &msg, curr_time_ms,
+	                             fix_type, (uint32_t)latitude, (uint32_t)longitude, height,
+	                             hdop, vdop, ground_speed, cog, sv_num,
+	                             altitude_above_ground, h_acc, v_acc,
+	                             vel_acc, heading_acc, gps_yaw);
 	send_mavlink_msg_to_uart(&msg);
 }
 

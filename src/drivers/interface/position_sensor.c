@@ -3,6 +3,7 @@
 #include "altitude_est.h"
 #include "proj_config.h"
 #include "ms5611.h"
+#include "ublox_m8n.h"
 
 bool is_xy_position_info_available(void)
 {
@@ -87,4 +88,19 @@ void get_enu_velocity(float *vel)
 #else
 	vel[2] = 0.0f;
 #endif
+}
+
+void get_gps_longitude_latitude_height(float *longitude, float *latitude, float *height)
+{
+	ublox_m8n_get_longitude_latitude_height(longitude, latitude, height);
+}
+
+void get_gps_velocity_ned(float *vx, float *vy, float *vz)
+{
+	ublox_m8n_get_velocity_ned(vx, vy, vz);
+}
+
+int get_gps_satellite_numbers(void)
+{
+	return ublox_m8n_get_satellite_numbers();
 }

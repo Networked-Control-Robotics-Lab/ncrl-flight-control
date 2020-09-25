@@ -88,6 +88,25 @@ void ublox_m8n_init(void)
 	//ublox_command_send(ubx_save_rom_cmd, UBX_SAVE_ROM_CMD_LEN);
 }
 
+void ublox_m8n_get_longitude_latitude_height(float *longitude, float *latitude, float *height)
+{
+	*longitude = (float)ublox.longitude;
+	*latitude = (float)ublox.latitude;
+	*height = (float)ublox.height;
+}
+
+void ublox_m8n_get_velocity_ned(float *vx, float *vy, float *vz)
+{
+	*vx = (float)ublox.vel_n * 0.001; //[mm/s] to [m/s]
+	*vy = (float)ublox.vel_e * 0.001;
+	*vz = (float)ublox.vel_d * 0.001;
+}
+
+int ublox_m8n_get_satellite_numbers(void)
+{
+	return ublox.num_sv;
+}
+
 void ublox_checksum_calc(uint8_t *result, uint8_t *payload, uint16_t len)
 {
 	result[0] = 0;
@@ -142,8 +161,8 @@ void ublox_decode_nav_pvt_msg(void)
 	memcpy(&ublox.num_sv, (ublox_payload_addr + 23), sizeof(uint8_t));
 	memcpy(&pdop16, (ublox_payload_addr + 76), sizeof(uint16_t));
 
-	ublox.longitude = lon32 * 1e7;
-	ublox.latitude = lat32 * 1e7;
+	ublox.longitude = lon32 * 1e-7;
+	ublox.latitude = lat32 * 1e-7;
 	ublox.pdop = 0.01 * pdop16;
 }
 

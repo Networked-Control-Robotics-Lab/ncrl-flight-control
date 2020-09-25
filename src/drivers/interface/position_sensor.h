@@ -9,4 +9,8 @@ float get_enu_height(void);
 void get_wgs84_position(float *latitude, float *longtitude, float *height);
 void get_enu_velocity(float *vel);
 
+void get_gps_longitude_latitude_height(float *longitude, float *latitude, float *height);
+void get_gps_velocity_ned(float *vx, float *vy, float *vz);
+int get_gps_satellite_numbers(void);
+
 #endif
