@@ -63,10 +63,6 @@ float get_enu_height(void)
 #endif
 }
 
-void get_wgs84_position(float *latitude, float *longtitude, float *height)
-{
-}
-
 void get_enu_velocity(float *vel)
 {
 	/* x-y velocity */
