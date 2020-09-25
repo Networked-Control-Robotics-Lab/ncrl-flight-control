@@ -65,11 +65,11 @@ SRC+=lib/FreeRTOS/Source/croutine.c \
 
 SRC+=./core/main.c \
 	./core/estimators/lpf.c \
-	./core/estimators/ahrs.c \
-	./core/estimators/comp_ahrs.c \
-	./core/estimators/madgwick_ahrs.c \
 	./core/estimators/free_fall.c \
-	./core/estimators/altitude_est.c \
+	./core/estimators/attitude/ahrs.c \
+	./core/estimators/attitude/comp_ahrs.c \
+	./core/estimators/attitude/madgwick_ahrs.c \
+	./core/estimators/localization/altitude_est.c \
 	./core/controllers/multirotor_pid/multirotor_pid_ctrl.c \
 	./core/controllers/multirotor_pid/multirotor_pid_param.c \
 	./core/controllers/multirotor_geometry/multirotor_geometry_ctrl.c \
@@ -135,6 +135,8 @@ CFLAGS+=-I./
 CFLAGS+=-I./platform
 CFLAGS+=-I./core
 CFLAGS+=-I./core/estimators
+CFLAGS+=-I./core/estimators/attitude
+CFLAGS+=-I./core/estimators/localization
 CFLAGS+=-I./core/controllers
 CFLAGS+=-I./core/controllers/multirotor_pid
 CFLAGS+=-I./core/controllers/multirotor_geometry
