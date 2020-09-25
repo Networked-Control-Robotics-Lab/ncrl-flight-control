@@ -103,31 +103,35 @@ void send_mavlink_gps(void)
 {
 	uint32_t curr_time_ms = (uint32_t)get_sys_time_ms();
 
-	float longitude, latitude, height;
-	uint8_t sv_num = get_gps_satellite_numbers();;
-	uint8_t fix_type = GPS_FIX_TYPE_3D_FIX;
-	uint16_t hdop = 1.3 * 1e2;
-	uint16_t vdop = 1.8 * 1e2;
-	uint16_t ground_speed = 0;
+	int32_t longitude = 0, latitude = 0, height_msl = 0;
+	uint8_t sv_num = 0;
+	uint8_t fix_type = 0;
+	float pdop = 0.0f;
+	float hdop = 0.0f;
+	float vdop = 0.0f;
+	float ground_speed = 0;
 	uint16_t cog = 0;
-	uint32_t altitude_above_ground = 0;
-	uint32_t h_acc = 0;
-	uint32_t v_acc = 0;
+	uint32_t altitude_msl = 0;
+	float h_acc = 0.0f;
+	float v_acc = 0.0f;
 	uint32_t vel_acc = 0;
 	uint32_t heading_acc = 0;
-	uint16_t gps_yaw = 0;
+	float gps_yaw = 0;
 
-	get_gps_longitude_latitude_height(&longitude, &latitude, &height);
-	latitude *= 1e7;
-	longitude *= 1e7;
+	get_gps_longitude_latitude_height_s32(&longitude, &latitude, &height_msl);
+	get_gps_dilution_of_precision(&pdop, &hdop, &vdop);
+	sv_num = get_gps_satellite_numbers();
+	fix_type = get_gps_fix_type();
+	get_gps_position_uncertainty(&h_acc, &v_acc);
+	ground_speed = get_gps_ground_speed();
+	gps_yaw = get_gps_heading() * 1e2;
 
 	mavlink_message_t msg;
-
 	mavlink_msg_gps_raw_int_pack(1, 1, &msg, curr_time_ms,
-	                             fix_type, (uint32_t)latitude, (uint32_t)longitude, height,
-	                             hdop, vdop, ground_speed, cog, sv_num,
-	                             altitude_above_ground, h_acc, v_acc,
-	                             vel_acc, heading_acc, gps_yaw);
+	                             fix_type, latitude, longitude, height_msl,
+	                             (uint16_t)hdop, (uint16_t)vdop, (uint16_t)ground_speed, cog, sv_num,
+	                             altitude_msl, (uint32_t)h_acc, (uint32_t)v_acc,
+	                             vel_acc, heading_acc, (uint16_t)gps_yaw);
 	send_mavlink_msg_to_uart(&msg);
 }
 

@@ -6,6 +6,8 @@
 #include "ublox_m8n.h"
 #include "uart.h"
 #include "delay.h"
+#include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"
+#include "ncrl_mavlink.h"
 
 #define UBLOX_M8N_QUEUE_SIZE 2000
 
@@ -88,21 +90,29 @@ void ublox_m8n_init(void)
 	//ublox_command_send(ubx_save_rom_cmd, UBX_SAVE_ROM_CMD_LEN);
 }
 
-void ublox_m8n_get_longitude_latitude_height(float *longitude, float *latitude, float *height)
+/* get raw longitude/ latitude/ height from gps receiver */
+void ublox_m8n_get_longitude_latitude_height_s32(int32_t *longitude, int32_t *latitude, int32_t *height_msl)
 {
-	*longitude = (float)ublox.longitude * 1e-7;
-	*latitude = (float)ublox.latitude * 1e-7;
-	*height = (float)ublox.height_msl * 1e-3;
+	*longitude = ublox.longitude;   //[deg/1e7]
+	*latitude = ublox.latitude;     //[deg/1e7]
+	*height_msl = ublox.height_msl; //[mm]
+}
+
+void ublox_m8n_get_longitude_latitude_height(float *longitude, float *latitude, float *height_msl)
+{
+	*longitude = (float)ublox.longitude * 1e-7;   //[deg]
+	*latitude = (float)ublox.latitude * 1e-7;     //[deg]
+	*height_msl = (float)ublox.height_msl * 1e-3; //[m]
 }
 
 void ublox_m8n_get_velocity_ned(float *vx, float *vy, float *vz)
 {
-	*vx = (float)ublox.vel_n * 1e-3; //[mm/s] to [m/s]
-	*vy = (float)ublox.vel_e * 1e-3;
-	*vz = (float)ublox.vel_d * 1e-3;
+	*vx = (float)ublox.vel_n * 1e-3; //[m/s]
+	*vy = (float)ublox.vel_e * 1e-3; //[m/s]
+	*vz = (float)ublox.vel_d * 1e-3; //[m/s]
 }
 
-float ublox_m8n_get_dilution_of_precision(float *pdop, float *hdop, float *vdop)
+void ublox_m8n_get_dilution_of_precision(float *pdop, float *hdop, float *vdop)
 {
 	*pdop = (float)ublox.pdop * 1e2;
 	*hdop = (float)ublox.pdop * 1e2;
@@ -112,6 +122,43 @@ float ublox_m8n_get_dilution_of_precision(float *pdop, float *hdop, float *vdop)
 int ublox_m8n_get_satellite_numbers(void)
 {
 	return ublox.num_sv;
+}
+
+/* get gps gix type and return in mavlink defined enum */
+uint8_t ublox_m8n_get_fix_type(void)
+{
+	switch(ublox.fix_type) {
+	case 0: //no fix
+		return GPS_FIX_TYPE_NO_FIX;
+	case 1: //dead reckoning only
+		return GPS_FIX_TYPE_NO_FIX;
+	case 2: //2d fix
+		return GPS_FIX_TYPE_2D_FIX;
+	case 3: //3d fix
+		return GPS_FIX_TYPE_3D_FIX;
+	case 4: //GNSS + dead reckoning combined
+		return GPS_FIX_TYPE_3D_FIX;
+	case 5: //time only fix
+		return GPS_FIX_TYPE_NO_FIX;
+	default:
+		return GPS_FIX_TYPE_NO_GPS;
+	}
+}
+
+void ublox_m8n_get_position_uncertainty(float *h_acc, float *v_acc)
+{
+	*h_acc = (float)ublox.h_acc; //[mm], horizontal accuracy (uncertainty)
+	*v_acc = (float)ublox.v_acc; //[mm], vertical accuracy (uncertainty)
+}
+
+float ublox_m8n_get_ground_speed(void)
+{
+	return (float)ublox.ground_speed; //[mm/s]
+}
+
+float ublox_m8n_get_heading(void)
+{
+	return (float)ublox.heading * 1e5; //[deg]
 }
 
 void ublox_checksum_calc(uint8_t *result, uint8_t *payload, uint16_t len)

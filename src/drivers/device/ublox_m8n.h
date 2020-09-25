@@ -63,9 +63,14 @@ void ublox_m8n_init(void);
 void ublox_m8n_isr_handler(uint8_t c);
 void ublox_m8n_gps_update(void);
 
-void ublox_m8n_get_longitude_latitude_height(float *longitude, float *latitude, float *height);
+void ublox_m8n_get_longitude_latitude_height_s32(int32_t *longitude, int32_t *latitude, int32_t *height_msl);
+void ublox_m8n_get_longitude_latitude_height(float *longitude, float *latitude, float *height_msl);
 void ublox_m8n_get_velocity_ned(float *vx, float *vy, float *vz);
 int ublox_m8n_get_satellite_numbers(void);
-float ublox_m8n_get_dilution_of_precision(float *pdop, float *hdop, float *vdop);
+void ublox_m8n_get_dilution_of_precision(float *pdop, float *hdop, float *vdop);
+uint8_t ublox_m8n_get_fix_type(void);
+void ublox_m8n_get_position_uncertainty(float *h_acc, float *v_acc);
+float ublox_m8n_get_ground_speed(void);
+float ublox_m8n_get_heading(void);
 
 #endif
