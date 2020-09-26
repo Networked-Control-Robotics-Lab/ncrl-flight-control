@@ -40,7 +40,7 @@ MAT_ALLOC(I, 6, 6);
 MAT_ALLOC(KH, 6, 6);
 MAT_ALLOC(I_KH, 6, 6);
 
-float delta_t = 0.0025f;
+float dt;
 
 float home_longitude = 0.0f;
 float home_latitude = 0.0f;
@@ -100,8 +100,10 @@ void longitude_latitude_to_enu(float longitude, float latitude,
 	*y_enu = (r21 * dx) + (r22 * dy);
 }
 
-void gps_ekf_init(void)
+void gps_ekf_init(float _dt)
 {
+	dt = _dt;
+
 	MAT_INIT(accel_b, 3, 1);
 	MAT_INIT(accel_i, 3, 1);
 	MAT_INIT(x_priori, 6, 1);
@@ -197,7 +199,7 @@ void gps_ekf_predict(void)
 	MAT_MULT(&B, &u, &Bu);
 	MAT_ADD(&Ax, &Bu, &x_dot);
 
-	/* calculate derivative of state covariance matrix */
+	/* calculate derivative of state estimate covariance matrix */
 	//P_dot = AP + PAt + Q
 	MAT_MULT(&A, &P_posteriori, &AP);
 	MAT_MULT(&P_posteriori, &At, &PAt);
@@ -206,12 +208,12 @@ void gps_ekf_predict(void)
 
 	/* calculate a priori state */
 	//x_priori = x_last + (dt * a_dot)
-	MAT_SCALE(&x_dot, delta_t, &x_dot_dt);
+	MAT_SCALE(&x_dot, dt, &x_dot_dt);
 	MAT_ADD(&x_posteriori, &x_dot_dt, &x_priori);
 
-	/* calculate a priori state covariance matrix */
+	/* calculate a priori state estimate covariance matrix */
 	//P_priori = P_last + (dt * P_dot)
-	MAT_SCALE(&P_dot, delta_t, &P_dot_dt);
+	MAT_SCALE(&P_dot, dt, &P_dot_dt);
 	MAT_ADD(&P_posteriori, &P_dot_dt, &P_priori);
 }
 
@@ -242,7 +244,7 @@ void gps_ekf_update(void)
 	MAT_MULT(&K, &residual, &K_z_Hx);
 	MAT_ADD(&x_priori, &K_z_Hx, &x_posteriori);
 
-	/* calculate a posteriori covariance matrix */
+	/* calculate a posteriori state estimate covariance matrix */
 	//P_posteriori = [I - KH] * P_priori
 	MAT_MULT(&K, &H, &KH);
 	MAT_SUB(&I, &KH, &I_KH);
