@@ -64,8 +64,8 @@ SRC+=lib/FreeRTOS/Source/croutine.c \
 	lib/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c \
 
 SRC+=./core/main.c \
-	./core/estimators/lpf.c \
-	./core/estimators/free_fall.c \
+	./core/estimators/filters/lpf.c \
+	./core/estimators/free_fall/free_fall.c \
 	./core/estimators/attitude/ahrs.c \
 	./core/estimators/attitude/comp_ahrs.c \
 	./core/estimators/attitude/madgwick_ahrs.c \
@@ -136,6 +136,8 @@ CFLAGS+=-I./
 CFLAGS+=-I./platform
 CFLAGS+=-I./core
 CFLAGS+=-I./core/estimators
+CFLAGS+=-I./core/estimators/filters
+CFLAGS+=-I./core/estimators/free_fall
 CFLAGS+=-I./core/estimators/attitude
 CFLAGS+=-I./core/estimators/localization
 CFLAGS+=-I./core/controllers
