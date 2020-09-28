@@ -16,12 +16,18 @@ ser = serial.Serial(
     bytesize=serial.EIGHTBITS,\
     timeout=0)
 
+save_csv = False
+csv_file = 'serial_log.csv'
+
+if save_csv == True:
+    csv_token = open(csv_file, "w")
+
 print("connected to: " + ser.portstr)
 
 class serial_data_class:
     def __init__(self, max_count):
-	self.max_count = max_count
-	self.data = deque([0.0] * max_count)
+        self.max_count = max_count
+        self.data = deque([0.0] * max_count)
 
     def add(self, value):
 	if len(self.data) < self.max_count:
@@ -354,6 +360,17 @@ class serial_plotter_class:
 
 	plt.show(block=False)
 
+    def save_csv(self, datas):
+            for i in range(0, len(datas)):
+                data_str = ', '.join(map(str, datas[i]))
+
+                if i == (self.curve_number - 1):
+                    csv_token.write(data_str)
+                    csv_token.write('\n')
+                else:
+                    csv_token.write(data_str)
+                    csv_token.write(',')
+
     def serial_receive(self):
         while ser.inWaiting() > 0:
             buffer = []
@@ -408,13 +425,22 @@ class serial_plotter_class:
         	self.set_figure(message_id)
                 self.plot_begin = True
 
+            recvd_datas = []
+
             for i in range(0, self.curve_number):
                 #unpack received data
                 binary_data = ''.join([buffer[i * 4], buffer[i * 4 + 1], buffer[i * 4 + 2], buffer[i * 4 + 3]])
                 float_data = np.asarray(struct.unpack("f", binary_data))
                 self.serial_data[i].add(float_data)
                 print("received: %f" %(float_data))
+
+                recvd_datas.append(float_data)
+
+            if save_csv == True:
+                self.save_csv(recvd_datas)
+
             #print("-----------------------------");
+
             return 'success'
 
 serial_plotter = serial_plotter_class()
