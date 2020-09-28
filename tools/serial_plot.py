@@ -5,6 +5,7 @@ import argparse
 import threading
 import serial
 import struct
+import time
 from collections import deque
 from datetime import datetime
 
@@ -14,7 +15,7 @@ ser = serial.Serial(
     parity=serial.PARITY_NONE,\
     stopbits=serial.STOPBITS_ONE,\
     bytesize=serial.EIGHTBITS,\
-    timeout=0)
+    timeout=100)
 
 save_csv = False
 csv_file = 'serial_log.csv'
@@ -42,6 +43,8 @@ class serial_plotter_class:
 	self.curve = []
 	self.current_curve_count = 0
         self.plot_begin = False;
+        self.plot_time_last = time.time()
+        self.update_rate_last = 0
 
     def set_graph(curve_count, serial_data):
 	self.curve_number = curve_count
@@ -372,76 +375,79 @@ class serial_plotter_class:
                     csv_token.write(',')
 
     def serial_receive(self):
-        while ser.inWaiting() > 0:
-            buffer = []
-            checksum = 0
+        buffer = []
+        checksum = 0
 
-            c = ser.read(1)
+        c = ser.read(1)
 
-            #wait for start byte
-            if c == '@':
-                #print('start byte received')
+        #wait for start byte
+        if c == '@':
+            pass
+        else:
+            return 'fail'
+
+        #receive package size
+        payload_count, =  struct.unpack("B", ser.read(1))
+        #print('payload size: %d' %(payload_count))
+
+        #receive message id
+        _message_id, =  struct.unpack("c", ser.read(1))
+        message_id = ord(_message_id)
+
+        buf = ser.read(payload_count + 1)
+
+        #receive payload and calculate checksum
+        for i in range(0, payload_count):
+            buffer.append(buf[i])
+            buffer_checksum ,= struct.unpack("B", buffer[i])
+            checksum ^= buffer_checksum
+
+        received_checksum ,= struct.unpack("B", buf[payload_count])
+        if received_checksum != checksum:
+                print("error: checksum mismatch");
+                return 'fail'
+        else:
+                #print("checksum is correct (%d)" %(checksum))
                 pass
-            else:
-                continue
 
-            #receive package size
-            while ser.inWaiting() == 0:
-                continue
-            payload_count, =  struct.unpack("B", ser.read(1))
-            #print('payload size: %d' %(payload_count))
+        plot_time_now = time.time()
+        update_rate = 1.0 / (plot_time_now - self.plot_time_last)
+        self.plot_time_last = plot_time_now
 
-            #receive message id
-            while ser.inWaiting() == 0:
-                continue
-            _message_id, =  struct.unpack("c", ser.read(1))
-            message_id = ord(_message_id)
-            print('[%s]received message, id:%d' %(datetime.now().strftime('%H:%M:%S'), message_id))
+        if (update_rate - self.update_rate_last) > 50:
+            print('[%s]received message #%d' \
+                %(datetime.now().strftime('%H:%M:%S'), \
+                message_id))
+            print("telemetry speed is too slow, the update rate is unknown!")
+        else:
+            print('[%s]received message #%d (%.1fHz)' \
+                %(datetime.now().strftime('%H:%M:%S'), \
+                message_id, update_rate))
 
-            #receive payload and calculate checksum
-            for i in range(0, payload_count):
-                while ser.inWaiting() == 0:
-                    continue
-                buffer.append(ser.read(1))
-                buffer_checksum ,= struct.unpack("B", buffer[i])
-                checksum ^= buffer_checksum
+        if self.plot_begin == False:
+            self.curve_number = payload_count / 4
+            self.serial_data = [serial_data_class(200) for i in range(0, self.curve_number)]
+            self.curve_indexs = [i for i in range(0, self.curve_number)]
+            self.set_figure(message_id)
+            self.plot_begin = True
 
-            #checksum test
-            while ser.inWaiting() == 0:
-                continue
+        recvd_datas = []
 
-            received_checksum ,= struct.unpack("B", ser.read())
-            if received_checksum != checksum:
-                    print("error: checksum mismatch");
-                    return 'fail'
-            else:
-                    #print("checksum is correct (%d)" %(checksum))
-                    pass
+        for i in range(0, self.curve_number):
+            #unpack received data
+            binary_data = ''.join([buffer[i * 4], buffer[i * 4 + 1], buffer[i * 4 + 2], buffer[i * 4 + 3]])
+            float_data = np.asarray(struct.unpack("f", binary_data))
+            self.serial_data[i].add(float_data)
+            print("received: %f" %(float_data))
 
-            if self.plot_begin == False:
-                self.curve_number = payload_count / 4
-                self.serial_data = [serial_data_class(200) for i in range(0, self.curve_number)]
-                self.curve_indexs = [i for i in range(0, self.curve_number)]
-        	self.set_figure(message_id)
-                self.plot_begin = True
+            recvd_datas.append(float_data)
 
-            recvd_datas = []
+        if save_csv == True:
+            self.save_csv(recvd_datas)
 
-            for i in range(0, self.curve_number):
-                #unpack received data
-                binary_data = ''.join([buffer[i * 4], buffer[i * 4 + 1], buffer[i * 4 + 2], buffer[i * 4 + 3]])
-                float_data = np.asarray(struct.unpack("f", binary_data))
-                self.serial_data[i].add(float_data)
-                print("received: %f" %(float_data))
+        #print("-----------------------------");
 
-                recvd_datas.append(float_data)
-
-            if save_csv == True:
-                self.save_csv(recvd_datas)
-
-            #print("-----------------------------");
-
-            return 'success'
+        return 'success'
 
 serial_plotter = serial_plotter_class()
 
