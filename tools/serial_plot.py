@@ -414,7 +414,7 @@ class serial_plotter_class:
         update_rate = 1.0 / (plot_time_now - self.plot_time_last)
         self.plot_time_last = plot_time_now
 
-        if (update_rate - self.update_rate_last) > 50:
+        if abs(update_rate - self.update_rate_last) > 50:
             print('[%s]received message #%d' \
                 %(datetime.now().strftime('%H:%M:%S'), \
                 message_id))
@@ -423,6 +423,8 @@ class serial_plotter_class:
             print('[%s]received message #%d (%.1fHz)' \
                 %(datetime.now().strftime('%H:%M:%S'), \
                 message_id, update_rate))
+
+        self.update_rate_last = update_rate
 
         if self.plot_begin == False:
             self.curve_number = payload_count / 4
