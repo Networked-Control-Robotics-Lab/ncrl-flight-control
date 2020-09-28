@@ -127,6 +127,7 @@ SRC+=./drivers/periph/uart.c \
 	./drivers/device/ist8310.c \
 	./drivers/device/led.c \
 	./drivers/device/ublox_m8n.c \
+	./drivers/device/vins_mono.c \
 	./drivers/interface/imu.c \
 	./drivers/interface/position_sensor.c \
 	./drivers/interface/barometer.c \
