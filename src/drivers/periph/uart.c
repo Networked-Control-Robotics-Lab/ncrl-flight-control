@@ -325,6 +325,14 @@ void uart3_puts(char *s, int size)
 
 void uart6_puts(char *s, int size)
 {
+	static bool uart6_tx_busy = false;
+
+	if(uart6_tx_busy == true && DMA_GetFlagStatus(DMA2_Stream6, DMA_FLAG_TCIF6) == RESET) {
+		return;
+	} else {
+		uart6_tx_busy = false;
+	}
+
 	//uart6 tx: dma2 channel5 stream6
 	DMA_ClearFlag(DMA2_Stream6, DMA_FLAG_TCIF6);
 
@@ -350,7 +358,9 @@ void uart6_puts(char *s, int size)
 	DMA_Cmd(DMA2_Stream6, ENABLE);
 	USART_DMACmd(USART6, USART_DMAReq_Tx, ENABLE);
 
-	while(DMA_GetFlagStatus(DMA2_Stream6, DMA_FLAG_TCIF6) == RESET);
+	uart6_tx_busy = true;
+
+	//while(DMA_GetFlagStatus(DMA2_Stream6, DMA_FLAG_TCIF6) == RESET);
 }
 
 void uart7_puts(char *s, int size)

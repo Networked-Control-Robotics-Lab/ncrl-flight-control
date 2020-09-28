@@ -30,6 +30,7 @@
 #include "ist8310.h"
 #include "esc_calibration.h"
 #include "compass.h"
+#include "vins_mono.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 10
 
@@ -140,21 +141,27 @@ void task_flight_ctrl(void *param)
 		gpio_on(EXT_SW);
 		perf_start(PERF_FLIGHT_CONTROL_LOOP);
 
+
+		/* sensor driver calls */
 #if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_GPS)
 		ublox_m8n_gps_update();
 #elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)
 		optitrack_update();
+#elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_VINS_MONO)
+		vins_mono_send_imu_50hz();
 #endif
 
 		sbus_rc_read(&rc);
 		rc_yaw_setpoint_handler(&desired_yaw, -rc.yaw, 0.0025);
 
+		/* attitude estimation */
 		perf_start(PERF_AHRS);
 		float mag_raw[3]; //XXX
 		get_compass_raw(mag_raw);
 		ahrs_estimate(&ahrs, imu.accel_lpf, imu.gyro_lpf, mag_raw);
 		perf_end(PERF_AHRS);
 
+		/* controller */
 		perf_start(PERF_CONTROLLER);
 #if (SELECT_CONTROLLER == QUADROTOR_USE_PID)
 		multirotor_pid_control(&imu, &ahrs, &rc, &desired_yaw);
