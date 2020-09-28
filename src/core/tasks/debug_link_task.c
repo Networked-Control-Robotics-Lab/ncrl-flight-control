@@ -14,7 +14,7 @@ void task_debug_link(void *param)
 {
 	debug_msg_t payload;
 
-	float update_rate = 50;
+	float update_rate = 100.0f;
 	float delay_time_ms = (1.0f / update_rate) * 1000.0f;
 
 	/* only one kind of debug link message can be sent by one time,
@@ -36,6 +36,7 @@ void task_debug_link(void *param)
 		//send_compass_debug_message(&payload);
 		//send_barometer_debug_message(&payload);
 		//send_alt_est_debug_message(&payload);
+		//send_ins_sensor_debug_message(&payload);
 
 		send_onboard_data(payload.s, payload.len);
 		freertos_task_delay(delay_time_ms);

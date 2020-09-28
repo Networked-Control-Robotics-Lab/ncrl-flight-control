@@ -84,6 +84,7 @@ SRC+=./core/main.c \
 	./core/shell/quadshell.c \
 	./core/shell/shell_cmds.c \
 	./core/debug_link/debug_link.c \
+	./core/debug_link/debug_msg.c \
 	./core/mavlink/mav_publisher.c \
 	./core/mavlink/mav_parser.c \
 	./core/mavlink/mav_mission.c \

@@ -356,6 +356,58 @@ class serial_plotter_class:
                 self.create_curve('v_optitrack', 'blue')
         	self.show_subplot()
 
+        elif (message_id == 18)
+           	plt.subplot(711)
+        	plt.ylabel('time [ms]')
+        	plt.ylim([0.0, 300000.0])
+        	self.create_curve('time', 'red')
+        	self.show_subplot()
+               
+           	plt.subplot(712)
+        	plt.ylabel('accelerometer (lpf) [m/s^2]')
+        	plt.ylim([-30.0, 30.0])
+        	self.create_curve('ax', 'red')
+                self.create_curve('ay', 'blue')
+                self.create_curve('az', 'green')
+        	self.show_subplot()
+
+           	plt.subplot(713)
+        	plt.ylabel('gyro (raw) [deg/s]')
+        	plt.ylim([-450.0, 450.0])
+        	self.create_curve('wx', 'red')
+                self.create_curve('wy', 'blue')
+                self.create_curve('wz', 'green')
+        	self.show_subplot()
+
+           	plt.subplot(714)
+        	plt.ylabel('magnetometer [uT]')
+        	plt.ylim([-100, 100])
+        	self.create_curve('mx', 'red')
+                self.create_curve('my', 'blue')
+                self.create_curve('mz', 'green')
+        	self.show_subplot()
+
+           	plt.subplot(715)
+        	plt.ylabel('gps [deg]')
+        	plt.ylim([-180, 180])
+        	self.create_curve('longitude', 'red')
+                self.create_curve('latitude', 'blue')
+        	self.show_subplot()
+
+                plt.subplot(716)
+        	plt.ylabel('height [m]')
+        	plt.ylim([-1.0, 5.0])
+        	self.create_curve('longitude', 'red')
+                self.create_curve('latitude', 'blue')
+        	self.show_subplot()
+
+           	plt.subplot(717)
+        	plt.ylabel('velocity [m/s]')
+        	plt.ylim([-5.0, 5.0])
+        	self.create_curve('vx', 'red')
+                self.create_curve('vy', 'blue')
+                self.create_curve('vz', 'green')
+        	self.show_subplot()
 
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \
