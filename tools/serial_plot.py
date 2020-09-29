@@ -10,7 +10,7 @@ from collections import deque
 from datetime import datetime
 
 ser = serial.Serial(
-    port='/dev/ttyUSB1',\
+    port='/dev/ttyUSB0',\
     baudrate=115200,\
     parity=serial.PARITY_NONE,\
     stopbits=serial.STOPBITS_ONE,\
@@ -392,7 +392,7 @@ class serial_plotter_class:
         	plt.ylim([-180, 180])
         	self.create_curve('longitude', 'red')
                 self.create_curve('latitude', 'blue')
-                self.create_curve('height', 'blue')
+                self.create_curve('height', 'green')
         	self.show_subplot()
 
            	plt.subplot(426)
@@ -423,7 +423,7 @@ class serial_plotter_class:
 
     def save_csv(self, datas):
             for i in range(0, len(datas)):
-                data_str = "{:.5f}".format(float(datas[i]))
+                data_str = "{:.7f}".format(float(datas[i]))
 
                 if i == (self.curve_number - 1):
                     csv_token.write(data_str)
