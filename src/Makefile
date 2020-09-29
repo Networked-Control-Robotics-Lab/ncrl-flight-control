@@ -167,6 +167,7 @@ CFLAGS+=-I./lib/mavlink_v2/common
 CFLAGS+=-I./lib/mavlink_v2/ncrl_mavlink
 
 OBJS=$(SRC:.c=.o)
+DEPEND=$(SRC:.c=.d)
 
 STARTUP=./platform/startup_stm32f427.s
 STARTUP_OBJ=./platform/startup_stm32f427.s
@@ -177,17 +178,20 @@ $(EXECUTABLE): $(STARTUP_OBJ) $(OBJS)
 	@echo "LD" $@
 	@$(CC) $(CFLAGS) $(OBJS) $(STARTUP_OBJ) $(LDFLAGS) -o $@
 
+-include $(DEPEND)
+
 %.o: %.s 
 	@echo "CC" $@
 	@$(CC) $(CFLAGS) $^ $(LDFLAGS) -c $<
 
 %.o: %.c
 	@echo "CC" $@
-	@$(CC) $(CFLAGS) -c $< $(LDFLAGS) -o $@
+	@$(CC) $(CFLAGS) -MMD -MP -c $< $(LDFLAGS) -o $@
 
 clean:
 	rm -rf $(EXECUTABLE)
 	rm -rf $(OBJS)
+	rm -rf $(DEPEND)
 	rm -rf *.orig
 
 flash:
@@ -213,3 +217,4 @@ size:
 	$(SIZE)  $(EXECUTABLE)
 
 .PHONY:all clean flash openocd gdbauto
+
