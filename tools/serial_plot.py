@@ -359,7 +359,7 @@ class serial_plotter_class:
         elif (message_id == 18):
            	plt.subplot(421)
         	plt.ylabel('time [ms]')
-        	plt.ylim([0.0, 300000.0])
+        	plt.ylim([0.0, 600000.0])
         	self.create_curve('time', 'red')
         	self.show_subplot()
                
@@ -392,20 +392,27 @@ class serial_plotter_class:
         	plt.ylim([-180, 180])
         	self.create_curve('longitude', 'red')
                 self.create_curve('latitude', 'blue')
+                self.create_curve('height', 'blue')
         	self.show_subplot()
 
-                plt.subplot(426)
-        	plt.ylabel('height [m]')
-        	plt.ylim([-1.0, 5.0])
-        	self.create_curve('height', 'red')
-        	self.show_subplot()
-
-           	plt.subplot(427)
-        	plt.ylabel('velocity [m/s]')
+           	plt.subplot(426)
+        	plt.ylabel('gps velocity [m/s]')
         	plt.ylim([-5.0, 5.0])
         	self.create_curve('vx', 'red')
                 self.create_curve('vy', 'blue')
                 self.create_curve('vz', 'green')
+        	self.show_subplot()
+
+                plt.subplot(427)
+        	plt.ylabel('barometer height [m]')
+        	plt.ylim([-1.0, 5.0])
+        	self.create_curve('height', 'red')
+        	self.show_subplot()
+
+                plt.subplot(428)
+        	plt.ylabel('barometer velocity [m]')
+        	plt.ylim([-10.0, 10.0])
+        	self.create_curve('velocity', 'red')
         	self.show_subplot()
 
     def show_graph(self):
@@ -416,7 +423,7 @@ class serial_plotter_class:
 
     def save_csv(self, datas):
             for i in range(0, len(datas)):
-                data_str = ', '.join(map(str, datas[i]))
+                data_str = "{:.5f}".format(float(datas[i]))
 
                 if i == (self.curve_number - 1):
                     csv_token.write(data_str)
@@ -491,7 +498,7 @@ class serial_plotter_class:
             binary_data = ''.join([buffer[i * 4], buffer[i * 4 + 1], buffer[i * 4 + 2], buffer[i * 4 + 3]])
             float_data = np.asarray(struct.unpack("f", binary_data))
             self.serial_data[i].add(float_data)
-            print("received: %f" %(float_data))
+            print("payload #%d: %f" %(i, float_data))
 
             recvd_datas.append(float_data)
 
@@ -510,7 +517,7 @@ class serial_thread(threading.Thread):
 		    serial_plotter.serial_receive()
 
         def join(self):
-            super().join()
+            super(self).join()
 
 serial_thread().start()
 
