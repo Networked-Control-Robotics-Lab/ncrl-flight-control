@@ -10,11 +10,13 @@
 #include "ms5611.h"
 #include "ist8310.h"
 #include "proj_config.h"
+#include "debug_link_task.h"
 
-#define FLIGHT_CTL_PRESCALER_RELOAD 1000 //400Hz
-#define LED_CTRL_PRESCALER_RELOAD  16000 //25Hz
-#define COMPASS_PRESCALER_RELOAD       8 //50Hz
-#define BAROMETER_PRESCALER_RELOAD     1 //400Hz
+#define FLIGHT_CTL_PRESCALER_RELOAD      1000  //400Hz
+#define DEBUG_LINK_TASK_PRESCALER_RELOAD 4     //100Hz
+#define LED_CTRL_PRESCALER_RELOAD        16000 //25Hz
+#define COMPASS_PRESCALER_RELOAD         8     //50Hz
+#define BAROMETER_PRESCALER_RELOAD       1     //400Hz
 
 extern SemaphoreHandle_t flight_ctl_semphr;
 
@@ -101,6 +103,10 @@ void TIM3_IRQHandler(void)
 	static int compass_cnt = COMPASS_PRESCALER_RELOAD;
 #endif
 
+#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_COMPASS)
+	static int debug_link_task_cnt = DEBUG_LINK_TASK_PRESCALER_RELOAD;
+#endif
+
 	/* trigger ms5611 driver task (400Hz) */
 	if(TIM_GetITStatus(TIM3, TIM_IT_Update) == SET) {
 		BaseType_t higher_priority_task_woken = pdFALSE;
@@ -120,6 +126,14 @@ void TIM3_IRQHandler(void)
 		if(compass_cnt == 0) {
 			compass_cnt = COMPASS_PRESCALER_RELOAD;
 			ist8310_semaphore_handler(&higher_priority_task_woken);
+		}
+#endif
+
+#if (SELECT_TELEM == TELEM_DEBUG_LINK)
+		debug_link_task_cnt--;
+		if(debug_link_task_cnt == 0) {
+			debug_link_task_cnt = DEBUG_LINK_TASK_PRESCALER_RELOAD;
+			debug_link_task_semaphore_handler();
 		}
 #endif
 
