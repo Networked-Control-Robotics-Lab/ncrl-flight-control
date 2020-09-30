@@ -2,6 +2,7 @@
 #include <string.h>
 #include "uart.h"
 #include "imu.h"
+#include "gpio.h"
 
 #define VINS_MONO_IMU_MSG_SIZE 27
 #define VINS_MONO_CHECKSUM_INIT_VAL 19
@@ -72,4 +73,22 @@ void vins_mono_send_imu_50hz(void)
 		send_vins_mono_imu_msg();
 		prescaler = 8;
 	}
+}
+
+void vins_mono_camera_trigger_20hz(void)
+{
+	/* to generate the camera trigger pulse:
+	 * (1/20Hz) / (1/400Hz) = 20 (flight control loop is 20x faster than what we need)
+	 * 10% on:  20 * 0.1 = 2times
+	 * 90% off: 20 * 0.9 = 18times*/
+
+	static int counter = 0;
+
+	if(counter < 2) {
+		gpio_on(MOTOR8);
+	} else {
+		gpio_off(MOTOR8);
+	}
+
+	counter = (counter + 1) % 20;
 }

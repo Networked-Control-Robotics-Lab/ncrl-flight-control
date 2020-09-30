@@ -7,6 +7,8 @@
  * m4: pe13 (timer1 channel3)
  * m5: pd14 (timer4 channel3)
  * m6: pd15 (timer4 channel4)
+ * m7: pe11 (timer1 channel2)
+ * m8: pe9  (timer1 channel1), currently assigned to send camera trigger pulse
  */
 
 void pwm_timer1_init(void)
@@ -27,6 +29,11 @@ void pwm_timer1_init(void)
 
 	GPIO_Init(GPIOE, &GPIO_InitStruct);
 
+	/* motor8: vins mono camera triggering (gpio mode) */
+	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_9;
+	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_Init(GPIOE, &GPIO_InitStruct);
+
 	/* 180MHz / (25000 * 18) = 400Hz = 0.0025s */
 	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStruct = {
 		.TIM_Period = 25000 - 1,
@@ -43,6 +50,8 @@ void pwm_timer1_init(void)
 		.TIM_Pulse = 0,
 	};
 
+	//TIM_OC1Init(TIM1, &TIM_OCInitStruct); //motor8: vins mono camera triggering
+	//TIM_OC2Init(TIM1, &TIM_OCInitStruct);
 	TIM_OC3Init(TIM1, &TIM_OCInitStruct);
 	TIM_OC4Init(TIM1, &TIM_OCInitStruct);
 

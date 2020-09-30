@@ -4,6 +4,7 @@
 #include "stm32f4xx.h"
 
 #define EXT_SW GPIOB, GPIO_Pin_14
+#define MOTOR8 GPIOE, GPIO_Pin_9
 
 #define led_toggle(led)  GPIO_ToggleBits(led)
 #define led_on(led)  GPIO_SetBits(led)

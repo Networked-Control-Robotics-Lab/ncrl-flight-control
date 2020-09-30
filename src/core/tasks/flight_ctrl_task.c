@@ -148,6 +148,7 @@ void task_flight_ctrl(void *param)
 #elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)
 		optitrack_update();
 #elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_VINS_MONO)
+		vins_mono_camera_trigger_20hz();
 		vins_mono_send_imu_50hz();
 #endif
 
