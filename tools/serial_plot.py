@@ -10,14 +10,14 @@ from collections import deque
 from datetime import datetime
 
 ser = serial.Serial(
-    port='/dev/ttyUSB0',\
+    port='/dev/ttyUSB1',\
     baudrate=115200,\
     parity=serial.PARITY_NONE,\
     stopbits=serial.STOPBITS_ONE,\
     bytesize=serial.EIGHTBITS,\
     timeout=100)
 
-save_csv = False
+save_csv = True
 csv_file = 'serial_log.csv'
 
 if save_csv == True:
@@ -372,8 +372,8 @@ class serial_plotter_class:
         	self.show_subplot()
 
            	plt.subplot(423)
-        	plt.ylabel('gyro (raw) [deg/s]')
-        	plt.ylim([-450.0, 450.0])
+        	plt.ylabel('gyro (raw) [rad/s]')
+        	plt.ylim([-10.0, 10.0])
         	self.create_curve('wx', 'red')
                 self.create_curve('wy', 'blue')
                 self.create_curve('wz', 'green')

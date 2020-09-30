@@ -29,6 +29,11 @@ void send_ins_sensor_debug_message(debug_msg_t *payload)
 	barometer_height = barometer_get_relative_altitude();
 	barometer_velocity = barometer_get_relative_altitude_rate();
 
+	//XXX
+	gyro_raw[0] *= 0.0174533;
+	gyro_raw[1] *= 0.0174533;
+	gyro_raw[2] *= 0.0174533;
+
 	pack_debug_debug_message_header(payload, MESSAGE_ID_INS_SENSOR);
 	pack_debug_debug_message_float(&current_time_ms, payload);
 	pack_debug_debug_message_float(&accel_lpf[0], payload);
