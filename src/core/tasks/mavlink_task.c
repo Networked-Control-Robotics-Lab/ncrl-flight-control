@@ -64,27 +64,15 @@ void mavlink_tx_task(void *param)
 		if(prescaler_div_50 == 50) {
 			send_mavlink_heartbeat();
 			send_mavlink_system_status();
-			send_mavlink_attitude_quaternion();
 
-#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)
-			send_mavlink_local_position_ned();
-#endif
 			prescaler_div_50 = 0;
 		}
 		prescaler_div_50++;
 
 		/* send the following mavlink message @ 5Hz */
 		if(prescaler_div_10 == 10) {
-			send_mavlink_rc_channels();
-
 #if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_GPS)
 			send_mavlink_gps();
-#endif
-
-#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)
-			if(autopilot_get_mode() != AUTOPILOT_TRAJECTORY_FOLLOWING_MODE) {
-				send_mavlink_local_position_ned();
-			}
 #endif
 			prescaler_div_10 = 0;
 		}
@@ -92,6 +80,10 @@ void mavlink_tx_task(void *param)
 
 		/* send the following mavlink message @ 10Hz */
 		if(prescaler_div_5 == 5) {
+			send_mavlink_attitude_quaternion();
+			send_mavlink_rc_channels();
+			send_mavlink_local_position_ned();
+
 			prescaler_div_5 = 0;
 		}
 		prescaler_div_5++;
