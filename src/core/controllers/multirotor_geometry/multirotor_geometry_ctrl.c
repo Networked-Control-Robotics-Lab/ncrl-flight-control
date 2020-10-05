@@ -525,7 +525,7 @@ void rc_mode_handler_geometry_ctrl(radio_t *rc)
 	auto_flight_mode_last = rc->auto_flight;
 }
 
-void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *desired_heading)
+void multirotor_geometry_control(imu_t *imu, attitude_t *attitude, radio_t *rc, float *desired_heading)
 {
 	/* check rc events */
 	rc_mode_handler_geometry_ctrl(rc);
@@ -536,7 +536,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 	bool heading_available = is_compass_present();
 
 	/* prepare current attitude matrix (dcm) using quaternion */
-	quat_to_rotation_matrix(ahrs->q, _mat_(R), _mat_(Rt));
+	quat_to_rotation_matrix(attitude->q, _mat_(R), _mat_(Rt));
 
 	/* read altitude raw data from barometer */
 	float barometer_alt = barometer_get_relative_altitude();
@@ -585,12 +585,12 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 		}
 
 		/* auto-flight mode (position, velocity and attitude control) */
-		geometry_tracking_ctrl(&attitude_cmd, ahrs->q, gyro, curr_pos_ned,
+		geometry_tracking_ctrl(&attitude_cmd, attitude->q, gyro, curr_pos_ned,
 		                       curr_vel_ned, control_moments, &control_force,
 		                       height_ctrl_only);
 	} else {
 		/* manual flight mode (attitude control only) */
-		geometry_manual_ctrl(&attitude_cmd, ahrs->q, gyro, control_moments,
+		geometry_manual_ctrl(&attitude_cmd, attitude->q, gyro, control_moments,
 		                     heading_available);
 
 		/* generate total thrust for quadrotor (open-loop) */
@@ -601,7 +601,7 @@ void multirotor_geometry_control(imu_t *imu, ahrs_t *ahrs, radio_t *rc, float *d
 		led_on(LED_B);
 		led_off(LED_R);
 
-		*desired_heading = ahrs->attitude.yaw;
+		*desired_heading = attitude->yaw;
 		barometer_set_sea_level();
 	} else {
 		led_on(LED_R);

@@ -139,7 +139,7 @@ bool compass_quality_is_good(float *mag)
 	}
 }
 
-void ahrs_estimate(ahrs_t *ahrs, float *accel, float *gyro, float *mag)
+void ahrs_estimate(attitude_t *attitude, float *accel, float *gyro, float *mag)
 {
 	/* note that acceleromter senses the negative gravity acceleration (normal force)
 	 * a_imu = (R(phi, theta, psi) * a_translation) - (R(phi, theta, psi) * g) */
@@ -162,9 +162,9 @@ void ahrs_estimate(ahrs_t *ahrs, float *accel, float *gyro, float *mag)
 
 #if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
 	if(mag_error == false && use_compass == true) {
-		ahrs_marg_complementary_filter_estimate(ahrs->q, gravity, gyro_rad, mag);
+		ahrs_marg_complementary_filter_estimate(attitude->q, gravity, gyro_rad, mag);
 	} else {
-		ahrs_imu_complementary_filter_estimate(ahrs->q, gravity, gyro_rad);
+		ahrs_imu_complementary_filter_estimate(attitude->q, gravity, gyro_rad);
 	}
 #elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
 	if(mag_error == false && use_compass == true) {
@@ -172,17 +172,31 @@ void ahrs_estimate(ahrs_t *ahrs, float *accel, float *gyro, float *mag)
 	} else {
 		madgwick_imu_ahrs(&madgwick_ahrs, gravity, gyro_rad);
 	}
-	quaternion_copy(ahrs->q, madgwick_ahrs.q);
+	quaternion_copy(attitude->q, madgwick_ahrs.q);
 #endif
 
 #if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK)
-	reset_quaternion_yaw_angle(ahrs->q);
-	align_ahrs_with_optitrack_yaw(ahrs->q);
+	reset_quaternion_yaw_angle(attitude->q);
+	align_ahrs_with_optitrack_yaw(attitude->q);
 #endif
 
 	euler_t euler;
-	quat_to_euler(ahrs->q, &euler);
-	ahrs->attitude.roll = rad_to_deg(euler.roll);
-	ahrs->attitude.pitch = rad_to_deg(euler.pitch);
-	ahrs->attitude.yaw = rad_to_deg(euler.yaw);
+	quat_to_euler(attitude->q, &euler);
+	attitude->roll = rad_to_deg(euler.roll);
+	attitude->pitch = rad_to_deg(euler.pitch);
+	attitude->yaw = rad_to_deg(euler.yaw);
+
+	//quat_to_rotation_matrix(attitude->q, attitude->R_matrix, attitude->R_transposed_matrix);
+}
+
+void get_attitude_euler_angles(float *roll, float *pitch, float *yaw)
+{
+}
+
+void get_attitude_quaternion(float *q)
+{
+}
+
+void get_attitude_direction_cosine_matrix(float *R_data, float *R_transposed_data)
+{
 }

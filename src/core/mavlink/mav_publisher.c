@@ -9,7 +9,7 @@
 #include "sbus_radio.h"
 #include "position_sensor.h"
 
-extern ahrs_t ahrs;
+extern attitude_t attitude;
 
 void send_mavlink_msg_to_uart(mavlink_message_t *msg)
 {
@@ -73,9 +73,9 @@ void send_mavlink_rc_channels(void)
 
 void send_mavlink_attitude(void)
 {
-	float roll = deg_to_rad(ahrs.attitude.roll);
-	float pitch = deg_to_rad(ahrs.attitude.pitch);
-	float yaw = deg_to_rad(ahrs.attitude.yaw);
+	float roll = deg_to_rad(attitude.roll);
+	float pitch = deg_to_rad(attitude.pitch);
+	float yaw = deg_to_rad(attitude.yaw);
 	uint32_t curr_time_ms = (uint32_t)get_sys_time_ms();
 
 	mavlink_message_t msg;
@@ -94,7 +94,7 @@ void send_mavlink_attitude_quaternion(void)
 
 	mavlink_message_t msg;
 	mavlink_msg_attitude_quaternion_pack(1, 1, &msg, curr_time_ms,
-	                                     ahrs.q[0], ahrs.q[1], ahrs.q[2], ahrs.q[3],
+	                                     attitude.q[0], attitude.q[1], attitude.q[2], attitude.q[3],
 	                                     roll_speed, pitch_speed, yaw_speed, repr_offset_q);
 	send_mavlink_msg_to_uart(&msg);
 }

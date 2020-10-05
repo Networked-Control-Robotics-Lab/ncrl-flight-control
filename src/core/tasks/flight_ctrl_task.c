@@ -39,7 +39,7 @@ extern optitrack_t optitrack;
 SemaphoreHandle_t flight_ctrl_semphr;
 
 imu_t imu;
-ahrs_t ahrs;
+attitude_t attitude;
 radio_t rc;
 
 void flight_ctrl_semaphore_handler(void)
@@ -159,15 +159,15 @@ void task_flight_ctrl(void *param)
 		perf_start(PERF_AHRS);
 		float mag_raw[3]; //XXX
 		get_compass_raw(mag_raw);
-		ahrs_estimate(&ahrs, imu.accel_lpf, imu.gyro_lpf, mag_raw);
+		ahrs_estimate(&attitude, imu.accel_lpf, imu.gyro_lpf, mag_raw);
 		perf_end(PERF_AHRS);
 
 		/* controller */
 		perf_start(PERF_CONTROLLER);
 #if (SELECT_CONTROLLER == QUADROTOR_USE_PID)
-		multirotor_pid_control(&imu, &ahrs, &rc, &desired_yaw);
+		multirotor_pid_control(&imu, &attitude, &rc, &desired_yaw);
 #elif (SELECT_CONTROLLER == QUADROTOR_USE_GEOMETRY)
-		multirotor_geometry_control(&imu, &ahrs, &rc, &desired_yaw);
+		multirotor_geometry_control(&imu, &attitude, &rc, &desired_yaw);
 #endif
 		perf_end(PERF_CONTROLLER);
 
@@ -208,26 +208,26 @@ void send_imu_debug_message(debug_msg_t *payload)
 void send_attitude_euler_debug_message(debug_msg_t *payload)
 {
 	pack_debug_debug_message_header(payload, MESSAGE_ID_ATTITUDE_EULER);
-	pack_debug_debug_message_float(&ahrs.attitude.roll, payload);
-	pack_debug_debug_message_float(&ahrs.attitude.pitch, payload);
-	pack_debug_debug_message_float(&ahrs.attitude.yaw, payload);
+	pack_debug_debug_message_float(&attitude.roll, payload);
+	pack_debug_debug_message_float(&attitude.pitch, payload);
+	pack_debug_debug_message_float(&attitude.yaw, payload);
 }
 
 void send_attitude_quaternion_debug_message(debug_msg_t *payload)
 {
 	pack_debug_debug_message_header(payload, MESSAGE_ID_ATTITUDE_QUAT);
-	pack_debug_debug_message_float(&ahrs.q[0], payload);
-	pack_debug_debug_message_float(&ahrs.q[1], payload);
-	pack_debug_debug_message_float(&ahrs.q[2], payload);
-	pack_debug_debug_message_float(&ahrs.q[3], payload);
+	pack_debug_debug_message_float(&attitude.q[0], payload);
+	pack_debug_debug_message_float(&attitude.q[1], payload);
+	pack_debug_debug_message_float(&attitude.q[2], payload);
+	pack_debug_debug_message_float(&attitude.q[3], payload);
 }
 
 void send_attitude_imu_debug_message(debug_msg_t *payload)
 {
 	pack_debug_debug_message_header(payload, MESSAGE_ID_ATTITUDE_IMU);
-	pack_debug_debug_message_float(&ahrs.attitude.roll, payload);
-	pack_debug_debug_message_float(&ahrs.attitude.pitch, payload);
-	pack_debug_debug_message_float(&ahrs.attitude.yaw, payload);
+	pack_debug_debug_message_float(&attitude.roll, payload);
+	pack_debug_debug_message_float(&attitude.pitch, payload);
+	pack_debug_debug_message_float(&attitude.yaw, payload);
 	pack_debug_debug_message_float(&imu.accel_lpf[0], payload);
 	pack_debug_debug_message_float(&imu.accel_lpf[1], payload);
 	pack_debug_debug_message_float(&imu.accel_lpf[2], payload);
