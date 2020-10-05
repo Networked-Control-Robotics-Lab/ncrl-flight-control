@@ -323,6 +323,7 @@ void uart3_puts(char *s, int size)
 	xSemaphoreTake(uart3_tx_semphr, portMAX_DELAY);
 }
 
+//specially designed puts function of uart6 for vins-mono
 void uart6_puts(char *s, int size)
 {
 	static bool uart6_tx_busy = false;
@@ -332,6 +333,9 @@ void uart6_puts(char *s, int size)
 	} else {
 		uart6_tx_busy = false;
 	}
+
+	static uint8_t uart6_buf[100];
+	memcpy(uart6_buf, s, size);
 
 	//uart6 tx: dma2 channel5 stream6
 	DMA_ClearFlag(DMA2_Stream6, DMA_FLAG_TCIF6);
@@ -350,7 +354,7 @@ void uart6_puts(char *s, int size)
 		.DMA_Priority = DMA_Priority_Medium,
 		.DMA_Channel = DMA_Channel_5,
 		.DMA_DIR = DMA_DIR_MemoryToPeripheral,
-		.DMA_Memory0BaseAddr = (uint32_t)s
+		.DMA_Memory0BaseAddr = (uint32_t)uart6_buf
 	};
 	DMA_Init(DMA2_Stream6, &DMA_InitStructure);
 
