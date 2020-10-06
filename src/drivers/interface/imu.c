@@ -59,3 +59,9 @@ float get_gyro_update_rate(void)
 {
 	return 0.0f;
 }
+
+float get_imu_temperature(void)
+{
+	return mpu6500_get_temperature();
+
+}

@@ -103,7 +103,7 @@ void TIM3_IRQHandler(void)
 	static int compass_cnt = COMPASS_PRESCALER_RELOAD;
 #endif
 
-#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_COMPASS)
+#if (SELECT_TELEM == TELEM_DEBUG_LINK)
 	static int debug_link_task_cnt = DEBUG_LINK_TASK_PRESCALER_RELOAD;
 #endif
 

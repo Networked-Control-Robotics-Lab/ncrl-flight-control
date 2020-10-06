@@ -295,9 +295,19 @@ void rc_mode_change_handler_pid(radio_t *rc)
 	auto_flight_mode_last = rc->auto_flight;
 }
 
-void multirotor_pid_control(imu_t *imu, attitude_t *attitude, radio_t *rc, float *desired_heading)
+void multirotor_pid_control(radio_t *rc, float *desired_heading)
 {
 	rc_mode_change_handler_pid(rc);
+
+	/* get imu data */
+	float accel_lpf[3];
+	float gyro_lpf[3];
+	get_accel_lpf(accel_lpf);
+	get_gyro_lpf(gyro_lpf);
+
+	/* get current roll, pitch, yaw angle */
+	float attitude_roll, attitude_pitch, attitude_yaw;
+	get_attitude_euler_angles(&attitude_roll, &attitude_pitch, &attitude_yaw);
 
 	/* altitude control */
 	altitude_control(optitrack.pos[2], optitrack.vel_filtered[2], &pid_alt_vel, &pid_alt);
@@ -312,7 +322,7 @@ void multirotor_pid_control(imu_t *imu, attitude_t *attitude, radio_t *rc, float
 	/* position control (in enu frame) */
 	position_2d_control(optitrack.pos[0], optitrack.vel_filtered[0], &pid_pos_x);
 	position_2d_control(optitrack.pos[1], optitrack.vel_filtered[1], &pid_pos_y);
-	angle_control_cmd_i2b_frame_tramsform(attitude->yaw, pid_pos_x.output, pid_pos_y.output,
+	angle_control_cmd_i2b_frame_tramsform(attitude_yaw, pid_pos_x.output, pid_pos_y.output,
 	                                      &nav_ctl_pitch_command, &nav_ctl_roll_command);
 
 	float final_roll_cmd;
@@ -337,15 +347,15 @@ void multirotor_pid_control(imu_t *imu, attitude_t *attitude, radio_t *rc, float
 	}
 
 	/* attitude control */
-	attitude_pid_control(&pid_roll, attitude->roll, final_roll_cmd, imu->gyro_lpf[0]);
-	attitude_pid_control(&pid_pitch, attitude->pitch, final_pitch_cmd, imu->gyro_lpf[1]);
-	yaw_rate_p_control(&pid_yaw_rate, -rc->yaw, imu->gyro_lpf[2]); //used if magnetometer/optitrack not performed
-	yaw_pd_control(&pid_yaw, *desired_heading, attitude->yaw, imu->gyro_lpf[2], 0.0025);
+	attitude_pid_control(&pid_roll, attitude_roll, final_roll_cmd, gyro_lpf[0]);
+	attitude_pid_control(&pid_pitch, attitude_pitch, final_pitch_cmd, gyro_lpf[1]);
+	yaw_rate_p_control(&pid_yaw_rate, -rc->yaw, gyro_lpf[2]); //used if magnetometer/optitrack not performed
+	yaw_pd_control(&pid_yaw, *desired_heading, attitude_yaw, gyro_lpf[2], 0.0025);
 
 	if(rc->safety == true) {
 		led_on(LED_B);
 		led_off(LED_R);
-		set_yaw_pd_setpoint(&pid_yaw, attitude->yaw);
+		set_yaw_pd_setpoint(&pid_yaw, attitude_yaw);
 	} else {
 		led_on(LED_R);
 		led_off(LED_B);

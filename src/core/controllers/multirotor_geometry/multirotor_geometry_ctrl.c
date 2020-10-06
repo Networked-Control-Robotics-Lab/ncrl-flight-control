@@ -525,7 +525,7 @@ void rc_mode_handler_geometry_ctrl(radio_t *rc)
 	auto_flight_mode_last = rc->auto_flight;
 }
 
-void multirotor_geometry_control(imu_t *imu, attitude_t *attitude, radio_t *rc, float *desired_heading)
+void multirotor_geometry_control(radio_t *rc, float *desired_heading)
 {
 	/* check rc events */
 	rc_mode_handler_geometry_ctrl(rc);
@@ -535,8 +535,23 @@ void multirotor_geometry_control(imu_t *imu, attitude_t *attitude, radio_t *rc, 
 	bool height_availabe = is_height_info_available();
 	bool heading_available = is_compass_present();
 
-	/* prepare current attitude matrix (dcm) using quaternion */
-	quat_to_rotation_matrix(attitude->q, _mat_(R), _mat_(Rt));
+	/* get imu datay */
+	float accel_lpf[3];
+	float gyro_lpf[3];
+	get_accel_lpf(accel_lpf);
+	get_gyro_lpf(gyro_lpf);
+
+	/* get attitude quaternion */
+	float attitude_q[4];
+	get_attitude_quaternion(attitude_q);
+
+	/* get roll, pitch, yaw angles */
+	float attitude_roll, attitude_pitch, attitude_yaw;
+	get_attitude_euler_angles(&attitude_roll, &attitude_pitch, &attitude_yaw);
+
+	/* get direction consine matrix of current attitude */
+	get_attitude_direction_cosine_matrix(&R.pData);
+	get_attitude_transposed_direction_cosine_matrix(&Rt.pData);
 
 	/* read altitude raw data from barometer */
 	float barometer_alt = barometer_get_relative_altitude();
@@ -545,7 +560,7 @@ void multirotor_geometry_control(imu_t *imu, attitude_t *attitude, radio_t *rc, 
 
 	/* fuse barometer data with accelerometer */
 	barometer_alt_rate_estimate(_mat_(R), barometer_alt, barometer_alt_rate,
-	                            imu->accel_lpf, 0.0025);
+	                            accel_lpf, 0.0025);
 
 	/* prepare position and velocity data */
 	float curr_pos_enu[3] = {0.0f}, curr_pos_ned[3] = {0.0f};
@@ -557,9 +572,9 @@ void multirotor_geometry_control(imu_t *imu, attitude_t *attitude, radio_t *rc, 
 
 	/* prepare gyroscope data */
 	float gyro[3] = {0.0};
-	gyro[0] = deg_to_rad(imu->gyro_lpf[0]);
-	gyro[1] = deg_to_rad(imu->gyro_lpf[1]);
-	gyro[2] = deg_to_rad(imu->gyro_lpf[2]);
+	gyro[0] = deg_to_rad(gyro_lpf[0]);
+	gyro[1] = deg_to_rad(gyro_lpf[1]);
+	gyro[2] = deg_to_rad(gyro_lpf[2]);
 
 	/* prepare manual control attitude commands (euler angle) */
 	euler_t attitude_cmd;
@@ -585,12 +600,12 @@ void multirotor_geometry_control(imu_t *imu, attitude_t *attitude, radio_t *rc, 
 		}
 
 		/* auto-flight mode (position, velocity and attitude control) */
-		geometry_tracking_ctrl(&attitude_cmd, attitude->q, gyro, curr_pos_ned,
+		geometry_tracking_ctrl(&attitude_cmd, attitude_q, gyro, curr_pos_ned,
 		                       curr_vel_ned, control_moments, &control_force,
 		                       height_ctrl_only);
 	} else {
 		/* manual flight mode (attitude control only) */
-		geometry_manual_ctrl(&attitude_cmd, attitude->q, gyro, control_moments,
+		geometry_manual_ctrl(&attitude_cmd, attitude_q, gyro, control_moments,
 		                     heading_available);
 
 		/* generate total thrust for quadrotor (open-loop) */
@@ -601,7 +616,7 @@ void multirotor_geometry_control(imu_t *imu, attitude_t *attitude, radio_t *rc, 
 		led_on(LED_B);
 		led_off(LED_R);
 
-		*desired_heading = attitude->yaw;
+		*desired_heading = attitude_yaw;
 		barometer_set_sea_level();
 	} else {
 		led_on(LED_R);

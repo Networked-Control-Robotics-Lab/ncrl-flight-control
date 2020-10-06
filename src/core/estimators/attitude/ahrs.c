@@ -18,6 +18,8 @@
 
 extern optitrack_t optitrack;
 
+attitude_t attitude;
+
 madgwick_t madgwick_ahrs;
 
 bool use_compass;
@@ -139,8 +141,15 @@ bool compass_quality_is_good(float *mag)
 	}
 }
 
-void ahrs_estimate(attitude_t *attitude, float *accel, float *gyro, float *mag)
+void ahrs_estimate(void)
 {
+	float accel[3];
+	float gyro[3];
+	float mag[3];
+	get_accel_lpf(accel);
+	get_gyro_lpf(gyro);
+	get_compass_raw(mag);
+
 	/* note that acceleromter senses the negative gravity acceleration (normal force)
 	 * a_imu = (R(phi, theta, psi) * a_translation) - (R(phi, theta, psi) * g) */
 	float gravity[3];
@@ -162,9 +171,9 @@ void ahrs_estimate(attitude_t *attitude, float *accel, float *gyro, float *mag)
 
 #if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
 	if(mag_error == false && use_compass == true) {
-		ahrs_marg_complementary_filter_estimate(attitude->q, gravity, gyro_rad, mag);
+		ahrs_marg_complementary_filter_estimate(attitude.q, gravity, gyro_rad, mag);
 	} else {
-		ahrs_imu_complementary_filter_estimate(attitude->q, gravity, gyro_rad);
+		ahrs_imu_complementary_filter_estimate(attitude.q, gravity, gyro_rad);
 	}
 #elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
 	if(mag_error == false && use_compass == true) {
@@ -172,31 +181,44 @@ void ahrs_estimate(attitude_t *attitude, float *accel, float *gyro, float *mag)
 	} else {
 		madgwick_imu_ahrs(&madgwick_ahrs, gravity, gyro_rad);
 	}
-	quaternion_copy(attitude->q, madgwick_ahrs.q);
+	quaternion_copy(attitude.q, madgwick_ahrs.q);
 #endif
 
 #if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK)
-	reset_quaternion_yaw_angle(attitude->q);
-	align_ahrs_with_optitrack_yaw(attitude->q);
+	reset_quaternion_yaw_angle(attitude.q);
+	align_ahrs_with_optitrack_yaw(attitude.q);
 #endif
 
 	euler_t euler;
-	quat_to_euler(attitude->q, &euler);
-	attitude->roll = rad_to_deg(euler.roll);
-	attitude->pitch = rad_to_deg(euler.pitch);
-	attitude->yaw = rad_to_deg(euler.yaw);
+	quat_to_euler(attitude.q, &euler);
+	attitude.roll = rad_to_deg(euler.roll);
+	attitude.pitch = rad_to_deg(euler.pitch);
+	attitude.yaw = rad_to_deg(euler.yaw);
 
-	//quat_to_rotation_matrix(attitude->q, attitude->R_matrix, attitude->R_transposed_matrix);
+	quat_to_rotation_matrix(attitude.q, attitude.R_matrix, attitude.R_transposed_matrix);
 }
 
 void get_attitude_euler_angles(float *roll, float *pitch, float *yaw)
 {
+	*roll = attitude.roll;
+	*pitch = attitude.pitch;
+	*yaw = attitude.yaw;
 }
 
 void get_attitude_quaternion(float *q)
 {
+	q[0] = attitude.q[0];
+	q[1] = attitude.q[1];
+	q[2] = attitude.q[2];
+	q[3] = attitude.q[3];
 }
 
-void get_attitude_direction_cosine_matrix(float *R_data, float *R_transposed_data)
+void get_attitude_direction_cosine_matrix(float **R_data)
 {
+	*R_data = attitude.R_matrix;
+}
+
+void get_attitude_transposed_direction_cosine_matrix(float **R_transposed_data)
+{
+	*R_transposed_data = attitude.R_transposed_matrix;
 }

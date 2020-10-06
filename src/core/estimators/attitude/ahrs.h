@@ -18,10 +18,11 @@ typedef struct {
 } attitude_t;
 
 void ahrs_init(void);
-void ahrs_estimate(attitude_t *attitude, float *_accel, float *_gyro, float *_mag);
+void ahrs_estimate(void);
 
 void get_attitude_euler_angles(float *roll, float *pitch, float *yaw);
 void get_attitude_quaternion(float *q);
-void get_attitude_direction_cosine_matrix(float *R_data, float *R_transposed_data);
+void get_attitude_direction_cosine_matrix(float **R_data);
+void get_attitude_transposed_direction_cosine_matrix(float **R_transposed_data);
 
 #endif

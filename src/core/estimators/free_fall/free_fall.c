@@ -3,8 +3,6 @@
 #include "debug_link.h"
 #include "imu.h"
 
-extern imu_t imu;
-
 bool free_fall_detect(float *g, float *g_norm)
 {
 	float accel_norm;
@@ -21,9 +19,7 @@ bool free_fall_detect(float *g, float *g_norm)
 void send_free_fall_debug_message(debug_msg_t *payload)
 {
 	float accel[3], g_norm;
-	accel[0] = imu.accel_raw[0];
-	accel[1] = imu.accel_raw[1];
-	accel[2] = imu.accel_raw[2];
+	get_accel_lpf(accel);
 
 	float free_fall_state;
 	if(free_fall_detect(accel, &g_norm) == true) {

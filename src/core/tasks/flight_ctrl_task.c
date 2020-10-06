@@ -38,8 +38,6 @@ extern optitrack_t optitrack;
 
 SemaphoreHandle_t flight_ctrl_semphr;
 
-imu_t imu;
-attitude_t attitude;
 radio_t rc;
 
 void flight_ctrl_semaphore_handler(void)
@@ -99,7 +97,7 @@ void task_flight_ctrl(void *param)
 	geometry_ctrl_init();
 #endif
 
-	mpu6500_init(&imu);
+	mpu6500_init();
 
 	rc_safety_protection();
 
@@ -141,7 +139,6 @@ void task_flight_ctrl(void *param)
 		gpio_on(EXT_SW);
 		perf_start(PERF_FLIGHT_CONTROL_LOOP);
 
-
 		/* sensor driver calls */
 #if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_GPS)
 		ublox_m8n_gps_update();
@@ -157,18 +154,20 @@ void task_flight_ctrl(void *param)
 
 		/* attitude estimation */
 		perf_start(PERF_AHRS);
-		float mag_raw[3]; //XXX
-		get_compass_raw(mag_raw);
-		ahrs_estimate(&attitude, imu.accel_lpf, imu.gyro_lpf, mag_raw);
+		{
+			ahrs_estimate();
+		}
 		perf_end(PERF_AHRS);
 
 		/* controller */
 		perf_start(PERF_CONTROLLER);
+		{
 #if (SELECT_CONTROLLER == QUADROTOR_USE_PID)
-		multirotor_pid_control(&imu, &attitude, &rc, &desired_yaw);
+			multirotor_pid_control(&rc, &desired_yaw);
 #elif (SELECT_CONTROLLER == QUADROTOR_USE_GEOMETRY)
-		multirotor_geometry_control(&imu, &attitude, &rc, &desired_yaw);
+			multirotor_geometry_control(&rc, &desired_yaw);
 #endif
+		}
 		perf_end(PERF_CONTROLLER);
 
 		perf_end(PERF_FLIGHT_CONTROL_LOOP);
@@ -188,50 +187,75 @@ void flight_controller_register_task(const char *task_name, configSTACK_DEPTH_TY
 
 void send_imu_debug_message(debug_msg_t *payload)
 {
+	float accel_raw[3], accel_lpf[3];
+	get_accel_raw(accel_raw);
+	get_accel_lpf(accel_lpf);
+
+	float gyro_raw[3], gyro_lpf[3];
+	get_gyro_raw(gyro_raw);
+	get_gyro_lpf(gyro_lpf);
+
+	float imu_temp_raw = get_imu_temperature();
+
 	pack_debug_debug_message_header(payload, MESSAGE_ID_IMU);
-	pack_debug_debug_message_float(&imu.accel_raw[0], payload);
-	pack_debug_debug_message_float(&imu.accel_raw[1], payload);
-	pack_debug_debug_message_float(&imu.accel_raw[2], payload);
-	pack_debug_debug_message_float(&imu.accel_lpf[0], payload);
-	pack_debug_debug_message_float(&imu.accel_lpf[1], payload);
-	pack_debug_debug_message_float(&imu.accel_lpf[2], payload);
-	pack_debug_debug_message_float(&imu.gyro_raw[0], payload);
-	pack_debug_debug_message_float(&imu.gyro_raw[1], payload);
-	pack_debug_debug_message_float(&imu.gyro_raw[2], payload);
-	pack_debug_debug_message_float(&imu.gyro_lpf[0], payload);
-	pack_debug_debug_message_float(&imu.gyro_lpf[1], payload);
-	pack_debug_debug_message_float(&imu.gyro_lpf[2], payload);
-	pack_debug_debug_message_float(&imu.temp_raw, payload);
+	pack_debug_debug_message_float(&accel_raw[0], payload);
+	pack_debug_debug_message_float(&accel_raw[1], payload);
+	pack_debug_debug_message_float(&accel_raw[2], payload);
+	pack_debug_debug_message_float(&accel_lpf[0], payload);
+	pack_debug_debug_message_float(&accel_lpf[1], payload);
+	pack_debug_debug_message_float(&accel_lpf[2], payload);
+	pack_debug_debug_message_float(&gyro_raw[0], payload);
+	pack_debug_debug_message_float(&gyro_raw[1], payload);
+	pack_debug_debug_message_float(&gyro_raw[2], payload);
+	pack_debug_debug_message_float(&gyro_lpf[0], payload);
+	pack_debug_debug_message_float(&gyro_lpf[1], payload);
+	pack_debug_debug_message_float(&gyro_lpf[2], payload);
+	pack_debug_debug_message_float(&imu_temp_raw, payload);
 
 }
 
 void send_attitude_euler_debug_message(debug_msg_t *payload)
 {
+	float attitude_roll, attitude_pitch, attitude_yaw;
+	get_attitude_euler_angles(&attitude_roll, &attitude_pitch, &attitude_yaw);
+
 	pack_debug_debug_message_header(payload, MESSAGE_ID_ATTITUDE_EULER);
-	pack_debug_debug_message_float(&attitude.roll, payload);
-	pack_debug_debug_message_float(&attitude.pitch, payload);
-	pack_debug_debug_message_float(&attitude.yaw, payload);
+	pack_debug_debug_message_float(&attitude_roll, payload);
+	pack_debug_debug_message_float(&attitude_pitch, payload);
+	pack_debug_debug_message_float(&attitude_yaw, payload);
 }
 
 void send_attitude_quaternion_debug_message(debug_msg_t *payload)
 {
+	float attitude_q[4];
+	get_attitude_quaternion(attitude_q);
+
 	pack_debug_debug_message_header(payload, MESSAGE_ID_ATTITUDE_QUAT);
-	pack_debug_debug_message_float(&attitude.q[0], payload);
-	pack_debug_debug_message_float(&attitude.q[1], payload);
-	pack_debug_debug_message_float(&attitude.q[2], payload);
-	pack_debug_debug_message_float(&attitude.q[3], payload);
+	pack_debug_debug_message_float(&attitude_q[0], payload);
+	pack_debug_debug_message_float(&attitude_q[1], payload);
+	pack_debug_debug_message_float(&attitude_q[2], payload);
+	pack_debug_debug_message_float(&attitude_q[3], payload);
 }
 
 void send_attitude_imu_debug_message(debug_msg_t *payload)
 {
+	float accel_lpf[3];
+	get_accel_lpf(accel_lpf);
+
+	float gyro_lpf[3];
+	get_gyro_lpf(gyro_lpf);
+
+	float attitude_roll, attitude_pitch, attitude_yaw;
+	get_attitude_euler_angles(&attitude_roll, &attitude_pitch, &attitude_yaw);
+
 	pack_debug_debug_message_header(payload, MESSAGE_ID_ATTITUDE_IMU);
-	pack_debug_debug_message_float(&attitude.roll, payload);
-	pack_debug_debug_message_float(&attitude.pitch, payload);
-	pack_debug_debug_message_float(&attitude.yaw, payload);
-	pack_debug_debug_message_float(&imu.accel_lpf[0], payload);
-	pack_debug_debug_message_float(&imu.accel_lpf[1], payload);
-	pack_debug_debug_message_float(&imu.accel_lpf[2], payload);
-	pack_debug_debug_message_float(&imu.gyro_lpf[0], payload);
-	pack_debug_debug_message_float(&imu.gyro_lpf[1], payload);
-	pack_debug_debug_message_float(&imu.gyro_lpf[2], payload);
+	pack_debug_debug_message_float(&attitude_roll, payload);
+	pack_debug_debug_message_float(&attitude_pitch, payload);
+	pack_debug_debug_message_float(&attitude_yaw, payload);
+	pack_debug_debug_message_float(&accel_lpf[0], payload);
+	pack_debug_debug_message_float(&accel_lpf[1], payload);
+	pack_debug_debug_message_float(&accel_lpf[2], payload);
+	pack_debug_debug_message_float(&gyro_lpf[0], payload);
+	pack_debug_debug_message_float(&gyro_lpf[1], payload);
+	pack_debug_debug_message_float(&gyro_lpf[2], payload);
 }

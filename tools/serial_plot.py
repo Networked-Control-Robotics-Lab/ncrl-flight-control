@@ -111,7 +111,7 @@ class serial_plotter_class:
         	self.show_subplot()
         elif (message_id == 1):
                 plt.subplot(111)
-        	plt.ylabel('gyro [deg/s]')
+        	plt.ylabel('euler angles[deg]')
         	plt.ylim([-450, 450])
         	self.create_curve('roll', 'red')		
         	self.create_curve('pitch', 'blue')		

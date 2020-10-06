@@ -65,13 +65,29 @@ enum {
 } MPU6500_GYRO_FS;
 
 typedef struct {
-	int16_t gyro_bias[3];
-	float accel_bias[3];
+	/* sensor mode */
 	int accel_fs;
 	int gyro_fs;
+
+	/* sensor calibration */
+	int16_t gyro_bias[3];
+	float accel_bias[3];
 	float accel_scale;
 	float gyro_scale;
 	volatile bool init_finished;
+
+	/* sensor datas */
+        int16_t accel_unscaled[3];
+        int16_t gyro_unscaled[3];
+        int16_t temp_unscaled;
+
+        float accel_raw[3];
+        float gyro_raw[3];
+        float temp_raw;
+
+        float accel_lpf[3];  
+        float accel_unscaled_lpf[3];
+        float gyro_lpf[3];
 
 	/* calibration */
 	float accel_rescale_x;
@@ -79,7 +95,7 @@ typedef struct {
 	float accel_rescale_z;
 } mpu6500_t;
 
-void mpu6500_init(imu_t *imu);
+void mpu6500_init(void);
 void mpu6500_int_handler(void);
 bool mpu6500_calibration_not_finished(void);
 
@@ -96,5 +112,7 @@ void mpu6500_get_gyro_lpf(float *gyro);
 
 void debug_print_mpu6500_accel(void);
 void debug_print_mpu6500_unscaled_lpf_accel(void);
+
+float mpu6500_get_temperature(void);
 
 #endif
