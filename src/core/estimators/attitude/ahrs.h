@@ -12,9 +12,9 @@ typedef struct {
 	//quaternion
 	float q[4];
 
-	//direction cosine matrix
-	float R_matrix[3 * 3];            //earth frame to body-fixed frame
-	float R_transposed_matrix[3 * 3]; //body-fixed frame to earth frame
+	//direction cosine matrix (rotation matrix)
+	float rotation_mat_data[3 * 3];            //earth frame to body-fixed frame
+	float transposed_rotation_mat_data[3 * 3]; //body-fixed frame to earth frame
 } attitude_t;
 
 void ahrs_init(void);

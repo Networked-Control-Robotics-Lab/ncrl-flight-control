@@ -195,7 +195,8 @@ void ahrs_estimate(void)
 	attitude.pitch = rad_to_deg(euler.pitch);
 	attitude.yaw = rad_to_deg(euler.yaw);
 
-	quat_to_rotation_matrix(attitude.q, attitude.R_matrix, attitude.R_transposed_matrix);
+	quat_to_rotation_matrix(attitude.q, attitude.rotation_mat_data,
+	                        attitude.transposed_rotation_mat_data);
 }
 
 void get_attitude_euler_angles(float *roll, float *pitch, float *yaw)
@@ -213,12 +214,12 @@ void get_attitude_quaternion(float *q)
 	q[3] = attitude.q[3];
 }
 
-void get_attitude_direction_cosine_matrix(float **R_data)
+void get_attitude_direction_cosine_matrix(float **rotation_mat_ptr)
 {
-	*R_data = attitude.R_matrix;
+	*rotation_mat_ptr = attitude.rotation_mat_data;
 }
 
-void get_attitude_transposed_direction_cosine_matrix(float **R_transposed_data)
+void get_attitude_transposed_direction_cosine_matrix(float **transposed_rotation_mat_ptr)
 {
-	*R_transposed_data = attitude.R_transposed_matrix;
+	*transposed_rotation_mat_ptr = attitude.transposed_rotation_mat_data;
 }

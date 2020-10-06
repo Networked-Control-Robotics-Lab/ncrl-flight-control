@@ -358,12 +358,12 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	bound_float(&tracking_error_integral[2], 50, -50);
 
 	mat_data(kxex_kvev_mge3_mxd_dot_dot)[0] = -kpx*pos_error[0] - kvx*vel_error[0] +
-	                                       force_ff_ned[0] - tracking_error_integral[0];
+	                force_ff_ned[0] - tracking_error_integral[0];
 	mat_data(kxex_kvev_mge3_mxd_dot_dot)[1] = -kpy*pos_error[1] - kvy*vel_error[1] +
-	                                       force_ff_ned[1] - tracking_error_integral[1];
+	                force_ff_ned[1] - tracking_error_integral[1];
 	mat_data(kxex_kvev_mge3_mxd_dot_dot)[2] = -kpz*pos_error[2] - kvz*vel_error[2] +
-	                                       force_ff_ned[2] - tracking_error_integral[2] -
-	                                       uav_mass * 9.81;
+	                force_ff_ned[2] - tracking_error_integral[2] -
+	                uav_mass * 9.81;
 
 	/* calculate the denominator of b3d */
 	float b3d_denominator; //caution: this term should not be 0
