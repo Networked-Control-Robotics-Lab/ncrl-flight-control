@@ -145,36 +145,36 @@ void gps_ekf_init(float _dt)
 	MAT_TRANS(&H, &Ht);
 
 	/* init 6x6 identity matrix */
-	_mat_(I)[0*6 + 0] = 1.0f;
-	_mat_(I)[1*6 + 1] = 1.0f;
-	_mat_(I)[2*6 + 2] = 1.0f;
-	_mat_(I)[3*6 + 3] = 1.0f;
-	_mat_(I)[4*6 + 4] = 1.0f;
-	_mat_(I)[5*6 + 5] = 1.0f;
+	mat_data(I)[0*6 + 0] = 1.0f;
+	mat_data(I)[1*6 + 1] = 1.0f;
+	mat_data(I)[2*6 + 2] = 1.0f;
+	mat_data(I)[3*6 + 3] = 1.0f;
+	mat_data(I)[4*6 + 4] = 1.0f;
+	mat_data(I)[5*6 + 5] = 1.0f;
 
 	/* init state estimate covariance matrix [m^2] */
-	_mat_(P_posteriori)[0*6 + 0] = 10.0f;
-	_mat_(P_posteriori)[1*6 + 1] = 10.0f;
-	_mat_(P_posteriori)[2*6 + 2] = 10.0f;
-	_mat_(P_posteriori)[3*6 + 3] = 10.0f;
-	_mat_(P_posteriori)[4*6 + 4] = 10.0f;
-	_mat_(P_posteriori)[5*6 + 5] = 10.0f;
+	mat_data(P_posteriori)[0*6 + 0] = 10.0f;
+	mat_data(P_posteriori)[1*6 + 1] = 10.0f;
+	mat_data(P_posteriori)[2*6 + 2] = 10.0f;
+	mat_data(P_posteriori)[3*6 + 3] = 10.0f;
+	mat_data(P_posteriori)[4*6 + 4] = 10.0f;
+	mat_data(P_posteriori)[5*6 + 5] = 10.0f;
 
 	/* init process noise covariance matrix [m^2] */
-	_mat_(Q)[0*6 + 0] = 0.5f;
-	_mat_(Q)[1*6 + 1] = 0.5f;
-	_mat_(Q)[2*6 + 2] = 0.5f;
-	_mat_(Q)[3*6 + 3] = 0.5f;
-	_mat_(Q)[4*6 + 4] = 0.5f;
-	_mat_(Q)[5*6 + 5] = 0.5f;
+	mat_data(Q)[0*6 + 0] = 0.5f;
+	mat_data(Q)[1*6 + 1] = 0.5f;
+	mat_data(Q)[2*6 + 2] = 0.5f;
+	mat_data(Q)[3*6 + 3] = 0.5f;
+	mat_data(Q)[4*6 + 4] = 0.5f;
+	mat_data(Q)[5*6 + 5] = 0.5f;
 
 	/* init observation noise covariance matrix [m^2] */
-	_mat_(R)[0*6 + 0] = 2.0f;
-	_mat_(R)[1*6 + 1] = 2.0f;
-	_mat_(R)[2*6 + 2] = 2.0f;
-	_mat_(R)[3*6 + 3] = 2.0f;
-	_mat_(R)[4*6 + 4] = 2.0f;
-	_mat_(R)[5*6 + 5] = 2.0f;
+	mat_data(R)[0*6 + 0] = 2.0f;
+	mat_data(R)[1*6 + 1] = 2.0f;
+	mat_data(R)[2*6 + 2] = 2.0f;
+	mat_data(R)[3*6 + 3] = 2.0f;
+	mat_data(R)[4*6 + 4] = 2.0f;
+	mat_data(R)[5*6 + 5] = 2.0f;
 }
 
 void gps_ekf_predict(void)
@@ -189,9 +189,9 @@ void gps_ekf_predict(void)
 	/* transform acceleration from body-fixed frame to earth frame and
 	 * cancel the gravitational acceleration */
 	MAT_MULT(Rt, &accel_b, &accel_i);
-	_mat_(u)[0] = _mat_(accel_i)[0];
-	_mat_(u)[1] = _mat_(accel_i)[1];
-	_mat_(u)[2] = _mat_(accel_i)[2] - 9.81f;
+	mat_data(u)[0] = mat_data(accel_i)[0];
+	mat_data(u)[1] = mat_data(accel_i)[1];
+	mat_data(u)[2] = mat_data(accel_i)[2] - 9.81f;
 
 	/* calculate state derivative */
 	//x_dot = Ax + Bu
@@ -226,9 +226,9 @@ void gps_ekf_update(void)
 	float x_enu = 0.0f, y_enu = 0.0f;
 	longitude_latitude_to_enu(longitude, latitude, &x_enu, &y_enu);
 
-	_mat_(z)[0] = x_enu;
-	_mat_(z)[1] = y_enu;
-	_mat_(z)[2] = height_msl;
+	mat_data(z)[0] = x_enu;
+	mat_data(z)[1] = y_enu;
+	mat_data(z)[2] = height_msl;
 
 	/* calculate kalman gain */
 	//K = PHt * (HPHt + R)^-1

@@ -34,10 +34,10 @@ void complementary_ahrs_init(float ahrs_dt)
 
 	comp_ahrs_dt = ahrs_dt;
 
-	_mat_(q)[0] = 1.0f;
-	_mat_(q)[1] = 0.0f;
-	_mat_(q)[2] = 0.0f;
-	_mat_(q)[3] = 0.0f;
+	mat_data(q)[0] = 1.0f;
+	mat_data(q)[1] = 0.0f;
+	mat_data(q)[2] = 0.0f;
+	mat_data(q)[3] = 0.0f;
 }
 
 void convert_gravity_to_quat(float *a, float *q)
@@ -141,25 +141,25 @@ void ahrs_imu_complementary_filter_estimate(float *q_out, float *accel, float *g
 	w[3] = gyro[2];
 
 	float q_dot[4];
-	quaternion_mult(w, _mat_(q), q_dot);
+	quaternion_mult(w, mat_data(q), q_dot);
 
 	float q_gyro[4];
 	float half_dt = -0.5 * comp_ahrs_dt;
-	q_gyro[0] = _mat_(q)[0] + (q_dot[0] * half_dt);
-	q_gyro[1] = _mat_(q)[1] + (q_dot[1] * half_dt);
-	q_gyro[2] = _mat_(q)[2] + (q_dot[2] * half_dt);
-	q_gyro[3] = _mat_(q)[3] + (q_dot[3] * half_dt);
+	q_gyro[0] = mat_data(q)[0] + (q_dot[0] * half_dt);
+	q_gyro[1] = mat_data(q)[1] + (q_dot[1] * half_dt);
+	q_gyro[2] = mat_data(q)[2] + (q_dot[2] * half_dt);
+	q_gyro[3] = mat_data(q)[3] + (q_dot[3] * half_dt);
 	quat_normalize(q_gyro);
 
 	/* calculate predicted gravity vector */
 	float conj_q_gyro[4];
 	quaternion_conj(q_gyro, conj_q_gyro);
-	prepare_body_to_earth_rotation_matrix(conj_q_gyro, _mat_(R_gyro));
+	prepare_body_to_earth_rotation_matrix(conj_q_gyro, mat_data(R_gyro));
 
 	normalize_3x1(accel); //normalize acceleromter
-	_mat_(accel_vec)[0] = accel[0];
-	_mat_(accel_vec)[1] = accel[1];
-	_mat_(accel_vec)[2] = accel[2];
+	mat_data(accel_vec)[0] = accel[0];
+	mat_data(accel_vec)[1] = accel[1];
+	mat_data(accel_vec)[2] = accel[2];
 	MAT_MULT(&R_gyro, &accel_vec, &g_predict);
 
 	float q_identity[4] = {1.0f, 0.0f, 0.0f, 0.0f};
@@ -168,18 +168,18 @@ void ahrs_imu_complementary_filter_estimate(float *q_out, float *accel, float *g
 	float weight_accel = 0.005f; //alpha value for fusion
 	float delta_q_acc[4];
 	float bar_delta_q_acc[4];
-	convert_gravity_to_quat(_mat_(g_predict), delta_q_acc);
+	convert_gravity_to_quat(mat_data(g_predict), delta_q_acc);
 	quat_normalize(delta_q_acc);
 	lerp(q_identity, delta_q_acc, weight_accel, bar_delta_q_acc);
 	quat_normalize(bar_delta_q_acc);
 
 	/* calculate the final result (gyroscope + acceleromter) */
-	quaternion_mult(q_gyro, bar_delta_q_acc, _mat_(q));
+	quaternion_mult(q_gyro, bar_delta_q_acc, mat_data(q));
 
 	/* return the conjugated quaternion since we use opposite convention compared to the paper.
 	 * paper: quaternion of earth frame to body-fixed frame
 	 * us: quaternion of body-fixed frame to earth frame */
-	quaternion_conj(_mat_(q), q_out);
+	quaternion_conj(mat_data(q), q_out);
 }
 
 void ahrs_marg_complementary_filter_estimate(float *q_out, float *accel, float *gyro, float *mag)
@@ -192,32 +192,32 @@ void ahrs_marg_complementary_filter_estimate(float *q_out, float *accel, float *
 	w[3] = gyro[2];
 
 	float q_dot[4];
-	quaternion_mult(w, _mat_(q), q_dot);
+	quaternion_mult(w, mat_data(q), q_dot);
 
 	float q_gyro[4];
 	float half_dt = -0.5 * comp_ahrs_dt;
-	q_gyro[0] = _mat_(q)[0] + (q_dot[0] * half_dt);
-	q_gyro[1] = _mat_(q)[1] + (q_dot[1] * half_dt);
-	q_gyro[2] = _mat_(q)[2] + (q_dot[2] * half_dt);
-	q_gyro[3] = _mat_(q)[3] + (q_dot[3] * half_dt);
+	q_gyro[0] = mat_data(q)[0] + (q_dot[0] * half_dt);
+	q_gyro[1] = mat_data(q)[1] + (q_dot[1] * half_dt);
+	q_gyro[2] = mat_data(q)[2] + (q_dot[2] * half_dt);
+	q_gyro[3] = mat_data(q)[3] + (q_dot[3] * half_dt);
 	quat_normalize(q_gyro);
 
 	float conj_q_gyro[4];
 	quaternion_conj(q_gyro, conj_q_gyro);
-	prepare_body_to_earth_rotation_matrix(conj_q_gyro, _mat_(R_gyro));
+	prepare_body_to_earth_rotation_matrix(conj_q_gyro, mat_data(R_gyro));
 
 	/* calculate predicted gravity vector */
 	normalize_3x1(accel); //normalize acceleromter
-	_mat_(accel_vec)[0] = accel[0];
-	_mat_(accel_vec)[1] = accel[1];
-	_mat_(accel_vec)[2] = accel[2];
+	mat_data(accel_vec)[0] = accel[0];
+	mat_data(accel_vec)[1] = accel[1];
+	mat_data(accel_vec)[2] = accel[2];
 	MAT_MULT(&R_gyro, &accel_vec, &g_predict);
 
 	/* calculate predicted magnetic field vector */
 	normalize_3x1(mag); //normalize magnetometer
-	_mat_(mag_vec)[0] = mag[0];
-	_mat_(mag_vec)[1] = mag[1];
-	_mat_(mag_vec)[2] = mag[2];
+	mat_data(mag_vec)[0] = mag[0];
+	mat_data(mag_vec)[1] = mag[1];
+	mat_data(mag_vec)[2] = mag[2];
 	MAT_MULT(&R_gyro, &mag_vec, &l_predict);
 
 	float q_identity[4] = {1.0f, 0.0f, 0.0f, 0.0f};
@@ -226,7 +226,7 @@ void ahrs_marg_complementary_filter_estimate(float *q_out, float *accel, float *
 	float weight_accel = 0.005f;
 	float delta_q_acc[4];
 	float bar_delta_q_acc[4];
-	convert_gravity_to_quat(_mat_(g_predict), delta_q_acc);
+	convert_gravity_to_quat(mat_data(g_predict), delta_q_acc);
 	quat_normalize(delta_q_acc);
 	lerp(q_identity, delta_q_acc, weight_accel, bar_delta_q_acc);
 	quat_normalize(bar_delta_q_acc);
@@ -235,7 +235,7 @@ void ahrs_marg_complementary_filter_estimate(float *q_out, float *accel, float *
 	float weight_mag = 0.005f;
 	float delta_q_mag[4];
 	float bar_delta_q_mag[4];
-	convert_magnetic_field_to_quat(_mat_(l_predict), delta_q_mag);
+	convert_magnetic_field_to_quat(mat_data(l_predict), delta_q_mag);
 	quat_normalize(delta_q_mag);
 	lerp(q_identity, delta_q_mag, weight_mag, bar_delta_q_mag);
 	quat_normalize(bar_delta_q_mag);
@@ -243,10 +243,10 @@ void ahrs_marg_complementary_filter_estimate(float *q_out, float *accel, float *
 	/* calculate the final result (gyroscope + acceleromter + magnetometer) */
 	float q_delta_acc_mag[4];
 	quaternion_mult(bar_delta_q_acc, bar_delta_q_mag, q_delta_acc_mag);
-	quaternion_mult(q_gyro, q_delta_acc_mag, _mat_(q));
+	quaternion_mult(q_gyro, q_delta_acc_mag, mat_data(q));
 
 	/* return the conjugated quaternion since we use opposite convention compared to the paper.
 	 * paper: quaternion of earth frame to body-fixed frame
 	 * us: quaternion of body-fixed frame to earth frame */
-	quaternion_conj(_mat_(q), q_out);
+	quaternion_conj(mat_data(q), q_out);
 }

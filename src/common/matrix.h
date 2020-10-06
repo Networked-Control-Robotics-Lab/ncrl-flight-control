@@ -43,7 +43,7 @@
 	mat_op_status = arm_mat_inverse_f32(mat, mat_inv); \
 	MAT_ASSERT(mat_op_status == ARM_MATH_SUCCESS);
 
-#define _mat_(mat) mat ## _arr
+#define mat_data(mat) mat.pData
 
 extern volatile arm_status mat_op_status;
 

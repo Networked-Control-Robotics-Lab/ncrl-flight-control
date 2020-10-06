@@ -63,62 +63,62 @@ void ellipsoid_least_square_fitting_init(void)
 
 void ellipsoid_least_square_fitting(float *x0, float *y0, float *z0, float *A, float *B, float *C)
 {
-	_mat_(LS_A)[0*6 + 0] = yyyy_bar;
-	_mat_(LS_A)[0*6 + 1] = yyzz_bar;
-	_mat_(LS_A)[0*6 + 2] = xyy_bar;
-	_mat_(LS_A)[0*6 + 3] = yyy_bar;
-	_mat_(LS_A)[0*6 + 4] = yyz_bar;
-	_mat_(LS_A)[0*6 + 5] = yy_bar;
+	mat_data(LS_A)[0*6 + 0] = yyyy_bar;
+	mat_data(LS_A)[0*6 + 1] = yyzz_bar;
+	mat_data(LS_A)[0*6 + 2] = xyy_bar;
+	mat_data(LS_A)[0*6 + 3] = yyy_bar;
+	mat_data(LS_A)[0*6 + 4] = yyz_bar;
+	mat_data(LS_A)[0*6 + 5] = yy_bar;
 
-	_mat_(LS_A)[1*6 + 0] = yyzz_bar;
-	_mat_(LS_A)[1*6 + 1] = zzzz_bar;
-	_mat_(LS_A)[1*6 + 2] = xzz_bar;
-	_mat_(LS_A)[1*6 + 3] = yzz_bar;
-	_mat_(LS_A)[1*6 + 4] = zzz_bar;
-	_mat_(LS_A)[1*6 + 5] = zz_bar;
+	mat_data(LS_A)[1*6 + 0] = yyzz_bar;
+	mat_data(LS_A)[1*6 + 1] = zzzz_bar;
+	mat_data(LS_A)[1*6 + 2] = xzz_bar;
+	mat_data(LS_A)[1*6 + 3] = yzz_bar;
+	mat_data(LS_A)[1*6 + 4] = zzz_bar;
+	mat_data(LS_A)[1*6 + 5] = zz_bar;
 
-	_mat_(LS_A)[2*6 + 0] = xyy_bar;
-	_mat_(LS_A)[2*6 + 1] = xzz_bar;
-	_mat_(LS_A)[2*6 + 2] = xx_bar;
-	_mat_(LS_A)[2*6 + 3] = xy_bar;
-	_mat_(LS_A)[2*6 + 4] = xz_bar;
-	_mat_(LS_A)[2*6 + 5] = x_bar;
+	mat_data(LS_A)[2*6 + 0] = xyy_bar;
+	mat_data(LS_A)[2*6 + 1] = xzz_bar;
+	mat_data(LS_A)[2*6 + 2] = xx_bar;
+	mat_data(LS_A)[2*6 + 3] = xy_bar;
+	mat_data(LS_A)[2*6 + 4] = xz_bar;
+	mat_data(LS_A)[2*6 + 5] = x_bar;
 
-	_mat_(LS_A)[3*6 + 0] = yyy_bar;
-	_mat_(LS_A)[3*6 + 1] = yzz_bar;
-	_mat_(LS_A)[3*6 + 2] = xy_bar;
-	_mat_(LS_A)[3*6 + 3] = yy_bar;
-	_mat_(LS_A)[3*6 + 4] = yz_bar;
-	_mat_(LS_A)[3*6 + 5] = y_bar;
+	mat_data(LS_A)[3*6 + 0] = yyy_bar;
+	mat_data(LS_A)[3*6 + 1] = yzz_bar;
+	mat_data(LS_A)[3*6 + 2] = xy_bar;
+	mat_data(LS_A)[3*6 + 3] = yy_bar;
+	mat_data(LS_A)[3*6 + 4] = yz_bar;
+	mat_data(LS_A)[3*6 + 5] = y_bar;
 
-	_mat_(LS_A)[4*6 + 0] = yyz_bar;
-	_mat_(LS_A)[4*6 + 1] = zzz_bar;
-	_mat_(LS_A)[4*6 + 2] = xz_bar;
-	_mat_(LS_A)[4*6 + 3] = yz_bar;
-	_mat_(LS_A)[4*6 + 4] = zz_bar;
-	_mat_(LS_A)[4*6 + 5] = z_bar;
+	mat_data(LS_A)[4*6 + 0] = yyz_bar;
+	mat_data(LS_A)[4*6 + 1] = zzz_bar;
+	mat_data(LS_A)[4*6 + 2] = xz_bar;
+	mat_data(LS_A)[4*6 + 3] = yz_bar;
+	mat_data(LS_A)[4*6 + 4] = zz_bar;
+	mat_data(LS_A)[4*6 + 5] = z_bar;
 
-	_mat_(LS_A)[5*6 + 0] = yy_bar;
-	_mat_(LS_A)[5*6 + 1] = zz_bar;
-	_mat_(LS_A)[5*6 + 2] = x_bar;
-	_mat_(LS_A)[5*6 + 3] = y_bar;
-	_mat_(LS_A)[5*6 + 4] = z_bar;
-	_mat_(LS_A)[5*6 + 5] = 1.0f;
+	mat_data(LS_A)[5*6 + 0] = yy_bar;
+	mat_data(LS_A)[5*6 + 1] = zz_bar;
+	mat_data(LS_A)[5*6 + 2] = x_bar;
+	mat_data(LS_A)[5*6 + 3] = y_bar;
+	mat_data(LS_A)[5*6 + 4] = z_bar;
+	mat_data(LS_A)[5*6 + 5] = 1.0f;
 
-	_mat_(LS_b)[0] = -xxyy_bar;
-	_mat_(LS_b)[1] = -xxzz_bar;
-	_mat_(LS_b)[2] = -xxx_bar;
-	_mat_(LS_b)[3] = -xxy_bar;
-	_mat_(LS_b)[4] = -xxz_bar;
-	_mat_(LS_b)[5] = -xx_bar;
+	mat_data(LS_b)[0] = -xxyy_bar;
+	mat_data(LS_b)[1] = -xxzz_bar;
+	mat_data(LS_b)[2] = -xxx_bar;
+	mat_data(LS_b)[3] = -xxy_bar;
+	mat_data(LS_b)[4] = -xxz_bar;
+	mat_data(LS_b)[5] = -xx_bar;
 
 	MAT_INV(&LS_A, &LS_A_INV); //XXX: check inversion is valid or not
 	MAT_MULT(&LS_A_INV, &LS_b, &LS_x);
 
-	*x0 = -0.5 * _mat_(LS_x)[2]; //XXX: use fast squared root function
-	*y0 = -_mat_(LS_x)[3] / (2.0f * _mat_(LS_x)[0]);
-	*z0 = _mat_(LS_x)[4] / (2.0f * _mat_(LS_x)[1]);
-	*A = sqrt(_mat_(LS_x)[0]*_mat_(LS_x)[0] + _mat_(LS_x)[1]*_mat_(LS_x)[1] + _mat_(LS_x)[2]*_mat_(LS_x)[2]);
-	*B = *A / sqrt(_mat_(LS_x)[0]);
-	*C = *A / sqrt(_mat_(LS_x)[1]);
+	*x0 = -0.5 * mat_data(LS_x)[2]; //XXX: use fast squared root function
+	*y0 = -mat_data(LS_x)[3] / (2.0f * mat_data(LS_x)[0]);
+	*z0 = mat_data(LS_x)[4] / (2.0f * mat_data(LS_x)[1]);
+	*A = sqrt(mat_data(LS_x)[0]*mat_data(LS_x)[0] + mat_data(LS_x)[1]*mat_data(LS_x)[1] + mat_data(LS_x)[2]*mat_data(LS_x)[2]);
+	*B = *A / sqrt(mat_data(LS_x)[0]);
+	*C = *A / sqrt(mat_data(LS_x)[1]);
 }
