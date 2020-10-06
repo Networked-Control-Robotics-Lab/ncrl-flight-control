@@ -81,11 +81,11 @@ void multirotor_pid_controller_init(void)
 	set_sys_param_update_var_addr(MR_PID_GAIN_POS_X_I, &pid_pos_x.ki);
 	set_sys_param_update_var_addr(MR_PID_GAIN_POS_X_D, &pid_pos_x.kd);
 	set_sys_param_update_var_addr(MR_PID_GAIN_POS_Y_P, &pid_pos_y.kp);
-	set_sys_param_update_var_addr(MR_PID_GAIN_POS_X_I, &pid_pos_y.ki);
+	set_sys_param_update_var_addr(MR_PID_GAIN_POS_Y_I, &pid_pos_y.ki);
 	set_sys_param_update_var_addr(MR_PID_GAIN_POS_Y_D, &pid_pos_y.kd);
 	set_sys_param_update_var_addr(MR_PID_GAIN_POS_Z_P, &pid_alt.kp);
 	set_sys_param_update_var_addr(MR_PID_GAIN_POS_Z_I, &pid_alt.ki);
-	set_sys_param_update_var_addr(MR_PID_GAIN_VEL_Z_P, &pid_alt_vel.kp);
+	set_sys_param_update_var_addr(MR_PID_GAIN_POS_Z_D, &pid_alt_vel.kp);
 	set_sys_param_update_var_addr(MR_PID_HEIGHT_FEEDFOWARD_PWM, &pid_alt_vel.feedfoward);
 
 	/* modify local variables when user change them via ground station */
@@ -100,11 +100,11 @@ void multirotor_pid_controller_init(void)
 	get_sys_param_float(MR_PID_GAIN_POS_X_I, &pid_pos_x.ki);
 	get_sys_param_float(MR_PID_GAIN_POS_X_D, &pid_pos_x.kd);
 	get_sys_param_float(MR_PID_GAIN_POS_Y_P, &pid_pos_y.kp);
-	get_sys_param_float(MR_PID_GAIN_POS_X_I, &pid_pos_y.ki);
+	get_sys_param_float(MR_PID_GAIN_POS_Y_I, &pid_pos_y.ki);
 	get_sys_param_float(MR_PID_GAIN_POS_Y_D, &pid_pos_y.kd);
 	get_sys_param_float(MR_PID_GAIN_POS_Z_P, &pid_alt.kp);
 	get_sys_param_float(MR_PID_GAIN_POS_Z_I, &pid_alt.ki);
-	get_sys_param_float(MR_PID_GAIN_VEL_Z_P, &pid_alt_vel.kp);
+	get_sys_param_float(MR_PID_GAIN_POS_Z_D, &pid_alt_vel.kp);
 	get_sys_param_float(MR_PID_HEIGHT_FEEDFOWARD_PWM, &pid_alt_vel.feedfoward);
 }
 

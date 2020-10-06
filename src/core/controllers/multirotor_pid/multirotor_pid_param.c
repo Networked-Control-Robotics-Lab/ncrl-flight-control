@@ -20,12 +20,12 @@ void init_multirotor_pid_param_list(void)
 	init_sys_param_float(MR_PID_GAIN_POS_X_P, "POS_X_KP", 15.0f);
 	init_sys_param_float(MR_PID_GAIN_POS_X_I, "POS_X_KI", 0.0f);
 	init_sys_param_float(MR_PID_GAIN_POS_X_D, "POS_X_KD", 13.0f);
-	init_sys_param_float(MR_PID_GAIN_POS_Y_P, "POS_Y_KD", 15.0f);
+	init_sys_param_float(MR_PID_GAIN_POS_Y_P, "POS_Y_KP", 15.0f);
 	init_sys_param_float(MR_PID_GAIN_POS_Y_I, "POS_Y_KI", 0.0f);
 	init_sys_param_float(MR_PID_GAIN_POS_Y_D, "POS_Y_KD", 13.0f);
 	init_sys_param_float(MR_PID_GAIN_POS_Z_P, "POS_Z_KP", 3.5f);
 	init_sys_param_float(MR_PID_GAIN_POS_Z_I, "POS_Z_KI", 0.0f);
-	init_sys_param_float(MR_PID_GAIN_VEL_Z_P, "VEL_Z_KP", 10.0f);
+	init_sys_param_float(MR_PID_GAIN_POS_Z_D, "POS_Z_KD", 10.0f);
 	init_sys_param_float(MR_PID_HEIGHT_FEEDFOWARD_PWM, "HEIGHT_PWM_FF", 45.0f);
 
 	load_param_list_from_flash();
