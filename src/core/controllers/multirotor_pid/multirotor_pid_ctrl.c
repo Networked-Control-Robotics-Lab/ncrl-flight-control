@@ -370,6 +370,7 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 		led_on(LED_B);
 		led_off(LED_R);
 		set_yaw_pd_setpoint(&pid_yaw, attitude_yaw);
+		*desired_heading = attitude_yaw;
 	} else {
 		led_on(LED_R);
 		led_off(LED_B);
