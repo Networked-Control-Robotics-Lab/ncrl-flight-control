@@ -194,8 +194,8 @@ void angle_control_cmd_i2b_frame_tramsform(float yaw, float u_i_x, float u_i_y, 
 	float cos_neg_psi = arm_cos_f32(-yaw_rad);
 	float sin_neg_psi = arm_sin_f32(-yaw_rad);
 
-	*u_b_x = (cos_neg_psi * u_i_x) - (cos_neg_psi * u_i_y);
-	*u_b_y = (sin_neg_psi * u_i_x) + (sin_neg_psi * u_i_y);
+	*u_b_x = (cos_neg_psi * u_i_x) - (sin_neg_psi * u_i_y);
+	*u_b_y = (sin_neg_psi * u_i_x) + (cos_neg_psi * u_i_y);
 }
 
 void reset_position_2d_control_integral(pid_control_t *pos_pid)
@@ -309,13 +309,15 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 	get_accel_lpf(accel_lpf);
 	get_gyro_lpf(gyro_lpf);
 
-	/* get enu position */
-	float pos_enu[3];
+	/* get ned position */
+	float pos_enu[3], pos_ned[3];
 	get_enu_position(pos_enu);
+	assign_vector_3x1_eun_to_ned(pos_ned, pos_enu);
 
-	/* get enu velocity */
-	float vel_enu[3];
+	/* get ned velocity */
+	float vel_enu[3], vel_ned[3];
 	get_enu_velocity(vel_enu);
+	assign_vector_3x1_eun_to_ned(vel_ned, vel_enu);
 
 	/* get current roll, pitch, yaw angle */
 	float attitude_roll, attitude_pitch, attitude_yaw;
@@ -324,26 +326,35 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 	/* altitude control */
 	altitude_control(pos_enu[2], vel_enu[2], &pid_alt_vel, &pid_alt);
 
+	/* autopilot guidance loop */
 	autopilot_update_uav_state(pos_enu, vel_enu);
 	autopilot_guidance_handler();
-	/* feed position controller setpoint from autopilot (enu) */
-	pid_pos_x.setpoint = autopilot.wp_now.pos[0];
-	pid_pos_y.setpoint = autopilot.wp_now.pos[1];
-	pid_alt.setpoint = autopilot.wp_now.pos[2];
+
+	/* feed position controller setpoint from autopilot (ned) */
+	float pos_des_enu[3] = {
+		autopilot.wp_now.pos[0],
+		autopilot.wp_now.pos[1],
+		autopilot.wp_now.pos[2]
+	};
+	float pos_des_ned[3];
+	assign_vector_3x1_eun_to_ned(pos_des_ned, pos_des_enu);
+
+	pid_pos_x.setpoint = pos_des_ned[0];
+	pid_pos_y.setpoint = pos_des_ned[1];
+	pid_alt.setpoint = -pos_des_ned[2];
 
 	/* position control (in enu frame) */
-	position_2d_control(pos_enu[0], vel_enu[0], &pid_pos_x);
-	position_2d_control(pos_enu[1], vel_enu[1], &pid_pos_y);
-
+	position_2d_control(pos_ned[0], vel_ned[0], &pid_pos_x);
+	position_2d_control(pos_ned[1], vel_ned[1], &pid_pos_y);
 	angle_control_cmd_i2b_frame_tramsform(attitude_yaw, pid_pos_x.output, pid_pos_y.output,
-	                                      &nav_ctl_roll_command, &nav_ctl_pitch_command);
+	                                      &nav_ctl_pitch_command, &nav_ctl_roll_command);
 
 	float final_roll_cmd;
 	float final_pitch_cmd;
 	if(pid_pos_x.enable == true && pid_pos_y.enable == true && optitrack_available() == true) {
 		/* auto-flight (sign difference is cause by enu frame) */
-		final_roll_cmd = +nav_ctl_roll_command; //enu-y is contolled by roll
-		final_pitch_cmd = -nav_ctl_pitch_command; //enu-x is controlled by pitch
+		final_roll_cmd = nav_ctl_roll_command;    //ned-x is contolled by roll
+		final_pitch_cmd = -nav_ctl_pitch_command; //ned-y is controlled by pitch XXX
 	} else {
 		/* manual flight */
 		final_roll_cmd = -rc->roll;
