@@ -26,6 +26,7 @@
 #include "autopilot.h"
 #include "sys_param.h"
 #include "position_sensor.h"
+#include "compass.h"
 
 pid_control_t pid_roll;
 pid_control_t pid_pitch;
@@ -191,11 +192,11 @@ void altitude_control(float alt, float alt_vel, pid_control_t *alt_vel_pid, pid_
 void angle_control_cmd_i2b_frame_tramsform(float yaw, float u_i_x, float u_i_y, float *u_b_x, float *u_b_y)
 {
 	float yaw_rad = deg_to_rad(yaw);
-	float cos_neg_psi = arm_cos_f32(-yaw_rad);
-	float sin_neg_psi = arm_sin_f32(-yaw_rad);
+	float cos_neg_psi = arm_cos_f32(yaw_rad);
+	float sin_neg_psi = arm_sin_f32(yaw_rad);
 
-	*u_b_x = (cos_neg_psi * u_i_x) - (sin_neg_psi * u_i_y);
-	*u_b_y = (sin_neg_psi * u_i_x) + (cos_neg_psi * u_i_y);
+	*u_b_x = +(cos_neg_psi * u_i_x) + (sin_neg_psi * u_i_y);
+	*u_b_y = -(sin_neg_psi * u_i_x) + (cos_neg_psi * u_i_y);
 }
 
 void reset_position_2d_control_integral(pid_control_t *pos_pid)
@@ -343,39 +344,55 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 	pid_pos_y.setpoint = pos_des_ned[1];
 	pid_alt.setpoint = -pos_des_ned[2];
 
-	/* position control (in enu frame) */
+	/* position control (in ned frame) */
 	position_2d_control(pos_ned[0], vel_ned[0], &pid_pos_x);
 	position_2d_control(pos_ned[1], vel_ned[1], &pid_pos_y);
+
+	/* 1. convert attitude control signal from earth frame to body-fixed frame
+	 * 2. notice that in earth ned frame configuration, negative pitch angle will
+	 *    cause positive x translation and positive roll angle will cause positive
+	 *    y translation */
 	angle_control_cmd_i2b_frame_tramsform(attitude_yaw, pid_pos_x.output, pid_pos_y.output,
 	                                      &nav_ctl_pitch_command, &nav_ctl_roll_command);
 
+	/* check if position sensor is present */
 	float final_roll_cmd;
 	float final_pitch_cmd;
-	if(pid_pos_x.enable == true && pid_pos_y.enable == true && optitrack_available() == true) {
-		/* auto-flight (sign difference is cause by enu frame) */
-		final_roll_cmd = nav_ctl_roll_command;    //ned-x is contolled by roll
-		final_pitch_cmd = -nav_ctl_pitch_command; //ned-y is controlled by pitch XXX
+	if(pid_pos_x.enable == true && pid_pos_y.enable == true &&
+	    is_xy_position_info_available() == true) {
+		/* attitude control signal from position-2d controller */
+		final_roll_cmd = +nav_ctl_roll_command;   //ned-y is contolled by roll
+		final_pitch_cmd = -nav_ctl_pitch_command; //ned-x is contolled by pitch
 	} else {
-		/* manual flight */
+		/* attitude control signal from remote controller */
 		final_roll_cmd = -rc->roll;
 		final_pitch_cmd = -rc->pitch;
 	}
 
+	/* check if height sensor is present */
 	float throttle_cmd;
-	if(pid_alt_vel.enable == true) {
-		/* auto-flight */
+	if(pid_alt_vel.enable == true && is_height_info_available()) {
+		/* height autocontrolled */
 		throttle_cmd = pid_alt_vel.output;
 	} else {
-		/* manual flight */
+		/* height manual flight */
 		throttle_cmd = rc->throttle;
 	}
 
 	/* attitude control */
 	attitude_pid_control(&pid_roll, attitude_roll, final_roll_cmd, gyro_lpf[0]);
 	attitude_pid_control(&pid_pitch, attitude_pitch, final_pitch_cmd, gyro_lpf[1]);
-	//used if magnetometer/optitrack not present
+
+	//used if heading sensor is not present
 	yaw_rate_p_control(&pid_yaw_rate, -rc->yaw, gyro_lpf[2]);
 	yaw_pd_control(&pid_yaw, *desired_heading, attitude_yaw, gyro_lpf[2], 0.0025);
+
+	/* check if heading sensor is present */
+	float yaw_ctrl_output = pid_yaw.output;
+	if(is_compass_present() == false) {
+		/* yaw rate control only */
+		yaw_ctrl_output = pid_yaw_rate.output;
+	}
 
 	if(rc->safety == true) {
 		led_on(LED_B);
@@ -385,13 +402,6 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 	} else {
 		led_on(LED_R);
 		led_off(LED_B);
-	}
-
-	/* disable control output if sensor not available */
-	float yaw_ctrl_output = pid_yaw.output;
-	if(optitrack_available() == false) {
-		yaw_ctrl_output = pid_yaw_rate.output;
-		pid_alt_vel.output = 0.0f;
 	}
 
 	bool lock_motor = false;
