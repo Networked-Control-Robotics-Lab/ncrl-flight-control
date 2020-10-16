@@ -22,6 +22,7 @@
 #include "altitude_est.h"
 #include "compass.h"
 #include "sys_param.h"
+#include "proj_config.h"
 
 #define dt 0.0025 //[s]
 #define MOTOR_TO_CG_LENGTH 16.25f //[cm]
@@ -60,6 +61,24 @@ MAT_ALLOC(kxex_kvev_mge3_mxd_dot_dot, 3, 1);
 MAT_ALLOC(b1d, 3, 1);
 MAT_ALLOC(b2d, 3, 1);
 MAT_ALLOC(b3d, 3, 1);
+MAT_ALLOC(Y_m, 3, 1);
+MAT_ALLOC(Y_mt, 1, 3);
+MAT_ALLOC(Y_m_cl, 3, 1);
+MAT_ALLOC(Y_m_clt, 1, 3);
+MAT_ALLOC(Y_diag, 3, 3);
+MAT_ALLOC(Y_diagt, 3, 3);
+MAT_ALLOC(Y_diag_cl, 3, 3);
+MAT_ALLOC(Y_diag_clt, 3, 3);
+MAT_ALLOC(theta_m_hat, 1, 1);
+MAT_ALLOC(theta_m_hat_dot, 1, 1);
+MAT_ALLOC(theta_diag_hat, 3, 1);
+MAT_ALLOC(theta_diag_hat_dot, 3, 1);
+MAT_ALLOC(ev_C1ex, 3, 1);
+MAT_ALLOC(eW_C2eR, 3, 1);
+MAT_ALLOC(Ymt_evC1ex, 1, 1);
+MAT_ALLOC(Ydiagt_eWC2eR, 3, 1);
+MAT_ALLOC(tran_ff, 3, 1);
+MAT_ALLOC(rota_ff, 3, 1);
 
 float pos_error[3];
 float vel_error[3];
@@ -71,6 +90,13 @@ float kpx, kpy, kpz;
 float kvx, kvy, kvz;
 float yaw_rate_ctrl_gain;
 float k_tracking_i_gain[3];
+
+float Gamma_m_gain;
+float Gamma_diag_gain[3];
+float C1_gain;
+float C2_gain;
+float k_cl_m_gain[3];
+float k_cl_diag_gain[3];
 
 float uav_mass;
 
@@ -128,6 +154,24 @@ void geometry_ctrl_init(void)
 	MAT_INIT(b1d, 3, 1);
 	MAT_INIT(b2d, 3, 1);
 	MAT_INIT(b3d, 3, 1);
+	MAT_INIT(Y_m, 3, 1);
+	MAT_INIT(Y_mt, 1, 3);
+	MAT_INIT(Y_m_cl, 3, 1);
+	MAT_INIT(Y_m_clt, 1, 3);
+	MAT_INIT(Y_diag, 3, 3);
+	MAT_INIT(Y_diagt, 3, 3);
+	MAT_INIT(Y_diag_cl, 3, 3);
+	MAT_INIT(Y_diag_clt, 3, 3);
+	MAT_INIT(theta_m_hat, 1, 1);
+	MAT_INIT(theta_m_hat_dot, 1, 1);
+	MAT_INIT(theta_diag_hat, 3, 1);
+	MAT_INIT(theta_diag_hat_dot, 3, 1);
+	MAT_INIT(ev_C1ex, 3, 1);
+	MAT_INIT(eW_C2eR, 3, 1);
+	MAT_INIT(Ymt_evC1ex, 1, 1);
+	MAT_INIT(Ydiagt_eWC2eR, 3, 1);
+	MAT_INIT(tran_ff, 3, 1);
+	MAT_INIT(rota_ff, 3, 1);
 
 	/* modify local variables when user change them via ground station */
 	set_sys_param_update_var_addr(MR_GEO_GAIN_ROLL_P, &krx);
@@ -146,6 +190,18 @@ void geometry_ctrl_init(void)
 	set_sys_param_update_var_addr(MR_GEO_GAIN_POS_X_I, &k_tracking_i_gain[0]);
 	set_sys_param_update_var_addr(MR_GEO_GAIN_POS_Y_I, &k_tracking_i_gain[1]);
 	set_sys_param_update_var_addr(MR_GEO_GAIN_POS_Z_I, &k_tracking_i_gain[2]);
+	set_sys_param_update_var_addr(MR_ICL_GAIN_GAMMA_M, &Gamma_m_gain);
+	set_sys_param_update_var_addr(MR_ICL_GAIN_GAMMA_DIAG_X, &Gamma_diag_gain[0]);
+	set_sys_param_update_var_addr(MR_ICL_GAIN_GAMMA_DIAG_Y, &Gamma_diag_gain[1]);
+	set_sys_param_update_var_addr(MR_ICL_GAIN_GAMMA_DIAG_Z, &Gamma_diag_gain[2]);
+	set_sys_param_update_var_addr(MR_ICL_GAIN_C1, &C1_gain);
+	set_sys_param_update_var_addr(MR_ICL_GAIN_C2, &C2_gain);
+	set_sys_param_update_var_addr(MR_ICL_GAIN_K_CL_M_X, &k_cl_m_gain[0]);
+	set_sys_param_update_var_addr(MR_ICL_GAIN_K_CL_M_Y, &k_cl_m_gain[1]);
+	set_sys_param_update_var_addr(MR_ICL_GAIN_K_CL_M_Z, &k_cl_m_gain[2]);
+	set_sys_param_update_var_addr(MR_ICL_GAIN_K_CL_DIAG_X, &k_cl_diag_gain[0]);
+	set_sys_param_update_var_addr(MR_ICL_GAIN_K_CL_DIAG_Y, &k_cl_diag_gain[1]);
+	set_sys_param_update_var_addr(MR_ICL_GAIN_K_CL_DIAG_Z, &k_cl_diag_gain[2]);
 	set_sys_param_update_var_addr(MR_GEO_UAV_MASS, &uav_mass);
 	set_sys_param_update_var_addr(MR_GEO_INERTIA_JXX, &mat_data(J)[0*3 + 0]);
 	set_sys_param_update_var_addr(MR_GEO_INERTIA_JYY, &mat_data(J)[1*3 + 1]);
@@ -181,6 +237,18 @@ void geometry_ctrl_init(void)
 	get_sys_param_float(MR_GEO_GAIN_POS_X_I, &k_tracking_i_gain[0]);
 	get_sys_param_float(MR_GEO_GAIN_POS_Y_I, &k_tracking_i_gain[1]);
 	get_sys_param_float(MR_GEO_GAIN_POS_Z_I, &k_tracking_i_gain[2]);
+	get_sys_param_float(MR_ICL_GAIN_GAMMA_M, &Gamma_m_gain);
+	get_sys_param_float(MR_ICL_GAIN_K_CL_DIAG_X, &Gamma_diag_gain[0]);
+	get_sys_param_float(MR_ICL_GAIN_K_CL_DIAG_Y, &Gamma_diag_gain[1]);
+	get_sys_param_float(MR_ICL_GAIN_K_CL_DIAG_Z, &Gamma_diag_gain[2]);
+	get_sys_param_float(MR_ICL_GAIN_C1, &C1_gain);
+	get_sys_param_float(MR_ICL_GAIN_C2, &C2_gain);
+	get_sys_param_float(MR_ICL_GAIN_K_CL_M_X, &k_cl_m_gain[0]);
+	get_sys_param_float(MR_ICL_GAIN_K_CL_M_Y, &k_cl_m_gain[1]);
+	get_sys_param_float(MR_ICL_GAIN_K_CL_M_Z, &k_cl_m_gain[2]);
+	get_sys_param_float(MR_ICL_GAIN_K_CL_DIAG_X, &k_cl_diag_gain[0]);
+	get_sys_param_float(MR_ICL_GAIN_K_CL_DIAG_Y, &k_cl_diag_gain[1]);
+	get_sys_param_float(MR_ICL_GAIN_K_CL_DIAG_Z, &k_cl_diag_gain[2]);
 	get_sys_param_float(MR_GEO_UAV_MASS, &uav_mass);
 	get_sys_param_float(MR_GEO_INERTIA_JXX, &mat_data(J)[0*3 + 0]);
 	get_sys_param_float(MR_GEO_INERTIA_JYY, &mat_data(J)[1*3 + 1]);
@@ -342,13 +410,6 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	vel_error[1] = curr_vel_ned[1] - vel_des_ned[1];
 	vel_error[2] = curr_vel_ned[2] - vel_des_ned[2];
 
-	float force_ff_ned[3] = {0.0f};
-	float accel_ff_ned[3] = {0.0f};
-	assign_vector_3x1_eun_to_ned(accel_ff_ned, autopilot.wp_now.acc_feedforward);
-	force_ff_ned[0] = uav_mass * accel_ff_ned[0];
-	force_ff_ned[1] = uav_mass * accel_ff_ned[1];
-	force_ff_ned[2] = uav_mass * accel_ff_ned[2];
-
 	tracking_error_integral[0] += k_tracking_i_gain[0] * (pos_error[0]) * dt;
 	tracking_error_integral[1] += k_tracking_i_gain[1] * (pos_error[1]) * dt;
 	tracking_error_integral[2] += k_tracking_i_gain[2] * (pos_error[2]) * dt;
@@ -357,6 +418,15 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	bound_float(&tracking_error_integral[1], 150, -150);
 	bound_float(&tracking_error_integral[2], 50, -50);
 
+	float accel_ff_ned[3] = {0.0f};
+	assign_vector_3x1_eun_to_ned(accel_ff_ned, autopilot.wp_now.acc_feedforward);
+
+#if (SELECT_FEEDFORWARD == FEEDFORWARD_USE_GEOMETRY)
+	float force_ff_ned[3] = {0.0f};
+	force_ff_ned[0] = uav_mass * accel_ff_ned[0];
+	force_ff_ned[1] = uav_mass * accel_ff_ned[1];
+	force_ff_ned[2] = uav_mass * accel_ff_ned[2];
+
 	mat_data(kxex_kvev_mge3_mxd_dot_dot)[0] = -kpx*pos_error[0] - kvx*vel_error[0] +
 	                force_ff_ned[0] - tracking_error_integral[0];
 	mat_data(kxex_kvev_mge3_mxd_dot_dot)[1] = -kpy*pos_error[1] - kvy*vel_error[1] +
@@ -364,6 +434,39 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	mat_data(kxex_kvev_mge3_mxd_dot_dot)[2] = -kpz*pos_error[2] - kvz*vel_error[2] +
 	                force_ff_ned[2] - tracking_error_integral[2] -
 	                uav_mass * 9.81;
+#elif (SELECT_FEEDFORWARD == FEEDFORWARD_USE_ICL)
+	/* Y_m and Y_m transpose */
+	mat_data(Y_m)[0] = accel_ff_ned[0];
+	mat_data(Y_m)[1] = accel_ff_ned[1];
+	mat_data(Y_m)[2] = accel_ff_ned[2] - 9.81;
+	mat_data(Y_mt)[0] = mat_data(Y_m)[0];
+	mat_data(Y_mt)[1] = mat_data(Y_m)[1];
+	mat_data(Y_mt)[2] = mat_data(Y_m)[2];
+
+	//ev_C1ex = ev + C1*ex
+	mat_data(ev_C1ex)[0] = vel_error[0] + C1_gain*pos_error[0];
+	mat_data(ev_C1ex)[1] = vel_error[1] + C1_gain*pos_error[1];
+	mat_data(ev_C1ex)[2] = vel_error[2] + C1_gain*pos_error[2];
+
+	/* theta_m update law */
+	//theta_m_dot = Gamma*Y_mt*ev_C1ex
+	MAT_MULT(&Y_mt, &ev_C1ex, &Ymt_evC1ex);
+	mat_data(theta_m_hat_dot)[0] = Gamma_m_gain*mat_data(Ymt_evC1ex)[0];
+	mat_data(theta_m_hat)[0] += mat_data(theta_m_hat_dot)[0] * dt;
+
+	/* translational adaptive feedforward term */
+	//Y_m*theta_m_hat
+	mat_data(tran_ff)[0] = mat_data(Y_m)[0]*mat_data(theta_m_hat)[0];
+	mat_data(tran_ff)[1] = mat_data(Y_m)[1]*mat_data(theta_m_hat)[0];
+	mat_data(tran_ff)[2] = mat_data(Y_m)[2]*mat_data(theta_m_hat)[0];
+
+	mat_data(kxex_kvev_mge3_mxd_dot_dot)[0] = -kpx*pos_error[0] - kvx*vel_error[0]
+	                - tracking_error_integral[0] + mat_data(tran_ff)[0];
+	mat_data(kxex_kvev_mge3_mxd_dot_dot)[1] = -kpy*pos_error[1] - kvy*vel_error[1]
+	                - tracking_error_integral[1] + mat_data(tran_ff)[1];
+	mat_data(kxex_kvev_mge3_mxd_dot_dot)[2] = -kpz*pos_error[2] - kvz*vel_error[2]
+	                - tracking_error_integral[2] + mat_data(tran_ff)[2];
+#endif
 
 	/* calculate the denominator of b3d */
 	float b3d_denominator; //caution: this term should not be 0
@@ -451,6 +554,7 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	MAT_MULT(&RtRd, &Wd, &RtRdWd);
 	MAT_SUB(&W, &RtRdWd, &eW);
 
+#if (SELECT_FEEDFORWARD == FEEDFORWARD_USE_GEOMETRY)
 	/* calculate the inertia feedfoward term */
 	//W x JW
 	MAT_MULT(&J, &W, &JW);
@@ -463,6 +567,53 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	output_moments[0] = -krx*mat_data(eR)[0] -kwx*mat_data(eW)[0] + mat_data(inertia_effect)[0];
 	output_moments[1] = -kry*mat_data(eR)[1] -kwy*mat_data(eW)[1] + mat_data(inertia_effect)[1];
 	output_moments[2] = -krz*mat_data(eR)[2] -kwz*mat_data(eW)[2] + mat_data(inertia_effect)[2];
+#elif (SELECT_FEEDFORWARD == FEEDFORWARD_USE_ICL)
+	/* Y_diag from angular velocity */
+	mat_data(Y_diag)[0*3 + 0] = 0;
+	mat_data(Y_diag)[1*3 + 0] = mat_data(W)[0]*mat_data(W)[2];
+	mat_data(Y_diag)[2*3 + 0] = -mat_data(W)[0]*mat_data(W)[1];
+	mat_data(Y_diag)[0*3 + 1] = -mat_data(W)[1]*mat_data(W)[2];
+	mat_data(Y_diag)[1*3 + 1] = 0;
+	mat_data(Y_diag)[2*3 + 1] = mat_data(W)[0]*mat_data(W)[1];
+	mat_data(Y_diag)[0*3 + 2] = mat_data(W)[1]*mat_data(W)[2];
+	mat_data(Y_diag)[1*3 + 2] = -mat_data(W)[0]*mat_data(W)[2];
+	mat_data(Y_diag)[2*3 + 2] = 0;
+
+	//Y_diagt = transpose of Y_diag
+	mat_data(Y_diagt)[0*3 + 0] = mat_data(Y_diag)[0*3 + 0];
+	mat_data(Y_diagt)[1*3 + 0] = mat_data(Y_diag)[0*3 + 1];
+	mat_data(Y_diagt)[2*3 + 0] = mat_data(Y_diag)[0*3 + 2];
+	mat_data(Y_diagt)[0*3 + 1] = mat_data(Y_diag)[1*3 + 0];
+	mat_data(Y_diagt)[1*3 + 1] = mat_data(Y_diag)[1*3 + 1];
+	mat_data(Y_diagt)[2*3 + 1] = mat_data(Y_diag)[1*3 + 2];
+	mat_data(Y_diagt)[0*3 + 2] = mat_data(Y_diag)[2*3 + 0];
+	mat_data(Y_diagt)[1*3 + 2] = mat_data(Y_diag)[2*3 + 1];
+	mat_data(Y_diagt)[2*3 + 2] = mat_data(Y_diag)[2*3 + 2];
+
+	//eW_C2eR = eW + C2*eR
+	mat_data(eW_C2eR)[0] = mat_data(eW)[0] + C2_gain*mat_data(eR)[0];
+	mat_data(eW_C2eR)[1] = mat_data(eW)[1] + C2_gain*mat_data(eR)[1];
+	mat_data(eW_C2eR)[2] = mat_data(eW)[2] + C2_gain*mat_data(eR)[2];
+
+	/* theta_diag update law */
+	//theta_diag_dot = Gamma*Y_diagt*eW_C2eR
+	MAT_MULT(&Y_diagt, &eW_C2eR, &Ydiagt_eWC2eR);
+	mat_data(theta_diag_hat_dot)[0] = Gamma_diag_gain[0]*mat_data(Ydiagt_eWC2eR)[0];
+	mat_data(theta_diag_hat_dot)[1] = Gamma_diag_gain[1]*mat_data(Ydiagt_eWC2eR)[1];
+	mat_data(theta_diag_hat_dot)[2] = Gamma_diag_gain[2]*mat_data(Ydiagt_eWC2eR)[2];
+	mat_data(theta_diag_hat)[0] += mat_data(theta_diag_hat_dot)[0] * dt;
+
+	/* rotational adaptive feedforward term */
+	//Y_diag*theta_diag_hat
+	mat_data(rota_ff)[0] = Gamma_diag_gain[0]*mat_data(theta_diag_hat)[0];
+	mat_data(rota_ff)[1] = Gamma_diag_gain[1]*mat_data(theta_diag_hat)[1];
+	mat_data(rota_ff)[2] = Gamma_diag_gain[2]*mat_data(theta_diag_hat)[2];
+
+	/* control input M1, M2, M3 */
+	output_moments[0] = -krx*mat_data(eR)[0] -kwx*mat_data(eW)[0] + mat_data(rota_ff)[0];
+	output_moments[1] = -kry*mat_data(eR)[1] -kwy*mat_data(eW)[1] + mat_data(rota_ff)[1];
+	output_moments[2] = -krz*mat_data(eR)[2] -kwz*mat_data(eW)[2] + mat_data(rota_ff)[2];
+#endif
 }
 
 #define l_div_4 (0.25f * (1.0f / MOTOR_TO_CG_LENGTH_M))

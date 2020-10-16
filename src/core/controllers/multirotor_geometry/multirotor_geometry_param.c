@@ -26,6 +26,18 @@ void init_multirotor_geometry_param_list(void)
 	init_sys_param_float(MR_GEO_GAIN_POS_X_I, "POS_I_GAIN_X", 0.0f);
 	init_sys_param_float(MR_GEO_GAIN_POS_Y_I, "POS_I_GAIN_Y", 0.0f);
 	init_sys_param_float(MR_GEO_GAIN_POS_Z_I, "POS_I_GAIN_Z", 0.0f);
+	init_sys_param_float(MR_ICL_GAIN_GAMMA_M, "GAMMA_M_GAIN", 0.1);
+	init_sys_param_float(MR_ICL_GAIN_K_CL_DIAG_X, "GAMMA_DIAG_GAIN_X", 0.1);
+	init_sys_param_float(MR_ICL_GAIN_K_CL_DIAG_Y, "GAMMA_DIAG_GAIN_Y", 0.1);
+	init_sys_param_float(MR_ICL_GAIN_K_CL_DIAG_Z, "GAMMA_DIAG_GAIN_Z", 0.1);
+	init_sys_param_float(MR_ICL_GAIN_C1, "C1_GAIN", 0.6);
+	init_sys_param_float(MR_ICL_GAIN_C2, "C2_GAIN", 0.01);
+	init_sys_param_float(MR_ICL_GAIN_K_CL_M_X, "K_CL_M_X", 0.002);
+	init_sys_param_float(MR_ICL_GAIN_K_CL_M_Y, "K_CL_M_Y", 0.002);
+	init_sys_param_float(MR_ICL_GAIN_K_CL_M_Z, "K_CL_M_Z", 0.002);
+	init_sys_param_float(MR_ICL_GAIN_K_CL_DIAG_X, "K_CL_GIAG_X", 0.02);
+	init_sys_param_float(MR_ICL_GAIN_K_CL_DIAG_Y, "K_CL_GIAG_Y", 0.0065);
+	init_sys_param_float(MR_ICL_GAIN_K_CL_DIAG_Z, "K_CL_GIAG_Z", 0.47);
 	init_sys_param_float(MR_GEO_UAV_MASS, "UAV_MASS", 1.15f);
 	init_sys_param_float(MR_GEO_INERTIA_JXX, "INERTIA_JXX", 0.01466f);
 	init_sys_param_float(MR_GEO_INERTIA_JYY, "INERTIA_JYY", 0.01466f);
