@@ -77,8 +77,6 @@ MAT_ALLOC(ev_C1ex, 3, 1);
 MAT_ALLOC(eW_C2eR, 3, 1);
 MAT_ALLOC(Ymt_evC1ex, 1, 1);
 MAT_ALLOC(Ydiagt_eWC2eR, 3, 1);
-MAT_ALLOC(tran_ff, 3, 1);
-MAT_ALLOC(rota_ff, 3, 1);
 
 float pos_error[3];
 float vel_error[3];
@@ -170,8 +168,6 @@ void geometry_ctrl_init(void)
 	MAT_INIT(eW_C2eR, 3, 1);
 	MAT_INIT(Ymt_evC1ex, 1, 1);
 	MAT_INIT(Ydiagt_eWC2eR, 3, 1);
-	MAT_INIT(tran_ff, 3, 1);
-	MAT_INIT(rota_ff, 3, 1);
 
 	/* modify local variables when user change them via ground station */
 	set_sys_param_update_var_addr(MR_GEO_GAIN_ROLL_P, &krx);
@@ -392,6 +388,96 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 	output_moments[2] = -_krz*mat_data(eR)[2] -_kwz*mat_data(eW)[2] + mat_data(inertia_effect)[2];
 }
 
+void force_ff_ctrl_use_geometry(float *accel_ff, float *force_ff){
+	/* with mass of uav known */
+	force_ff[0] = uav_mass * accel_ff[0];
+	force_ff[1] = uav_mass * accel_ff[1];
+	force_ff[2] = uav_mass * (accel_ff[2] - 9.81);
+}
+
+void force_ff_ctrl_use_ICL(float *accel_ff, float *force_ff, float *pos_err, float *vel_err){
+	/* with mass of uav unknown */
+	/* Y_m and Y_m transpose */
+	mat_data(Y_m)[0] = accel_ff[0];
+	mat_data(Y_m)[1] = accel_ff[1];
+	mat_data(Y_m)[2] = accel_ff[2] - 9.81;
+	mat_data(Y_mt)[0] = mat_data(Y_m)[0];
+	mat_data(Y_mt)[1] = mat_data(Y_m)[1];
+	mat_data(Y_mt)[2] = mat_data(Y_m)[2];
+
+	//ev_C1ex = ev + C1*ex
+	mat_data(ev_C1ex)[0] = vel_err[0] + C1_gain*pos_err[0];
+	mat_data(ev_C1ex)[1] = vel_err[1] + C1_gain*pos_err[1];
+	mat_data(ev_C1ex)[2] = vel_err[2] + C1_gain*pos_err[2];
+
+	/* theta_m update law */
+	//theta_m_dot = Gamma*Y_mt*ev_C1ex
+	MAT_MULT(&Y_mt, &ev_C1ex, &Ymt_evC1ex);
+	mat_data(theta_m_hat_dot)[0] = Gamma_m_gain*mat_data(Ymt_evC1ex)[0];
+	mat_data(theta_m_hat)[0] += mat_data(theta_m_hat_dot)[0] * dt;
+
+	/* translational adaptive feedforward term */
+	//Y_m*theta_m_hat
+	force_ff[0] = mat_data(Y_m)[0]*mat_data(theta_m_hat)[0];
+	force_ff[1] = mat_data(Y_m)[1]*mat_data(theta_m_hat)[0];
+	force_ff[2] = mat_data(Y_m)[2]*mat_data(theta_m_hat)[0];
+}
+
+void moment_ff_ctrl_use_geometry(float *mom_ff){
+	/* with moment of inertia of uav known */
+	/* calculate the inertia feedfoward term */
+	//W x JW
+	MAT_MULT(&J, &W, &JW);
+	cross_product_3x1(mat_data(W), mat_data(JW), mat_data(WJW));
+	mom_ff[0] = mat_data(WJW)[0];
+	mom_ff[1] = mat_data(WJW)[1];
+	mom_ff[2] = mat_data(WJW)[2];
+}
+
+void moment_ff_ctrl_use_ICL(float *mom_ff){
+	/* with moment of inertia of uav unknown */
+	/* Y_diag from angular velocity */
+	mat_data(Y_diag)[0*3 + 0] = 0;
+	mat_data(Y_diag)[1*3 + 0] = mat_data(W)[0]*mat_data(W)[2];
+	mat_data(Y_diag)[2*3 + 0] = -mat_data(W)[0]*mat_data(W)[1];
+	mat_data(Y_diag)[0*3 + 1] = -mat_data(W)[1]*mat_data(W)[2];
+	mat_data(Y_diag)[1*3 + 1] = 0;
+	mat_data(Y_diag)[2*3 + 1] = mat_data(W)[0]*mat_data(W)[1];
+	mat_data(Y_diag)[0*3 + 2] = mat_data(W)[1]*mat_data(W)[2];
+	mat_data(Y_diag)[1*3 + 2] = -mat_data(W)[0]*mat_data(W)[2];
+	mat_data(Y_diag)[2*3 + 2] = 0;
+
+	//Y_diagt = transpose of Y_diag
+	mat_data(Y_diagt)[0*3 + 0] = mat_data(Y_diag)[0*3 + 0];
+	mat_data(Y_diagt)[1*3 + 0] = mat_data(Y_diag)[0*3 + 1];
+	mat_data(Y_diagt)[2*3 + 0] = mat_data(Y_diag)[0*3 + 2];
+	mat_data(Y_diagt)[0*3 + 1] = mat_data(Y_diag)[1*3 + 0];
+	mat_data(Y_diagt)[1*3 + 1] = mat_data(Y_diag)[1*3 + 1];
+	mat_data(Y_diagt)[2*3 + 1] = mat_data(Y_diag)[1*3 + 2];
+	mat_data(Y_diagt)[0*3 + 2] = mat_data(Y_diag)[2*3 + 0];
+	mat_data(Y_diagt)[1*3 + 2] = mat_data(Y_diag)[2*3 + 1];
+	mat_data(Y_diagt)[2*3 + 2] = mat_data(Y_diag)[2*3 + 2];
+
+	//eW_C2eR = eW + C2*eR
+	mat_data(eW_C2eR)[0] = mat_data(eW)[0] + C2_gain*mat_data(eR)[0];
+	mat_data(eW_C2eR)[1] = mat_data(eW)[1] + C2_gain*mat_data(eR)[1];
+	mat_data(eW_C2eR)[2] = mat_data(eW)[2] + C2_gain*mat_data(eR)[2];
+
+	/* theta_diag update law */
+	//theta_diag_dot = Gamma*Y_diagt*eW_C2eR
+	MAT_MULT(&Y_diagt, &eW_C2eR, &Ydiagt_eWC2eR);
+	mat_data(theta_diag_hat_dot)[0] = Gamma_diag_gain[0]*mat_data(Ydiagt_eWC2eR)[0];
+	mat_data(theta_diag_hat_dot)[1] = Gamma_diag_gain[1]*mat_data(Ydiagt_eWC2eR)[1];
+	mat_data(theta_diag_hat_dot)[2] = Gamma_diag_gain[2]*mat_data(Ydiagt_eWC2eR)[2];
+	mat_data(theta_diag_hat)[0] += mat_data(theta_diag_hat_dot)[0] * dt;
+
+	/* rotational adaptive feedforward term */
+	//Y_diag*theta_diag_hat
+	mom_ff[0] = Gamma_diag_gain[0]*mat_data(theta_diag_hat)[0];
+	mom_ff[1] = Gamma_diag_gain[1]*mat_data(theta_diag_hat)[1];
+	mom_ff[2] = Gamma_diag_gain[2]*mat_data(theta_diag_hat)[2];
+}
+
 void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *curr_pos_ned,
                             float *curr_vel_ned, float *output_moments, float *output_force,
                             bool manual_flight)
@@ -418,55 +504,24 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	bound_float(&tracking_error_integral[1], 150, -150);
 	bound_float(&tracking_error_integral[2], 50, -50);
 
+	/* force feedforward control */
 	float accel_ff_ned[3] = {0.0f};
+	float force_ff_ned[3] = {0.0f};
 	assign_vector_3x1_eun_to_ned(accel_ff_ned, autopilot.wp_now.acc_feedforward);
 
 #if (SELECT_FEEDFORWARD == FEEDFORWARD_USE_GEOMETRY)
-	float force_ff_ned[3] = {0.0f};
-	force_ff_ned[0] = uav_mass * accel_ff_ned[0];
-	force_ff_ned[1] = uav_mass * accel_ff_ned[1];
-	force_ff_ned[2] = uav_mass * accel_ff_ned[2];
-
-	mat_data(kxex_kvev_mge3_mxd_dot_dot)[0] = -kpx*pos_error[0] - kvx*vel_error[0] +
-	                force_ff_ned[0] - tracking_error_integral[0];
-	mat_data(kxex_kvev_mge3_mxd_dot_dot)[1] = -kpy*pos_error[1] - kvy*vel_error[1] +
-	                force_ff_ned[1] - tracking_error_integral[1];
-	mat_data(kxex_kvev_mge3_mxd_dot_dot)[2] = -kpz*pos_error[2] - kvz*vel_error[2] +
-	                force_ff_ned[2] - tracking_error_integral[2] -
-	                uav_mass * 9.81;
+	force_ff_ctrl_use_geometry(accel_ff_ned, accel_ff_ned);
 #elif (SELECT_FEEDFORWARD == FEEDFORWARD_USE_ICL)
-	/* Y_m and Y_m transpose */
-	mat_data(Y_m)[0] = accel_ff_ned[0];
-	mat_data(Y_m)[1] = accel_ff_ned[1];
-	mat_data(Y_m)[2] = accel_ff_ned[2] - 9.81;
-	mat_data(Y_mt)[0] = mat_data(Y_m)[0];
-	mat_data(Y_mt)[1] = mat_data(Y_m)[1];
-	mat_data(Y_mt)[2] = mat_data(Y_m)[2];
-
-	//ev_C1ex = ev + C1*ex
-	mat_data(ev_C1ex)[0] = vel_error[0] + C1_gain*pos_error[0];
-	mat_data(ev_C1ex)[1] = vel_error[1] + C1_gain*pos_error[1];
-	mat_data(ev_C1ex)[2] = vel_error[2] + C1_gain*pos_error[2];
-
-	/* theta_m update law */
-	//theta_m_dot = Gamma*Y_mt*ev_C1ex
-	MAT_MULT(&Y_mt, &ev_C1ex, &Ymt_evC1ex);
-	mat_data(theta_m_hat_dot)[0] = Gamma_m_gain*mat_data(Ymt_evC1ex)[0];
-	mat_data(theta_m_hat)[0] += mat_data(theta_m_hat_dot)[0] * dt;
-
-	/* translational adaptive feedforward term */
-	//Y_m*theta_m_hat
-	mat_data(tran_ff)[0] = mat_data(Y_m)[0]*mat_data(theta_m_hat)[0];
-	mat_data(tran_ff)[1] = mat_data(Y_m)[1]*mat_data(theta_m_hat)[0];
-	mat_data(tran_ff)[2] = mat_data(Y_m)[2]*mat_data(theta_m_hat)[0];
-
-	mat_data(kxex_kvev_mge3_mxd_dot_dot)[0] = -kpx*pos_error[0] - kvx*vel_error[0]
-	                - tracking_error_integral[0] + mat_data(tran_ff)[0];
-	mat_data(kxex_kvev_mge3_mxd_dot_dot)[1] = -kpy*pos_error[1] - kvy*vel_error[1]
-	                - tracking_error_integral[1] + mat_data(tran_ff)[1];
-	mat_data(kxex_kvev_mge3_mxd_dot_dot)[2] = -kpz*pos_error[2] - kvz*vel_error[2]
-	                - tracking_error_integral[2] + mat_data(tran_ff)[2];
+	force_ff_ctrl_use_ICL(accel_ff_ned, force_ff_ned, pos_error, vel_error);
 #endif
+
+	/* control input kxex_kvev_mge3_mxd_dot_dot */
+	mat_data(kxex_kvev_mge3_mxd_dot_dot)[0] = -kpx*pos_error[0] - kvx*vel_error[0]
+	                - tracking_error_integral[0] + force_ff_ned[0];
+	mat_data(kxex_kvev_mge3_mxd_dot_dot)[1] = -kpy*pos_error[1] - kvy*vel_error[1]
+	                - tracking_error_integral[1] + force_ff_ned[1];
+	mat_data(kxex_kvev_mge3_mxd_dot_dot)[2] = -kpz*pos_error[2] - kvz*vel_error[2]
+	                - tracking_error_integral[2] + force_ff_ned[2];
 
 	/* calculate the denominator of b3d */
 	float b3d_denominator; //caution: this term should not be 0
@@ -554,66 +609,19 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	MAT_MULT(&RtRd, &Wd, &RtRdWd);
 	MAT_SUB(&W, &RtRdWd, &eW);
 
+	/* moment feedforward control */
+	float moment_ff[3] = {0.0};
+
 #if (SELECT_FEEDFORWARD == FEEDFORWARD_USE_GEOMETRY)
-	/* calculate the inertia feedfoward term */
-	//W x JW
-	MAT_MULT(&J, &W, &JW);
-	cross_product_3x1(mat_data(W), mat_data(JW), mat_data(WJW));
-	mat_data(inertia_effect)[0] = mat_data(WJW)[0];
-	mat_data(inertia_effect)[1] = mat_data(WJW)[1];
-	mat_data(inertia_effect)[2] = mat_data(WJW)[2];
-
-	/* control input M1, M2, M3 */
-	output_moments[0] = -krx*mat_data(eR)[0] -kwx*mat_data(eW)[0] + mat_data(inertia_effect)[0];
-	output_moments[1] = -kry*mat_data(eR)[1] -kwy*mat_data(eW)[1] + mat_data(inertia_effect)[1];
-	output_moments[2] = -krz*mat_data(eR)[2] -kwz*mat_data(eW)[2] + mat_data(inertia_effect)[2];
+	moment_ff_ctrl_use_geometry(moment_ff);
 #elif (SELECT_FEEDFORWARD == FEEDFORWARD_USE_ICL)
-	/* Y_diag from angular velocity */
-	mat_data(Y_diag)[0*3 + 0] = 0;
-	mat_data(Y_diag)[1*3 + 0] = mat_data(W)[0]*mat_data(W)[2];
-	mat_data(Y_diag)[2*3 + 0] = -mat_data(W)[0]*mat_data(W)[1];
-	mat_data(Y_diag)[0*3 + 1] = -mat_data(W)[1]*mat_data(W)[2];
-	mat_data(Y_diag)[1*3 + 1] = 0;
-	mat_data(Y_diag)[2*3 + 1] = mat_data(W)[0]*mat_data(W)[1];
-	mat_data(Y_diag)[0*3 + 2] = mat_data(W)[1]*mat_data(W)[2];
-	mat_data(Y_diag)[1*3 + 2] = -mat_data(W)[0]*mat_data(W)[2];
-	mat_data(Y_diag)[2*3 + 2] = 0;
-
-	//Y_diagt = transpose of Y_diag
-	mat_data(Y_diagt)[0*3 + 0] = mat_data(Y_diag)[0*3 + 0];
-	mat_data(Y_diagt)[1*3 + 0] = mat_data(Y_diag)[0*3 + 1];
-	mat_data(Y_diagt)[2*3 + 0] = mat_data(Y_diag)[0*3 + 2];
-	mat_data(Y_diagt)[0*3 + 1] = mat_data(Y_diag)[1*3 + 0];
-	mat_data(Y_diagt)[1*3 + 1] = mat_data(Y_diag)[1*3 + 1];
-	mat_data(Y_diagt)[2*3 + 1] = mat_data(Y_diag)[1*3 + 2];
-	mat_data(Y_diagt)[0*3 + 2] = mat_data(Y_diag)[2*3 + 0];
-	mat_data(Y_diagt)[1*3 + 2] = mat_data(Y_diag)[2*3 + 1];
-	mat_data(Y_diagt)[2*3 + 2] = mat_data(Y_diag)[2*3 + 2];
-
-	//eW_C2eR = eW + C2*eR
-	mat_data(eW_C2eR)[0] = mat_data(eW)[0] + C2_gain*mat_data(eR)[0];
-	mat_data(eW_C2eR)[1] = mat_data(eW)[1] + C2_gain*mat_data(eR)[1];
-	mat_data(eW_C2eR)[2] = mat_data(eW)[2] + C2_gain*mat_data(eR)[2];
-
-	/* theta_diag update law */
-	//theta_diag_dot = Gamma*Y_diagt*eW_C2eR
-	MAT_MULT(&Y_diagt, &eW_C2eR, &Ydiagt_eWC2eR);
-	mat_data(theta_diag_hat_dot)[0] = Gamma_diag_gain[0]*mat_data(Ydiagt_eWC2eR)[0];
-	mat_data(theta_diag_hat_dot)[1] = Gamma_diag_gain[1]*mat_data(Ydiagt_eWC2eR)[1];
-	mat_data(theta_diag_hat_dot)[2] = Gamma_diag_gain[2]*mat_data(Ydiagt_eWC2eR)[2];
-	mat_data(theta_diag_hat)[0] += mat_data(theta_diag_hat_dot)[0] * dt;
-
-	/* rotational adaptive feedforward term */
-	//Y_diag*theta_diag_hat
-	mat_data(rota_ff)[0] = Gamma_diag_gain[0]*mat_data(theta_diag_hat)[0];
-	mat_data(rota_ff)[1] = Gamma_diag_gain[1]*mat_data(theta_diag_hat)[1];
-	mat_data(rota_ff)[2] = Gamma_diag_gain[2]*mat_data(theta_diag_hat)[2];
+	moment_ff_ctrl_use_ICL(moment_ff);
+#endif
 
 	/* control input M1, M2, M3 */
-	output_moments[0] = -krx*mat_data(eR)[0] -kwx*mat_data(eW)[0] + mat_data(rota_ff)[0];
-	output_moments[1] = -kry*mat_data(eR)[1] -kwy*mat_data(eW)[1] + mat_data(rota_ff)[1];
-	output_moments[2] = -krz*mat_data(eR)[2] -kwz*mat_data(eW)[2] + mat_data(rota_ff)[2];
-#endif
+	output_moments[0] = -krx*mat_data(eR)[0] -kwx*mat_data(eW)[0] + moment_ff[0];
+	output_moments[1] = -kry*mat_data(eR)[1] -kwy*mat_data(eW)[1] + moment_ff[1];
+	output_moments[2] = -krz*mat_data(eR)[2] -kwz*mat_data(eW)[2] + moment_ff[2];
 }
 
 #define l_div_4 (0.25f * (1.0f / MOTOR_TO_CG_LENGTH_M))
