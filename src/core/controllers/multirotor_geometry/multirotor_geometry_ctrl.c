@@ -511,7 +511,7 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 
 #if (SELECT_FEEDFORWARD == FEEDFORWARD_USE_GEOMETRY)
 	force_ff_ctrl_use_geometry(accel_ff_ned, accel_ff_ned);
-#elif (SELECT_FEEDFORWARD == FEEDFORWARD_USE_ICL)
+#elif (SELECT_FEEDFORWARD == FEEDFORWARD_USE_ADAPTIVE_ICL)
 	force_ff_ctrl_use_ICL(accel_ff_ned, force_ff_ned, pos_error, vel_error);
 #endif
 
@@ -614,7 +614,7 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 
 #if (SELECT_FEEDFORWARD == FEEDFORWARD_USE_GEOMETRY)
 	moment_ff_ctrl_use_geometry(moment_ff);
-#elif (SELECT_FEEDFORWARD == FEEDFORWARD_USE_ICL)
+#elif (SELECT_FEEDFORWARD == FEEDFORWARD_USE_ADAPTIVE_ICL)
 	moment_ff_ctrl_use_ICL(moment_ff);
 #endif
 

@@ -26,8 +26,13 @@
 
 /* feedforward control */
 #define FEEDFORWARD_USE_GEOMETRY 0
-#define FEEDFORWARD_USE_ICL 1
+#define FEEDFORWARD_USE_ADAPTIVE_ICL 1
 #define SELECT_FEEDFORWARD FEEDFORWARD_USE_GEOMETRY
+
+/* integral concurrent learning */
+#define ADAPTIVE_WITHOUT_ICL 0
+#define ADAPTIVE_WITH_ICL 1
+#define SELECT_ADAPTIVE_W_WO_ICL ADAPTIVE_WITHOUT_ICL
 
 /* heading sensor */
 #define NO_HEADING_SENSOR 0
