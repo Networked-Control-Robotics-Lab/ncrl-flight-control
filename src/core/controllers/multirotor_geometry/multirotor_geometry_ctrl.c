@@ -395,7 +395,7 @@ void force_ff_ctrl_use_geometry(float *accel_ff, float *force_ff){
 	force_ff[2] = uav_mass * (accel_ff[2] - 9.81);
 }
 
-void force_ff_ctrl_use_ICL(float *accel_ff, float *force_ff, float *pos_err, float *vel_err){
+void force_ff_ctrl_use_adaptive_ICL(float *accel_ff, float *force_ff, float *pos_err, float *vel_err){
 	/* with mass of uav unknown */
 	/* Y_m and Y_m transpose */
 	mat_data(Y_m)[0] = accel_ff[0];
@@ -434,7 +434,7 @@ void moment_ff_ctrl_use_geometry(float *mom_ff){
 	mom_ff[2] = mat_data(WJW)[2];
 }
 
-void moment_ff_ctrl_use_ICL(float *mom_ff){
+void moment_ff_ctrl_use_adaptive_ICL(float *mom_ff){
 	/* with moment of inertia of uav unknown */
 	/* Y_diag from angular velocity */
 	mat_data(Y_diag)[0*3 + 0] = 0;
@@ -512,7 +512,7 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 #if (SELECT_FEEDFORWARD == FEEDFORWARD_USE_GEOMETRY)
 	force_ff_ctrl_use_geometry(accel_ff_ned, accel_ff_ned);
 #elif (SELECT_FEEDFORWARD == FEEDFORWARD_USE_ADAPTIVE_ICL)
-	force_ff_ctrl_use_ICL(accel_ff_ned, force_ff_ned, pos_error, vel_error);
+	force_ff_ctrl_use_adaptive_ICL(accel_ff_ned, force_ff_ned, pos_error, vel_error);
 #endif
 
 	/* control input kxex_kvev_mge3_mxd_dot_dot */
@@ -615,7 +615,7 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 #if (SELECT_FEEDFORWARD == FEEDFORWARD_USE_GEOMETRY)
 	moment_ff_ctrl_use_geometry(moment_ff);
 #elif (SELECT_FEEDFORWARD == FEEDFORWARD_USE_ADAPTIVE_ICL)
-	moment_ff_ctrl_use_ICL(moment_ff);
+	moment_ff_ctrl_use_adaptive_ICL(moment_ff);
 #endif
 
 	/* control input M1, M2, M3 */
