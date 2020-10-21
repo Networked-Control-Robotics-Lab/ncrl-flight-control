@@ -553,6 +553,8 @@ void moment_ff_ctrl_use_adaptive_ICL(float *mom_ff){
 	mat_data(theta_diag_hat_dot)[1] = Gamma_diag_gain[1]*mat_data(Ydiagt_eWC2eR)[1];
 	mat_data(theta_diag_hat_dot)[2] = Gamma_diag_gain[2]*mat_data(Ydiagt_eWC2eR)[2];
 	mat_data(theta_diag_hat)[0] += mat_data(theta_diag_hat_dot)[0] * dt;
+	mat_data(theta_diag_hat)[1] += mat_data(theta_diag_hat_dot)[1] * dt;
+	mat_data(theta_diag_hat)[2] += mat_data(theta_diag_hat_dot)[2] * dt;
 
 	/* rotational adaptive feedforward term */
 	//Y_diag*theta_diag_hat
