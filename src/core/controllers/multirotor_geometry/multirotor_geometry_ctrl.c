@@ -28,6 +28,14 @@
 #define MOTOR_TO_CG_LENGTH 16.25f //[cm]
 #define MOTOR_TO_CG_LENGTH_M (MOTOR_TO_CG_LENGTH * 0.01) //[m]
 #define COEFFICIENT_YAW 1.0f
+#define N_m 10
+#define N_diag 10
+
+typedef struct{
+	bool isfull;
+	int index;
+	int N;
+}ICL_data;
 
 MAT_ALLOC(J, 3, 3);
 MAT_ALLOC(R, 3, 3);
@@ -63,8 +71,8 @@ MAT_ALLOC(b2d, 3, 1);
 MAT_ALLOC(b3d, 3, 1);
 MAT_ALLOC(Y_m, 3, 1);
 MAT_ALLOC(Y_mt, 1, 3);
-MAT_ALLOC(Y_m_cl, 3, 1);
-MAT_ALLOC(Y_m_clt, 1, 3);
+MAT_ALLOC(y_m_cl_integral, 3, 1);
+MAT_ALLOC(y_m_clt_integral, 1, 3);
 MAT_ALLOC(Y_diag, 3, 3);
 MAT_ALLOC(Y_diagt, 3, 3);
 MAT_ALLOC(Y_diag_cl, 3, 3);
@@ -77,6 +85,14 @@ MAT_ALLOC(ev_C1ex, 3, 1);
 MAT_ALLOC(eW_C2eR, 3, 1);
 MAT_ALLOC(Ymt_evC1ex, 1, 1);
 MAT_ALLOC(Ydiagt_eWC2eR, 3, 1);
+MAT_ALLOC(last_vel, 3, 1);
+MAT_ALLOC(last_force, 3, 1);
+MAT_ALLOC(curr_force, 3, 1);
+MAT_ALLOC(F_cl, 3, 1);
+MAT_ALLOC(mat_m_now, 1, 1);
+
+float mat_m_matrix[N_m] = {0.0f};
+float mat_m_sum = 0.0f;
 
 float pos_error[3];
 float vel_error[3];
@@ -93,7 +109,7 @@ float Gamma_m_gain;
 float Gamma_diag_gain[3];
 float C1_gain;
 float C2_gain;
-float k_cl_m_gain[3];
+float k_cl_m_gain;
 float k_cl_diag_gain[3];
 
 float uav_mass;
@@ -111,11 +127,26 @@ autopilot_t autopilot;
 
 bool height_ctrl_only = false;
 
+ICL_data force_ICL;
+ICL_data momen_ICL;
+
+void ICL_matrix_init(void){
+	force_ICL.index = 0;
+	force_ICL.isfull = false;
+	force_ICL.N = N_m;
+
+	momen_ICL.index = 0;
+	momen_ICL.isfull = false;
+	momen_ICL.N = N_diag;
+}
+
 void geometry_ctrl_init(void)
 {
 	init_multirotor_geometry_param_list();
 
 	autopilot_init(&autopilot);
+
+	ICL_matrix_init();
 
 	float geo_fence_origin[3] = {0.0f, 0.0f, 0.0f};
 	autopilot_set_enu_rectangular_fence(geo_fence_origin, 2.5f, 1.3f, 3.0f);
@@ -154,8 +185,8 @@ void geometry_ctrl_init(void)
 	MAT_INIT(b3d, 3, 1);
 	MAT_INIT(Y_m, 3, 1);
 	MAT_INIT(Y_mt, 1, 3);
-	MAT_INIT(Y_m_cl, 3, 1);
-	MAT_INIT(Y_m_clt, 1, 3);
+	MAT_INIT(y_m_cl_integral, 3, 1);
+	MAT_INIT(y_m_clt_integral, 1, 3);
 	MAT_INIT(Y_diag, 3, 3);
 	MAT_INIT(Y_diagt, 3, 3);
 	MAT_INIT(Y_diag_cl, 3, 3);
@@ -168,6 +199,11 @@ void geometry_ctrl_init(void)
 	MAT_INIT(eW_C2eR, 3, 1);
 	MAT_INIT(Ymt_evC1ex, 1, 1);
 	MAT_INIT(Ydiagt_eWC2eR, 3, 1);
+	MAT_INIT(last_vel, 3, 1);
+	MAT_INIT(last_force, 3, 1);
+	MAT_INIT(curr_force, 3, 1);
+	MAT_INIT(F_cl, 3, 1);
+	MAT_INIT(mat_m_now, 1, 1);
 
 	/* modify local variables when user change them via ground station */
 	set_sys_param_update_var_addr(MR_GEO_GAIN_ROLL_P, &krx);
@@ -192,9 +228,7 @@ void geometry_ctrl_init(void)
 	set_sys_param_update_var_addr(MR_ICL_GAIN_GAMMA_DIAG_Z, &Gamma_diag_gain[2]);
 	set_sys_param_update_var_addr(MR_ICL_GAIN_C1, &C1_gain);
 	set_sys_param_update_var_addr(MR_ICL_GAIN_C2, &C2_gain);
-	set_sys_param_update_var_addr(MR_ICL_GAIN_K_CL_M_X, &k_cl_m_gain[0]);
-	set_sys_param_update_var_addr(MR_ICL_GAIN_K_CL_M_Y, &k_cl_m_gain[1]);
-	set_sys_param_update_var_addr(MR_ICL_GAIN_K_CL_M_Z, &k_cl_m_gain[2]);
+	set_sys_param_update_var_addr(MR_ICL_GAIN_K_CL_M, &k_cl_m_gain);
 	set_sys_param_update_var_addr(MR_ICL_GAIN_K_CL_DIAG_X, &k_cl_diag_gain[0]);
 	set_sys_param_update_var_addr(MR_ICL_GAIN_K_CL_DIAG_Y, &k_cl_diag_gain[1]);
 	set_sys_param_update_var_addr(MR_ICL_GAIN_K_CL_DIAG_Z, &k_cl_diag_gain[2]);
@@ -239,9 +273,7 @@ void geometry_ctrl_init(void)
 	get_sys_param_float(MR_ICL_GAIN_K_CL_DIAG_Z, &Gamma_diag_gain[2]);
 	get_sys_param_float(MR_ICL_GAIN_C1, &C1_gain);
 	get_sys_param_float(MR_ICL_GAIN_C2, &C2_gain);
-	get_sys_param_float(MR_ICL_GAIN_K_CL_M_X, &k_cl_m_gain[0]);
-	get_sys_param_float(MR_ICL_GAIN_K_CL_M_Y, &k_cl_m_gain[1]);
-	get_sys_param_float(MR_ICL_GAIN_K_CL_M_Z, &k_cl_m_gain[2]);
+	get_sys_param_float(MR_ICL_GAIN_K_CL_M, &k_cl_m_gain);
 	get_sys_param_float(MR_ICL_GAIN_K_CL_DIAG_X, &k_cl_diag_gain[0]);
 	get_sys_param_float(MR_ICL_GAIN_K_CL_DIAG_Y, &k_cl_diag_gain[1]);
 	get_sys_param_float(MR_ICL_GAIN_K_CL_DIAG_Z, &k_cl_diag_gain[2]);
@@ -395,7 +427,7 @@ void force_ff_ctrl_use_geometry(float *accel_ff, float *force_ff){
 	force_ff[2] = uav_mass * (accel_ff[2] - 9.81);
 }
 
-void force_ff_ctrl_use_adaptive_ICL(float *accel_ff, float *force_ff, float *pos_err, float *vel_err){
+void force_ff_ctrl_use_adaptive_ICL(float *accel_ff, float *force_ff, float *pos_err, float *vel_err, float *curr_vel){
 	/* with mass of uav unknown */
 	/* Y_m and Y_m transpose */
 	mat_data(Y_m)[0] = accel_ff[0];
@@ -410,10 +442,61 @@ void force_ff_ctrl_use_adaptive_ICL(float *accel_ff, float *force_ff, float *pos
 	mat_data(ev_C1ex)[1] = vel_err[1] + C1_gain*pos_err[1];
 	mat_data(ev_C1ex)[2] = vel_err[2] + C1_gain*pos_err[2];
 
-	/* theta_m update law */
-	//theta_m_dot = Gamma*Y_mt*ev_C1ex
+	/* first term of theta_m update law */
 	MAT_MULT(&Y_mt, &ev_C1ex, &Ymt_evC1ex);
+
+#if (SELECT_ADAPTIVE_W_WO_ICL == ADAPTIVE_WITHOUT_ICL)
+	//theta_m_dot = Gamma*Y_mt*ev_C1ex
 	mat_data(theta_m_hat_dot)[0] = Gamma_m_gain*mat_data(Ymt_evC1ex)[0];
+#elif (SELECT_ADAPTIVE_W_WO_ICL == ADAPTIVE_WITH_ICL)
+	/* y_m_cl_integral and y_m_cl_integral transpose */
+	mat_data(y_m_cl_integral)[0] = -(curr_vel[0] - mat_data(last_vel)[0]);
+	mat_data(y_m_cl_integral)[1] = -(curr_vel[1] - mat_data(last_vel)[1]);
+	mat_data(y_m_cl_integral)[2] = -(curr_vel[2] - mat_data(last_vel)[2]) + 9.81*dt;
+
+	mat_data(y_m_clt_integral)[0] = mat_data(y_m_clt_integral)[0];
+	mat_data(y_m_clt_integral)[1] = mat_data(y_m_clt_integral)[1];
+	mat_data(y_m_clt_integral)[2] = mat_data(y_m_clt_integral)[2];
+
+	/* prepare force control input used in ICL */
+	MAT_SUB(&curr_force, &last_force, &F_cl);
+
+	/* prepare past data */
+	mat_data(mat_m_now)[0] = mat_data(y_m_clt_integral)[0]
+						*(mat_data(F_cl)[0]-mat_data(y_m_cl_integral)[0]*mat_data(theta_m_hat)[0]);
+	mat_data(mat_m_now)[0] += mat_data(y_m_clt_integral)[1]
+						*(mat_data(F_cl)[1]-mat_data(y_m_cl_integral)[1]*mat_data(theta_m_hat)[1]);
+	mat_data(mat_m_now)[0] += mat_data(y_m_clt_integral)[2]
+						*(mat_data(F_cl)[2]-mat_data(y_m_cl_integral)[2]*mat_data(theta_m_hat)[2]);
+	/* summation of past data */
+	if (force_ICL.index >= force_ICL.N){
+		force_ICL.index = 0;
+		force_ICL.isfull = true;
+	}
+	mat_m_matrix[force_ICL.index] = mat_data(mat_m_now)[0];
+	force_ICL.index++;
+	if (!force_ICL.isfull){
+		mat_m_sum = 0;
+		for (int i = 0; i < force_ICL.index; i++){
+			mat_m_sum += mat_m_matrix[i];
+		}
+	}else{
+		mat_m_sum = 0;
+		for (int i = 0; i < force_ICL.N; i++){
+			mat_m_sum += mat_m_matrix[i];
+		}
+	}
+
+	/* save current velocity as last velocity in the next loop */
+	mat_data(last_vel)[0] = curr_vel[0];
+	mat_data(last_vel)[1] = curr_vel[1];
+	mat_data(last_vel)[2] = curr_vel[2];
+
+	//theta_m_dot = Gamma*Y_mt*ev_C1ex + ICL update law
+	mat_data(theta_m_hat_dot)[0] = Gamma_m_gain*mat_data(Ymt_evC1ex)[0]
+									 + k_cl_m_gain*Gamma_m_gain*mat_m_sum;
+#endif
+
 	mat_data(theta_m_hat)[0] += mat_data(theta_m_hat_dot)[0] * dt;
 
 	/* translational adaptive feedforward term */
@@ -512,7 +595,7 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 #if (SELECT_FEEDFORWARD == FEEDFORWARD_USE_GEOMETRY)
 	force_ff_ctrl_use_geometry(accel_ff_ned, accel_ff_ned);
 #elif (SELECT_FEEDFORWARD == FEEDFORWARD_USE_ADAPTIVE_ICL)
-	force_ff_ctrl_use_adaptive_ICL(accel_ff_ned, force_ff_ned, pos_error, vel_error);
+	force_ff_ctrl_use_adaptive_ICL(accel_ff_ned, force_ff_ned, pos_error, vel_error, curr_vel_ned);
 #endif
 
 	/* control input kxex_kvev_mge3_mxd_dot_dot */
@@ -581,6 +664,15 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	neg_kxex_kvev_mge3_mxd_dot_dot[1] = -mat_data(kxex_kvev_mge3_mxd_dot_dot)[1];
 	neg_kxex_kvev_mge3_mxd_dot_dot[2] = -mat_data(kxex_kvev_mge3_mxd_dot_dot)[2];
 	arm_dot_prod_f32(neg_kxex_kvev_mge3_mxd_dot_dot, mat_data(Re3), 3, output_force);
+
+	/* save current force and last force for ICL */
+	mat_data(last_force)[0] = mat_data(curr_force)[0];
+	mat_data(last_force)[1] = mat_data(curr_force)[1];
+	mat_data(last_force)[2] = mat_data(curr_force)[2];
+
+	mat_data(curr_force)[0] = (*output_force)*mat_data(Re3)[0];
+	mat_data(curr_force)[1] = (*output_force)*mat_data(Re3)[1];
+	mat_data(curr_force)[2] = (*output_force)*mat_data(Re3)[2];
 
 	/* W (angular velocity) */
 	mat_data(W)[0] = gyro[0];
