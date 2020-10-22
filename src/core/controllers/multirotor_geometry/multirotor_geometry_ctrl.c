@@ -86,12 +86,10 @@ MAT_ALLOC(eW_C2eR, 3, 1);
 MAT_ALLOC(Ymt_evC1ex, 1, 1);
 MAT_ALLOC(Ydiagt_eWC2eR, 3, 1);
 MAT_ALLOC(last_vel, 3, 1);
-MAT_ALLOC(last_force, 3, 1);
 MAT_ALLOC(curr_force, 3, 1);
 MAT_ALLOC(F_cl, 3, 1);
 MAT_ALLOC(mat_m_now, 1, 1);
 MAT_ALLOC(last_W, 3, 1);
-MAT_ALLOC(last_moment, 3, 1);
 MAT_ALLOC(curr_moment, 3, 1);
 MAT_ALLOC(M_cl, 3, 1);
 MAT_ALLOC(yDiagCl_thetaDiatHat, 3, 1);
@@ -209,12 +207,10 @@ void geometry_ctrl_init(void)
 	MAT_INIT(Ymt_evC1ex, 1, 1);
 	MAT_INIT(Ydiagt_eWC2eR, 3, 1);
 	MAT_INIT(last_vel, 3, 1);
-	MAT_INIT(last_force, 3, 1);
 	MAT_INIT(curr_force, 3, 1);
 	MAT_INIT(F_cl, 3, 1);
 	MAT_INIT(mat_m_now, 1, 1);
 	MAT_INIT(last_W, 3, 1);
-	MAT_INIT(last_moment, 3, 1);
 	MAT_INIT(curr_moment, 3, 1);
 	MAT_INIT(M_cl, 3, 1);
 	MAT_INIT(yDiagCl_thetaDiatHat, 3, 1);
@@ -475,7 +471,9 @@ void force_ff_ctrl_use_adaptive_ICL(float *accel_ff, float *force_ff, float *pos
 	mat_data(y_m_clt_integral)[2] = mat_data(y_m_clt_integral)[2];
 
 	/* prepare force control input used in ICL */
-	MAT_SUB(&curr_force, &last_force, &F_cl);
+	mat_data(F_cl)[0] = mat_data(curr_force)[0]*dt;
+	mat_data(F_cl)[1] = mat_data(curr_force)[1]*dt;
+	mat_data(F_cl)[2] = mat_data(curr_force)[2]*dt;
 
 	/* prepare past data */
 	mat_data(mat_m_now)[0] = mat_data(y_m_clt_integral)[0]
@@ -593,8 +591,10 @@ void moment_ff_ctrl_use_adaptive_ICL(float *mom_ff){
 	mat_data(y_diag_clt_integral)[1*3 + 2] = mat_data(y_diag_cl_integral)[2*3 + 1];
 	mat_data(y_diag_clt_integral)[2*3 + 2] = mat_data(y_diag_cl_integral)[2*3 + 2];
 
-	/* prepare force control input used in ICL */
-	MAT_SUB(&curr_moment, &last_moment, &M_cl);
+	/* prepare moment control input used in ICL */
+	mat_data(M_cl)[0] = mat_data(curr_moment)[0]*dt;
+	mat_data(M_cl)[1] = mat_data(curr_moment)[1]*dt;
+	mat_data(M_cl)[2] = mat_data(curr_moment)[2]*dt;
 
 	/* prepare past data */
 	MAT_MULT(&y_diag_cl_integral, &theta_diag_hat, &yDiagCl_thetaDiatHat);
@@ -758,11 +758,7 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	neg_kxex_kvev_mge3_mxd_dot_dot[2] = -mat_data(kxex_kvev_mge3_mxd_dot_dot)[2];
 	arm_dot_prod_f32(neg_kxex_kvev_mge3_mxd_dot_dot, mat_data(Re3), 3, output_force);
 
-	/* save current force and last force for ICL */
-	mat_data(last_force)[0] = mat_data(curr_force)[0];
-	mat_data(last_force)[1] = mat_data(curr_force)[1];
-	mat_data(last_force)[2] = mat_data(curr_force)[2];
-
+	/* save current force for ICL */
 	mat_data(curr_force)[0] = (*output_force)*mat_data(Re3)[0];
 	mat_data(curr_force)[1] = (*output_force)*mat_data(Re3)[1];
 	mat_data(curr_force)[2] = (*output_force)*mat_data(Re3)[2];
@@ -803,11 +799,7 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	moment_ff_ctrl_use_adaptive_ICL(moment_ff);
 #endif
 
-	/* save current moment and last moment for ICL */
-	mat_data(last_moment)[0] = mat_data(curr_moment)[0];
-	mat_data(last_moment)[1] = mat_data(curr_moment)[1];
-	mat_data(last_moment)[2] = mat_data(curr_moment)[2];
-
+	/* save current moment for ICL */
 	mat_data(curr_moment)[0] = -krx*mat_data(eR)[0] -kwx*mat_data(eW)[0] + moment_ff[0];
 	mat_data(curr_moment)[1] = -krx*mat_data(eR)[1] -kwx*mat_data(eW)[1] + moment_ff[1];
 	mat_data(curr_moment)[2] = -krx*mat_data(eR)[2] -kwx*mat_data(eW)[2] + moment_ff[2];
