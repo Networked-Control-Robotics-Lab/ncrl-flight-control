@@ -406,7 +406,7 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 		mat_data(Rtd)[1*3 + 0] = mat_data(Rd)[0*3 + 1];
 		mat_data(Rtd)[2*3 + 0] = mat_data(Rd)[0*3 + 2];
 		mat_data(Rtd)[0*3 + 1] = mat_data(Rd)[1*3 + 0];
-		mat_data(Rtd)[1*3 + 1] = mat_data(Rd)[1*3 + 0];
+		mat_data(Rtd)[1*3 + 1] = mat_data(Rd)[1*3 + 1];
 		mat_data(Rtd)[2*3 + 1] = mat_data(Rd)[1*3 + 2];
 		mat_data(Rtd)[0*3 + 2] = mat_data(Rd)[2*3 + 0];
 		mat_data(Rtd)[1*3 + 2] = mat_data(Rd)[2*3 + 1];
