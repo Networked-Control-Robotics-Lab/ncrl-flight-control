@@ -572,13 +572,13 @@ void moment_ff_ctrl_use_adaptive_ICL(float *mom_ff){
 #elif (SELECT_ADAPTIVE_W_WO_ICL == ADAPTIVE_WITH_ICL)
 	/* y_diag_cl_integral and y_diag_cl_integral transpose */
 	mat_data(y_diag_cl_integral)[0*3 + 0] = mat_data(W)[0] - mat_data(last_W)[0];
-	mat_data(y_diag_cl_integral)[1*3 + 0] = (mat_data(W)[0]*mat_data(W)[2] - mat_data(last_W)[0]*mat_data(last_W)[2])*dt;
-	mat_data(y_diag_cl_integral)[2*3 + 0] = (-mat_data(W)[0]*mat_data(W)[1] + mat_data(last_W)[0]*mat_data(last_W)[1])*dt;
-	mat_data(y_diag_cl_integral)[0*3 + 1] = (-mat_data(W)[1]*mat_data(W)[2] + mat_data(last_W)[1]*mat_data(last_W)[2])*dt;
+	mat_data(y_diag_cl_integral)[1*3 + 0] = (mat_data(W)[0]*mat_data(W)[2])*dt;
+	mat_data(y_diag_cl_integral)[2*3 + 0] = (-mat_data(W)[0]*mat_data(W)[1])*dt;
+	mat_data(y_diag_cl_integral)[0*3 + 1] = (-mat_data(W)[1]*mat_data(W)[2])*dt;
 	mat_data(y_diag_cl_integral)[1*3 + 1] = mat_data(W)[1] - mat_data(last_W)[1];
-	mat_data(y_diag_cl_integral)[2*3 + 1] = (mat_data(W)[0]*mat_data(W)[1] - mat_data(last_W)[0]*mat_data(last_W)[1])*dt;
-	mat_data(y_diag_cl_integral)[0*3 + 2] = (mat_data(W)[1]*mat_data(W)[2] - mat_data(last_W)[1]*mat_data(last_W)[2])*dt;
-	mat_data(y_diag_cl_integral)[1*3 + 2] = (-mat_data(W)[0]*mat_data(W)[2] + mat_data(last_W)[0]*mat_data(last_W)[2])*dt;
+	mat_data(y_diag_cl_integral)[2*3 + 1] = (mat_data(W)[0]*mat_data(W)[1])*dt;
+	mat_data(y_diag_cl_integral)[0*3 + 2] = (mat_data(W)[1]*mat_data(W)[2])*dt;
+	mat_data(y_diag_cl_integral)[1*3 + 2] = (-mat_data(W)[0]*mat_data(W)[2])*dt;
 	mat_data(y_diag_cl_integral)[2*3 + 2] = mat_data(W)[2] - mat_data(last_W)[2];
 
 	mat_data(y_diag_clt_integral)[0*3 + 0] = mat_data(y_diag_cl_integral)[0*3 + 0];
