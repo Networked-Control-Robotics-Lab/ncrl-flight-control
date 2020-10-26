@@ -31,11 +31,11 @@
 #define N_m 10
 #define N_diag 10
 
-typedef struct{
+typedef struct {
 	bool isfull;
 	int index;
 	int N;
-}ICL_data;
+} ICL_data;
 
 MAT_ALLOC(J, 3, 3);
 MAT_ALLOC(R, 3, 3);
@@ -141,7 +141,8 @@ bool height_ctrl_only = false;
 ICL_data force_ICL;
 ICL_data momen_ICL;
 
-void ICL_matrix_init(void){
+void ICL_matrix_init(void)
+{
 	force_ICL.index = 0;
 	force_ICL.isfull = false;
 	force_ICL.N = N_m;
@@ -440,14 +441,16 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 	output_moments[2] = -_krz*mat_data(eR)[2] -_kwz*mat_data(eW)[2] + mat_data(inertia_effect)[2];
 }
 
-void force_ff_ctrl_use_geometry(float *accel_ff, float *force_ff){
+void force_ff_ctrl_use_geometry(float *accel_ff, float *force_ff)
+{
 	/* with mass of uav known */
 	force_ff[0] = uav_mass * accel_ff[0];
 	force_ff[1] = uav_mass * accel_ff[1];
 	force_ff[2] = uav_mass * (accel_ff[2] - 9.81);
 }
 
-void force_ff_ctrl_use_adaptive_ICL(float *accel_ff, float *force_ff, float *pos_err, float *vel_err, float *curr_vel){
+void force_ff_ctrl_use_adaptive_ICL(float *accel_ff, float *force_ff, float *pos_err, float *vel_err, float *curr_vel)
+{
 	/* with mass of uav unknown */
 	/* Y_m and Y_m transpose */
 	mat_data(Y_m)[0] = accel_ff[0];
@@ -485,27 +488,27 @@ void force_ff_ctrl_use_adaptive_ICL(float *accel_ff, float *force_ff, float *pos
 
 	/* prepare past data */
 	mat_data(mat_m_now)[0] = mat_data(y_m_clt_integral)[0]
-						*(mat_data(F_cl)[0]-mat_data(y_m_cl_integral)[0]*mat_data(theta_m_hat)[0]);
+	                         *(mat_data(F_cl)[0]-mat_data(y_m_cl_integral)[0]*mat_data(theta_m_hat)[0]);
 	mat_data(mat_m_now)[0] += mat_data(y_m_clt_integral)[1]
-						*(mat_data(F_cl)[1]-mat_data(y_m_cl_integral)[1]*mat_data(theta_m_hat)[1]);
+	                          *(mat_data(F_cl)[1]-mat_data(y_m_cl_integral)[1]*mat_data(theta_m_hat)[1]);
 	mat_data(mat_m_now)[0] += mat_data(y_m_clt_integral)[2]
-						*(mat_data(F_cl)[2]-mat_data(y_m_cl_integral)[2]*mat_data(theta_m_hat)[2]);
+	                          *(mat_data(F_cl)[2]-mat_data(y_m_cl_integral)[2]*mat_data(theta_m_hat)[2]);
 
 	/* summation of past data */
-	if (force_ICL.index >= force_ICL.N){
+	if (force_ICL.index >= force_ICL.N) {
 		force_ICL.index = 0;
 		force_ICL.isfull = true;
 	}
 	mat_m_matrix[force_ICL.index] = mat_data(mat_m_now)[0];
 	force_ICL.index++;
-	if (!force_ICL.isfull){
+	if (!force_ICL.isfull) {
 		mat_m_sum = 0;
-		for (int i = 0; i < force_ICL.index; i++){
+		for (int i = 0; i < force_ICL.index; i++) {
 			mat_m_sum += mat_m_matrix[i];
 		}
-	}else{
+	} else {
 		mat_m_sum = 0;
-		for (int i = 0; i < force_ICL.N; i++){
+		for (int i = 0; i < force_ICL.N; i++) {
 			mat_m_sum += mat_m_matrix[i];
 		}
 	}
@@ -521,7 +524,7 @@ void force_ff_ctrl_use_adaptive_ICL(float *accel_ff, float *force_ff, float *pos
 
 	/* theta_m_dot = adaptive law + ICL update law */
 	mat_data(theta_m_hat_dot)[0] = mat_data(theta_m_hat_dot_adaptive)[0]
-									+ mat_data(theta_m_hat_dot_ICL)[0];
+	                               + mat_data(theta_m_hat_dot_ICL)[0];
 #endif
 
 	mat_data(theta_m_hat)[0] += mat_data(theta_m_hat_dot)[0] * dt;
@@ -533,7 +536,8 @@ void force_ff_ctrl_use_adaptive_ICL(float *accel_ff, float *force_ff, float *pos
 	force_ff[2] = mat_data(Y_m)[2]*mat_data(theta_m_hat)[0];
 }
 
-void moment_ff_ctrl_use_geometry(float *mom_ff){
+void moment_ff_ctrl_use_geometry(float *mom_ff)
+{
 	/* with moment of inertia of uav known */
 	/* calculate the inertia feedfoward term */
 	//W x JW
@@ -544,7 +548,8 @@ void moment_ff_ctrl_use_geometry(float *mom_ff){
 	mom_ff[2] = mat_data(WJW)[2];
 }
 
-void moment_ff_ctrl_use_adaptive_ICL(float *mom_ff){
+void moment_ff_ctrl_use_adaptive_ICL(float *mom_ff)
+{
 	/* with moment of inertia of uav unknown */
 	/* Y_diag from angular velocity */
 	mat_data(Y_diag)[0*3 + 0] = 0;
@@ -614,7 +619,7 @@ void moment_ff_ctrl_use_adaptive_ICL(float *mom_ff){
 	MAT_MULT(&y_diag_clt_integral, &M_sub_err, &mat_diag_now);
 
 	/* summation of past data */
-	if (momen_ICL.index >= momen_ICL.N){
+	if (momen_ICL.index >= momen_ICL.N) {
 		momen_ICL.index = 0;
 		momen_ICL.isfull = true;
 	}
@@ -622,20 +627,20 @@ void moment_ff_ctrl_use_adaptive_ICL(float *mom_ff){
 	mat_diag_matrix[1][momen_ICL.index] = mat_data(mat_diag_now)[1];
 	mat_diag_matrix[2][momen_ICL.index] = mat_data(mat_diag_now)[2];
 	momen_ICL.index++;
-	if (!momen_ICL.isfull){
+	if (!momen_ICL.isfull) {
 		mat_diag_sum[0] = 0.0f;
 		mat_diag_sum[1] = 0.0f;
 		mat_diag_sum[2] = 0.0f;
-		for (int i = 0; i < momen_ICL.index; i++){
+		for (int i = 0; i < momen_ICL.index; i++) {
 			mat_diag_sum[0] += mat_diag_matrix[0][i];
 			mat_diag_sum[1] += mat_diag_matrix[1][i];
 			mat_diag_sum[2] += mat_diag_matrix[2][i];
 		}
-	}else{
+	} else {
 		mat_diag_sum[0] = 0.0f;
 		mat_diag_sum[1] = 0.0f;
 		mat_diag_sum[2] = 0.0f;
-		for (int i = 0; i < momen_ICL.N; i++){
+		for (int i = 0; i < momen_ICL.N; i++) {
 			mat_diag_sum[0] += mat_diag_matrix[0][i];
 			mat_diag_sum[1] += mat_diag_matrix[1][i];
 			mat_diag_sum[2] += mat_diag_matrix[2][i];
@@ -657,11 +662,11 @@ void moment_ff_ctrl_use_adaptive_ICL(float *mom_ff){
 
 	/* theta_diag_dot = adaptive law + ICL update law */
 	mat_data(theta_diag_hat_dot)[0] = mat_data(theta_diag_hat_dot_adaptive)[0]
-										+ mat_data(theta_diag_hat_dot_ICL)[0];
+	                                  + mat_data(theta_diag_hat_dot_ICL)[0];
 	mat_data(theta_diag_hat_dot)[1] = mat_data(theta_diag_hat_dot_adaptive)[1]
-										+ mat_data(theta_diag_hat_dot_ICL)[1];
+	                                  + mat_data(theta_diag_hat_dot_ICL)[1];
 	mat_data(theta_diag_hat_dot)[2] = mat_data(theta_diag_hat_dot_adaptive)[2]
-										+ mat_data(theta_diag_hat_dot_ICL)[2];
+	                                  + mat_data(theta_diag_hat_dot_ICL)[2];
 #endif
 
 	mat_data(theta_diag_hat)[0] += mat_data(theta_diag_hat_dot)[0] * dt;
