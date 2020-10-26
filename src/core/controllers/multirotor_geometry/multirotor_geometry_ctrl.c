@@ -79,8 +79,12 @@ MAT_ALLOC(y_diag_cl_integral, 3, 3);
 MAT_ALLOC(y_diag_clt_integral, 3, 3);
 MAT_ALLOC(theta_m_hat, 1, 1);
 MAT_ALLOC(theta_m_hat_dot, 1, 1);
+MAT_ALLOC(theta_m_hat_dot_adaptive, 1, 1);
+MAT_ALLOC(theta_m_hat_dot_ICL, 1, 1);
 MAT_ALLOC(theta_diag_hat, 3, 1);
 MAT_ALLOC(theta_diag_hat_dot, 3, 1);
+MAT_ALLOC(theta_diag_hat_dot_adaptive, 3, 1);
+MAT_ALLOC(theta_diag_hat_dot_ICL, 3, 1);
 MAT_ALLOC(ev_C1ex, 3, 1);
 MAT_ALLOC(eW_C2eR, 3, 1);
 MAT_ALLOC(Ymt_evC1ex, 1, 1);
@@ -200,8 +204,12 @@ void geometry_ctrl_init(void)
 	MAT_INIT(y_diag_clt_integral, 3, 3);
 	MAT_INIT(theta_m_hat, 1, 1);
 	MAT_INIT(theta_m_hat_dot, 1, 1);
+	MAT_INIT(theta_m_hat_dot_adaptive, 1, 1);
+	MAT_INIT(theta_m_hat_dot_ICL, 1, 1);
 	MAT_INIT(theta_diag_hat, 3, 1);
 	MAT_INIT(theta_diag_hat_dot, 3, 1);
+	MAT_INIT(theta_diag_hat_dot_adaptive, 1, 1);
+	MAT_INIT(theta_diag_hat_dot_ICL, 1, 1);
 	MAT_INIT(ev_C1ex, 3, 1);
 	MAT_INIT(eW_C2eR, 3, 1);
 	MAT_INIT(Ymt_evC1ex, 1, 1);
@@ -507,9 +515,13 @@ void force_ff_ctrl_use_adaptive_ICL(float *accel_ff, float *force_ff, float *pos
 	mat_data(last_vel)[1] = curr_vel[1];
 	mat_data(last_vel)[2] = curr_vel[2];
 
-	//theta_m_dot = Gamma*Y_mt*ev_C1ex + ICL update law
-	mat_data(theta_m_hat_dot)[0] = Gamma_m_gain*mat_data(Ymt_evC1ex)[0]
-									 + k_cl_m_gain*Gamma_m_gain*mat_m_sum;
+	/* prepare components of theta_m_hat_dot */
+	mat_data(theta_m_hat_dot_adaptive)[0] = Gamma_m_gain*mat_data(Ymt_evC1ex)[0];
+	mat_data(theta_m_hat_dot_ICL)[0] = k_cl_m_gain*Gamma_m_gain*mat_m_sum;
+
+	/* theta_m_dot = adaptive law + ICL update law */
+	mat_data(theta_m_hat_dot)[0] = mat_data(theta_m_hat_dot_adaptive)[0]
+									+ mat_data(theta_m_hat_dot_ICL)[0];
 #endif
 
 	mat_data(theta_m_hat)[0] += mat_data(theta_m_hat_dot)[0] * dt;
@@ -635,12 +647,21 @@ void moment_ff_ctrl_use_adaptive_ICL(float *mom_ff){
 	mat_data(last_W)[1] = mat_data(W)[1];
 	mat_data(last_W)[2] = mat_data(W)[2];
 
-	mat_data(theta_diag_hat_dot)[0] = Gamma_diag_gain[0]*mat_data(Ydiagt_eWC2eR)[0]
-										+ k_cl_diag_gain[0]*Gamma_diag_gain[0]*mat_diag_sum[0];
-	mat_data(theta_diag_hat_dot)[1] = Gamma_diag_gain[1]*mat_data(Ydiagt_eWC2eR)[1]
-										+ k_cl_diag_gain[1]*Gamma_diag_gain[1]*mat_diag_sum[1];
-	mat_data(theta_diag_hat_dot)[2] = Gamma_diag_gain[2]*mat_data(Ydiagt_eWC2eR)[2]
-										+ k_cl_diag_gain[2]*Gamma_diag_gain[2]*mat_diag_sum[2];
+	/* prepare components of theta_diag_hat_dot */
+	mat_data(theta_diag_hat_dot_adaptive)[0] = Gamma_diag_gain[0]*mat_data(Ydiagt_eWC2eR)[0];
+	mat_data(theta_diag_hat_dot_adaptive)[1] = Gamma_diag_gain[1]*mat_data(Ydiagt_eWC2eR)[1];
+	mat_data(theta_diag_hat_dot_adaptive)[2] = Gamma_diag_gain[2]*mat_data(Ydiagt_eWC2eR)[2];
+	mat_data(theta_diag_hat_dot_ICL)[0] = k_cl_diag_gain[0]*Gamma_diag_gain[0]*mat_diag_sum[0];
+	mat_data(theta_diag_hat_dot_ICL)[1] = k_cl_diag_gain[1]*Gamma_diag_gain[1]*mat_diag_sum[1];
+	mat_data(theta_diag_hat_dot_ICL)[2] = k_cl_diag_gain[2]*Gamma_diag_gain[2]*mat_diag_sum[2];
+
+	/* theta_diag_dot = adaptive law + ICL update law */
+	mat_data(theta_diag_hat_dot)[0] = mat_data(theta_diag_hat_dot_adaptive)[0]
+										+ mat_data(theta_diag_hat_dot_ICL)[0];
+	mat_data(theta_diag_hat_dot)[1] = mat_data(theta_diag_hat_dot_adaptive)[1]
+										+ mat_data(theta_diag_hat_dot_ICL)[1];
+	mat_data(theta_diag_hat_dot)[2] = mat_data(theta_diag_hat_dot_adaptive)[2]
+										+ mat_data(theta_diag_hat_dot_ICL)[2];
 #endif
 
 	mat_data(theta_diag_hat)[0] += mat_data(theta_diag_hat_dot)[0] * dt;
