@@ -50,6 +50,8 @@
 
 #define MPU6500T_85degC 0.00294f
 
+#define GYRO_DLPF_BANDWIDTH_20Hz 0x04
+
 enum {
 	MPU6500_GYRO_FS_2G = 0,
 	MPU6500_GYRO_FS_4G = 1,

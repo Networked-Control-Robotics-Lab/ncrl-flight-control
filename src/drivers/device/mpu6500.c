@@ -96,19 +96,19 @@ void mpu6500_init(void)
 
 	switch(mpu6500.accel_fs) {
 	case MPU6500_GYRO_FS_2G:
-		mpu6500.accel_scale = 9.8 / 16384.0f;
+		mpu6500.accel_scale = 9.81 / 16384.0f;
 		mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x00);
 		break;
 	case MPU6500_GYRO_FS_4G:
-		mpu6500.accel_scale = 9.8f / 8192.0f;
+		mpu6500.accel_scale = 9.81f / 8192.0f;
 		mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x08);
 		break;
 	case MPU6500_GYRO_FS_8G:
-		mpu6500.accel_scale = 9.8f / 4096.0f;
+		mpu6500.accel_scale = 9.81f / 4096.0f;
 		mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x10);
 		break;
 	case MPU6500_GYRO_FS_16G:
-		mpu6500.accel_scale = 9.8f / 2048.0f;
+		mpu6500.accel_scale = 9.81f / 2048.0f;
 		mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x18);
 		break;
 	}
@@ -159,9 +159,16 @@ void mpu6500_init(void)
 	}
 	blocked_delay_ms(100);
 
-	mpu6500_write_byte(MPU6500_ACCEL_CONFIG2, 0x08); //accel update rate: 4KHz, disable internel lpf
+	//gyroscope update rate = 1KHz, low pass filter bandwitdh = 20Hz
+	mpu6500_write_byte(MPU6500_CONFIG, GYRO_DLPF_BANDWIDTH_20Hz);
 	blocked_delay_ms(100);
-	mpu6500_write_byte(MPU6500_INT_ENABLE, 0x01); //enable data ready interrupt
+
+	//accel update rate: 4KHz, disable internel lpf
+	mpu6500_write_byte(MPU6500_ACCEL_CONFIG2, 0x08);
+	blocked_delay_ms(100);
+
+	//enable data ready interrupt
+	mpu6500_write_byte(MPU6500_INT_ENABLE, 0x01);
 	blocked_delay_ms(100);
 
 	while(mpu6500.init_finished == false);
