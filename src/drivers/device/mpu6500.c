@@ -163,8 +163,8 @@ void mpu6500_init(void)
 	mpu6500_write_byte(MPU6500_CONFIG, GYRO_DLPF_BANDWIDTH_20Hz);
 	blocked_delay_ms(100);
 
-	//accel update rate: 4KHz, disable internel lpf
-	mpu6500_write_byte(MPU6500_ACCEL_CONFIG2, 0x08);
+	//acceleromter update rate = 1KHz, low pass filter bandwitdh = 20Hz
+	mpu6500_write_byte(MPU6500_ACCEL_CONFIG2, ACCEL_DLPF_BANDWIDTH_20Hz);
 	blocked_delay_ms(100);
 
 	//enable data ready interrupt
@@ -273,9 +273,9 @@ void mpu6500_int_handler(void)
 	mpu6500_accel_apply_calibration(mpu6500.accel_raw);
 
 	/* low pass filtering for accelerometer, gyroscope do not require this process */
-	lpf_first_order(mpu6500.accel_raw[0], &(mpu6500.accel_lpf[0]), 0.03);
-	lpf_first_order(mpu6500.accel_raw[1], &(mpu6500.accel_lpf[1]), 0.03);
-	lpf_first_order(mpu6500.accel_raw[2], &(mpu6500.accel_lpf[2]), 0.03);
+	lpf_first_order(mpu6500.accel_raw[0], &(mpu6500.accel_lpf[0]), 0.135);
+	lpf_first_order(mpu6500.accel_raw[1], &(mpu6500.accel_lpf[1]), 0.135);
+	lpf_first_order(mpu6500.accel_raw[2], &(mpu6500.accel_lpf[2]), 0.135);
 	mpu6500.gyro_lpf[0] = mpu6500.gyro_raw[0];
 	mpu6500.gyro_lpf[1] = mpu6500.gyro_raw[1];
 	mpu6500.gyro_lpf[2] = mpu6500.gyro_raw[2];
