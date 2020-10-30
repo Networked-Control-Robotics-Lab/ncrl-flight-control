@@ -273,9 +273,9 @@ void mpu6500_int_handler(void)
 	mpu6500_accel_apply_calibration(mpu6500.accel_raw);
 
 	/* low pass filtering for accelerometer, gyroscope do not require this process */
-	lpf(mpu6500.accel_raw[0], &(mpu6500.accel_lpf[0]), 0.03);
-	lpf(mpu6500.accel_raw[1], &(mpu6500.accel_lpf[1]), 0.03);
-	lpf(mpu6500.accel_raw[2], &(mpu6500.accel_lpf[2]), 0.03);
+	lpf_first_order(mpu6500.accel_raw[0], &(mpu6500.accel_lpf[0]), 0.03);
+	lpf_first_order(mpu6500.accel_raw[1], &(mpu6500.accel_lpf[1]), 0.03);
+	lpf_first_order(mpu6500.accel_raw[2], &(mpu6500.accel_lpf[2]), 0.03);
 	mpu6500.gyro_lpf[0] = mpu6500.gyro_raw[0];
 	mpu6500.gyro_lpf[1] = mpu6500.gyro_raw[1];
 	mpu6500.gyro_lpf[2] = mpu6500.gyro_raw[2];
