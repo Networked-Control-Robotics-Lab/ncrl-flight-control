@@ -23,6 +23,8 @@ mpu6500_t mpu6500 = {
 	.init_finished = false,
 };
 
+float mpu6500_lpf_gain;
+
 static uint8_t mpu6500_read_byte(uint8_t address)
 {
 	uint8_t read;
@@ -171,6 +173,9 @@ void mpu6500_init(void)
 	mpu6500_write_byte(MPU6500_INT_ENABLE, 0x01);
 	blocked_delay_ms(100);
 
+	//sampling time = 0.001s (1KHz), cutoff frequency = 25Hz
+	lpf_first_order_init(&mpu6500_lpf_gain, 0.001, 25);
+
 	while(mpu6500.init_finished == false);
 }
 
@@ -273,9 +278,9 @@ void mpu6500_int_handler(void)
 	mpu6500_accel_apply_calibration(mpu6500.accel_raw);
 
 	/* low pass filtering for accelerometer, gyroscope do not require this process */
-	lpf_first_order(mpu6500.accel_raw[0], &(mpu6500.accel_lpf[0]), 0.135);
-	lpf_first_order(mpu6500.accel_raw[1], &(mpu6500.accel_lpf[1]), 0.135);
-	lpf_first_order(mpu6500.accel_raw[2], &(mpu6500.accel_lpf[2]), 0.135);
+	lpf_first_order(mpu6500.accel_raw[0], &(mpu6500.accel_lpf[0]), mpu6500_lpf_gain);
+	lpf_first_order(mpu6500.accel_raw[1], &(mpu6500.accel_lpf[1]), mpu6500_lpf_gain);
+	lpf_first_order(mpu6500.accel_raw[2], &(mpu6500.accel_lpf[2]), mpu6500_lpf_gain);
 	mpu6500.gyro_lpf[0] = mpu6500.gyro_raw[0];
 	mpu6500.gyro_lpf[1] = mpu6500.gyro_raw[1];
 	mpu6500.gyro_lpf[2] = mpu6500.gyro_raw[2];
