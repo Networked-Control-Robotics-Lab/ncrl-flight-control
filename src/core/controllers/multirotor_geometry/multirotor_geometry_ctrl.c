@@ -362,85 +362,6 @@ void reset_geometry_tracking_error_integral(void)
 	tracking_error_integral[2] = 0.0f;
 }
 
-void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_moments,
-                          bool heading_present)
-{
-	/* convert radio command (euler angle) to rotation matrix */
-	euler_to_rotation_matrix(rc, mat_data(Rd), mat_data(Rtd));
-
-	/* W (angular velocity) */
-	mat_data(W)[0] = gyro[0];
-	mat_data(W)[1] = gyro[1];
-	mat_data(W)[2] = gyro[2];
-
-	/* set Wd and Wd_dot to 0 since there is no predefined trajectory */
-	mat_data(Wd)[0] = 0.0f;
-	mat_data(Wd)[1] = 0.0f;
-	mat_data(Wd)[2] = 0.0f;
-	mat_data(Wd_dot)[0] = 0.0f;
-	mat_data(Wd_dot)[1] = 0.0f;
-	mat_data(Wd_dot)[2] = 0.0f;
-
-	float _krz, _kwz; //switch between full heading control and yaw rate control
-
-	/* switch to yaw rate control mode if no heading information provided */
-	if(heading_present == false) {
-		/* yaw rate control only */
-		_krz = 0.0f;
-		_kwz = yaw_rate_ctrl_gain;
-		mat_data(Wd)[2] = rc->yaw; //set yaw rate desired value
-	} else {
-		_krz = krz;
-		_kwz = kwz;
-	}
-
-	/* calculate attitude error eR */
-	MAT_MULT(&Rtd, &R, &RtdR);
-	MAT_MULT(&Rt, &Rd, &RtRd);
-	MAT_SUB(&RtdR, &RtRd, &eR_mat);
-	vee_map_3x3(mat_data(eR_mat), mat_data(eR));
-	mat_data(eR)[0] *= 0.5f;
-	mat_data(eR)[1] *= 0.5f;
-	mat_data(eR)[2] *= 0.5f;
-
-	/* calculate attitude rate error eW */
-	//MAT_MULT(&Rt, &Rd, &RtRd); //the term is duplicated
-	MAT_MULT(&RtRd, &Wd, &RtRdWd);
-	MAT_SUB(&W, &RtRdWd, &eW);
-
-	/* calculate the inertia feedfoward term */
-	//W x JW
-	MAT_MULT(&J, &W, &JW);
-	cross_product_3x1(mat_data(W), mat_data(JW), mat_data(WJW));
-	mat_data(inertia_effect)[0] = mat_data(WJW)[0];
-	mat_data(inertia_effect)[1] = mat_data(WJW)[1];
-	mat_data(inertia_effect)[2] = mat_data(WJW)[2];
-
-#if 0   /* inertia feedfoward term for motion planning (trajectory is known) */
-	/* calculate inertia effect (trajectory is defined, Wd and Wd_dot are not zero) */
-	//W * R^T * Rd * Wd
-	hat_map_3x3(mat_data(W), mat_data(W_hat));
-	MAT_MULT(&W_hat, &Rt, &WRt);
-	MAT_MULT(&WRt, &Rd, &WRtRd);
-	MAT_MULT(&WRtRd, &Wd, &WRtRdWd);
-	//R^T * Rd * Wd_dot
-	//MAT_MULT(&Rt, &Rd, &RtRd); //the term is duplicated
-	MAT_MULT(&RtRd, &Wd_dot, &RtRdWddot);
-	//(W * R^T * Rd * Wd) - (R^T * Rd * Wd_dot)
-	MAT_SUB(&WRtRdWd, &RtRdWddot, &WRtRdWd_RtRdWddot);
-	//J*[(W * R^T * Rd * Wd) - (R^T * Rd * Wd_dot)]
-	MAT_MULT(&J, &WRtRdWd_RtRdWddot, &J_WRtRdWd_RtRdWddot);
-	//inertia effect = (W x JW) - J*[(W * R^T * Rd * Wd) - (R^T * Rd * Wd_dot)]
-	MAT_SUB(&WJW, &J_WRtRdWd_RtRdWddot, &inertia_effect);
-
-#endif
-
-	/* control input M1, M2, M3 */
-	output_moments[0] = -krx*mat_data(eR)[0] -kwx*mat_data(eW)[0] + mat_data(inertia_effect)[0];
-	output_moments[1] = -kry*mat_data(eR)[1] -kwy*mat_data(eW)[1] + mat_data(inertia_effect)[1];
-	output_moments[2] = -_krz*mat_data(eR)[2] -_kwz*mat_data(eW)[2] + mat_data(inertia_effect)[2];
-}
-
 void force_ff_ctrl_use_geometry(float *accel_ff, float *force_ff)
 {
 	/* with mass of uav known */
@@ -678,6 +599,86 @@ void moment_ff_ctrl_use_adaptive_ICL(float *mom_ff)
 	mom_ff[0] = Gamma_diag_gain[0]*mat_data(theta_diag_hat)[0];
 	mom_ff[1] = Gamma_diag_gain[1]*mat_data(theta_diag_hat)[1];
 	mom_ff[2] = Gamma_diag_gain[2]*mat_data(theta_diag_hat)[2];
+}
+
+void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_moments,
+                          bool heading_present)
+{
+	/* convert radio command (euler angle) to rotation matrix */
+	euler_to_rotation_matrix(rc, mat_data(Rd), mat_data(Rtd));
+
+	/* W (angular velocity) */
+	mat_data(W)[0] = gyro[0];
+	mat_data(W)[1] = gyro[1];
+	mat_data(W)[2] = gyro[2];
+
+	/* set Wd and Wd_dot to 0 since there is no predefined trajectory */
+	mat_data(Wd)[0] = 0.0f;
+	mat_data(Wd)[1] = 0.0f;
+	mat_data(Wd)[2] = 0.0f;
+	mat_data(Wd_dot)[0] = 0.0f;
+	mat_data(Wd_dot)[1] = 0.0f;
+	mat_data(Wd_dot)[2] = 0.0f;
+
+	float _krz, _kwz; //switch between full heading control and yaw rate control
+
+	/* switch to yaw rate control mode if no heading information provided */
+	if(heading_present == false) {
+		/* yaw rate control only */
+		_krz = 0.0f;
+		_kwz = yaw_rate_ctrl_gain;
+		mat_data(Wd)[2] = rc->yaw; //set yaw rate desired value
+	} else {
+		_krz = krz;
+		_kwz = kwz;
+	}
+
+	/* calculate attitude error eR */
+	MAT_MULT(&Rtd, &R, &RtdR);
+	MAT_MULT(&Rt, &Rd, &RtRd);
+	MAT_SUB(&RtdR, &RtRd, &eR_mat);
+	vee_map_3x3(mat_data(eR_mat), mat_data(eR));
+	mat_data(eR)[0] *= 0.5f;
+	mat_data(eR)[1] *= 0.5f;
+	mat_data(eR)[2] *= 0.5f;
+
+	/* calculate attitude rate error eW */
+	//MAT_MULT(&Rt, &Rd, &RtRd); //the term is duplicated
+	MAT_MULT(&RtRd, &Wd, &RtRdWd);
+	MAT_SUB(&W, &RtRdWd, &eW);
+
+	/* moment feedforward control */
+	float moment_ff[3] = {0, 0};
+
+#if (SELECT_FEEDFORWARD == FEEDFORWARD_USE_GEOMETRY)
+	moment_ff_ctrl_use_geometry(moment_ff);
+#elif (SELECT_FEEDFORWARD ==FEEDFORWARD_USE_ADAPTIVE_ICL)
+	moment_ff_ctrl_use_adaptive_ICL(moment_ff);
+#endif
+
+#if 0   /* inertia feedfoward term for motion planning (trajectory is known) */
+	/* calculate inertia effect (trajectory is defined, Wd and Wd_dot are not zero) */
+	//W * R^T * Rd * Wd
+	hat_map_3x3(mat_data(W), mat_data(W_hat));
+	MAT_MULT(&W_hat, &Rt, &WRt);
+	MAT_MULT(&WRt, &Rd, &WRtRd);
+	MAT_MULT(&WRtRd, &Wd, &WRtRdWd);
+	//R^T * Rd * Wd_dot
+	//MAT_MULT(&Rt, &Rd, &RtRd); //the term is duplicated
+	MAT_MULT(&RtRd, &Wd_dot, &RtRdWddot);
+	//(W * R^T * Rd * Wd) - (R^T * Rd * Wd_dot)
+	MAT_SUB(&WRtRdWd, &RtRdWddot, &WRtRdWd_RtRdWddot);
+	//J*[(W * R^T * Rd * Wd) - (R^T * Rd * Wd_dot)]
+	MAT_MULT(&J, &WRtRdWd_RtRdWddot, &J_WRtRdWd_RtRdWddot);
+	//inertia effect = (W x JW) - J*[(W * R^T * Rd * Wd) - (R^T * Rd * Wd_dot)]
+	MAT_SUB(&WJW, &J_WRtRdWd_RtRdWddot, &inertia_effect);
+
+#endif
+
+	/* control input M1, M2, M3 */
+	output_moments[0] = -krx*mat_data(eR)[0] -kwx*mat_data(eW)[0] + moment_ff[0];
+	output_moments[1] = -kry*mat_data(eR)[1] -kwy*mat_data(eW)[1] + moment_ff[1];
+	output_moments[2] = -_krz*mat_data(eR)[2] -_kwz*mat_data(eW)[2] + moment_ff[2];
 }
 
 void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *curr_pos_ned,
