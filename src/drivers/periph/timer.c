@@ -13,10 +13,10 @@
 #include "debug_link_task.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD      1000  //400Hz
-#define DEBUG_LINK_TASK_PRESCALER_RELOAD 4     //100Hz
+#define DEBUG_LINK_TASK_PRESCALER_RELOAD 20    //100Hz
 #define LED_CTRL_PRESCALER_RELOAD        16000 //25Hz
 #define COMPASS_PRESCALER_RELOAD         8     //50Hz
-#define BAROMETER_PRESCALER_RELOAD       1     //400Hz
+#define BAROMETER_PRESCALER_RELOAD       8     //100Hz
 
 extern SemaphoreHandle_t flight_ctl_semphr;
 
