@@ -473,8 +473,8 @@ void force_ff_ctrl_use_adaptive_ICL(float *accel_ff, float *force_ff, float *pos
 	force_ff[2] = mat_data(Y_m)[2]*mat_data(theta_m_hat)[0];
 
 	bound_float(&force_ff[0], 0.8, -0.8);
-	bound_float(&force_ff[0], 0.8, -0.8);
-	bound_float(&force_ff[0], 0.8, -0.8);
+	bound_float(&force_ff[1], 0.8, -0.8);
+	bound_float(&force_ff[2], 0.8, -0.8);
 }
 
 void moment_ff_ctrl_use_geometry(float *mom_ff)
@@ -621,8 +621,8 @@ void moment_ff_ctrl_use_adaptive_ICL(float *mom_ff)
 	mom_ff[2] = Gamma_diag_gain[2]*mat_data(theta_diag_hat)[2];
 
 	bound_float(&mom_ff[0], 0.1, -0.1);
-	bound_float(&mom_ff[0], 0.1, -0.1);
-	bound_float(&mom_ff[0], 0.1, -0.1);
+	bound_float(&mom_ff[1], 0.1, -0.1);
+	bound_float(&mom_ff[2], 0.1, -0.1);
 }
 
 void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *output_moments,
