@@ -243,6 +243,7 @@ void geometry_ctrl_init(void)
 	set_sys_param_update_var_addr(MR_GEO_GAIN_POS_X_I, &k_tracking_i_gain[0]);
 	set_sys_param_update_var_addr(MR_GEO_GAIN_POS_Y_I, &k_tracking_i_gain[1]);
 	set_sys_param_update_var_addr(MR_GEO_GAIN_POS_Z_I, &k_tracking_i_gain[2]);
+#if 0
 	set_sys_param_update_var_addr(MR_ICL_GAIN_GAMMA_M, &Gamma_m_gain);
 	set_sys_param_update_var_addr(MR_ICL_GAIN_GAMMA_DIAG_X, &Gamma_diag_gain[0]);
 	set_sys_param_update_var_addr(MR_ICL_GAIN_GAMMA_DIAG_Y, &Gamma_diag_gain[1]);
@@ -253,6 +254,7 @@ void geometry_ctrl_init(void)
 	set_sys_param_update_var_addr(MR_ICL_GAIN_K_CL_DIAG_X, &k_cl_diag_gain[0]);
 	set_sys_param_update_var_addr(MR_ICL_GAIN_K_CL_DIAG_Y, &k_cl_diag_gain[1]);
 	set_sys_param_update_var_addr(MR_ICL_GAIN_K_CL_DIAG_Z, &k_cl_diag_gain[2]);
+#endif
 	set_sys_param_update_var_addr(MR_GEO_UAV_MASS, &uav_mass);
 	set_sys_param_update_var_addr(MR_GEO_INERTIA_JXX, &mat_data(J)[0*3 + 0]);
 	set_sys_param_update_var_addr(MR_GEO_INERTIA_JYY, &mat_data(J)[1*3 + 1]);
@@ -288,6 +290,7 @@ void geometry_ctrl_init(void)
 	get_sys_param_float(MR_GEO_GAIN_POS_X_I, &k_tracking_i_gain[0]);
 	get_sys_param_float(MR_GEO_GAIN_POS_Y_I, &k_tracking_i_gain[1]);
 	get_sys_param_float(MR_GEO_GAIN_POS_Z_I, &k_tracking_i_gain[2]);
+#if 0
 	get_sys_param_float(MR_ICL_GAIN_GAMMA_M, &Gamma_m_gain);
 	get_sys_param_float(MR_ICL_GAIN_K_CL_DIAG_X, &Gamma_diag_gain[0]);
 	get_sys_param_float(MR_ICL_GAIN_K_CL_DIAG_Y, &Gamma_diag_gain[1]);
@@ -298,6 +301,7 @@ void geometry_ctrl_init(void)
 	get_sys_param_float(MR_ICL_GAIN_K_CL_DIAG_X, &k_cl_diag_gain[0]);
 	get_sys_param_float(MR_ICL_GAIN_K_CL_DIAG_Y, &k_cl_diag_gain[1]);
 	get_sys_param_float(MR_ICL_GAIN_K_CL_DIAG_Z, &k_cl_diag_gain[2]);
+#endif
 	get_sys_param_float(MR_GEO_UAV_MASS, &uav_mass);
 	get_sys_param_float(MR_GEO_INERTIA_JXX, &mat_data(J)[0*3 + 0]);
 	get_sys_param_float(MR_GEO_INERTIA_JYY, &mat_data(J)[1*3 + 1]);
@@ -315,6 +319,18 @@ void geometry_ctrl_init(void)
 	get_sys_param_float(THRUST_TO_PWM_C5, &coeff_thrust_to_cmd[4]);
 	get_sys_param_float(THRUST_TO_PWM_C6, &coeff_thrust_to_cmd[5]);
 	get_sys_param_float(THRUST_MAX, &motor_thrust_max);
+
+	/* initialize gains used in adaptive ICL control */
+	Gamma_m_gain = 0.1f;
+	Gamma_diag_gain[0] = 0.1f;
+	Gamma_diag_gain[1] = 0.1f;
+	Gamma_diag_gain[2] = 0.1f;
+	C1_gain = 0.1f;
+	C2_gain = 0.1f;
+	k_cl_m_gain = 0.1f;
+	k_cl_diag_gain[0] = 0.1f;
+	k_cl_diag_gain[1] = 0.1f;
+	k_cl_diag_gain[2] = 0.1f;
 
 	set_motor_max_thrust(motor_thrust_max);
 	set_motor_cmd_to_thrust_coeff(coeff_cmd_to_thrust[0], coeff_cmd_to_thrust[1], coeff_cmd_to_thrust[2],
@@ -713,7 +729,7 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	assign_vector_3x1_eun_to_ned(accel_ff_ned, autopilot.wp_now.acc_feedforward);
 
 #if (SELECT_FEEDFORWARD == FEEDFORWARD_USE_GEOMETRY)
-	force_ff_ctrl_use_geometry(accel_ff_ned, accel_ff_ned);
+	force_ff_ctrl_use_geometry(accel_ff_ned, force_ff_ned);
 #elif (SELECT_FEEDFORWARD == FEEDFORWARD_USE_ADAPTIVE_ICL)
 	force_ff_ctrl_use_adaptive_ICL(accel_ff_ned, force_ff_ned, pos_error, vel_error, curr_vel_ned);
 #endif
