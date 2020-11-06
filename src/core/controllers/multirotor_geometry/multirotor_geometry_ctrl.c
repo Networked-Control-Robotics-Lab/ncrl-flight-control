@@ -77,6 +77,7 @@ MAT_ALLOC(Y_diag, 3, 3);
 MAT_ALLOC(Y_diagt, 3, 3);
 MAT_ALLOC(y_diag_cl_integral, 3, 3);
 MAT_ALLOC(y_diag_clt_integral, 3, 3);
+MAT_ALLOC(M_ff, 3, 1);
 MAT_ALLOC(theta_m_hat, 1, 1);
 MAT_ALLOC(theta_m_hat_dot, 1, 1);
 MAT_ALLOC(theta_m_hat_dot_adaptive, 1, 1);
@@ -203,6 +204,7 @@ void geometry_ctrl_init(void)
 	MAT_INIT(Y_diagt, 3, 3);
 	MAT_INIT(y_diag_cl_integral, 3, 3);
 	MAT_INIT(y_diag_clt_integral, 3, 3);
+	MAT_INIT(M_ff, 3, 1);
 	MAT_INIT(theta_m_hat, 1, 1);
 	MAT_INIT(theta_m_hat_dot, 1, 1);
 	MAT_INIT(theta_m_hat_dot_adaptive, 1, 1);
@@ -616,9 +618,10 @@ void moment_ff_ctrl_use_adaptive_ICL(float *mom_ff)
 
 	/* rotational adaptive feedforward term */
 	//Y_diag*theta_diag_hat
-	mom_ff[0] = Gamma_diag_gain[0]*mat_data(theta_diag_hat)[0];
-	mom_ff[1] = Gamma_diag_gain[1]*mat_data(theta_diag_hat)[1];
-	mom_ff[2] = Gamma_diag_gain[2]*mat_data(theta_diag_hat)[2];
+	MAT_MULT(&Y_diag, &theta_diag_hat, &M_ff);
+	mom_ff[0] = mat_data(M_ff)[0];
+	mom_ff[1] = mat_data(M_ff)[1];
+	mom_ff[2] = mat_data(M_ff)[2];
 
 	bound_float(&mom_ff[0], 0.1, -0.1);
 	bound_float(&mom_ff[1], 0.1, -0.1);
