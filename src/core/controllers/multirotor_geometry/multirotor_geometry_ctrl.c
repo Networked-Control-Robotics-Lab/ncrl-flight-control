@@ -677,9 +677,9 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 	/* moment feedforward control */
 	float moment_ff[3] = {0, 0};
 
-#if (SELECT_FEEDFORWARD == FEEDFORWARD_USE_GEOMETRY)
+#if (SELECT_FEEDFORWARD_MANUAL == FEEDFORWARD_MANUAL_USE_GEOMETRY)
 	moment_ff_ctrl_use_geometry(moment_ff);
-#elif (SELECT_FEEDFORWARD ==FEEDFORWARD_USE_ADAPTIVE_ICL)
+#elif (SELECT_FEEDFORWARD_MANUAL == FEEDFORWARD_MANUAL_USE_ADAPTIVE_ICL)
 	moment_ff_ctrl_use_adaptive_ICL(moment_ff);
 #endif
 
@@ -739,9 +739,9 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	float force_ff_ned[3] = {0.0f};
 	assign_vector_3x1_eun_to_ned(accel_ff_ned, autopilot.wp_now.acc_feedforward);
 
-#if (SELECT_FEEDFORWARD == FEEDFORWARD_USE_GEOMETRY)
+#if (SELECT_FEEDFORWARD_TRACKING == FEEDFORWARD_TRACKING_USE_GEOMETRY)
 	force_ff_ctrl_use_geometry(accel_ff_ned, force_ff_ned);
-#elif (SELECT_FEEDFORWARD == FEEDFORWARD_USE_ADAPTIVE_ICL)
+#elif (SELECT_FEEDFORWARD_TRACKING == FEEDFORWARD_TRACKING_USE_ADAPTIVE_ICL)
 	force_ff_ctrl_use_adaptive_ICL(accel_ff_ned, force_ff_ned, pos_error, vel_error, curr_vel_ned);
 #endif
 
@@ -847,9 +847,9 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	/* moment feedforward control */
 	float moment_ff[3] = {0.0};
 
-#if (SELECT_FEEDFORWARD == FEEDFORWARD_USE_GEOMETRY)
+#if (SELECT_FEEDFORWARD_TRACKING == FEEDFORWARD_TRACKING_USE_GEOMETRY)
 	moment_ff_ctrl_use_geometry(moment_ff);
-#elif (SELECT_FEEDFORWARD == FEEDFORWARD_USE_ADAPTIVE_ICL)
+#elif (SELECT_FEEDFORWARD_TRACKING == FEEDFORWARD_TRACKING_USE_ADAPTIVE_ICL)
 	moment_ff_ctrl_use_adaptive_ICL(moment_ff);
 #endif
 
