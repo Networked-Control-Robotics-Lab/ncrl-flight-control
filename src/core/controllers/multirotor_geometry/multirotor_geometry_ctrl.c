@@ -476,7 +476,7 @@ void force_ff_ctrl_use_adaptive_ICL(float *accel_ff, float *force_ff, float *pos
 
 	bound_float(&force_ff[0], 0.8, -0.8);
 	bound_float(&force_ff[1], 0.8, -0.8);
-	bound_float(&force_ff[2], 0.8, -0.8);
+	bound_float(&force_ff[2], 12, -12);
 }
 
 void moment_ff_ctrl_use_geometry(float *mom_ff)
