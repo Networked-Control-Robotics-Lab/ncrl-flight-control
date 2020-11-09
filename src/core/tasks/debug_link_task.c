@@ -46,14 +46,8 @@ void task_debug_link(void *param)
 		//send_barometer_debug_message(&payload);
 		//send_alt_est_debug_message(&payload);
 		//send_ins_sensor_debug_message(&payload);
-		//send_adaptive_ICL_theta_m_debug(&payload);
-		//send_adaptive_ICL_theta_m_dot_debug(&payload);
-		//send_adaptive_ICL_theta_m_dot_adaptive_debug(&payload);
-		//send_adaptive_ICL_theta_m_dot_ICL_debug(&payload);
-		//send_adaptive_ICL_theta_diag_debug(&payload);
-		//send_adaptive_ICL_theta_diag_dot_debug(&payload);
-		//send_adaptive_ICL_theta_diag_dot_adaptive_debug(&payload);
-		//send_adaptive_ICL_theta_diag_dot_ICL_debug(&payload);
+		//send_adaptive_ICL_mass_estimation_debug(&payload);
+		//send_adaptive_ICL_inertia_estimation_debug(&payload);
 
 		send_onboard_data(payload.s, payload.len);
 		//freertos_task_delay(delay_time_ms);
