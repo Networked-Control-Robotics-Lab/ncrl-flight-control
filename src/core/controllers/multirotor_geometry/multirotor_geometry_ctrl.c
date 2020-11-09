@@ -416,9 +416,9 @@ void force_ff_ctrl_use_adaptive_ICL(float *accel_ff, float *force_ff, float *pos
 	mat_data(y_m_cl_integral)[1] = -(curr_vel[1] - mat_data(last_vel)[1]);
 	mat_data(y_m_cl_integral)[2] = -(curr_vel[2] - mat_data(last_vel)[2]) + 9.81*dt;
 
-	mat_data(y_m_clt_integral)[0] = mat_data(y_m_clt_integral)[0];
-	mat_data(y_m_clt_integral)[1] = mat_data(y_m_clt_integral)[1];
-	mat_data(y_m_clt_integral)[2] = mat_data(y_m_clt_integral)[2];
+	mat_data(y_m_clt_integral)[0] = mat_data(y_m_cl_integral)[0];
+	mat_data(y_m_clt_integral)[1] = mat_data(y_m_cl_integral)[1];
+	mat_data(y_m_clt_integral)[2] = mat_data(y_m_cl_integral)[2];
 
 	/* prepare force control input used in ICL */
 	mat_data(F_cl)[0] = mat_data(curr_force)[0]*dt;
