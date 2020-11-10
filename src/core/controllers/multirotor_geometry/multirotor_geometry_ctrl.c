@@ -407,10 +407,10 @@ void force_ff_ctrl_use_adaptive_ICL(float *accel_ff, float *force_ff, float *pos
 	/* first term of theta_m update law */
 	MAT_MULT(&Y_mt, &ev_C1ex, &Ymt_evC1ex);
 
-#if (SELECT_ADAPTIVE_W_WO_ICL == ADAPTIVE_WITHOUT_ICL)
+#if (SELECT_FORCE_ADAPTIVE_W_WO_ICL == FORCE_ADAPTIVE_WITHOUT_ICL)
 	//theta_m_dot = Gamma*Y_mt*ev_C1ex
 	mat_data(theta_m_hat_dot)[0] = Gamma_m_gain*mat_data(Ymt_evC1ex)[0];
-#elif (SELECT_ADAPTIVE_W_WO_ICL == ADAPTIVE_WITH_ICL)
+#elif (SELECT_FORCE_ADAPTIVE_W_WO_ICL == FORCE_ADAPTIVE_WITH_ICL)
 	/* y_m_cl_integral and y_m_cl_integral transpose */
 	mat_data(y_m_cl_integral)[0] = -(curr_vel[0] - mat_data(last_vel)[0]);
 	mat_data(y_m_cl_integral)[1] = -(curr_vel[1] - mat_data(last_vel)[1]);
@@ -536,12 +536,12 @@ void moment_ff_ctrl_use_adaptive_ICL(float *mom_ff)
 	/* first term of theta_diag update law */
 	MAT_MULT(&Y_diagt, &eW_C2eR, &Ydiagt_eWC2eR);
 
-#if (SELECT_ADAPTIVE_W_WO_ICL == ADAPTIVE_WITHOUT_ICL)
+#if (SELECT_MOMENT_ADAPTIVE_W_WO_ICL == MOMENT_ADAPTIVE_WITHOUT_ICL)
 	//theta_diag_dot = Gamma*Y_diagt*eW_C2eR
 	mat_data(theta_diag_hat_dot)[0] = Gamma_diag_gain[0]*mat_data(Ydiagt_eWC2eR)[0];
 	mat_data(theta_diag_hat_dot)[1] = Gamma_diag_gain[1]*mat_data(Ydiagt_eWC2eR)[1];
 	mat_data(theta_diag_hat_dot)[2] = Gamma_diag_gain[2]*mat_data(Ydiagt_eWC2eR)[2];
-#elif (SELECT_ADAPTIVE_W_WO_ICL == ADAPTIVE_WITH_ICL)
+#elif (SELECT_MOMENT_ADAPTIVE_W_WO_ICL == MOMENT_ADAPTIVE_WITH_ICL)
 	/* y_diag_cl_integral and y_diag_cl_integral transpose */
 	mat_data(y_diag_cl_integral)[0*3 + 0] = mat_data(W)[0] - mat_data(last_W)[0];
 	mat_data(y_diag_cl_integral)[1*3 + 0] = (mat_data(W)[0]*mat_data(W)[2])*dt;
@@ -766,9 +766,9 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	float force_ff_ned[3] = {0.0f};
 	assign_vector_3x1_eun_to_ned(accel_ff_ned, autopilot.wp_now.acc_feedforward);
 
-#if (SELECT_FEEDFORWARD_TRACKING == FEEDFORWARD_TRACKING_USE_GEOMETRY)
+#if (SELECT_FEEDFORWARD_TRACKING_FORCE == FEEDFORWARD_TRACKING_FORCE_USE_GEOMETRY)
 	force_ff_ctrl_use_geometry(accel_ff_ned, force_ff_ned);
-#elif (SELECT_FEEDFORWARD_TRACKING == FEEDFORWARD_TRACKING_USE_ADAPTIVE_ICL)
+#elif (SELECT_FEEDFORWARD_TRACKING_FORCE == FEEDFORWARD_TRACKING_FORCE_USE_ADAPTIVE_ICL)
 	force_ff_ctrl_use_adaptive_ICL(accel_ff_ned, force_ff_ned, pos_error, vel_error, curr_vel_ned);
 #endif
 
@@ -874,9 +874,9 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	/* moment feedforward control */
 	float moment_ff[3] = {0.0};
 
-#if (SELECT_FEEDFORWARD_TRACKING == FEEDFORWARD_TRACKING_USE_GEOMETRY)
+#if (SELECT_FEEDFORWARD_TRACKING_MOMENT == FEEDFORWARD_TRACKING_MOMENT_USE_GEOMETRY)
 	moment_ff_ctrl_use_geometry(moment_ff);
-#elif (SELECT_FEEDFORWARD_TRACKING == FEEDFORWARD_TRACKING_USE_ADAPTIVE_ICL)
+#elif (SELECT_FEEDFORWARD_TRACKING_MOMENT == FEEDFORWARD_TRACKING_MOMENT_USE_ADAPTIVE_ICL)
 	moment_ff_ctrl_use_adaptive_ICL(moment_ff);
 #endif
 
