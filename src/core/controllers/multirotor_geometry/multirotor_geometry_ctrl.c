@@ -649,9 +649,9 @@ void moment_ff_ctrl_use_adaptive_ICL(float *mom_ff)
 	mom_ff[1] = mat_data(M_ff)[1];
 	mom_ff[2] = mat_data(M_ff)[2];
 
-	bound_float(&mom_ff[0], 0.1, -0.1);
-	bound_float(&mom_ff[1], 0.1, -0.1);
-	bound_float(&mom_ff[2], 0.1, -0.1);
+	bound_float(&mom_ff[0], 0.3, -0.3);
+	bound_float(&mom_ff[1], 0.3, -0.3);
+	bound_float(&mom_ff[2], 0.3, -0.3);
 #endif
 }
 
