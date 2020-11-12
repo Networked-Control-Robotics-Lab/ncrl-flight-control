@@ -417,27 +417,27 @@ class serial_plotter_class:
 
         elif (message_id == 31):
 		plt.subplot(411)
-		plt.ylabel('theta_m_hat [kg]')
+		plt.ylabel('m_hat [kg]')
 		plt.ylim([-2, 2])
-		self.create_curve('theta_m_hat', 'red')
+		self.create_curve('m_hat', 'red')
 		self.show_subplot()
 
 		plt.subplot(412)
-		plt.ylabel('theta_m_hat_dot [kg/s]')
+		plt.ylabel('m_hat_dot [kg/s]')
 		plt.ylim([-1, 1])
-		self.create_curve('theta_m_hat_dot', 'red')
+		self.create_curve('m_hat_dot', 'red')
 		self.show_subplot()
 
 		plt.subplot(413)
-		plt.ylabel('theta_m_hat_dot_adaptive [kg/s]')
+		plt.ylabel('m_hat_dot_adaptive [kg/s]')
 		plt.ylim([-1, 1])
-		self.create_curve('theta_m_hat_dot_adaptive', 'red')
+		self.create_curve('m_hat_dot_adaptive', 'red')
 		self.show_subplot()
 
 		plt.subplot(414)
-		plt.ylabel('theta_m_hat_dot_adaptive [kg/s]')
+		plt.ylabel('m_hat_dot_ICL [kg/s]')
 		plt.ylim([-1, 1])
-		self.create_curve('theta_m_hat_dot_adaptive', 'red')
+		self.create_curve('m_hat_dot_ICL', 'red')
 		self.show_subplot()
 
         elif (message_id == 32):
@@ -469,7 +469,7 @@ class serial_plotter_class:
 		plt.ylabel('ICL updated [kg*m^2/s]')
 		plt.ylim([-0.1, 0.1])
 		self.create_curve('J_xx_hat_dot', 'red')
-		self.create_curve('J_yy_hat_dotMy', 'blue')
+		self.create_curve('J_yy_hat_dot', 'blue')
 		self.create_curve('J_zz_hat_dot', 'green')
 		self.show_subplot()
 
