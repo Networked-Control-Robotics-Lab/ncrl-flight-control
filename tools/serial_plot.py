@@ -418,7 +418,7 @@ class serial_plotter_class:
         elif (message_id == 31):
 		plt.subplot(411)
 		plt.ylabel('m_hat [kg]')
-		plt.ylim([-2, 2])
+		plt.ylim([-10, 10])
 		self.create_curve('m_hat', 'red')
 		self.show_subplot()
 
