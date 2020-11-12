@@ -334,6 +334,9 @@ void geometry_ctrl_init(void)
 	k_cl_diag_gain[1] = 0.1f;
 	k_cl_diag_gain[2] = 0.1f;
 
+	/* initialize value of mass estimation */
+	mat_data(theta_m_hat)[0] = 10.5;
+
 	set_motor_max_thrust(motor_thrust_max);
 	set_motor_cmd_to_thrust_coeff(coeff_cmd_to_thrust[0], coeff_cmd_to_thrust[1], coeff_cmd_to_thrust[2],
 	                              coeff_cmd_to_thrust[3], coeff_cmd_to_thrust[4], coeff_cmd_to_thrust[5]);
@@ -485,9 +488,9 @@ void force_ff_ctrl_use_adaptive_ICL(float *accel_ff, float *force_ff, float *pos
 	force_ff[1] = mat_data(Y_m)[1]*mat_data(theta_m_hat)[0];
 	force_ff[2] = mat_data(Y_m)[2]*mat_data(theta_m_hat)[0];
 
-	bound_float(&force_ff[0], 0.8, -0.8);
-	bound_float(&force_ff[1], 0.8, -0.8);
-	bound_float(&force_ff[2], 12, -12);
+	bound_float(&force_ff[0], 2.8, -2.8);
+	bound_float(&force_ff[1], 2.8, -2.8);
+	bound_float(&force_ff[2], 15, -15);
 #endif
 }
 
