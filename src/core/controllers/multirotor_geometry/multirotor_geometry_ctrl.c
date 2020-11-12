@@ -335,7 +335,7 @@ void geometry_ctrl_init(void)
 	k_cl_diag_gain[2] = 0.1f;
 
 	/* initialize value of mass estimation */
-	mat_data(theta_m_hat)[0] = 10.5;
+	mat_data(theta_m_hat)[0] = 1.3;
 
 	set_motor_max_thrust(motor_thrust_max);
 	set_motor_cmd_to_thrust_coeff(coeff_cmd_to_thrust[0], coeff_cmd_to_thrust[1], coeff_cmd_to_thrust[2],
