@@ -418,7 +418,7 @@ class serial_plotter_class:
         elif (message_id == 31):
 		plt.subplot(411)
 		plt.ylabel('m_hat [kg]')
-		plt.ylim([-10, 10])
+		plt.ylim([-4, 4])
 		self.create_curve('m_hat', 'red')
 		self.show_subplot()
 
@@ -429,20 +429,20 @@ class serial_plotter_class:
 		self.show_subplot()
 
 		plt.subplot(413)
-		plt.ylabel('m_hat_dot_adaptive [kg/s]')
+		plt.ylabel('adaptive [kg/s]')
 		plt.ylim([-1, 1])
-		self.create_curve('m_hat_dot_adaptive', 'red')
+		self.create_curve('adaptive', 'red')
 		self.show_subplot()
 
 		plt.subplot(414)
-		plt.ylabel('m_hat_dot_ICL [kg/s]')
+		plt.ylabel('ICL [kg/s]')
 		plt.ylim([-1, 1])
-		self.create_curve('m_hat_dot_ICL', 'red')
+		self.create_curve('ICL', 'red')
 		self.show_subplot()
 
         elif (message_id == 32):
 		plt.subplot(411)
-		plt.ylabel('theta_diag_hat [kg*m^2]')
+		plt.ylabel('J_hat [kg*m^2]')
 		plt.ylim([-0.1, 0.1])
 		self.create_curve('J_xx_hat', 'red')
 		self.create_curve('J_yy_hat', 'blue')
@@ -450,7 +450,7 @@ class serial_plotter_class:
 		self.show_subplot()
 
 		plt.subplot(412)
-		plt.ylabel('theta_diag_hat_dot [kg*m^2/s]')
+		plt.ylabel('hat_dot [kg*m^2/s]')
 		plt.ylim([-0.1, 0.1])
 		self.create_curve('J_xx_hat_dot', 'red')
 		self.create_curve('J_yy_hat_dot', 'blue')
@@ -458,19 +458,19 @@ class serial_plotter_class:
 		self.show_subplot()
 
 		plt.subplot(413)
-		plt.ylabel('adaptive updated [kg*m^2/s]')
+		plt.ylabel('adaptive')
 		plt.ylim([-0.1, 0.1])
-		self.create_curve('J_xx_hat_dot', 'red')
-		self.create_curve('J_yy_hat_dot', 'blue')
-		self.create_curve('J_zz_hat_dot', 'green')
+		self.create_curve('x', 'red')
+		self.create_curve('y', 'blue')
+		self.create_curve('z', 'green')
 		self.show_subplot()
 
 		plt.subplot(414)
-		plt.ylabel('ICL updated [kg*m^2/s]')
+		plt.ylabel('ICL')
 		plt.ylim([-0.1, 0.1])
-		self.create_curve('J_xx_hat_dot', 'red')
-		self.create_curve('J_yy_hat_dot', 'blue')
-		self.create_curve('J_zz_hat_dot', 'green')
+		self.create_curve('x', 'red')
+		self.create_curve('y', 'blue')
+		self.create_curve('z', 'green')
 		self.show_subplot()
 
     def show_graph(self):
