@@ -14,11 +14,16 @@
 #define TELEM_SHELL      2
 #define SELECT_TELEM TELEM_MAVLINK
 
+/* debug link message publish rate */
+#define DEBUG_LINK_PUBLISH_20Hz  0 //recommanded for wireless communication
+#define DEBUG_LINK_PUBLISH_100Hz 1 //recommanded for wired communication
+#define DEBUG_LINK_PUBLISH_RATE DEBUG_LINK_PUBLISH_20Hz
+
 /* ahrs algorithm */
 #define AHRS_COMPLEMENTARY_FILTER 0
 #define AHRS_MADGWICK_FILTER      1
 #define AHRS_ESKF                 2
-#define SELECT_AHRS AHRS_MADGWICK_FILTER
+#define SELECT_AHRS AHRS_COMPLEMENTARY_FILTER
 
 /* quadrotor parameters */
 #define QUADROTOR_USE_PID      0
