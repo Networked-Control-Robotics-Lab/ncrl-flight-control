@@ -361,9 +361,9 @@ void estimate_uav_dynamics(float *gyro, float *moments, float *m_rot_frame)
 	angular_vel_last[1] = gyro[1];
 	angular_vel_last[2] = gyro[2];
 
-	lpf(angular_accel[0], &mat_data(W_dot)[0], 0.01);
-	lpf(angular_accel[1], &mat_data(W_dot)[1], 0.01);
-	lpf(angular_accel[2], &mat_data(W_dot)[2], 0.01);
+	lpf_first_order(angular_accel[0], &mat_data(W_dot)[0], 0.01);
+	lpf_first_order(angular_accel[1], &mat_data(W_dot)[1], 0.01);
+	lpf_first_order(angular_accel[2], &mat_data(W_dot)[2], 0.01);
 
 	//J* W_dot
 	MAT_MULT(&J, &W_dot, &JWdot);

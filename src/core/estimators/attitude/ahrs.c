@@ -29,7 +29,7 @@ void ahrs_init(void)
 {
 	complementary_ahrs_init(0.0025);
 
-	madgwick_init(&madgwick_ahrs, 400, 0.3);
+	madgwick_init(&madgwick_ahrs, 400, 0.13);
 
 	switch(SELECT_HEADING_SENSOR) {
 	case HEADING_SENSOR_USE_COMPASS:

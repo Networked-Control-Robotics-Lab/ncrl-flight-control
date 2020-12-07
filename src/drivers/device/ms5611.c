@@ -121,7 +121,7 @@ void ms5611_read_pressure(void)
 	ms5611.temp_raw = (float)temp32 * 0.01f; //[deg c]
 	ms5611.press_raw = (float)pressure32 * 0.01f; //[mbar]
 
-	lpf(ms5611.press_raw, &ms5611.press_lpf, 0.011f);
+	lpf_first_order(ms5611.press_raw, &ms5611.press_lpf, 0.011f);
 }
 
 static void ms5611_calc_relative_altitude_and_velocity(void)
@@ -149,7 +149,7 @@ static void ms5611_calc_relative_altitude_and_velocity(void)
 		/* low pass filtering */
 		ms5611.rel_vel_raw = (ms5611.rel_alt - ms5611.rel_alt_last) * 400;
 		ms5611.rel_alt_last = ms5611.rel_alt;
-		lpf(ms5611.rel_vel_raw, &ms5611.rel_vel_lpf, 1.0);
+		lpf_first_order(ms5611.rel_vel_raw, &ms5611.rel_vel_lpf, 1.0);
 	}
 }
 

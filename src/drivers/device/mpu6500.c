@@ -23,6 +23,8 @@ mpu6500_t mpu6500 = {
 	.init_finished = false,
 };
 
+float mpu6500_lpf_gain;
+
 static uint8_t mpu6500_read_byte(uint8_t address)
 {
 	uint8_t read;
@@ -96,19 +98,19 @@ void mpu6500_init(void)
 
 	switch(mpu6500.accel_fs) {
 	case MPU6500_GYRO_FS_2G:
-		mpu6500.accel_scale = 9.8 / 16384.0f;
+		mpu6500.accel_scale = 9.81 / 16384.0f;
 		mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x00);
 		break;
 	case MPU6500_GYRO_FS_4G:
-		mpu6500.accel_scale = 9.8f / 8192.0f;
+		mpu6500.accel_scale = 9.81f / 8192.0f;
 		mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x08);
 		break;
 	case MPU6500_GYRO_FS_8G:
-		mpu6500.accel_scale = 9.8f / 4096.0f;
+		mpu6500.accel_scale = 9.81f / 4096.0f;
 		mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x10);
 		break;
 	case MPU6500_GYRO_FS_16G:
-		mpu6500.accel_scale = 9.8f / 2048.0f;
+		mpu6500.accel_scale = 9.81f / 2048.0f;
 		mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x18);
 		break;
 	}
@@ -159,10 +161,20 @@ void mpu6500_init(void)
 	}
 	blocked_delay_ms(100);
 
-	mpu6500_write_byte(MPU6500_ACCEL_CONFIG2, 0x08); //accel update rate: 4KHz, disable internel lpf
+	//gyroscope update rate = 1KHz, low pass filter bandwitdh = 20Hz
+	mpu6500_write_byte(MPU6500_CONFIG, GYRO_DLPF_BANDWIDTH_20Hz);
 	blocked_delay_ms(100);
-	mpu6500_write_byte(MPU6500_INT_ENABLE, 0x01); //enable data ready interrupt
+
+	//acceleromter update rate = 1KHz, low pass filter bandwitdh = 20Hz
+	mpu6500_write_byte(MPU6500_ACCEL_CONFIG2, ACCEL_DLPF_BANDWIDTH_20Hz);
 	blocked_delay_ms(100);
+
+	//enable data ready interrupt
+	mpu6500_write_byte(MPU6500_INT_ENABLE, 0x01);
+	blocked_delay_ms(100);
+
+	//sampling time = 0.001s (1KHz), cutoff frequency = 25Hz
+	lpf_first_order_init(&mpu6500_lpf_gain, 0.001, 25);
 
 	while(mpu6500.init_finished == false);
 }
@@ -186,16 +198,20 @@ void mpu6500_reset_bias(void)
 
 static void mpu6500_accel_apply_calibration(float *accel_scaled)
 {
+
 	accel_scaled[0] = ((float)accel_scaled[0] * mpu6500.accel_rescale_x) - mpu6500.accel_bias[0];
 	accel_scaled[1] = ((float)accel_scaled[1] * mpu6500.accel_rescale_y) - mpu6500.accel_bias[1];
 	accel_scaled[2] = ((float)accel_scaled[2] * mpu6500.accel_rescale_z) - mpu6500.accel_bias[2];
+
 }
 
 static void mpu6500_gyro_apply_calibration(int16_t *gyro_unscaled)
 {
+
 	gyro_unscaled[0] -= mpu6500.gyro_bias[0];
 	gyro_unscaled[1] -= mpu6500.gyro_bias[1];
 	gyro_unscaled[2] -= mpu6500.gyro_bias[2];
+
 }
 
 static void mpu6500_accel_convert_to_scale(int16_t *accel_unscaled, float *accel_scaled)
@@ -240,12 +256,12 @@ void mpu6500_int_handler(void)
 	buffer[13] = spi_read_write(SPI1, 0xff);
 
 	/* composite sensor data */
-	mpu6500.accel_unscaled[0] = -((int16_t)buffer[0] << 8) | (int16_t)buffer[1];
-	mpu6500.accel_unscaled[1] = -((int16_t)buffer[2] << 8) | (int16_t)buffer[3];
+	mpu6500.accel_unscaled[0] = -(((int16_t)buffer[0] << 8) | (int16_t)buffer[1]);
+	mpu6500.accel_unscaled[1] = -(((int16_t)buffer[2] << 8) | (int16_t)buffer[3]);
 	mpu6500.accel_unscaled[2] = +((int16_t)buffer[4] << 8) | (int16_t)buffer[5];
 	mpu6500.temp_unscaled = ((int16_t)buffer[6] << 8) | (int16_t)buffer[7];
-	mpu6500.gyro_unscaled[0] = -((int16_t)buffer[8] << 8) | (int16_t)buffer[9];
-	mpu6500.gyro_unscaled[1] = -((int16_t)buffer[10] << 8) | (int16_t)buffer[11];
+	mpu6500.gyro_unscaled[0] = -(((int16_t)buffer[8] << 8) | (int16_t)buffer[9]);
+	mpu6500.gyro_unscaled[1] = -(((int16_t)buffer[10] << 8) | (int16_t)buffer[11]);
 	mpu6500.gyro_unscaled[2] = +((int16_t)buffer[12] << 8) | (int16_t)buffer[13];
 	mpu6500_chip_deselect();
 
@@ -266,9 +282,11 @@ void mpu6500_int_handler(void)
 	mpu6500_accel_apply_calibration(mpu6500.accel_raw);
 
 	/* low pass filtering for accelerometer, gyroscope do not require this process */
-	lpf(mpu6500.accel_raw[0], &(mpu6500.accel_lpf[0]), 0.03);
-	lpf(mpu6500.accel_raw[1], &(mpu6500.accel_lpf[1]), 0.03);
-	lpf(mpu6500.accel_raw[2], &(mpu6500.accel_lpf[2]), 0.03);
+
+	lpf_first_order(mpu6500.accel_raw[0], &(mpu6500.accel_lpf[0]), mpu6500_lpf_gain);
+	lpf_first_order(mpu6500.accel_raw[1], &(mpu6500.accel_lpf[1]), mpu6500_lpf_gain);
+	lpf_first_order(mpu6500.accel_raw[2], &(mpu6500.accel_lpf[2]), mpu6500_lpf_gain);
+
 	mpu6500.gyro_lpf[0] = mpu6500.gyro_raw[0];
 	mpu6500.gyro_lpf[1] = mpu6500.gyro_raw[1];
 	mpu6500.gyro_lpf[2] = mpu6500.gyro_raw[2];
