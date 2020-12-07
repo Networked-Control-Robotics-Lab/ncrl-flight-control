@@ -75,43 +75,43 @@ void eskf_ahrs_init(float dt)
 	mat_data(x_nominal)[3] = 0.0f;
 
 	/* initialize Q_i matrix */
-	mat_data(Q_i)[0*3 + 0] = 1e-5;
+	mat_data(Q_i)[0*3 + 0] = 1e-5 * 10e7;
 	mat_data(Q_i)[0*3 + 1] = 0.0f;
 	mat_data(Q_i)[0*3 + 2] = 0.0f;
 
 	mat_data(Q_i)[1*3 + 0] = 0.0f;
-	mat_data(Q_i)[1*3 + 1] = 1e-5;
+	mat_data(Q_i)[1*3 + 1] = 1e-5 * 10e7;
 	mat_data(Q_i)[1*3 + 2] = 0.0f;
 
 	mat_data(Q_i)[2*3 + 0] = 0.0f;
 	mat_data(Q_i)[2*3 + 1] = 0.0f;
-	mat_data(Q_i)[2*3 + 2] = 1e-5;
+	mat_data(Q_i)[2*3 + 2] = 1e-5 * 10e7;
 
 	/* initialize P matrix */
-	mat_data(P_post)[0*3 + 0] = 5.0f;
-	mat_data(P_post)[0*3 + 1] = 0.0f;
-	mat_data(P_post)[0*3 + 2] = 0.0f;
+	mat_data(P_post)[0*3 + 0] = 5.0f * 10e7;
+	mat_data(P_post)[0*3 + 1] = 0.0f + 1;
+	mat_data(P_post)[0*3 + 2] = 0.0f + 1;
 
-	mat_data(P_post)[1*3 + 0] = 0.0f;
-	mat_data(P_post)[1*3 + 1] = 5.0f;
-	mat_data(P_post)[1*3 + 2] = 0.0f;
+	mat_data(P_post)[1*3 + 0] = 0.0f + 1e-20;
+	mat_data(P_post)[1*3 + 1] = 5.0f * 1;
+	mat_data(P_post)[1*3 + 2] = 0.0f + 1;
 
-	mat_data(P_post)[2*3 + 0] = 0.0f;
-	mat_data(P_post)[2*3 + 1] = 0.0f;
-	mat_data(P_post)[2*3 + 2] = 5.0f;
+	mat_data(P_post)[2*3 + 0] = 0.0f + 1;
+	mat_data(P_post)[2*3 + 1] = 0.0f + 1;
+	mat_data(P_post)[2*3 + 2] = 5.0f * 10e7;
 
 	/* initialize V_accel matrix */
-	mat_data(V_accel)[0*3 + 0] = 7e-1;
-	mat_data(V_accel)[0*3 + 1] = 0.0f;
-	mat_data(V_accel)[0*3 + 2] = 0.0f;
+	mat_data(V_accel)[0*3 + 0] = 100 * 10e7;
+	mat_data(V_accel)[0*3 + 1] = 0.0f + 1;
+	mat_data(V_accel)[0*3 + 2] = 0.0f + 1;
 
-	mat_data(V_accel)[1*3 + 0] = 0.0f;
-	mat_data(V_accel)[1*3 + 1] = 7e-1;
-	mat_data(V_accel)[1*3 + 2] = 0.0f;
+	mat_data(V_accel)[1*3 + 0] = 0.0f + 1;
+	mat_data(V_accel)[1*3 + 1] = 100 * 10e7;
+	mat_data(V_accel)[1*3 + 2] = 0.0f + 1;
 
-	mat_data(V_accel)[2*3 + 0] = 0.0f;
-	mat_data(V_accel)[2*3 + 1] = 0.0f;
-	mat_data(V_accel)[2*3 + 2] = 7e-1;
+	mat_data(V_accel)[2*3 + 0] = 0.0f + 1;
+	mat_data(V_accel)[2*3 + 1] = 0.0f + 1;
+	mat_data(V_accel)[2*3 + 2] = 100 * 10e7;
 
 	int r, c;
 	for(r = 0; r < 3; r++) {
@@ -133,12 +133,11 @@ void eskf_ahrs_predict(float *gyro)
 	float q_dot[4];
 	quaternion_mult(w, mat_data(x_nominal), q_dot);
 
-	float q_gyro[4];
 	mat_data(x_nominal)[0] = mat_data(x_nominal)[0] + (q_dot[0] * eskf_half_dt);
 	mat_data(x_nominal)[1] = mat_data(x_nominal)[1] + (q_dot[1] * eskf_half_dt);
 	mat_data(x_nominal)[2] = mat_data(x_nominal)[2] + (q_dot[2] * eskf_half_dt);
 	mat_data(x_nominal)[3] = mat_data(x_nominal)[3] + (q_dot[3] * eskf_half_dt);
-	quat_normalize(q_gyro);
+	quat_normalize(mat_data(x_nominal));
 
 	/* construct error state transition matrix */
 	mat_data(F_x)[0*3 + 0] = 1.0f;
@@ -229,7 +228,15 @@ void eskf_ahrs_accelerometer_correct(float *accel)
 	//P = (I - K*H) * P
 	MAT_MULT(&K_accel, &H_accel, &KH_accel);
 	mat_data(I_KH_accel)[0*3 + 0] = 1.0f - mat_data(KH_accel)[0*3 + 0];
+	mat_data(I_KH_accel)[0*3 + 1] =        mat_data(KH_accel)[0*3 + 1];
+	mat_data(I_KH_accel)[0*3 + 2] =        mat_data(KH_accel)[0*3 + 2];
+
+	mat_data(I_KH_accel)[1*3 + 0] =        mat_data(KH_accel)[1*3 + 0];
 	mat_data(I_KH_accel)[1*3 + 1] = 1.0f - mat_data(KH_accel)[1*3 + 1];
+	mat_data(I_KH_accel)[1*3 + 2] =        mat_data(KH_accel)[1*3 + 2];
+
+	mat_data(I_KH_accel)[2*3 + 0] =        mat_data(KH_accel)[2*3 + 0];
+	mat_data(I_KH_accel)[2*3 + 1] =        mat_data(KH_accel)[2*3 + 1];
 	mat_data(I_KH_accel)[2*3 + 2] = 1.0f - mat_data(KH_accel)[2*3 + 2];
 	MAT_MULT(&I_KH_accel, &P_prior, &P_post);
 
