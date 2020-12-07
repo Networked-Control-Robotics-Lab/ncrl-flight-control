@@ -182,6 +182,13 @@ void ahrs_estimate(void)
 		madgwick_imu_ahrs(&madgwick_ahrs, gravity, gyro_rad);
 	}
 	quaternion_copy(attitude.q, madgwick_ahrs.q);
+#elif (SELECT_AHRS == AHRS_ESKF)
+	eskf_ahrs_predict(gyro_rad);
+	eskf_ahrs_accelerometer_correct(gravity);
+	if(mag_error == false && use_compass == true) {
+		eskf_ahrs_magnetometer_correct(mag);
+	}
+	get_eskf_attitude_quaternion(attitude.q);
 #endif
 
 #if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK)
