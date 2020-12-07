@@ -6,6 +6,7 @@
 #include "ahrs.h"
 #include "comp_ahrs.h"
 #include "madgwick_ahrs.h"
+#include "eskf_ahrs.h"
 #include "lpf.h"
 #include "uart.h"
 #include "matrix.h"
@@ -30,6 +31,8 @@ void ahrs_init(void)
 	complementary_ahrs_init(0.0025);
 
 	madgwick_init(&madgwick_ahrs, 400, 0.13);
+
+	eskf_ahrs_init(0.0025);
 
 	switch(SELECT_HEADING_SENSOR) {
 	case HEADING_SENSOR_USE_COMPASS:

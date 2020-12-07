@@ -68,6 +68,12 @@ void eskf_ahrs_init(float dt)
 	MAT_INIT(h_accel, 3, 1);
 	MAT_INIT(accel_resid, 3, 1);
 
+	/* initialize the nominal state */
+	mat_data(x_nominal)[0] = 1.0f;
+	mat_data(x_nominal)[1] = 0.0f;
+	mat_data(x_nominal)[2] = 0.0f;
+	mat_data(x_nominal)[3] = 0.0f;
+
 	/* initialize Q_i matrix */
 	mat_data(Q_i)[0*3 + 0] = 1e-5;
 	mat_data(Q_i)[0*3 + 1] = 0.0f;
