@@ -172,36 +172,36 @@ void eskf_ahrs_accelerometer_correct(float *accel)
 	float q3 = mat_data(x_nominal)[3];
 
 	/* construct error state observation matrix */
-	mat_data(H_x_accel)[0*3 + 0] = -2*q2;
-	mat_data(H_x_accel)[0*3 + 1] = +2*q3;
-	mat_data(H_x_accel)[0*3 + 2] = -2*q0;
-	mat_data(H_x_accel)[0*3 + 3] = +2*q1;
+	mat_data(H_x_accel)[0*4 + 0] = -2*q2;
+	mat_data(H_x_accel)[0*4 + 1] = +2*q3;
+	mat_data(H_x_accel)[0*4 + 2] = -2*q0;
+	mat_data(H_x_accel)[0*4 + 3] = +2*q1;
 
-	mat_data(H_x_accel)[1*3 + 0] = +2*q1;
-	mat_data(H_x_accel)[1*3 + 1] = +2*q0;
-	mat_data(H_x_accel)[1*3 + 2] = +2*q3;
-	mat_data(H_x_accel)[1*3 + 3] = +2*q2;
+	mat_data(H_x_accel)[1*4 + 0] = +2*q1;
+	mat_data(H_x_accel)[1*4 + 1] = +2*q0;
+	mat_data(H_x_accel)[1*4 + 2] = +2*q3;
+	mat_data(H_x_accel)[1*4 + 3] = +2*q2;
 
-	mat_data(H_x_accel)[2*3 + 0] = +2*q0;
-	mat_data(H_x_accel)[2*3 + 1] = -2*q1;
-	mat_data(H_x_accel)[2*3 + 2] = -2*q2;
-	mat_data(H_x_accel)[2*3 + 3] = +2*q3;
+	mat_data(H_x_accel)[2*4 + 0] = +2*q0;
+	mat_data(H_x_accel)[2*4 + 1] = -2*q1;
+	mat_data(H_x_accel)[2*4 + 2] = -2*q2;
+	mat_data(H_x_accel)[2*4 + 3] = +2*q3;
 
-	mat_data(Q_delta_theta)[0*4 + 0] = -q1;
-	mat_data(Q_delta_theta)[0*4 + 1] = -q2;
-	mat_data(Q_delta_theta)[0*4 + 2] = -q3;
+	mat_data(Q_delta_theta)[0*3 + 0] = -q1;
+	mat_data(Q_delta_theta)[0*3 + 1] = -q2;
+	mat_data(Q_delta_theta)[0*3 + 2] = -q3;
 
-	mat_data(Q_delta_theta)[1*4 + 0] = +q0;
-	mat_data(Q_delta_theta)[1*4 + 1] = -q3;
-	mat_data(Q_delta_theta)[1*4 + 2] = +q2;
+	mat_data(Q_delta_theta)[1*3 + 0] = +q0;
+	mat_data(Q_delta_theta)[1*3 + 1] = -q3;
+	mat_data(Q_delta_theta)[1*3 + 2] = +q2;
 
-	mat_data(Q_delta_theta)[2*4 + 0] = +q3;
-	mat_data(Q_delta_theta)[2*4 + 1] = +q0;
-	mat_data(Q_delta_theta)[2*4 + 2] = -q1;
+	mat_data(Q_delta_theta)[2*3 + 0] = +q3;
+	mat_data(Q_delta_theta)[2*3 + 1] = +q0;
+	mat_data(Q_delta_theta)[2*3 + 2] = -q1;
 
-	mat_data(Q_delta_theta)[3*4 + 0] = -q2;
-	mat_data(Q_delta_theta)[3*4 + 1] = +q1;
-	mat_data(Q_delta_theta)[3*4 + 2] = +q0;
+	mat_data(Q_delta_theta)[3*3 + 0] = -q2;
+	mat_data(Q_delta_theta)[3*3 + 1] = +q1;
+	mat_data(Q_delta_theta)[3*3 + 2] = +q0;
 
 	MAT_SCALE(&Q_delta_theta, 0.5, &X_delta_x);
 	MAT_MULT(&H_x_accel, &X_delta_x, &H_accel)
