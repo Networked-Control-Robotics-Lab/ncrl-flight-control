@@ -17,7 +17,7 @@
 /* ahrs algorithm */
 #define AHRS_COMPLEMENTARY_FILTER 0
 #define AHRS_MADGWICK_FILTER 1
-#define SELECT_AHRS AHRS_MADGWICK_FILTER
+#define SELECT_AHRS AHRS_COMPLEMENTARY_FILTER
 
 /* quadrotor parameters */
 #define QUADROTOR_USE_PID 0
