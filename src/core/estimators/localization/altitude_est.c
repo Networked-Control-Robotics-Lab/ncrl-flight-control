@@ -46,7 +46,7 @@ void barometer_alt_rate_estimate(float *dcm, float barometer_alt, float baromete
 	alt_predict = alt_last + (alt_rate_fused * dt) + 0.5f * (accel_earth_z * dt * dt);
 
 	/* complementary filter for altitude estimation */
-	const float a_alt = 0.998;
+	const float a_alt = 0;
 	alt_fused = (a_alt * alt_predict) + ((1.0f - a_alt) * barometer_alt);
 
 	/* save fused altitude for next iteration */
