@@ -144,17 +144,17 @@ void eskf_ahrs_init(float dt)
 	mat_data(V_accel)[2*3 + 2] = ESKF_RESCALE(7e-1);
 
 	/* initialize V_mag matrix */
-	mat_data(V_mag)[0*3 + 0] = ESKF_RESCALE(10);
+	mat_data(V_mag)[0*3 + 0] = ESKF_RESCALE(3);
 	mat_data(V_mag)[0*3 + 1] = 0.0f;
 	mat_data(V_mag)[0*3 + 2] = 0.0f;
 
 	mat_data(V_mag)[1*3 + 0] = 0.0f;
-	mat_data(V_mag)[1*3 + 1] = ESKF_RESCALE(10);
+	mat_data(V_mag)[1*3 + 1] = ESKF_RESCALE(3);
 	mat_data(V_mag)[1*3 + 2] = 0.0f;
 
 	mat_data(V_mag)[2*3 + 0] = 0.0f;
 	mat_data(V_mag)[2*3 + 1] = 0.0f;
-	mat_data(V_mag)[2*3 + 2] = ESKF_RESCALE(10);
+	mat_data(V_mag)[2*3 + 2] = ESKF_RESCALE(3);
 
 	int r, c;
 	for(r = 0; r < 3; r++) {
