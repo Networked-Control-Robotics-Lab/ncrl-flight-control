@@ -16,7 +16,10 @@ ist8310_t ist8310 = {
 	.bias_z = 0.0f,
 	.squared_semi_axis_size_x = 1.0f,
 	.squared_semi_axis_size_y = 1.0f,
-	.squared_semi_axis_size_z = 1.0f
+	.squared_semi_axis_size_z = 1.0f,
+	.div_squared_semi_axis_size_x = 1.0f,
+	.div_squared_semi_axis_size_y = 1.0f,
+	.div_squared_semi_axis_size_z = 1.0f
 };
 
 uint8_t ist8310_read_byte(uint8_t addr)
