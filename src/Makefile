@@ -69,6 +69,7 @@ SRC+=./core/main.c \
 	./core/estimators/attitude/ahrs.c \
 	./core/estimators/attitude/comp_ahrs.c \
 	./core/estimators/attitude/madgwick_ahrs.c \
+	./core/estimators/attitude/eskf_ahrs.c \
 	./core/estimators/localization/altitude_est.c \
 	./core/estimators/localization/gps_ekf.c \
 	./core/controllers/multirotor_pid/multirotor_pid_ctrl.c \

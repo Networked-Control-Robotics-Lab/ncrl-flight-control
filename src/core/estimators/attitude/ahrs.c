@@ -6,6 +6,7 @@
 #include "ahrs.h"
 #include "comp_ahrs.h"
 #include "madgwick_ahrs.h"
+#include "eskf_ahrs.h"
 #include "lpf.h"
 #include "uart.h"
 #include "matrix.h"
@@ -30,6 +31,8 @@ void ahrs_init(void)
 	complementary_ahrs_init(0.0025);
 
 	madgwick_init(&madgwick_ahrs, 400, 0.13);
+
+	eskf_ahrs_init(0.0025);
 
 	switch(SELECT_HEADING_SENSOR) {
 	case HEADING_SENSOR_USE_COMPASS:
@@ -182,6 +185,13 @@ void ahrs_estimate(void)
 		madgwick_imu_ahrs(&madgwick_ahrs, gravity, gyro_rad);
 	}
 	quaternion_copy(attitude.q, madgwick_ahrs.q);
+#elif (SELECT_AHRS == AHRS_ESKF)
+	eskf_ahrs_predict(gyro_rad);
+	eskf_ahrs_accelerometer_correct(gravity);
+	if(mag_error == false && use_compass == true) {
+		eskf_ahrs_magnetometer_correct(mag);
+	}
+	get_eskf_attitude_quaternion(attitude.q);
 #endif
 
 #if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK)

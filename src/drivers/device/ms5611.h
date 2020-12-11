@@ -6,11 +6,29 @@
 #include "spi.h"
 #include "debug_link.h"
 
+#define MS5611_D1_CONVERT_OSR256  0x40
+#define MS5611_D1_CONVERT_OSR512  0x42
+#define MS5611_D1_CONVERT_OSR1024 0x44
+#define MS5611_D1_CONVERT_OSR2048 0x46
+#define MS5611_D1_CONVERT_OSR4096 0x48
+
+#define MS5611_D2_CONVERT_OSR256  0x50
+#define MS5611_D2_CONVERT_OSR512  0x52
+#define MS5611_D2_CONVERT_OSR1024 0x54
+#define MS5611_D2_CONVERT_OSR2048 0x56
+#define MS5611_D2_CONVERT_OSR4096 0x58
+
+#define MS5611_OSR256_DELAY  0.5
+#define MS5611_OSR512_DELAY    1
+#define MS5611_OSR1024_DELAY   2
+#define MS5611_OSR2048_DELAY   4
+#define MS5611_OSR4096_DELAY  10
+
 #define ms5611_chip_select() GPIO_ResetBits(GPIOA, GPIO_Pin_15)
 #define ms5611_chip_deselect() GPIO_SetBits(GPIOA, GPIO_Pin_15)
 
 typedef struct {
-	uint16_t c1, c2, c3, c4, c5, c6; //internal calibration datas of ms5611
+	uint32_t c1, c2, c3, c4, c5, c6; //internal calibration datas of ms5611
 
 	float temp_raw;        //raw temperature
 
