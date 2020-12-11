@@ -13,7 +13,7 @@
 #include "common_list.h"
 #include "led.h"
 
-#define IMU_CALIB_SAMPLE_CNT 10000
+#define IMU_CALIB_SAMPLE_CNT 1000
 
 mpu6500_t mpu6500 = {
 	.gyro_bias = {0, 0, 0},
@@ -48,14 +48,14 @@ static void mpu6500_write_byte(uint8_t address, uint8_t data)
 static uint8_t mpu6500_read_who_am_i()
 {
 	uint8_t id = mpu6500_read_byte(MPU6500_WHO_AM_I);
-	sys_timer_blocked_delay_ms(5);
+	blocked_delay_ms(5);
 	return id;
 }
 
 static void mpu6500_reset()
 {
 	mpu6500_write_byte(MPU6500_PWR_MGMT_1, 0x80);
-	sys_timer_blocked_delay_ms(100);
+	blocked_delay_ms(100);
 }
 
 static void mpu6500_bias_calc(int16_t *gyro, int16_t *accel)
@@ -113,7 +113,7 @@ void mpu6500_init(void)
 		mpu6500_write_byte(MPU6500_ACCEL_CONFIG, 0x18);
 		break;
 	}
-	sys_timer_blocked_delay_ms(100);
+	blocked_delay_ms(100);
 
 	/* load calibration data from parameter list */
 	if(mpu6500_calibration_not_finished() == true) {
