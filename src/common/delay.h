@@ -7,5 +7,6 @@
 #define freertos_task_delay(ms) vTaskDelay(OS_TICK / 1000 * ms)
 
 void blocked_delay_ms(uint32_t ms);
+void sys_timer_blocked_delay_ms(float delay_ms);
 
 #endif
