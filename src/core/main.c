@@ -71,7 +71,7 @@ int main(void)
 	exti10_init();     //imu ext interrupt
 	spi1_init();       //imu
 
-	blocked_delay_ms(1000);
+	blocked_delay_ms(50);
 
 #if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_COMPASS)
 	/* compass (ist8310) */
