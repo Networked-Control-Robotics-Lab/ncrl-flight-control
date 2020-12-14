@@ -62,6 +62,11 @@ void longitude_latitude_to_enu(float longitude, float latitude, float height_msl
 	float dy = ecef_now_y - home_ecef_y;
 	float dz = ecef_now_z - home_ecef_z;
 
+	//XXX: fix sign
+	dx *= -1;
+	dy *= -1;
+	dz *= -1;
+
 	*x_enu = (r11 * dx) + (r12 * dy) + (r13 * dz);
 	*y_enu = (r21 * dx) + (r22 * dy) + (r23 * dz);
 	*z_enu = (r31 * dx) + (r32 * dy) + (r33 * dz);
