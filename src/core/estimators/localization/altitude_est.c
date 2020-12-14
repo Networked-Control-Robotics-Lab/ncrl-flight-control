@@ -10,8 +10,8 @@ float alt_last = 0.0f;
 float alt_predict = 0.0f;
 float alt_fused = 0.0f;
 
-float alt_bias = -0.75;
-float alt_rate_bias = -0.9;
+float alt_bias = 0.0f;
+float alt_rate_bias = 0.0f;
 
 /* altitude rate estimation using barometer and acceleromter with complementary filter algorithm */
 void barometer_alt_rate_estimate(float *dcm, float barometer_alt, float barometer_alt_rate,
