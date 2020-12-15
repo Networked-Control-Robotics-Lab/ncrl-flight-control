@@ -1,6 +1,6 @@
 #include "optitrack.h"
 #include "position_sensor.h"
-#include "altitude_est.h"
+#include "comp_altitude_est.h"
 #include "proj_config.h"
 #include "ms5611.h"
 #include "ublox_m8n.h"
