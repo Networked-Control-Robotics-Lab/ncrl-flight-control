@@ -3,7 +3,7 @@
 #include "ncrl_mavlink.h"
 #include "../mavlink/mav_publisher.h"
 #include "uart.h"
-#include "ahrs.h"
+#include "ahrs_selector.h"
 #include "sys_time.h"
 #include "optitrack.h"
 #include "sbus_radio.h"

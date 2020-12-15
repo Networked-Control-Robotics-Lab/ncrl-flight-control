@@ -1,5 +1,5 @@
-#ifndef __AHRS__
-#define __AHRS__
+#ifndef __AHRS_SELECTOR__
+#define __AHRS_SELECTOR__
 
 #include "se3_math.h"
 

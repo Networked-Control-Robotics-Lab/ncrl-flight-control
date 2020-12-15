@@ -3,7 +3,7 @@
 #include "arm_math.h"
 #include "mpu6500.h"
 #include "optitrack.h"
-#include "ahrs.h"
+#include "ahrs_selector.h"
 #include "comp_ahrs.h"
 #include "madgwick_ahrs.h"
 #include "eskf_ahrs.h"

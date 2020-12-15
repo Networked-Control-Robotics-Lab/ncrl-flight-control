@@ -1,5 +1,5 @@
 #include "arm_math.h"
-#include "ahrs.h"
+#include "ahrs_selector.h"
 #include "se3_math.h"
 
 void euler_to_rotation_matrix(euler_t *euler, float *r, float *r_transpose)
