@@ -1,3 +1,5 @@
+#include <stdbool.h>
+#include <stdint.h>
 #include "arm_math.h"
 #include "matrix.h"
 #include "se3_math.h"
@@ -10,6 +12,13 @@ float home_latitude = 0.0f;
 float home_ecef_x = 0.0f;
 float home_ecef_y = 0.0f;
 float home_ecef_z = 0.0f;
+
+bool home_is_set = false;
+
+bool gps_home_is_set(void)
+{
+	return home_is_set;
+}
 
 void set_home_longitude_latitude(float longitude, float latitude, float height_msl)
 {
@@ -26,6 +35,8 @@ void set_home_longitude_latitude(float longitude, float latitude, float height_m
 	home_ecef_x = (height_msl + EARTH_RADIUS) * cos_phi * cos_lambda;
 	home_ecef_y = (height_msl + EARTH_RADIUS) * cos_phi * sin_lambda;
 	home_ecef_z = (height_msl + EARTH_RADIUS) * sin_phi;
+
+	home_is_set = true;
 }
 
 void get_home_longitude_latitude(float *longitude, float *latitude)
@@ -69,5 +80,5 @@ void longitude_latitude_to_enu(float longitude, float latitude, float height_msl
 
 	*x_enu = (r11 * dx) + (r12 * dy) + (r13 * dz);
 	*y_enu = (r21 * dx) + (r22 * dy) + (r23 * dz);
-	*z_enu = (r31 * dx) + (r32 * dy) + (r33 * dz);
+	*z_enu = height_msl; //(r31 * dx) + (r32 * dy) + (r33 * dz);
 }

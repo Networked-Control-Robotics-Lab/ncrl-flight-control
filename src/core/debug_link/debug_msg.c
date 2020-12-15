@@ -6,6 +6,7 @@
 #include "compass.h"
 #include "barometer.h"
 #include "position_sensor.h"
+#include "ins.h"
 
 void send_ins_sensor_debug_message(debug_msg_t *payload)
 {
@@ -53,4 +54,15 @@ void send_ins_sensor_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_float(&vz, payload);
 	pack_debug_debug_message_float(&barometer_height, payload);
 	pack_debug_debug_message_float(&barometer_velocity, payload);
+}
+
+void send_ins_raw_position_debug_message(debug_msg_t *payload)
+{
+	float pos_enu[3]; //x, y from gps, z from height sensor
+	ins_get_raw_position(pos_enu);
+
+	pack_debug_debug_message_header(payload, MESSAGE_ID_INS_RAW_POSITION);
+	pack_debug_debug_message_float(&pos_enu[0], payload);
+	pack_debug_debug_message_float(&pos_enu[1], payload);
+	pack_debug_debug_message_float(&pos_enu[2], payload);
 }

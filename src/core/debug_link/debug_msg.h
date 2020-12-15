@@ -2,5 +2,6 @@
 #define __DEBUG_MSG_H__
 
 void send_ins_sensor_debug_message(debug_msg_t *payload);
+void send_ins_raw_position_debug_message(debug_msg_t *payload);
 
 #endif

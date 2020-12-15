@@ -72,6 +72,7 @@ SRC+=./core/main.c \
 	./core/estimators/ahrs/eskf_ahrs.c \
 	./core/estimators/ins/comp_altitude_est.c \
 	./core/estimators/ins/gps_to_enu.c \
+	./core/estimators/ins/ins.c \
 	./core/controllers/multirotor_pid/multirotor_pid_ctrl.c \
 	./core/controllers/multirotor_pid/multirotor_pid_param.c \
 	./core/controllers/multirotor_geometry/multirotor_geometry_ctrl.c \

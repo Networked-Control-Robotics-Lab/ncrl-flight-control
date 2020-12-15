@@ -31,6 +31,7 @@
 #include "esc_calibration.h"
 #include "compass.h"
 #include "vins_mono.h"
+#include "ins.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 10
 
@@ -148,6 +149,9 @@ void task_flight_ctrl(void *param)
 		vins_mono_camera_trigger_20hz();
 		vins_mono_send_imu_50hz();
 #endif
+
+		/* full state estimation (position + orientation) */
+		//ins_state_estimate();
 
 		sbus_rc_read(&rc);
 		rc_yaw_setpoint_handler(&desired_yaw, -rc.yaw, 0.0025);

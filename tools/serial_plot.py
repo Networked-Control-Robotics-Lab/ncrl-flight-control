@@ -10,7 +10,7 @@ from collections import deque
 from datetime import datetime
 
 ser = serial.Serial(
-    port='/dev/ttyUSB1',\
+    port='/dev/ttyUSB0',\
     baudrate=115200,\
     parity=serial.PARITY_NONE,\
     stopbits=serial.STOPBITS_ONE,\
@@ -414,6 +414,16 @@ class serial_plotter_class:
         	plt.ylim([-10.0, 10.0])
         	self.create_curve('velocity', 'red')
         	self.show_subplot()
+
+        elif (message_id == 19):
+                plt.subplot(111)
+                plt.ylabel('gps raw position [m/s]')
+                plt.ylim([-25.0, 25.0])
+                self.create_curve('px', 'red')
+                self.create_curve('py', 'blue')
+                self.create_curve('pz', 'green')
+                self.show_subplot()
+              
 
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \
