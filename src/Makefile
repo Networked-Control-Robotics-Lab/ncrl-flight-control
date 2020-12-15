@@ -66,12 +66,12 @@ SRC+=lib/FreeRTOS/Source/croutine.c \
 SRC+=./core/main.c \
 	./core/estimators/filters/lpf.c \
 	./core/estimators/free_fall/free_fall.c \
-	./core/estimators/attitude/ahrs_selector.c \
-	./core/estimators/attitude/comp_ahrs.c \
-	./core/estimators/attitude/madgwick_ahrs.c \
-	./core/estimators/attitude/eskf_ahrs.c \
-	./core/estimators/localization/comp_altitude_est.c \
-	./core/estimators/localization/gps_to_enu.c \
+	./core/estimators/ahrs/ahrs_selector.c \
+	./core/estimators/ahrs/comp_ahrs.c \
+	./core/estimators/ahrs/madgwick_ahrs.c \
+	./core/estimators/ahrs/eskf_ahrs.c \
+	./core/estimators/ins/comp_altitude_est.c \
+	./core/estimators/ins/gps_to_enu.c \
 	./core/controllers/multirotor_pid/multirotor_pid_ctrl.c \
 	./core/controllers/multirotor_pid/multirotor_pid_param.c \
 	./core/controllers/multirotor_geometry/multirotor_geometry_ctrl.c \
@@ -141,8 +141,8 @@ CFLAGS+=-I./core
 CFLAGS+=-I./core/estimators
 CFLAGS+=-I./core/estimators/filters
 CFLAGS+=-I./core/estimators/free_fall
-CFLAGS+=-I./core/estimators/attitude
-CFLAGS+=-I./core/estimators/localization
+CFLAGS+=-I./core/estimators/ahrs
+CFLAGS+=-I./core/estimators/ins
 CFLAGS+=-I./core/controllers
 CFLAGS+=-I./core/controllers/multirotor_pid
 CFLAGS+=-I./core/controllers/multirotor_geometry
