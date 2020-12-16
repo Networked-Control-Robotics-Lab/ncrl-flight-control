@@ -66,12 +66,12 @@ void vins_mono_send_imu_50hz(void)
 {
 	/* triggered every 8 times since the function is designed to be called by
 	 * flight control main loop (400Hz) */
-	static int prescaler = 8;
+	static int prescaler = 2;
 	prescaler--;
 
 	if(prescaler == 0) {
 		send_vins_mono_imu_msg();
-		prescaler = 8;
+		prescaler = 2;
 	}
 }
 

@@ -25,6 +25,10 @@ mpu6500_t mpu6500 = {
 
 float mpu6500_lpf_gain;
 
+//second order lpf
+//lpf2_t mpu6500_lpf_accel[3];
+
+
 static uint8_t mpu6500_read_byte(uint8_t address)
 {
 	uint8_t read;
@@ -175,7 +179,11 @@ void mpu6500_init(void)
 
 	//sampling time = 0.001s (1KHz), cutoff frequency = 25Hz
 	lpf_first_order_init(&mpu6500_lpf_gain, 0.001, 25);
-
+/*	
+	lpf_second_order_init(&mpu6500_lpf_accel[0],1000,30);
+	lpf_second_order_init(&mpu6500_lpf_accel[1],1000,30);
+	lpf_second_order_init(&mpu6500_lpf_accel[2],1000,30);
+*/	
 	while(mpu6500.init_finished == false);
 }
 
@@ -287,6 +295,12 @@ void mpu6500_int_handler(void)
 	lpf_first_order(mpu6500.accel_raw[1], &(mpu6500.accel_lpf[1]), mpu6500_lpf_gain);
 	lpf_first_order(mpu6500.accel_raw[2], &(mpu6500.accel_lpf[2]), mpu6500_lpf_gain);
 
+
+/*	
+	mpu6500.accel_lpf[0] = lpf_second_order( &mpu6500_lpf_accel[0] , mpu6500.accel_raw[0] );
+	mpu6500.accel_lpf[1] = lpf_second_order( &mpu6500_lpf_accel[1] , mpu6500.accel_raw[1] );
+	mpu6500.accel_lpf[2] = lpf_second_order( &mpu6500_lpf_accel[2] , mpu6500.accel_raw[2] );
+*/
 	mpu6500.gyro_lpf[0] = mpu6500.gyro_raw[0];
 	mpu6500.gyro_lpf[1] = mpu6500.gyro_raw[1];
 	mpu6500.gyro_lpf[2] = mpu6500.gyro_raw[2];
