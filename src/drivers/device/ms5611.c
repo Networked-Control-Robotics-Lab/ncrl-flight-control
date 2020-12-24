@@ -9,6 +9,7 @@
 #include "debug_link.h"
 #include "lpf.h"
 
+#define POW2(x) ((x) * (x))
 #define MBAR_TO_PASCAL(press) (press * 100.0f)
 
 SemaphoreHandle_t ms5611_task_semphr;
@@ -48,7 +49,7 @@ void ms5611_read_int24(uint8_t address, int32_t *data)
 	ms5611_chip_select();
 	spi3_read_write(address);
 	ms5611_chip_deselect();
-	freertos_task_delay(20);
+	freertos_task_delay(10);
 
 	ms5611_chip_select();
 	spi3_read_write(0x00);
@@ -98,28 +99,36 @@ void ms5611_read_pressure(void)
 	ms5611_read_int24(MS5611_D1_CONVERT_OSR4096, &d1);
 	ms5611_read_int24(MS5611_D2_CONVERT_OSR4096, &d2);
 
-	dt = (int64_t)d2 - (int64_t)ms5611.c5 * (1 << 8);
-	int32_t temp32 = 2000 + (dt * (int64_t)ms5611.c6) / (1 << 23);
+	dt = (int32_t)d2 - ((int32_t)ms5611.c5 << 8);
+	int32_t temp = 2000 + (int32_t)(((int64_t)dt * ms5611.c6) >> 23);
+
+	off = ((int64_t)ms5611.c2 << 16) + (((int64_t)ms5611.c4 * dt) >> 7);
+	sens = ((int64_t)ms5611.c1 << 15) + (((int64_t)ms5611.c3 * dt) >> 8);
 
 	/* second order temperature compensation (<20 degree c) */
-	int64_t t2 = 0, sens2 = 0, off2 = 0;
-	if(temp32 < 2000) {
-		t2 = (dt * dt) / (1 << 31);
-		int64_t temp_2000_sqrt = temp32 - 2000;
-		off2 = 2.5f * (temp_2000_sqrt * temp_2000_sqrt);
-		sens2 =  1.25f * (temp_2000_sqrt * temp_2000_sqrt);
+	if(temp < 2000) {
+		int32_t t2 = POW2(dt) >> 31;
 
-		temp32 -= t2;
-		off -= off2;
+		int64_t f = POW2((int64_t)temp - 2000);
+		int64_t off2 = 5 * f >> 1;
+		int64_t sens2 = 5 * f >> 2;
+
+		/* second order temperature compensation (<-15 degree c) */
+		if (temp < -1500) {
+			int64_t f2 = POW2(temp + 1500);
+			off2 += 7 * f2;
+			sens2 += 11 * f2 >> 1;
+		}
+
+		temp -= t2;
+		off  -= off2;
 		sens -= sens2;
 	}
 
-	off = (int64_t)ms5611.c2 * (1 << 16) + ((int32_t)ms5611.c4 * dt) / (1 << 7);
-	sens = (int64_t)ms5611.c1 * (1 << 15) + ((int32_t)ms5611.c3 * dt) / (1 << 8);
-	int32_t pressure32 = ((d1 * sens) / (1 << 21) - off) / (1 << 15);
+	int32_t pressure = (((d1 * sens) >> 21) - off) >> 15;
 
-	ms5611.temp_raw = (float)temp32 * 0.01f; //[deg c]
-	ms5611.press_raw = (float)pressure32 * 0.01f; //[mbar]
+	ms5611.temp_raw = (float)temp / 100.0f;      //[deg c]
+	ms5611.press_raw = (float)pressure / 100.0f; //[mbar]
 
 	lpf_first_order(ms5611.press_raw, &ms5611.press_lpf, 0.18f);
 }
