@@ -28,8 +28,8 @@ void barometer_alt_rate_estimate(float *dcm, float barometer_alt, float baromete
 	                      dcm[2*3 + 2] * accel_body[2];
 
 	/* gravity cancellation */
-	accel_earth_z -= -9.81;
-	accel_earth_z *= -1; //convert from NED frame to ENU frame
+	accel_earth_z += 9.81;
+	accel_earth_z *= -1;   //convert from NED frame to ENU frame
 
 	/* predict altitude rate by doing numerical integration */
 	alt_rate_predict = alt_rate_last + (accel_earth_z * dt);
