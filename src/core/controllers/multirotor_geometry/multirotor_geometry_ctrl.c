@@ -19,7 +19,7 @@
 #include "position_sensor.h"
 #include "multirotor_rc.h"
 #include "barometer.h"
-#include "comp_altitude_est.h"
+#include "comp_height_est.h"
 #include "compass.h"
 #include "sys_param.h"
 

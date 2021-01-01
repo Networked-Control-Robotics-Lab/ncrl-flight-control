@@ -8,7 +8,7 @@
 #include "free_fall.h"
 #include "flight_ctrl_task.h"
 #include "ms5611.h"
-#include "comp_altitude_est.h"
+#include "comp_height_est.h"
 #include "debug_msg.h"
 
 SemaphoreHandle_t debug_link_task_semphr;
