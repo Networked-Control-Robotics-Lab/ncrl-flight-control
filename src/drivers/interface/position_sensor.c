@@ -14,11 +14,6 @@ bool is_gps_available(void)
 #endif
 }
 
-bool is_barometer_available(void)
-{
-	return ms5611_available();
-}
-
 bool is_xy_position_info_available(void)
 {
 #if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)

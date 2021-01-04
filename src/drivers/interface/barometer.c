@@ -1,5 +1,10 @@
 #include "ms5611.h"
 
+bool is_barometer_available(void)
+{
+        return ms5611_available();
+}
+
 void barometer_wait_until_stable(void)
 {
 	ms5611_wait_until_stable();
