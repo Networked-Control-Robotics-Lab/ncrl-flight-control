@@ -2,6 +2,10 @@
 #include "optitrack.h"
 #include "imu.h"
 #include "barometer.h"
+#include "gps_to_enu.h"
+#include "position_sensor.h"
+#include "comp_nav.h"
+#include "ahrs_selector.h"
 
 /* position (enu) */
 float pos_last[3] = {0.0f};
@@ -33,10 +37,37 @@ void comp_nav_init(float _dt)
 
 void comp_nav_estimate(void)
 {
+	float pos_enu_raw[3], vel_enu_raw[3];
+
+	/* read barometer height and velocity */
+	float barometer_height, barometer_velocity;
+	barometer_height = barometer_get_relative_altitude();
+	barometer_velocity = barometer_get_relative_altitude_rate();
+
+	/* read gps position and convert it in to enu coordinate frame */
+	float gps_longitude, gps_latitude, gps_msl_height;
+	get_gps_longitude_latitude_height(&gps_longitude, &gps_latitude, &gps_msl_height);
+	longitude_latitude_to_enu(gps_longitude, gps_latitude, gps_msl_height,
+	                          &pos_enu_raw[0], &pos_enu_raw[1], &pos_enu_raw[2]);
+	pos_enu_raw[2] = barometer_height; //use barometer height
+
+	/* read gps velocity and convert it from ned frame into enu frame */
+	float gps_ned_vx, gps_ned_vy, gps_ned_vz;
+	get_gps_velocity_ned(&gps_ned_vx, &gps_ned_vy, &gps_ned_vz);
+	vel_enu_raw[0] = gps_ned_vy;
+	vel_enu_raw[1] = gps_ned_vx;
+	pos_enu_raw[2] = barometer_velocity; //use barometer height velocity
+
+	/* read rotation matrix of current attitude */
+	float Rt[3*3];
+	get_attitude_direction_cosine_matrix((float **)&Rt);
+
+	/* use gps and barometer as complementary filter input */
+	pos_vel_complementary_filter(Rt, pos_enu_raw, vel_enu_raw);
 }
 
 /* estimate position and velocity using complementary filter */
-void pos_vel_complementary_filter(float *R, float *pos_enu_raw, float *vel_enu_raw)
+void pos_vel_complementary_filter(float *Rt, float *pos_enu_raw, float *vel_enu_raw)
 {
 	/* read accelerometer (which is represented in body-fixed frame) */
 	float accel_b_ned[3];
@@ -44,18 +75,18 @@ void pos_vel_complementary_filter(float *R, float *pos_enu_raw, float *vel_enu_r
 
 	/* convert from body-fixed frame to inertial frame */
 	float accel_i_ned[3];
-	accel_i_ned[0] = R[0*3 + 0] * accel_b_ned[0] +
-	                 R[0*3 + 1] * accel_b_ned[1] +
-	                 R[0*3 + 2] * accel_b_ned[2];
-	accel_i_ned[1] = R[1*3 + 0] * accel_b_ned[0] +
-	                 R[1*3 + 1] * accel_b_ned[1] +
-	                 R[1*3 + 2] * accel_b_ned[2];
-	accel_i_ned[2] = R[2*3 + 0] * accel_b_ned[0] +
-	                 R[2*3 + 1] * accel_b_ned[1] +
-	                 R[2*3 + 2] * accel_b_ned[2];
+	accel_i_ned[0] = Rt[0*3 + 0] * accel_b_ned[0] +
+	                 Rt[0*3 + 1] * accel_b_ned[1] +
+	                 Rt[0*3 + 2] * accel_b_ned[2];
+	accel_i_ned[1] = Rt[1*3 + 0] * accel_b_ned[0] +
+	                 Rt[1*3 + 1] * accel_b_ned[1] +
+	                 Rt[1*3 + 2] * accel_b_ned[2];
+	accel_i_ned[2] = Rt[2*3 + 0] * accel_b_ned[0] +
+	                 Rt[2*3 + 1] * accel_b_ned[1] +
+	                 Rt[2*3 + 2] * accel_b_ned[2];
 
 	/* gravity compensation */
-	accel_i_ned[2] += 9.8;
+	accel_i_ned[2] += 9.8f;
 
 	/* covert from ned frame to enu frame */
 	float accel_i_enu[3];

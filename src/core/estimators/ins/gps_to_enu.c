@@ -79,5 +79,4 @@ void longitude_latitude_to_enu(float longitude, float latitude, float height_msl
 
 	//gps:
 	//*z_enu = (r31 * dx) + (r32 * dy) + (r33 * dz);
-
 }
