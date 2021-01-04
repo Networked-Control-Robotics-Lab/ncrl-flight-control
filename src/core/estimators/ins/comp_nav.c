@@ -85,22 +85,30 @@ void pos_vel_complementary_filter_predict(float *pos_enu_out, float *vel_enu_out
 }
 
 /* estimate position and velocity using complementary filter */
-void pos_vel_complementary_filter_correct(float *pos_enu_in,  float *vel_enu_in,
+void pos_vel_complementary_filter_gps_correct(float *pos_enu_in,  float *vel_enu_in,
                 float *pos_enu_out, float *vel_enu_out)
 {
 	/* fusion */
 	pos_enu_out[0] = (pos_a[0] * pos_enu_in[0]) + ((1.0f - pos_a[0]) * pos_last[0]);
 	pos_enu_out[1] = (pos_a[1] * pos_enu_in[1]) + ((1.0f - pos_a[1]) * pos_last[1]);
-	pos_enu_out[2] = (pos_a[2] * pos_enu_in[2]) + ((1.0f - pos_a[2]) * pos_last[2]);
 	vel_enu_out[0] = (vel_a[0] * vel_enu_in[0]) + ((1.0f - vel_a[0]) * vel_last[0]);
 	vel_enu_out[1] = (vel_a[1] * vel_enu_in[1]) + ((1.0f - vel_a[1]) * vel_last[1]);
-	vel_enu_out[2] = (vel_a[2] * vel_enu_in[2]) + ((1.0f - vel_a[2]) * vel_last[2]);
 
 	/* save fused result for next iteration */
 	pos_last[0] = pos_enu_out[0];
 	pos_last[1] = pos_enu_out[1];
-	pos_last[2] = pos_enu_out[2];
 	vel_last[0] = vel_enu_out[0];
 	vel_last[1] = vel_enu_out[1];
+}
+
+void pos_vel_complementary_filter_barometer_correct(float *pos_enu_in,  float *vel_enu_in,
+                float *pos_enu_out, float *vel_enu_out)
+{
+	/* fusion */
+	pos_enu_out[2] = (pos_a[2] * pos_enu_in[2]) + ((1.0f - pos_a[2]) * pos_last[2]);
+	vel_enu_out[2] = (vel_a[2] * vel_enu_in[2]) + ((1.0f - vel_a[2]) * vel_last[2]);
+
+	/* save fused result for next iteration */
+	pos_last[2] = pos_enu_out[2];
 	vel_last[2] = vel_enu_out[2];
 }

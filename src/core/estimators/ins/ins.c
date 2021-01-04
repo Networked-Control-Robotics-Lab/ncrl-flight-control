@@ -100,8 +100,8 @@ void ins_state_estimate(void)
 
 #if (SELECT_INS == INS_COMPLEMENTARY_FILTER)
 		/* use gps and barometer as complementary filter input */
-		pos_vel_complementary_filter_correct(pos_enu_raw, vel_enu_raw,
-		                                     pos_enu_fused, vel_enu_fused);
+		pos_vel_complementary_filter_gps_correct(pos_enu_raw, vel_enu_raw,
+		                pos_enu_fused, vel_enu_fused);
 #endif
 	}
 }
