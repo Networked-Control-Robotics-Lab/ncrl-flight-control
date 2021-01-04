@@ -8,6 +8,7 @@
 #include "ms5611.h"
 #include "debug_link.h"
 #include "lpf.h"
+#include "ins_sensor_sync.h"
 
 #define POW2(x) ((x) * (x))
 #define MBAR_TO_PASCAL(press) (press * 100.0f)
@@ -161,6 +162,8 @@ static void ms5611_calc_relative_altitude_and_velocity(void)
 		ms5611.rel_vel_raw = (ms5611.rel_alt - ms5611.rel_alt_last) * 50;
 		ms5611.rel_alt_last = ms5611.rel_alt;
 		lpf_first_order(ms5611.rel_vel_raw, &ms5611.rel_vel_lpf, 0.35);
+
+		ins_barometer_sync_buffer_push(ms5611.rel_alt, ms5611.rel_vel_raw);
 	}
 }
 

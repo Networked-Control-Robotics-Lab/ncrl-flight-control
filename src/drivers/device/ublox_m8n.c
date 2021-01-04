@@ -9,6 +9,7 @@
 #include "sys_time.h"
 #include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"
 #include "ncrl_mavlink.h"
+#include "ins_sensor_sync.h"
 
 #define UBLOX_M8N_QUEUE_SIZE 2000
 
@@ -195,17 +196,17 @@ void ublox_m8n_isr_handler(uint8_t c)
 	portEND_SWITCHING_ISR(higher_priority_task_woken);
 }
 
-bool ublox_decode_nav_pvt_msg(void)
+void ublox_decode_nav_pvt_msg(void)
 {
 	if((ublox.recept_class != 0x01) || (ublox.recept_id != 0x07) ||
 	    (ublox.recept_len != 92)) {
-		return false;
+		return;
 	}
 
 	/* length of nav_pvt_msg's payload is 92, reserve 4 for header */
 	ublox_checksum_calc(ublox.calc_ck, ublox.recept_buf, 92 + 4);
 	if(*(uint16_t *)ublox.calc_ck != *(uint16_t *)ublox.recept_ck) {
-		return false;
+		return;
 	}
 
 	ublox.last_read_time = get_sys_time_ms();
@@ -232,10 +233,11 @@ bool ublox_decode_nav_pvt_msg(void)
 	memcpy(&ublox.num_sv, (ublox_payload_addr + 23), sizeof(uint8_t));
 	memcpy(&ublox.pdop, (ublox_payload_addr + 76), sizeof(uint16_t));
 
-	return true;
+	ins_gps_sync_buffer_push(ublox.longitude, ublox.latitude, ublox.height_msl,
+	                         ublox.vel_n, ublox.vel_e, ublox.vel_d);
 }
 
-bool ublox_m8n_gps_update(void)
+void ublox_m8n_gps_update(void)
 {
 	ublox_m8n_buf_c_t recept_c;
 
@@ -324,11 +326,8 @@ bool ublox_m8n_gps_update(void)
 		case UBX_STATE_RECEIVE_CK2:
 			/* decode phase */
 			ublox.recept_ck[1] = c;
-			bool decode_succeeded = ublox_decode_nav_pvt_msg();
+			ublox_decode_nav_pvt_msg();
 			ublox.parse_state = UBX_STATE_WAIT_SYNC_C1;
-			return decode_succeeded;
 		}
 	}
-
-	return false;
 }

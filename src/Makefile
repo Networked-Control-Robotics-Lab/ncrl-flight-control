@@ -75,6 +75,7 @@ SRC+=./core/main.c \
 	./core/estimators/ins/gps_to_enu.c \
 	./core/estimators/ins/ins.c \
 	./core/estimators/ins/full_state_eskf.c \
+	./core/estimators/ins/ins_sensor_sync.c \
 	./core/controllers/multirotor_pid/multirotor_pid_ctrl.c \
 	./core/controllers/multirotor_pid/multirotor_pid_param.c \
 	./core/controllers/multirotor_geometry/multirotor_geometry_ctrl.c \

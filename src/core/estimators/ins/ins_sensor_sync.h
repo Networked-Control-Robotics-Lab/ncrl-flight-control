@@ -27,5 +27,4 @@ void ins_gps_sync_buffer_push(float longitude, float latitude, float height_msl,
 bool ins_gps_sync_buffer_pop(float *longitude, float *latitude, float *height_msl,
                              float *vx_ned, float *vy_ned, float *vz_ned);
 
-
 #endif

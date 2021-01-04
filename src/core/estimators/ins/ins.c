@@ -11,6 +11,7 @@
 #include "ncrl_mavlink.h"
 #include "proj_config.h"
 #include "ublox_m8n.h"
+#include "ins_sensor_sync.h"
 
 #define INS_LOOP_PERIOD 0.0025f //400Hz
 
@@ -21,6 +22,8 @@ float vel_enu_fused[3];
 
 void ins_init(void)
 {
+	ins_sync_buffer_init();
+
 #if (SELECT_INS == INS_COMPLEMENTARY_FILTER)
 	comp_nav_init(INS_LOOP_PERIOD);
 #endif
@@ -73,44 +76,35 @@ void ins_state_estimate(void)
 	/* predict position and velocity with kinematic equations */
 	pos_vel_complementary_filter_predict(pos_enu_fused, vel_enu_fused);
 
-	/* correct x-y position and velocity with gps data*/
-	bool received_new_gps_data = ublox_m8n_gps_update(); //FIXME: replace with driver interface
-	if(received_new_gps_data == true) {
-		/*======================*
-		 * prepare sensor datas *
-		 *======================*/
-
-		/* read barometer height and velocity */
-		float barometer_height, barometer_velocity;
-		barometer_height = barometer_get_relative_altitude();
-		barometer_velocity = barometer_get_relative_altitude_rate();
-
-		/* read gps position and convert it in to enu coordinate frame */
-		float gps_longitude, gps_latitude, gps_msl_height;
-		get_gps_longitude_latitude_height(&gps_longitude, &gps_latitude, &gps_msl_height);
+	/* correct x-y position and velocity with gps data */
+	float gps_longitude, gps_latitude, gps_msl_height;
+	float gps_ned_vx, gps_ned_vy, gps_ned_vz;
+	bool recvd_gps = ins_gps_sync_buffer_pop(&gps_longitude, &gps_latitude, &gps_msl_height,
+	                 &gps_ned_vx, &gps_ned_vy, &gps_ned_vz);
+	if(recvd_gps == true) {
+		/* convert gps data from geographic coordinate system to enu frame */
 		longitude_latitude_to_enu(gps_longitude, gps_latitude, gps_msl_height,
 		                          &pos_enu_raw[0], &pos_enu_raw[1], &pos_enu_raw[2]);
-		pos_enu_raw[2] = barometer_height; //use barometer height
+		pos_enu_raw[2] = 0; //ommit z direction in coordinate transform
 
 		/* read gps velocity and convert it from ned frame into enu frame */
-		float gps_ned_vx, gps_ned_vy, gps_ned_vz;
 		get_gps_velocity_ned(&gps_ned_vx, &gps_ned_vy, &gps_ned_vz);
-		vel_enu_raw[0] = gps_ned_vy;
-		vel_enu_raw[1] = gps_ned_vx;
-		pos_enu_raw[2] = barometer_velocity; //use barometer height velocity
+		vel_enu_raw[0] = gps_ned_vy; //x_enu = y_ned
+		vel_enu_raw[1] = gps_ned_vx; //y_enu = x_ned
 
-		/*================*
-		 * ins algorithms *
-		 *================*/
-
-		/* use gps and barometer as complementary filter input */
+		//run gps correction
 		pos_vel_complementary_filter_gps_correct(pos_enu_raw, vel_enu_raw,
 		                pos_enu_fused, vel_enu_fused);
 	}
 
-	/* correct z position and velocity with barometer */
-	pos_vel_complementary_filter_barometer_correct(pos_enu_raw, vel_enu_raw,
-	                pos_enu_fused, vel_enu_fused);
+	/* correct z position and velocity with barometer (~50Hz) */
+	bool recvd_barometer =
+	        ins_barometer_sync_buffer_pop(&pos_enu_raw[2], &vel_enu_raw[2]);
+	if(recvd_barometer == true) {
+		//run barometer correction
+		pos_vel_complementary_filter_barometer_correct(
+		        pos_enu_raw, vel_enu_raw, pos_enu_fused, vel_enu_fused);
+	}
 }
 
 void ins_get_raw_position(float *pos_enu)

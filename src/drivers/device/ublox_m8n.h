@@ -66,7 +66,7 @@ typedef struct {
 void ublox_m8n_init(void);
 void ublox_m8n_isr_handler(uint8_t c);
 bool ublox_available(void);
-bool ublox_m8n_gps_update(void);
+void ublox_m8n_gps_update(void);
 
 void ublox_m8n_get_longitude_latitude_height_s32(int32_t *longitude, int32_t *latitude, int32_t *height_msl);
 void ublox_m8n_get_longitude_latitude_height(float *longitude, float *latitude, float *height_msl);
