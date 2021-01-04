@@ -5,6 +5,7 @@
 #include "barometer.h"
 #include "compass.h"
 #include "comp_nav.h"
+#include "gps.h"
 #include "led.h"
 #include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"
 #include "ncrl_mavlink.h"

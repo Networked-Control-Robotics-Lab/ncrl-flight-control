@@ -2,7 +2,7 @@
 
 bool is_barometer_available(void)
 {
-        return ms5611_available();
+	return ms5611_available();
 }
 
 void barometer_wait_until_stable(void)
