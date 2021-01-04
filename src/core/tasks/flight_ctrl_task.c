@@ -126,6 +126,7 @@ void task_flight_ctrl(void *param)
 #endif
 
 	ahrs_init();
+	ins_init();
 
 	led_off(LED_R);
 	led_off(LED_G);
@@ -162,6 +163,8 @@ void task_flight_ctrl(void *param)
 			ahrs_estimate();
 		}
 		perf_end(PERF_AHRS);
+
+		//ins_state_estimate(); //XXX
 
 		/* controller */
 		perf_start(PERF_CONTROLLER);
