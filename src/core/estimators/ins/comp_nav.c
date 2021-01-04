@@ -35,40 +35,13 @@ void comp_nav_init(float _dt)
 	half_dt_squared = _dt / 2;
 }
 
-void comp_nav_estimate(void)
+/* estimate position and velocity using complementary filter */
+void pos_vel_complementary_filter(float *pos_enu_raw, float *vel_enu_raw)
 {
-	float pos_enu_raw[3], vel_enu_raw[3];
-
-	/* read barometer height and velocity */
-	float barometer_height, barometer_velocity;
-	barometer_height = barometer_get_relative_altitude();
-	barometer_velocity = barometer_get_relative_altitude_rate();
-
-	/* read gps position and convert it in to enu coordinate frame */
-	float gps_longitude, gps_latitude, gps_msl_height;
-	get_gps_longitude_latitude_height(&gps_longitude, &gps_latitude, &gps_msl_height);
-	longitude_latitude_to_enu(gps_longitude, gps_latitude, gps_msl_height,
-	                          &pos_enu_raw[0], &pos_enu_raw[1], &pos_enu_raw[2]);
-	pos_enu_raw[2] = barometer_height; //use barometer height
-
-	/* read gps velocity and convert it from ned frame into enu frame */
-	float gps_ned_vx, gps_ned_vy, gps_ned_vz;
-	get_gps_velocity_ned(&gps_ned_vx, &gps_ned_vy, &gps_ned_vz);
-	vel_enu_raw[0] = gps_ned_vy;
-	vel_enu_raw[1] = gps_ned_vx;
-	pos_enu_raw[2] = barometer_velocity; //use barometer height velocity
-
 	/* read rotation matrix of current attitude */
 	float Rt[3*3];
 	get_attitude_direction_cosine_matrix((float **)&Rt);
 
-	/* use gps and barometer as complementary filter input */
-	pos_vel_complementary_filter(Rt, pos_enu_raw, vel_enu_raw);
-}
-
-/* estimate position and velocity using complementary filter */
-void pos_vel_complementary_filter(float *Rt, float *pos_enu_raw, float *vel_enu_raw)
-{
 	/* read accelerometer (which is represented in body-fixed frame) */
 	float accel_b_ned[3];
 	get_accel_lpf(accel_b_ned);

@@ -3,18 +3,24 @@
 #include "gps_to_enu.h"
 #include "position_sensor.h"
 #include "barometer.h"
+#include "comp_nav.h"
 #include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"
 #include "ncrl_mavlink.h"
+#include "proj_config.h"
 
-float ins_raw_enu_x;
-float ins_raw_enu_y;
-float ins_raw_enu_z;
+#define INS_LOOP_PERIOD 0.0025f //400Hz
+
+float pos_enu_raw[3];
+float vel_enu_raw[3];
 
 void ins_init(void)
 {
+#if (SELECT_INS == INS_COMPLEMENTARY_FILTER)
+	comp_nav_init(INS_LOOP_PERIOD);
+#endif
 }
 
-bool ins_check_gps_status(void)
+bool ins_check_sensor_status(void)
 {
 	/* check if home position is set */
 	if(gps_home_is_set() == false) {
@@ -31,26 +37,53 @@ bool ins_check_gps_status(void)
 		}
 	}
 
+	/* check gps status */
+
+	/* check barometer status */
+
 	return true; //good
 }
 
 void ins_state_estimate(void)
 {
-	if(ins_check_gps_status() == true) {
-		float longitude, latitude, gps_height;
-		get_gps_longitude_latitude_height(&longitude, &latitude, &gps_height);
+	if(ins_check_sensor_status() == true) {
+		/*======================*
+		 * prepare sensor datas *
+		 *======================*/
 
-		float barometer_height;
+		/* read barometer height and velocity */
+		float barometer_height, barometer_velocity;
 		barometer_height = barometer_get_relative_altitude();
+		barometer_velocity = barometer_get_relative_altitude_rate();
 
-		longitude_latitude_to_enu(longitude, latitude, barometer_height,
-		                          &ins_raw_enu_x, &ins_raw_enu_y, &ins_raw_enu_z);
+		/* read gps position and convert it in to enu coordinate frame */
+		float gps_longitude, gps_latitude, gps_msl_height;
+		get_gps_longitude_latitude_height(&gps_longitude, &gps_latitude, &gps_msl_height);
+		longitude_latitude_to_enu(gps_longitude, gps_latitude, gps_msl_height,
+		                          &pos_enu_raw[0], &pos_enu_raw[1], &pos_enu_raw[2]);
+		pos_enu_raw[2] = barometer_height; //use barometer height
+
+		/* read gps velocity and convert it from ned frame into enu frame */
+		float gps_ned_vx, gps_ned_vy, gps_ned_vz;
+		get_gps_velocity_ned(&gps_ned_vx, &gps_ned_vy, &gps_ned_vz);
+		vel_enu_raw[0] = gps_ned_vy;
+		vel_enu_raw[1] = gps_ned_vx;
+		pos_enu_raw[2] = barometer_velocity; //use barometer height velocity
+
+		/*================*
+		 * ins algorithms *
+		 *================*/
+
+#if (SELECT_INS == INS_COMPLEMENTARY_FILTER)
+		/* use gps and barometer as complementary filter input */
+		pos_vel_complementary_filter(pos_enu_raw, vel_enu_raw);
+#endif
 	}
 }
 
 void ins_get_raw_position(float *pos_enu)
 {
-	pos_enu[0] = ins_raw_enu_x;
-	pos_enu[1] = ins_raw_enu_y;
-	pos_enu[2] = ins_raw_enu_z;
+	pos_enu[0] = pos_enu_raw[0];
+	pos_enu[1] = pos_enu_raw[1];
+	pos_enu[2] = pos_enu_raw[2];
 }
