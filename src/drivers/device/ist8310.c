@@ -203,7 +203,7 @@ void ist8310_read_sensor(void)
 
 	/* update timer only if data is valid */
 	if(ist8310.mag_raw[0] != 0 || ist8310.mag_raw[1] != 0 || ist8310.mag_raw[2] != 0) {
-		ist8310.last_read_time = curr_time;
+		ist8310.last_read_time = get_sys_time_ms();
 	}
 }
 

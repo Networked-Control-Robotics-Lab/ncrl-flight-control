@@ -15,6 +15,8 @@
 
 float pos_enu_raw[3];
 float vel_enu_raw[3];
+float pos_enu_fused[3];
+float vel_enu_fused[3];
 
 void ins_init(void)
 {
@@ -25,34 +27,38 @@ void ins_init(void)
 
 bool ins_check_sensor_status(void)
 {
+	bool sensor_all_ready;
+
 	/* check if home position is set */
-	if(gps_home_is_set() == false) {
-		if(get_gps_fix_type() == GPS_FIX_TYPE_3D_FIX) {
-			float longitude, latitude, gps_height;
-			get_gps_longitude_latitude_height(&longitude, &latitude, &gps_height);
+	bool home_set = gps_home_is_set();
 
-			float barometer_height;
-			barometer_height = barometer_get_relative_altitude();
+	/* set home position when gps signal is stable */
+	if((home_set == false) && (get_gps_fix_type() == GPS_FIX_TYPE_3D_FIX)) {
+		float longitude, latitude, gps_height;
+		get_gps_longitude_latitude_height(&longitude, &latitude, &gps_height);
 
-			set_home_longitude_latitude(longitude, latitude, barometer_height);
-		} else {
-			return false; //gps receiver is not ready
-		}
+		float barometer_height;
+		barometer_height = barometer_get_relative_altitude();
+
+		set_home_longitude_latitude(longitude, latitude, barometer_height);
 	}
 
+	/* check sensor status */
 	bool gps_ready = is_gps_available();
 	bool compass_ready = is_compass_available();
 	bool barometer_ready = is_barometer_available();
 
+	sensor_all_ready =
+	        home_set && gps_ready && compass_ready && barometer_ready;
+
 	/* change led state to indicate the sensor status */
-	if(gps_ready && compass_ready && barometer_ready) {
+	if(sensor_all_ready == true) {
 		led_on(LED_G);
 	} else {
 		led_off(LED_G);
-		return false; //bad
 	}
 
-	return true; //good
+	return sensor_all_ready;
 }
 
 void ins_state_estimate(void)
@@ -87,7 +93,8 @@ void ins_state_estimate(void)
 
 #if (SELECT_INS == INS_COMPLEMENTARY_FILTER)
 		/* use gps and barometer as complementary filter input */
-		pos_vel_complementary_filter(pos_enu_raw, vel_enu_raw);
+		pos_vel_complementary_filter(pos_enu_raw, vel_enu_raw,
+		                             pos_enu_fused, vel_enu_fused);
 #endif
 	}
 }
@@ -97,4 +104,25 @@ void ins_get_raw_position(float *pos_enu)
 	pos_enu[0] = pos_enu_raw[0];
 	pos_enu[1] = pos_enu_raw[1];
 	pos_enu[2] = pos_enu_raw[2];
+}
+
+void ins_get_raw_velocity(float *vel_enu)
+{
+	vel_enu[0] = vel_enu_raw[0];
+	vel_enu[1] = vel_enu_raw[1];
+	vel_enu[2] = vel_enu_raw[2];
+}
+
+void ins_get_fused_position(float *pos_enu)
+{
+	pos_enu[0] = pos_enu_fused[0];
+	pos_enu[1] = pos_enu_fused[1];
+	pos_enu[2] = pos_enu_fused[2];
+}
+
+void ins_get_fused_velocity(float *vel_enu)
+{
+	vel_enu[0] = vel_enu_fused[0];
+	vel_enu[1] = vel_enu_fused[1];
+	vel_enu[2] = vel_enu_fused[2];
 }

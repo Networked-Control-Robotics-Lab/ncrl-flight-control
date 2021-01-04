@@ -66,3 +66,28 @@ void send_ins_raw_position_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_float(&pos_enu[1], payload);
 	pack_debug_debug_message_float(&pos_enu[2], payload);
 }
+
+void send_ins_fusion_debug_message(debug_msg_t *payload)
+{
+	float pos_enu_raw[3], vel_enu_raw[3];
+	ins_get_raw_position(pos_enu_raw);
+	ins_get_raw_velocity(vel_enu_raw);
+
+	float pos_enu_fused[3], vel_enu_fused[3];
+	ins_get_fused_position(pos_enu_fused);
+	ins_get_fused_velocity(vel_enu_fused);
+
+	pack_debug_debug_message_header(payload, MESSAGE_ID_INS_FUSION);
+	pack_debug_debug_message_float(&pos_enu_raw[0], payload);
+	pack_debug_debug_message_float(&pos_enu_raw[1], payload);
+	pack_debug_debug_message_float(&pos_enu_raw[2], payload);
+	pack_debug_debug_message_float(&pos_enu_fused[0], payload);
+	pack_debug_debug_message_float(&pos_enu_fused[1], payload);
+	pack_debug_debug_message_float(&pos_enu_fused[2], payload);
+	pack_debug_debug_message_float(&vel_enu_raw[0], payload);
+	pack_debug_debug_message_float(&vel_enu_raw[1], payload);
+	pack_debug_debug_message_float(&vel_enu_raw[2], payload);
+	pack_debug_debug_message_float(&vel_enu_fused[0], payload);
+	pack_debug_debug_message_float(&vel_enu_fused[1], payload);
+	pack_debug_debug_message_float(&vel_enu_fused[2], payload);
+}

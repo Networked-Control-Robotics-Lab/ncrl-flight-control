@@ -423,7 +423,39 @@ class serial_plotter_class:
                 self.create_curve('py', 'blue')
                 self.create_curve('pz', 'green')
                 self.show_subplot()
-              
+             
+        elif (message_id == 20):
+                plt.subplot(411)
+                plt.ylabel('gps raw position [m/s]')
+                plt.ylim([-25.0, 25.0])
+                self.create_curve('px', 'red')
+                self.create_curve('py', 'blue')
+                self.create_curve('pz', 'green')
+                self.show_subplot()
+
+                plt.subplot(412)
+                plt.ylabel('ins fused position [m/s]')
+                plt.ylim([-25.0, 25.0])
+                self.create_curve('px', 'red')
+                self.create_curve('py', 'blue')
+                self.create_curve('pz', 'green')
+                self.show_subplot()
+           
+                plt.subplot(413)
+                plt.ylabel('gps raw velocity [m/s^2]')
+                plt.ylim([-5.0, 5.0])
+                self.create_curve('vx', 'red')
+                self.create_curve('vy', 'blue')
+                self.create_curve('vz', 'green')
+                self.show_subplot()
+
+                plt.subplot(414)
+                plt.ylabel('ins fused velocity [m/s]')
+                plt.ylim([-5.0, 5.0])
+                self.create_curve('vx', 'red')
+                self.create_curve('vy', 'blue')
+                self.create_curve('vz', 'green')
+                self.show_subplot()
 
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \
