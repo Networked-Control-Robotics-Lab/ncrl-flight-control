@@ -70,11 +70,11 @@ SRC+=./core/main.c \
 	./core/estimators/ahrs/comp_ahrs.c \
 	./core/estimators/ahrs/madgwick_ahrs.c \
 	./core/estimators/ahrs/eskf_ahrs.c \
-	./core/estimators/ins/comp_height_est.c \
-	./core/estimators/ins/comp_nav.c \
+	./core/estimators/ins/ins_height_complementary.c \
+	./core/estimators/ins/ins_complementary.c \
 	./core/estimators/ins/gps_to_enu.c \
 	./core/estimators/ins/ins.c \
-	./core/estimators/ins/full_state_eskf.c \
+	./core/estimators/ins/ins_full_state_eskf.c \
 	./core/estimators/ins/ins_sensor_sync.c \
 	./core/controllers/multirotor_pid/multirotor_pid_ctrl.c \
 	./core/controllers/multirotor_pid/multirotor_pid_param.c \

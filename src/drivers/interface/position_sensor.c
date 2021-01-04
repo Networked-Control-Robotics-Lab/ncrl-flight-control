@@ -1,6 +1,6 @@
 #include "optitrack.h"
 #include "position_sensor.h"
-#include "comp_height_est.h"
+#include "ins_height_complementary.h"
 #include "proj_config.h"
 #include "ms5611.h"
 #include "ublox_m8n.h"

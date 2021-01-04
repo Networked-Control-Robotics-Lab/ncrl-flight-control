@@ -4,7 +4,7 @@
 #include "barometer.h"
 #include "gps_to_enu.h"
 #include "position_sensor.h"
-#include "comp_nav.h"
+#include "ins_complementary.h"
 #include "ahrs_selector.h"
 
 /* position (enu) */
