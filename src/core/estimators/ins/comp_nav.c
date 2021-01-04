@@ -9,22 +9,12 @@
 
 /* position (enu) */
 float pos_last[3] = {0.0f};
-float pos_predict[3] = {0.0f};
-float pos_fused[3] = {0.0f};
 
 /* velocity (enu) */
 float vel_last[3] = {0.0f};
-float vel_predict[3] = {0.0f};
-float vel_fused[3] = {0.0f};
 
-float pos_a[3] = {0.5f,    //gps_x
-                  0.5f,    //gps_y
-                  0.997f
-                 }; //barometer or height sensor
-float vel_a[3] = {0.2f,    //gps_x
-                  0.2f,    //gps_y
-                  0.997f
-                 }; //barometer or height sensor
+float pos_a[3];
+float vel_a[3];
 
 float dt = 0;
 float half_dt_squared = 0;
@@ -33,6 +23,16 @@ void comp_nav_init(float _dt)
 {
 	dt = _dt;
 	half_dt_squared = _dt / 2.0f;
+
+	/* position fusion weights */
+	pos_a[0] = 0.5f;   //weight of using gps raw x position
+	pos_a[1] = 0.5f;   //weight of using gps raw y position
+	pos_a[2] = 0.997f; //weight of using barometer height
+
+	/* velocity fusion weights */
+	vel_a[0] = 0.2f;   //weight of using gps raw x velocity
+	vel_a[1] = 0.2f;   //weight of using gps raw y velocity
+	vel_a[2] = 0.997f; //weight of using barometer height velocity
 }
 
 /* estimate position and velocity using complementary filter */
@@ -68,28 +68,20 @@ void pos_vel_complementary_filter_predict(float *pos_enu_out, float *vel_enu_out
 	accel_i_enu[2] = -accel_i_ned[2];
 
 	/* kinematic update with accelerometer */
-	pos_predict[0] = pos_last[0] + (vel_last[0] * dt) + (accel_i_enu[0] * half_dt_squared);
-	pos_predict[1] = pos_last[1] + (vel_last[1] * dt) + (accel_i_enu[1] * half_dt_squared);
-	pos_predict[2] = pos_last[2] + (vel_last[2] * dt) + (accel_i_enu[2] * half_dt_squared);
-	vel_predict[0] = vel_last[0] + (accel_i_enu[0] * dt);
-	vel_predict[1] = vel_last[1] + (accel_i_enu[1] * dt);
-	//vel_predict[2] = vel_last[2] + (accel_i_enu[2] * dt);
+	pos_enu_out[0] = pos_last[0] + (vel_last[0] * dt) + (accel_i_enu[0] * half_dt_squared);
+	pos_enu_out[1] = pos_last[1] + (vel_last[1] * dt) + (accel_i_enu[1] * half_dt_squared);
+	pos_enu_out[2] = pos_last[2] + (vel_last[2] * dt) + (accel_i_enu[2] * half_dt_squared);
+	vel_enu_out[0] = vel_last[0] + (accel_i_enu[0] * dt);
+	vel_enu_out[1] = vel_last[1] + (accel_i_enu[1] * dt);
+	vel_enu_out[2] = vel_last[2] + (accel_i_enu[2] * dt);
 
 	/* save fused result for next iteration */
-	pos_last[0] = pos_predict[0];
-	pos_last[1] = pos_predict[1];
-	//pos_last[2] = pos_predict[2];
-	vel_last[0] = vel_predict[0];
-	vel_last[1] = vel_predict[1];
-	//vel_last[2] = vel_predict[2];
-
-	/* return fused result */
-	pos_enu_out[0] = pos_predict[0];
-	pos_enu_out[1] = pos_predict[1];
-	//pos_enu_out[2] = pos_predict[2];
-	vel_enu_out[0] = vel_predict[0];
-	vel_enu_out[1] = vel_predict[1];
-	//vel_enu_out[2] = vel_predict[2];
+	pos_last[0] = pos_enu_out[0];
+	pos_last[1] = pos_enu_out[1];
+	pos_last[2] = pos_enu_out[2];
+	vel_last[0] = vel_enu_out[0];
+	vel_last[1] = vel_enu_out[1];
+	vel_last[2] = vel_enu_out[2];
 }
 
 /* estimate position and velocity using complementary filter */
@@ -97,26 +89,18 @@ void pos_vel_complementary_filter_correct(float *pos_enu_in,  float *vel_enu_in,
                 float *pos_enu_out, float *vel_enu_out)
 {
 	/* fusion */
-	pos_fused[0] = (pos_a[0] * pos_enu_in[0]) + ((1.0f - pos_a[0]) * pos_predict[0]);
-	pos_fused[1] = (pos_a[1] * pos_enu_in[1]) + ((1.0f - pos_a[1]) * pos_predict[1]);
-	//pos_fused[2] = (pos_a[2] * pos_enu_in[2]) + ((1.0f - pos_a[2]) * pos_predict[2]);
-	vel_fused[0] = (vel_a[0] * vel_enu_in[0]) + ((1.0f - vel_a[0]) * vel_predict[0]);
-	vel_fused[1] = (vel_a[1] * vel_enu_in[1]) + ((1.0f - vel_a[1]) * vel_predict[1]);
-	//vel_fused[2] = (vel_a[2] * vel_enu_in[2]) + ((1.0f - vel_a[2]) * vel_predict[2]);
+	pos_enu_out[0] = (pos_a[0] * pos_enu_in[0]) + ((1.0f - pos_a[0]) * pos_last[0]);
+	pos_enu_out[1] = (pos_a[1] * pos_enu_in[1]) + ((1.0f - pos_a[1]) * pos_last[1]);
+	pos_enu_out[2] = (pos_a[2] * pos_enu_in[2]) + ((1.0f - pos_a[2]) * pos_last[2]);
+	vel_enu_out[0] = (vel_a[0] * vel_enu_in[0]) + ((1.0f - vel_a[0]) * vel_last[0]);
+	vel_enu_out[1] = (vel_a[1] * vel_enu_in[1]) + ((1.0f - vel_a[1]) * vel_last[1]);
+	vel_enu_out[2] = (vel_a[2] * vel_enu_in[2]) + ((1.0f - vel_a[2]) * vel_last[2]);
 
 	/* save fused result for next iteration */
-	pos_last[0] = pos_fused[0];
-	pos_last[1] = pos_fused[1];
-	//pos_last[2] = pos_fused[2];
-	vel_last[0] = vel_fused[0];
-	vel_last[1] = vel_fused[1];
-	//vel_last[2] = vel_fused[2];
-
-	/* return fused result */
-	pos_enu_out[0] = pos_fused[0];
-	pos_enu_out[1] = pos_fused[1];
-	//pos_enu_out[2] = pos_fused[2];
-	vel_enu_out[0] = vel_fused[0];
-	vel_enu_out[1] = vel_fused[1];
-	//vel_enu_out[2] = vel_fused[2];
+	pos_last[0] = pos_enu_out[0];
+	pos_last[1] = pos_enu_out[1];
+	pos_last[2] = pos_enu_out[2];
+	vel_last[0] = vel_enu_out[0];
+	vel_last[1] = vel_enu_out[1];
+	vel_last[2] = vel_enu_out[2];
 }
