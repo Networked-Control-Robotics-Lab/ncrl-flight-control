@@ -10,6 +10,7 @@
 #include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"
 #include "ncrl_mavlink.h"
 #include "proj_config.h"
+#include "ublox_m8n.h"
 
 #define INS_LOOP_PERIOD 0.0025f //400Hz
 
@@ -63,14 +64,18 @@ bool ins_check_sensor_status(void)
 
 void ins_state_estimate(void)
 {
-	if(gps_home_is_set() == true) {
-#if (SELECT_INS == INS_COMPLEMENTARY_FILTER)
-		/* use gps and barometer as complementary filter input */
-		pos_vel_complementary_filter_predict(pos_enu_fused, vel_enu_fused);
-#endif
+	ins_check_sensor_status();
+
+	if(gps_home_is_set() == false) {
+		return;
 	}
 
-	if(ins_check_sensor_status() == true) {
+	/* predict position and velocity with kinematic equations */
+	pos_vel_complementary_filter_predict(pos_enu_fused, vel_enu_fused);
+
+	/* correct x-y position and velocity with gps data*/
+	bool received_new_gps_data = ublox_m8n_gps_update(); //FIXME: replace with driver interface
+	if(received_new_gps_data == true) {
 		/*======================*
 		 * prepare sensor datas *
 		 *======================*/
@@ -98,12 +103,14 @@ void ins_state_estimate(void)
 		 * ins algorithms *
 		 *================*/
 
-#if (SELECT_INS == INS_COMPLEMENTARY_FILTER)
 		/* use gps and barometer as complementary filter input */
 		pos_vel_complementary_filter_gps_correct(pos_enu_raw, vel_enu_raw,
 		                pos_enu_fused, vel_enu_fused);
-#endif
 	}
+
+	/* correct z position and velocity with barometer */
+	pos_vel_complementary_filter_barometer_correct(pos_enu_raw, vel_enu_raw,
+	                pos_enu_fused, vel_enu_fused);
 }
 
 void ins_get_raw_position(float *pos_enu)

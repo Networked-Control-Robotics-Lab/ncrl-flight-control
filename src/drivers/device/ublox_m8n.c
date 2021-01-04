@@ -195,17 +195,17 @@ void ublox_m8n_isr_handler(uint8_t c)
 	portEND_SWITCHING_ISR(higher_priority_task_woken);
 }
 
-void ublox_decode_nav_pvt_msg(void)
+bool ublox_decode_nav_pvt_msg(void)
 {
 	if((ublox.recept_class != 0x01) || (ublox.recept_id != 0x07) ||
 	    (ublox.recept_len != 92)) {
-		return;
+		return false;
 	}
 
 	/* length of nav_pvt_msg's payload is 92, reserve 4 for header */
 	ublox_checksum_calc(ublox.calc_ck, ublox.recept_buf, 92 + 4);
 	if(*(uint16_t *)ublox.calc_ck != *(uint16_t *)ublox.recept_ck) {
-		return;
+		return false;
 	}
 
 	ublox.last_read_time = get_sys_time_ms();
@@ -231,9 +231,11 @@ void ublox_decode_nav_pvt_msg(void)
 	memcpy(&ublox.fix_type, (ublox_payload_addr + 20), sizeof(uint8_t));
 	memcpy(&ublox.num_sv, (ublox_payload_addr + 23), sizeof(uint8_t));
 	memcpy(&ublox.pdop, (ublox_payload_addr + 76), sizeof(uint16_t));
+
+	return true;
 }
 
-void ublox_m8n_gps_update(void)
+bool ublox_m8n_gps_update(void)
 {
 	ublox_m8n_buf_c_t recept_c;
 
@@ -320,10 +322,13 @@ void ublox_m8n_gps_update(void)
 			ublox.parse_state = UBX_STATE_RECEIVE_CK2;
 			break;
 		case UBX_STATE_RECEIVE_CK2:
+			/* decode phase */
 			ublox.recept_ck[1] = c;
-			ublox_decode_nav_pvt_msg();
+			bool decode_succeeded = ublox_decode_nav_pvt_msg();
 			ublox.parse_state = UBX_STATE_WAIT_SYNC_C1;
-			break;
+			return decode_succeeded;
 		}
 	}
+
+	return false;
 }
