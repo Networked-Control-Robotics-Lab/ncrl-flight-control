@@ -22,6 +22,16 @@ ist8310_t ist8310 = {
 	.div_squared_semi_axis_size_z = 1.0f
 };
 
+bool ist8310_available(void)
+{
+	//timeout if no data available more than 300ms
+	float current_time = get_sys_time_ms();
+	if((current_time - ist8310.last_read_time) > 300) {
+		return false;
+	}
+	return true;
+}
+
 uint8_t ist8310_read_byte(uint8_t addr)
 {
 	uint8_t data;
@@ -83,7 +93,6 @@ void ist8310_blocked_write_byte(uint8_t addr, uint8_t data)
 	sw_i2c_blocked_wait_ack();
 	sw_i2c_blocked_stop();
 }
-
 
 void ist8310_read_bytes(uint8_t addr, uint8_t *data, int size)
 {
@@ -191,6 +200,11 @@ void ist8310_read_sensor(void)
 	float elapsed_time = curr_time - ist8310.last_update_time;
 	ist8310.update_rate = 1.0f / elapsed_time;
 	ist8310.last_update_time = curr_time;
+
+	/* update timer only if data is valid */
+	if(ist8310.mag_raw[0] != 0 || ist8310.mag_raw[1] != 0 || ist8310.mag_raw[2] != 0) {
+		ist8310.last_read_time = curr_time;
+	}
 }
 
 void ist8310_get_mag_raw(float *mag_raw)

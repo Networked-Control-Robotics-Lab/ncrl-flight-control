@@ -6,6 +6,7 @@
 #include "ublox_m8n.h"
 #include "uart.h"
 #include "delay.h"
+#include "sys_time.h"
 #include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"
 #include "ncrl_mavlink.h"
 
@@ -56,6 +57,16 @@ typedef struct {
 QueueHandle_t ublox_m8n_queue;
 
 ublox_t ublox;
+
+bool ublox_available(void)
+{
+	//timeout if no data available more than 300ms
+	float current_time = get_sys_time_ms();
+	if((current_time - ublox.last_read_time) > 300) {
+		return false;
+	}
+	return true;
+}
 
 void ublox_command_send(uint8_t *cmd, int size)
 {
@@ -196,6 +207,8 @@ void ublox_decode_nav_pvt_msg(void)
 	if(*(uint16_t *)ublox.calc_ck != *(uint16_t *)ublox.recept_ck) {
 		return;
 	}
+
+	ublox.last_read_time = get_sys_time_ms();
 
 	uint8_t *ublox_payload_addr = ublox.recept_buf + 4;
 	//memcpy(&ublox.year, (ublox_payload_addr + 4), sizeof(uint16_t));

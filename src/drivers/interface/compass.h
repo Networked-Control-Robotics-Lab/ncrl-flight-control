@@ -3,6 +3,7 @@
 
 #include "debug_link.h"
 
+bool is_compass_available(void);
 bool is_compass_present(void);
 void get_compass_raw(float *mag);
 float get_compass_raw_strength(void);

@@ -1,6 +1,9 @@
 #ifndef __POSITION_SENSOR_H__
 #define __POSITION_SENSOR_H__
 
+bool is_gps_available(void);
+bool is_barometer_available(void);
+
 bool is_xy_position_info_available(void);
 bool is_height_info_available(void);
 

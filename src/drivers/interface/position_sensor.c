@@ -5,6 +5,20 @@
 #include "ms5611.h"
 #include "ublox_m8n.h"
 
+bool is_gps_available(void)
+{
+#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_GPS)
+	return ublox_available();
+#else
+	return false;
+#endif
+}
+
+bool is_barometer_available(void)
+{
+	return ms5611_available();
+}
+
 bool is_xy_position_info_available(void)
 {
 #if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)

@@ -627,7 +627,7 @@ void shell_cmd_param(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int pa
 
 void shell_cmd_compass(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
 {
-	if(is_compass_present() == false) {
+	if(is_compass_available() == false) {
 		shell_puts("compass not presents!\n\r");
 	}
 

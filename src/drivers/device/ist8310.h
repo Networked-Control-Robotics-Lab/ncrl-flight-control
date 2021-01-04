@@ -53,9 +53,12 @@ typedef struct {
 	float div_squared_semi_axis_size_x;
 	float div_squared_semi_axis_size_y;
 	float div_squared_semi_axis_size_z;
+
+	float last_read_time;
 } ist8310_t;
 
 void ist8130_init(void);
+bool ist8310_available(void);
 void ist8310_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
                            UBaseType_t priority);
 void ist8310_semaphore_handler(BaseType_t *higher_priority_task_woken);

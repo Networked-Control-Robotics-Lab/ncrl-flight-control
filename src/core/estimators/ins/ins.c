@@ -3,7 +3,9 @@
 #include "gps_to_enu.h"
 #include "position_sensor.h"
 #include "barometer.h"
+#include "compass.h"
 #include "comp_nav.h"
+#include "led.h"
 #include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"
 #include "ncrl_mavlink.h"
 #include "proj_config.h"
@@ -37,9 +39,17 @@ bool ins_check_sensor_status(void)
 		}
 	}
 
-	/* check gps status */
+	bool gps_ready = is_gps_available();
+	bool compass_ready = is_compass_available();
+	bool barometer_ready = is_barometer_available();
 
-	/* check barometer status */
+	/* change led state to indicate the sensor status */
+	if(gps_ready && compass_ready && barometer_ready) {
+		led_on(LED_G);
+	} else {
+		led_off(LED_G);
+		return false; //bad
+	}
 
 	return true; //good
 }
