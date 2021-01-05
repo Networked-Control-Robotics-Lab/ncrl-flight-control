@@ -30,8 +30,8 @@ void comp_nav_init(float _dt)
 	pos_a[2] = 0.03f; //weight of using barometer height
 
 	/* velocity fusion weights */
-	vel_a[0] = 0.2f;   //weight of using gps raw x velocity
-	vel_a[1] = 0.2f;   //weight of using gps raw y velocity
+	vel_a[0] = 0.65f;   //weight of using gps raw x velocity
+	vel_a[1] = 0.65f;   //weight of using gps raw y velocity
 	vel_a[2] = 0.03f; //weight of using barometer height velocity
 }
 
