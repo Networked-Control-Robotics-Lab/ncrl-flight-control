@@ -22,7 +22,7 @@ float half_dt_squared = 0;
 void comp_nav_init(float _dt)
 {
 	dt = _dt;
-	half_dt_squared = _dt / 2.0f;
+	half_dt_squared = (_dt * _dt) / 2.0f;
 
 	/* position fusion weights */
 	pos_a[0] = 0.1f;   //weight of using gps raw x position
