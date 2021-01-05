@@ -16,7 +16,7 @@
 #include "autopilot.h"
 #include "debug_link.h"
 #include "multirotor_geometry_param.h"
-#include "position_sensor.h"
+#include "position_state.h"
 #include "multirotor_rc.h"
 #include "barometer.h"
 #include "ins_height_complementary.h"

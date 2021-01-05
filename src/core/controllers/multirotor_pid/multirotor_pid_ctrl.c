@@ -25,7 +25,7 @@
 #include "debug_link.h"
 #include "autopilot.h"
 #include "sys_param.h"
-#include "position_sensor.h"
+#include "position_state.h"
 #include "compass.h"
 
 pid_control_t pid_roll;

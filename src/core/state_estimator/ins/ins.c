@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "gps_to_enu.h"
-#include "position_sensor.h"
+#include "position_state.h"
 #include "barometer.h"
 #include "compass.h"
 #include "ins_complementary.h"

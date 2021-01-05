@@ -3,7 +3,7 @@
 #include "imu.h"
 #include "barometer.h"
 #include "gps_to_enu.h"
-#include "position_sensor.h"
+#include "position_state.h"
 #include "ins_complementary.h"
 #include "ahrs_selector.h"
 
