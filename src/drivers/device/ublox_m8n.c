@@ -209,8 +209,6 @@ void ublox_decode_nav_pvt_msg(void)
 		return;
 	}
 
-	ublox.last_read_time = get_sys_time_ms();
-
 	uint8_t *ublox_payload_addr = ublox.recept_buf + 4;
 	//memcpy(&ublox.year, (ublox_payload_addr + 4), sizeof(uint16_t));
 	//memcpy(&ublox.month, (ublox_payload_addr + 6), sizeof(uint8_t));
@@ -233,11 +231,21 @@ void ublox_decode_nav_pvt_msg(void)
 	memcpy(&ublox.num_sv, (ublox_payload_addr + 23), sizeof(uint8_t));
 	memcpy(&ublox.pdop, (ublox_payload_addr + 76), sizeof(uint16_t));
 
-	float longitude = ublox.longitude * 1e-7;
-	float latitude = ublox.latitude * 1e-7;
-	float height_msl = ublox.height_msl * 1e2;
-	ins_gps_sync_buffer_push(longitude, latitude, height_msl,
-	                         ublox.vel_n, ublox.vel_e, ublox.vel_d);
+	/* push gps data to ins sync buffer if satellite number >= 6 and
+	 * fix mode = 3D fix mode */
+	if((ublox.num_sv >= 6) && (ublox.fix_type == 3)) {
+		/* set ublox state to be available */
+		ublox.last_read_time = get_sys_time_ms();
+
+		float longitude = ublox.longitude * 1e-7;
+		float latitude = ublox.latitude * 1e-7;
+		float height_msl = ublox.height_msl * 1e2;
+		float vel_n = ublox.vel_n * 1e-3;
+		float vel_e = ublox.vel_e * 1e-3;
+		float vel_d = ublox.vel_d * 1e-3;
+		ins_gps_sync_buffer_push(longitude, latitude, height_msl,
+		                         vel_n, vel_e, vel_d);
+	}
 }
 
 void ublox_m8n_gps_update(void)

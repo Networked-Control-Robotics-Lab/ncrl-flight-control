@@ -36,7 +36,8 @@ void comp_nav_init(float _dt)
 }
 
 /* estimate position and velocity using complementary filter */
-void pos_vel_complementary_filter_predict(float *pos_enu_out, float *vel_enu_out)
+void pos_vel_complementary_filter_predict(float *pos_enu_out, float *vel_enu_out,
+                bool gps_available)
 {
 	/* read rotation matrix of current attitude */
 	float *Rt;
@@ -68,12 +69,23 @@ void pos_vel_complementary_filter_predict(float *pos_enu_out, float *vel_enu_out
 	accel_i_enu[2] = -accel_i_ned[2];
 
 	/* kinematic update with accelerometer */
-	pos_enu_out[0] = pos_last[0] + (vel_last[0] * dt) + (accel_i_enu[0] * half_dt_squared);
-	pos_enu_out[1] = pos_last[1] + (vel_last[1] * dt) + (accel_i_enu[1] * half_dt_squared);
-	pos_enu_out[2] = pos_last[2] + (vel_last[2] * dt) + (accel_i_enu[2] * half_dt_squared);
-	vel_enu_out[0] = vel_last[0] + (accel_i_enu[0] * dt);
-	vel_enu_out[1] = vel_last[1] + (accel_i_enu[1] * dt);
-	vel_enu_out[2] = vel_last[2] + (accel_i_enu[2] * dt);
+	if(gps_available == true) {
+		/* update px, py, pz, vx, vy, vz */
+		pos_enu_out[0] = pos_last[0] + (vel_last[0] * dt) +
+		                 (accel_i_enu[0] * half_dt_squared);
+		pos_enu_out[1] = pos_last[1] + (vel_last[1] * dt) +
+		                 (accel_i_enu[1] * half_dt_squared);
+		pos_enu_out[2] = pos_last[2] + (vel_last[2] * dt) +
+		                 (accel_i_enu[2] * half_dt_squared);
+		vel_enu_out[0] = vel_last[0] + (accel_i_enu[0] * dt);
+		vel_enu_out[1] = vel_last[1] + (accel_i_enu[1] * dt);
+		vel_enu_out[2] = vel_last[2] + (accel_i_enu[2] * dt);
+	} else {
+		/* update pz, vz only, freeze other states */
+		pos_enu_out[2] = pos_last[2] + (vel_last[2] * dt) +
+		                 (accel_i_enu[2] * half_dt_squared);
+		vel_enu_out[2] = vel_last[2] + (accel_i_enu[2] * dt);
+	}
 
 	/* save fused result for next iteration */
 	pos_last[0] = pos_enu_out[0];

@@ -12,6 +12,7 @@
 #include "proj_config.h"
 #include "ublox_m8n.h"
 #include "ins_sensor_sync.h"
+#include "sys_time.h"
 
 #define INS_LOOP_PERIOD 0.0025f //400Hz
 
@@ -33,27 +34,12 @@ bool ins_check_sensor_status(void)
 {
 	bool sensor_all_ready;
 
-	/* check if home position is set */
-	bool home_set = gps_home_is_set();
-
-	/* set home position when gps signal is stable */
-	if((home_set == false) && (get_gps_fix_type() == GPS_FIX_TYPE_3D_FIX)) {
-		float longitude, latitude, gps_height;
-		get_gps_longitude_latitude_height(&longitude, &latitude, &gps_height);
-
-		float barometer_height;
-		barometer_height = barometer_get_relative_altitude();
-
-		set_home_longitude_latitude(longitude, latitude, barometer_height);
-	}
-
 	/* check sensor status */
 	bool gps_ready = is_gps_available();
 	bool compass_ready = is_compass_available();
 	bool barometer_ready = is_barometer_available();
 
-	sensor_all_ready =
-	        home_set && gps_ready && compass_ready && barometer_ready;
+	sensor_all_ready = gps_ready && compass_ready && barometer_ready;
 
 	/* change led state to indicate the sensor status */
 	if(sensor_all_ready == true) {
@@ -69,42 +55,61 @@ void ins_state_estimate(void)
 {
 	ins_check_sensor_status();
 
-	if(gps_home_is_set() == false) {
-		return;
-	}
-
-	/* predict position and velocity with kinematic equations */
-	pos_vel_complementary_filter_predict(pos_enu_fused, vel_enu_fused);
-
-	/* correct x-y position and velocity with gps data */
-	float gps_longitude, gps_latitude, gps_msl_height;
+	float longitude, latitude, gps_msl_height;
 	float gps_ned_vx, gps_ned_vy, gps_ned_vz;
+	float barometer_height, barometer_height_rate;
+
 	bool recvd_gps =
-	        ins_gps_sync_buffer_pop(&gps_longitude, &gps_latitude, &gps_msl_height,
+	        ins_gps_sync_buffer_pop(&longitude, &latitude, &gps_msl_height,
 	                                &gps_ned_vx, &gps_ned_vy, &gps_ned_vz);
+	bool recvd_barometer =
+	        ins_barometer_sync_buffer_pop(&barometer_height, &barometer_height_rate);
+
+	static bool gps_is_online = false;
+	static float gps_last_read_time = 0;
 	if(recvd_gps == true) {
-		/* convert gps data from geographic coordinate system to enu frame */
-		longitude_latitude_to_enu(gps_longitude, gps_latitude, gps_msl_height,
-		                          &pos_enu_raw[0], &pos_enu_raw[1], &pos_enu_raw[2]);
-		pos_enu_raw[2] = 0; //ommit z direction in coordinate transform
-
-		/* read gps velocity and convert it from ned frame into enu frame */
-		get_gps_velocity_ned(&gps_ned_vx, &gps_ned_vy, &gps_ned_vz);
-		vel_enu_raw[0] = gps_ned_vy; //x_enu = y_ned
-		vel_enu_raw[1] = gps_ned_vx; //y_enu = x_ned
-
-		//run gps correction
-		pos_vel_complementary_filter_gps_correct(pos_enu_raw, vel_enu_raw,
-		                pos_enu_fused, vel_enu_fused);
+		gps_last_read_time = get_sys_time_ms();
+		gps_is_online = true;
+	} else {
+		float curr_time = get_sys_time_ms();
+		if((curr_time - gps_last_read_time) > 1000.0f) {
+			gps_is_online = false;
+		}
 	}
 
-	/* correct z position and velocity with barometer (~50Hz) */
-	bool recvd_barometer =
-	        ins_barometer_sync_buffer_pop(&pos_enu_raw[2], &vel_enu_raw[2]);
+	/* predict position and velocity with kinematic equations (400Hz) */
+	pos_vel_complementary_filter_predict(pos_enu_fused, vel_enu_fused, gps_is_online);
+
 	if(recvd_barometer == true) {
-		//run barometer correction
+		pos_enu_raw[2] = barometer_height;
+		vel_enu_raw[2] = barometer_height_rate;
+
+		//run barometer correction (~50Hz)
 		pos_vel_complementary_filter_barometer_correct(
 		        pos_enu_raw, vel_enu_raw, pos_enu_fused, vel_enu_fused);
+
+		if(recvd_gps == true) {
+			/* convert gps data from geographic coordinate system to
+			 * enu frame */
+			float dummy_z;
+			longitude_latitude_to_enu(
+			        longitude, latitude, 0,
+			        &pos_enu_raw[0], &pos_enu_raw[1], &dummy_z);
+
+			if(gps_home_is_set() == false) {
+				set_home_longitude_latitude(
+				        longitude, latitude, barometer_height);
+			}
+
+			/* convert gps velocity from ned frame to enu frame */
+			vel_enu_raw[0] = gps_ned_vy; //x_enu = y_ned
+			vel_enu_raw[1] = gps_ned_vx; //y_enu = x_ned
+
+			//run gps correction (~5Hz)
+			pos_vel_complementary_filter_gps_correct(
+			        pos_enu_raw, vel_enu_raw,
+			        pos_enu_fused, vel_enu_fused);
+		}
 	}
 }
 
