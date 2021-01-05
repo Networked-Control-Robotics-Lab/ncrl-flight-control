@@ -64,18 +64,20 @@ SRC+=lib/FreeRTOS/Source/croutine.c \
 	lib/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c \
 
 SRC+=./core/main.c \
-	./core/estimators/filters/lpf.c \
-	./core/estimators/free_fall/free_fall.c \
-	./core/estimators/ahrs/ahrs_selector.c \
-	./core/estimators/ahrs/comp_ahrs.c \
-	./core/estimators/ahrs/madgwick_ahrs.c \
-	./core/estimators/ahrs/eskf_ahrs.c \
-	./core/estimators/ins/ins_height_complementary.c \
-	./core/estimators/ins/ins_complementary.c \
-	./core/estimators/ins/gps_to_enu.c \
-	./core/estimators/ins/ins.c \
-	./core/estimators/ins/ins_full_state_eskf.c \
-	./core/estimators/ins/ins_sensor_sync.c \
+	./core/filters/lpf.c \
+	./core/state_estimator/misc/free_fall/free_fall.c \
+	./core/state_estimator/ahrs/ahrs_selector.c \
+	./core/state_estimator/ahrs/comp_ahrs.c \
+	./core/state_estimator/ahrs/madgwick_ahrs.c \
+	./core/state_estimator/ahrs/eskf_ahrs.c \
+	./core/state_estimator/ins/ins_height_complementary.c \
+	./core/state_estimator/ins/ins_complementary.c \
+	./core/state_estimator/ins/gps_to_enu.c \
+	./core/state_estimator/ins/ins.c \
+	./core/state_estimator/ins/ins_full_state_eskf.c \
+	./core/state_estimator/ins/ins_sensor_sync.c \
+	./core/state_estimator/interface/attitude_state.c \
+	./core/state_estimator/interface/position_state.c \
 	./core/controllers/multirotor_pid/multirotor_pid_ctrl.c \
 	./core/controllers/multirotor_pid/multirotor_pid_param.c \
 	./core/controllers/multirotor_geometry/multirotor_geometry_ctrl.c \
@@ -143,11 +145,12 @@ SRC+=./drivers/periph/uart.c \
 CFLAGS+=-I./
 CFLAGS+=-I./platform
 CFLAGS+=-I./core
-CFLAGS+=-I./core/estimators
-CFLAGS+=-I./core/estimators/filters
-CFLAGS+=-I./core/estimators/free_fall
-CFLAGS+=-I./core/estimators/ahrs
-CFLAGS+=-I./core/estimators/ins
+CFLAGS+=-I./core/filters
+CFLAGS+=-I./core/state_estimator
+CFLAGS+=-I./core/state_estimator/ahrs
+CFLAGS+=-I./core/state_estimator/ins
+CFLAGS+=-I./core/state_estimator/interface
+CFLAGS+=-I./core/state_estimator/misc/free_fall
 CFLAGS+=-I./core/controllers
 CFLAGS+=-I./core/controllers/multirotor_pid
 CFLAGS+=-I./core/controllers/multirotor_geometry
