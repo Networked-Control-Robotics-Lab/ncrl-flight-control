@@ -36,12 +36,12 @@ void optitrack_isr_handler(uint8_t c);
 
 void optitrack_update(void);
 bool optitrack_available(void);
-void optitrack_read_pos_x(float *x);
-void optitrack_read_pos_y(float *y);
-void optitrack_read_pos_z(float *z);
-void optitrack_read_vel_x(float *vx);
-void optitrack_read_vel_y(float *vy);
-void optitrack_read_vel_z(float *vz);
+float optitrack_read_pos_x(void);
+float optitrack_read_pos_y(void);
+float optitrack_read_pos_z(void);
+float optitrack_read_vel_x(void);
+float optitrack_read_vel_y(void);
+float optitrack_read_vel_z(void);
 
 void send_optitrack_position_debug_message(debug_msg_t *payload);
 void send_optitrack_quaternion_debug_message(debug_msg_t *payload);

@@ -60,7 +60,9 @@ void send_ins_sensor_debug_message(debug_msg_t *payload)
 void send_ins_raw_position_debug_message(debug_msg_t *payload)
 {
 	float pos_enu[3]; //x, y from gps, z from height sensor
-	ins_get_raw_position(pos_enu);
+	pos_enu[0] = ins_get_raw_position_x();
+	pos_enu[1] = ins_get_raw_position_y();
+	pos_enu[2] = ins_get_raw_position_z();
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_INS_RAW_POSITION);
 	pack_debug_debug_message_float(&pos_enu[0], payload);
@@ -70,33 +72,41 @@ void send_ins_raw_position_debug_message(debug_msg_t *payload)
 
 void send_ins_fusion_debug_message(debug_msg_t *payload)
 {
-	float pos_enu_raw[3], vel_enu_raw[3];
-	ins_get_raw_position(pos_enu_raw);
-	ins_get_raw_velocity(vel_enu_raw);
-
-	float pos_enu_fused[3], vel_enu_fused[3];
-	ins_get_fused_position(pos_enu_fused);
-	ins_get_fused_velocity(vel_enu_fused);
-
 	float curr_time_ms = get_sys_time_ms();
 	float satellite_num = get_gps_satellite_numbers();
 	float gps_update_rate = get_gps_update_freq();
+
+	float pos_raw_x = ins_get_raw_position_x();
+	float pos_raw_y = ins_get_raw_position_y();
+	float pos_raw_z = ins_get_raw_position_z();
+
+	float pos_fused_x = ins_get_fused_position_x();
+	float pos_fused_y = ins_get_fused_position_y();
+	float pos_fused_z = ins_get_fused_position_z();
+
+	float vel_raw_x = ins_get_raw_velocity_x();
+	float vel_raw_y = ins_get_raw_velocity_y();
+	float vel_raw_z = ins_get_raw_velocity_z();
+
+	float vel_fused_x = ins_get_fused_velocity_x();
+	float vel_fused_y = ins_get_fused_velocity_y();
+	float vel_fused_z = ins_get_fused_velocity_z();
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_INS_FUSION);
 
 	pack_debug_debug_message_float(&curr_time_ms, payload);
 	pack_debug_debug_message_float(&satellite_num, payload);
 	pack_debug_debug_message_float(&gps_update_rate, payload);
-	pack_debug_debug_message_float(&pos_enu_raw[0], payload);
-	pack_debug_debug_message_float(&pos_enu_raw[1], payload);
-	pack_debug_debug_message_float(&pos_enu_raw[2], payload);
-	pack_debug_debug_message_float(&pos_enu_fused[0], payload);
-	pack_debug_debug_message_float(&pos_enu_fused[1], payload);
-	pack_debug_debug_message_float(&pos_enu_fused[2], payload);
-	pack_debug_debug_message_float(&vel_enu_raw[0], payload);
-	pack_debug_debug_message_float(&vel_enu_raw[1], payload);
-	pack_debug_debug_message_float(&vel_enu_raw[2], payload);
-	pack_debug_debug_message_float(&vel_enu_fused[0], payload);
-	pack_debug_debug_message_float(&vel_enu_fused[1], payload);
-	pack_debug_debug_message_float(&vel_enu_fused[2], payload);
+	pack_debug_debug_message_float(&pos_raw_x, payload);
+	pack_debug_debug_message_float(&pos_raw_y, payload);
+	pack_debug_debug_message_float(&pos_raw_z, payload);
+	pack_debug_debug_message_float(&pos_fused_x, payload);
+	pack_debug_debug_message_float(&pos_fused_y, payload);
+	pack_debug_debug_message_float(&pos_fused_z, payload);
+	pack_debug_debug_message_float(&vel_raw_x, payload);
+	pack_debug_debug_message_float(&vel_raw_y, payload);
+	pack_debug_debug_message_float(&vel_raw_z, payload);
+	pack_debug_debug_message_float(&vel_fused_x, payload);
+	pack_debug_debug_message_float(&vel_fused_y, payload);
+	pack_debug_debug_message_float(&vel_fused_z, payload);
 }

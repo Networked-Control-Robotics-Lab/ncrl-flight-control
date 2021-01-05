@@ -68,22 +68,14 @@ float get_fused_barometer_relative_altitude_rate(void)
 
 void send_alt_est_debug_message(debug_msg_t *payload)
 {
-	float altitude = 0.0f;
-	float optitrack_z = 0.0f;
-	//altitude = barometer_get_relative_altitude();
-	altitude = get_fused_barometer_relative_altitude();
-	optitrack_read_pos_z(&optitrack_z);
-
-	float altitude_rate = 0.0f;
-	float optitrack_vz = 0.0f;
-	optitrack_read_vel_z(&optitrack_vz);
-	altitude_rate = get_fused_barometer_relative_altitude_rate();
+	float altitude = get_fused_barometer_relative_altitude();
+	float optitrack_z = optitrack_read_pos_z();
+	float altitude_rate = get_fused_barometer_relative_altitude_rate();
+	float optitrack_vz = optitrack_read_vel_z();
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_ALT_EST);
-	/* position */
 	pack_debug_debug_message_float(&altitude, payload);
 	pack_debug_debug_message_float(&optitrack_z, payload);
-	/* velocity */
 	pack_debug_debug_message_float(&altitude_rate, payload);
 	pack_debug_debug_message_float(&optitrack_vz, payload);
 }
