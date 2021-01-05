@@ -30,16 +30,14 @@ void ins_init(void)
 #endif
 }
 
-bool ins_check_sensor_status(void)
+void ins_state_estimate(void)
 {
-	bool sensor_all_ready;
-
 	/* check sensor status */
 	bool gps_ready = is_gps_available();
 	bool compass_ready = is_compass_available();
 	bool barometer_ready = is_barometer_available();
 
-	sensor_all_ready = gps_ready && compass_ready && barometer_ready;
+	bool sensor_all_ready = gps_ready && compass_ready && barometer_ready;
 
 	/* change led state to indicate the sensor status */
 	if(sensor_all_ready == true) {
@@ -47,13 +45,6 @@ bool ins_check_sensor_status(void)
 	} else {
 		led_off(LED_G);
 	}
-
-	return sensor_all_ready;
-}
-
-void ins_state_estimate(void)
-{
-	ins_check_sensor_status();
 
 	float longitude, latitude, gps_msl_height;
 	float gps_ned_vx, gps_ned_vy, gps_ned_vz;
@@ -65,20 +56,8 @@ void ins_state_estimate(void)
 	bool recvd_barometer =
 	        ins_barometer_sync_buffer_pop(&barometer_height, &barometer_height_rate);
 
-	static bool gps_is_online = false;
-	static float gps_last_read_time = 0;
-	if(recvd_gps == true) {
-		gps_last_read_time = get_sys_time_ms();
-		gps_is_online = true;
-	} else {
-		float curr_time = get_sys_time_ms();
-		if((curr_time - gps_last_read_time) > 1000.0f) {
-			gps_is_online = false;
-		}
-	}
-
 	/* predict position and velocity with kinematic equations (400Hz) */
-	pos_vel_complementary_filter_predict(pos_enu_fused, vel_enu_fused, gps_is_online);
+	pos_vel_complementary_filter_predict(pos_enu_fused, vel_enu_fused, gps_ready);
 
 	if(recvd_barometer == true) {
 		pos_enu_raw[2] = barometer_height;

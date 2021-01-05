@@ -425,7 +425,25 @@ class serial_plotter_class:
                 self.show_subplot()
              
         elif (message_id == 20):
-                plt.subplot(411)
+                plt.subplot(711)
+                plt.ylabel('time [ms]')
+                plt.ylim([0.0, 600000.0])
+                self.create_curve('time', 'red')
+                self.show_subplot()
+
+                plt.subplot(712)
+                plt.ylabel('sv num')
+                plt.ylim([0.0, 50.0])
+                self.create_curve('sv num', 'red')
+                self.show_subplot()
+
+                plt.subplot(713)
+                plt.ylabel('gps freq')
+                plt.ylim([0.0, 50.0])
+                self.create_curve('gps freq', 'red')
+                self.show_subplot()
+
+                plt.subplot(714)
                 plt.ylabel('gps position [m]')
                 plt.ylim([-50.0, 50.0])
                 self.create_curve('px', 'red')
@@ -433,7 +451,7 @@ class serial_plotter_class:
                 self.create_curve('pz', 'green')
                 self.show_subplot()
 
-                plt.subplot(412)
+                plt.subplot(715)
                 plt.ylabel('ins position [m]')
                 plt.ylim([-50.0, 50.0])
                 self.create_curve('px', 'red')
@@ -441,7 +459,7 @@ class serial_plotter_class:
                 self.create_curve('pz', 'green')
                 self.show_subplot()
            
-                plt.subplot(413)
+                plt.subplot(716)
                 plt.ylabel('gps velocity [m/s]')
                 plt.ylim([-5.0, 5.0])
                 self.create_curve('vx', 'red')
@@ -449,7 +467,7 @@ class serial_plotter_class:
                 self.create_curve('vz', 'green')
                 self.show_subplot()
 
-                plt.subplot(414)
+                plt.subplot(717)
                 plt.ylabel('ins velocity [m/s]')
                 plt.ylim([-5.0, 5.0])
                 self.create_curve('vx', 'red')

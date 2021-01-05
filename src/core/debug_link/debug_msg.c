@@ -7,6 +7,7 @@
 #include "barometer.h"
 #include "position_sensor.h"
 #include "ins.h"
+#include "gps.h"
 
 void send_ins_sensor_debug_message(debug_msg_t *payload)
 {
@@ -77,7 +78,15 @@ void send_ins_fusion_debug_message(debug_msg_t *payload)
 	ins_get_fused_position(pos_enu_fused);
 	ins_get_fused_velocity(vel_enu_fused);
 
+	float curr_time_ms = get_sys_time_ms();
+	float satellite_num = get_gps_satellite_numbers();
+	float gps_update_rate = get_gps_update_freq();
+
 	pack_debug_debug_message_header(payload, MESSAGE_ID_INS_FUSION);
+
+	pack_debug_debug_message_float(&curr_time_ms, payload);
+	pack_debug_debug_message_float(&satellite_num, payload);
+	pack_debug_debug_message_float(&gps_update_rate, payload);
 	pack_debug_debug_message_float(&pos_enu_raw[0], payload);
 	pack_debug_debug_message_float(&pos_enu_raw[1], payload);
 	pack_debug_debug_message_float(&pos_enu_raw[2], payload);

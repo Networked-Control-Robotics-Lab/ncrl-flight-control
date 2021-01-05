@@ -61,6 +61,7 @@ typedef struct {
 	uint16_t pdop;
 
 	float last_read_time;
+	float update_freq;
 } ublox_t;
 
 void ublox_m8n_init(void);
@@ -77,5 +78,6 @@ uint8_t ublox_m8n_get_fix_type(void);
 void ublox_m8n_get_position_uncertainty(float *h_acc, float *v_acc);
 float ublox_m8n_get_ground_speed(void);
 float ublox_m8n_get_heading(void);
+float ublox_m8n_get_update_freq(void);
 
 #endif

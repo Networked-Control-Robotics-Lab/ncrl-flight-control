@@ -50,3 +50,8 @@ float get_gps_heading(void)
 {
 	return ublox_m8n_get_heading();
 }
+
+float get_gps_update_freq(void)
+{
+	return ublox_m8n_get_update_freq();
+}

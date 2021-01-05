@@ -61,9 +61,9 @@ ublox_t ublox;
 
 bool ublox_available(void)
 {
-	//timeout if no data available more than 300ms
-	float current_time = get_sys_time_ms();
-	if((current_time - ublox.last_read_time) > 300) {
+	//timeout if no gps data available more than 1000ms
+	float current_time = get_sys_time_s();
+	if((current_time - ublox.last_read_time) > 1.0) {
 		return false;
 	}
 	return true;
@@ -173,6 +173,11 @@ float ublox_m8n_get_heading(void)
 	return (float)ublox.heading * 1e5; //[deg]
 }
 
+float ublox_m8n_get_update_freq(void)
+{
+	return ublox.update_freq;
+}
+
 void ublox_checksum_calc(uint8_t *result, uint8_t *payload, uint16_t len)
 {
 	result[0] = 0;
@@ -235,7 +240,9 @@ void ublox_decode_nav_pvt_msg(void)
 	 * fix mode = 3D fix mode */
 	if((ublox.num_sv >= 6) && (ublox.fix_type == 3)) {
 		/* set ublox state to be available */
-		ublox.last_read_time = get_sys_time_ms();
+		float curr_time = get_sys_time_s();
+		ublox.update_freq = 1.0f / (curr_time - ublox.last_read_time);
+		ublox.last_read_time = curr_time;
 
 		float longitude = ublox.longitude * 1e-7;
 		float latitude = ublox.latitude * 1e-7;
