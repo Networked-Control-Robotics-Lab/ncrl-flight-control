@@ -10,7 +10,7 @@ from collections import deque
 from datetime import datetime
 
 ser = serial.Serial(
-    port='/dev/ttyUSB1',\
+    port='/dev/ttyUSB0',\
     baudrate=115200,\
     parity=serial.PARITY_NONE,\
     stopbits=serial.STOPBITS_ONE,\
@@ -425,25 +425,25 @@ class serial_plotter_class:
                 self.show_subplot()
              
         elif (message_id == 20):
-                plt.subplot(711)
+                plt.subplot(421)
                 plt.ylabel('time [ms]')
                 plt.ylim([0.0, 600000.0])
                 self.create_curve('time', 'red')
                 self.show_subplot()
 
-                plt.subplot(712)
+                plt.subplot(422)
                 plt.ylabel('sv num')
                 plt.ylim([0.0, 50.0])
                 self.create_curve('sv num', 'red')
                 self.show_subplot()
 
-                plt.subplot(713)
+                plt.subplot(423)
                 plt.ylabel('gps freq')
                 plt.ylim([0.0, 50.0])
                 self.create_curve('gps freq', 'red')
                 self.show_subplot()
 
-                plt.subplot(714)
+                plt.subplot(424)
                 plt.ylabel('gps position [m]')
                 plt.ylim([-50.0, 50.0])
                 self.create_curve('px', 'red')
@@ -451,7 +451,7 @@ class serial_plotter_class:
                 self.create_curve('pz', 'green')
                 self.show_subplot()
 
-                plt.subplot(715)
+                plt.subplot(425)
                 plt.ylabel('ins position [m]')
                 plt.ylim([-50.0, 50.0])
                 self.create_curve('px', 'red')
@@ -459,7 +459,7 @@ class serial_plotter_class:
                 self.create_curve('pz', 'green')
                 self.show_subplot()
            
-                plt.subplot(716)
+                plt.subplot(426)
                 plt.ylabel('gps velocity [m/s]')
                 plt.ylim([-5.0, 5.0])
                 self.create_curve('vx', 'red')
@@ -467,7 +467,7 @@ class serial_plotter_class:
                 self.create_curve('vz', 'green')
                 self.show_subplot()
 
-                plt.subplot(717)
+                plt.subplot(427)
                 plt.ylabel('ins velocity [m/s]')
                 plt.ylim([-5.0, 5.0])
                 self.create_curve('vx', 'red')
