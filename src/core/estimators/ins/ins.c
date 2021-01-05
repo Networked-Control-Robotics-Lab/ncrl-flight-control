@@ -79,8 +79,9 @@ void ins_state_estimate(void)
 	/* correct x-y position and velocity with gps data */
 	float gps_longitude, gps_latitude, gps_msl_height;
 	float gps_ned_vx, gps_ned_vy, gps_ned_vz;
-	bool recvd_gps = ins_gps_sync_buffer_pop(&gps_longitude, &gps_latitude, &gps_msl_height,
-	                 &gps_ned_vx, &gps_ned_vy, &gps_ned_vz);
+	bool recvd_gps =
+	        ins_gps_sync_buffer_pop(&gps_longitude, &gps_latitude, &gps_msl_height,
+	                                &gps_ned_vx, &gps_ned_vy, &gps_ned_vz);
 	if(recvd_gps == true) {
 		/* convert gps data from geographic coordinate system to enu frame */
 		longitude_latitude_to_enu(gps_longitude, gps_latitude, gps_msl_height,

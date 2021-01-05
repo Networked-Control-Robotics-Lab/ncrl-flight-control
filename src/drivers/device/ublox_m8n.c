@@ -233,7 +233,10 @@ void ublox_decode_nav_pvt_msg(void)
 	memcpy(&ublox.num_sv, (ublox_payload_addr + 23), sizeof(uint8_t));
 	memcpy(&ublox.pdop, (ublox_payload_addr + 76), sizeof(uint16_t));
 
-	ins_gps_sync_buffer_push(ublox.longitude, ublox.latitude, ublox.height_msl,
+	float longitude = ublox.longitude * 1e-7;
+	float latitude = ublox.latitude * 1e-7;
+	float height_msl = ublox.height_msl * 1e2;
+	ins_gps_sync_buffer_push(longitude, latitude, height_msl,
 	                         ublox.vel_n, ublox.vel_e, ublox.vel_d);
 }
 
