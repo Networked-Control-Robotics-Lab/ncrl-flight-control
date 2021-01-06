@@ -1,6 +1,5 @@
 #include "optitrack.h"
 #include "position_state.h"
-#include "ins_height_complementary.h"
 #include "proj_config.h"
 #include "ms5611.h"
 #include "gps.h"

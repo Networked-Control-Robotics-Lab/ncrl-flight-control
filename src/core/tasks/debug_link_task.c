@@ -8,7 +8,6 @@
 #include "free_fall.h"
 #include "flight_ctrl_task.h"
 #include "ms5611.h"
-#include "ins_height_complementary.h"
 #include "debug_msg.h"
 #include "compass.h"
 
@@ -31,8 +30,8 @@ void task_debug_link(void *param)
 		while(xSemaphoreTake(debug_link_task_semphr, portMAX_DELAY) != pdTRUE);
 		//send_imu_debug_message(&payload);
 		//send_attitude_euler_debug_message(&payload);
-		send_attitude_quaternion_debug_message(&payload);
-		//send_attitude_imu_debug_message(&payload);
+		//send_attitude_quaternion_debug_message(&payload);
+		send_attitude_imu_debug_message(&payload);
 		//send_pid_debug_message(&payload);
 		//send_motor_debug_message(&payload);
 		//send_optitrack_position_debug_message(&payload);
