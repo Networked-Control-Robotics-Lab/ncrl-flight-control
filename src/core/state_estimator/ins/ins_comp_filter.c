@@ -25,13 +25,13 @@ void ins_comp_filter_init(float _dt)
 	half_dt_squared = (_dt * _dt) / 2.0f;
 
 	/* position fusion weights */
-	pos_a[0] = 0.35f;   //weight of using gps raw x position
-	pos_a[1] = 0.35f;   //weight of using gps raw y position
+	pos_a[0] = 0.95f; //weight of using gps raw x position
+	pos_a[1] = 0.95f; //weight of using gps raw y position
 	pos_a[2] = 0.03f; //weight of using barometer height
 
 	/* velocity fusion weights */
-	vel_a[0] = 0.8f;   //weight of using gps raw x velocity
-	vel_a[1] = 0.8f;   //weight of using gps raw y velocity
+	vel_a[0] = 0.95f; //weight of using gps raw x velocity
+	vel_a[1] = 0.95f; //weight of using gps raw y velocity
 	vel_a[2] = 0.03f; //weight of using barometer height velocity
 }
 
@@ -60,7 +60,7 @@ void ins_comp_filter_predict(float *pos_enu_out, float *vel_enu_out,
 	                 Rt[2*3 + 2] * accel_b_ned[2];
 
 	/* gravity compensation */
-	accel_i_ned[2] += 9.8f;
+	accel_i_ned[2] += 9.78f;
 
 	/* covert from ned frame to enu frame */
 	float accel_i_enu[3];
@@ -96,14 +96,15 @@ void ins_comp_filter_predict(float *pos_enu_out, float *vel_enu_out,
 }
 
 /* estimate position and velocity using complementary filter */
-void ins_comp_filter_gps_correct(float *pos_enu_in,  float *vel_enu_in,
+void ins_comp_filter_gps_correct(float px_correct, float py_correct,
+                                 float vx_correct, float vy_correct,
                                  float *pos_enu_out, float *vel_enu_out)
 {
 	/* fusion */
-	pos_enu_out[0] = (pos_a[0] * pos_enu_in[0]) + ((1.0f - pos_a[0]) * pos_last[0]);
-	pos_enu_out[1] = (pos_a[1] * pos_enu_in[1]) + ((1.0f - pos_a[1]) * pos_last[1]);
-	vel_enu_out[0] = (vel_a[0] * vel_enu_in[0]) + ((1.0f - vel_a[0]) * vel_last[0]);
-	vel_enu_out[1] = (vel_a[1] * vel_enu_in[1]) + ((1.0f - vel_a[1]) * vel_last[1]);
+	pos_enu_out[0] = (pos_a[0] * px_correct) + ((1.0f - pos_a[0]) * pos_last[0]);
+	pos_enu_out[1] = (pos_a[1] * py_correct) + ((1.0f - pos_a[1]) * pos_last[1]);
+	vel_enu_out[0] = (vel_a[0] * vx_correct) + ((1.0f - vel_a[0]) * vel_last[0]);
+	vel_enu_out[1] = (vel_a[1] * vy_correct) + ((1.0f - vel_a[1]) * vel_last[1]);
 
 	/* save fused result for next iteration */
 	pos_last[0] = pos_enu_out[0];
@@ -112,12 +113,12 @@ void ins_comp_filter_gps_correct(float *pos_enu_in,  float *vel_enu_in,
 	vel_last[1] = vel_enu_out[1];
 }
 
-void ins_comp_filter_barometer_correct(float *pos_enu_in,  float *vel_enu_in,
+void ins_comp_filter_barometer_correct(float pz_correct, float vz_correct,
                                        float *pos_enu_out, float *vel_enu_out)
 {
 	/* fusion */
-	pos_enu_out[2] = (pos_a[2] * pos_enu_in[2]) + ((1.0f - pos_a[2]) * pos_last[2]);
-	vel_enu_out[2] = (vel_a[2] * vel_enu_in[2]) + ((1.0f - vel_a[2]) * vel_last[2]);
+	pos_enu_out[2] = (pos_a[2] * pz_correct) + ((1.0f - pos_a[2]) * pos_last[2]);
+	vel_enu_out[2] = (vel_a[2] * vz_correct) + ((1.0f - vel_a[2]) * vel_last[2]);
 
 	/* save fused result for next iteration */
 	pos_last[2] = pos_enu_out[2];
