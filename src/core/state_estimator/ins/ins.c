@@ -4,7 +4,7 @@
 #include "position_state.h"
 #include "barometer.h"
 #include "compass.h"
-#include "ins_complementary.h"
+#include "ins_comp_filter.h"
 #include "gps.h"
 #include "led.h"
 #include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"

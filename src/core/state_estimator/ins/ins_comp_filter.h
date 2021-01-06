@@ -1,5 +1,5 @@
-#ifndef __COMP_NAV_H__
-#define __COMP_NAV_H__
+#ifndef __INS_COMP_FILTER_H__
+#define __INS_COMP_FILTER_H__
 
 void comp_nav_init(float _dt);
 void comp_nav_estimate(void);
