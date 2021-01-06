@@ -19,7 +19,7 @@ float vel_a[3];
 float dt = 0;
 float half_dt_squared = 0;
 
-void comp_nav_init(float _dt)
+void ins_comp_filter_init(float _dt)
 {
 	dt = _dt;
 	half_dt_squared = (_dt * _dt) / 2.0f;
@@ -36,8 +36,8 @@ void comp_nav_init(float _dt)
 }
 
 /* estimate position and velocity using complementary filter */
-void pos_vel_complementary_filter_predict(float *pos_enu_out, float *vel_enu_out,
-                bool gps_available, bool height_available)
+void ins_comp_filter_predict(float *pos_enu_out, float *vel_enu_out,
+                             bool gps_available, bool height_available)
 {
 	/* read rotation matrix of current attitude */
 	float *Rt;
@@ -95,8 +95,8 @@ void pos_vel_complementary_filter_predict(float *pos_enu_out, float *vel_enu_out
 }
 
 /* estimate position and velocity using complementary filter */
-void pos_vel_complementary_filter_gps_correct(float *pos_enu_in,  float *vel_enu_in,
-                float *pos_enu_out, float *vel_enu_out)
+void ins_comp_filter_gps_correct(float *pos_enu_in,  float *vel_enu_in,
+                                 float *pos_enu_out, float *vel_enu_out)
 {
 	/* fusion */
 	pos_enu_out[0] = (pos_a[0] * pos_enu_in[0]) + ((1.0f - pos_a[0]) * pos_last[0]);
@@ -111,8 +111,8 @@ void pos_vel_complementary_filter_gps_correct(float *pos_enu_in,  float *vel_enu
 	vel_last[1] = vel_enu_out[1];
 }
 
-void pos_vel_complementary_filter_barometer_correct(float *pos_enu_in,  float *vel_enu_in,
-                float *pos_enu_out, float *vel_enu_out)
+void ins_comp_filter_barometer_correct(float *pos_enu_in,  float *vel_enu_in,
+                                       float *pos_enu_out, float *vel_enu_out)
 {
 	/* fusion */
 	pos_enu_out[2] = (pos_a[2] * pos_enu_in[2]) + ((1.0f - pos_a[2]) * pos_last[2]);

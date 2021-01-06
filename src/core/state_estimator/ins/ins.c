@@ -26,7 +26,7 @@ void ins_init(void)
 	ins_sync_buffer_init();
 
 #if (SELECT_INS == INS_COMPLEMENTARY_FILTER)
-	comp_nav_init(INS_LOOP_PERIOD);
+	ins_comp_filter_init(INS_LOOP_PERIOD);
 #endif
 }
 
@@ -57,16 +57,16 @@ void ins_state_estimate(void)
 	        ins_barometer_sync_buffer_pop(&barometer_height, &barometer_height_rate);
 
 	/* predict position and velocity with kinematics equations (400Hz) */
-	pos_vel_complementary_filter_predict(pos_enu_fused, vel_enu_fused,
-	                                     gps_ready, barometer_ready);
+	ins_comp_filter_predict(pos_enu_fused, vel_enu_fused,
+	                        gps_ready, barometer_ready);
 
 	if(recvd_barometer == true) {
 		pos_enu_raw[2] = barometer_height;
 		vel_enu_raw[2] = barometer_height_rate;
 
 		//run barometer correction (~50Hz)
-		pos_vel_complementary_filter_barometer_correct(
-		        pos_enu_raw, vel_enu_raw, pos_enu_fused, vel_enu_fused);
+		ins_comp_filter_barometer_correct(pos_enu_raw, vel_enu_raw,
+		                                  pos_enu_fused, vel_enu_fused);
 
 		if(recvd_gps == true) {
 			/* convert gps data from geographic coordinate system to
@@ -86,9 +86,8 @@ void ins_state_estimate(void)
 			vel_enu_raw[1] = gps_ned_vx; //y_enu = x_ned
 
 			//run gps correction (~5Hz)
-			pos_vel_complementary_filter_gps_correct(
-			        pos_enu_raw, vel_enu_raw,
-			        pos_enu_fused, vel_enu_fused);
+			ins_comp_filter_gps_correct(pos_enu_raw, vel_enu_raw,
+			                            pos_enu_fused, vel_enu_fused);
 		}
 	}
 }
