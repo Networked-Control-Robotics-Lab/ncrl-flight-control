@@ -56,8 +56,9 @@ void ins_state_estimate(void)
 	bool recvd_barometer =
 	        ins_barometer_sync_buffer_pop(&barometer_height, &barometer_height_rate);
 
-	/* predict position and velocity with kinematic equations (400Hz) */
-	pos_vel_complementary_filter_predict(pos_enu_fused, vel_enu_fused, gps_ready);
+	/* predict position and velocity with kinematics equations (400Hz) */
+	pos_vel_complementary_filter_predict(pos_enu_fused, vel_enu_fused,
+	                                     gps_ready, barometer_ready);
 
 	if(recvd_barometer == true) {
 		pos_enu_raw[2] = barometer_height;
