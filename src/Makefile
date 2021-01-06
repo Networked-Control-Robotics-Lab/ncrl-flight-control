@@ -70,7 +70,6 @@ SRC+=./core/main.c \
 	./core/state_estimator/ahrs/comp_ahrs.c \
 	./core/state_estimator/ahrs/madgwick_ahrs.c \
 	./core/state_estimator/ahrs/eskf_ahrs.c \
-	./core/state_estimator/ins/ins_height_complementary.c \
 	./core/state_estimator/ins/ins_complementary.c \
 	./core/state_estimator/ins/gps_to_enu.c \
 	./core/state_estimator/ins/ins.c \

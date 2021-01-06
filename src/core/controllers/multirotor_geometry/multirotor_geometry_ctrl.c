@@ -19,7 +19,6 @@
 #include "position_state.h"
 #include "multirotor_rc.h"
 #include "barometer.h"
-#include "ins_height_complementary.h"
 #include "compass.h"
 #include "sys_param.h"
 
@@ -552,15 +551,6 @@ void multirotor_geometry_control(radio_t *rc, float *desired_heading)
 	/* get direction consine matrix of current attitude */
 	get_attitude_direction_cosine_matrix(&mat_data(R));
 	get_attitude_transposed_direction_cosine_matrix(&mat_data(Rt));
-
-	/* read altitude raw data from barometer */
-	float barometer_alt = barometer_get_relative_altitude();
-	/* read altitude rate raw data from barometer */
-	float barometer_alt_rate = barometer_get_relative_altitude_rate();
-
-	/* fuse barometer data with accelerometer */
-	barometer_alt_rate_estimate(mat_data(R), barometer_alt, barometer_alt_rate,
-	                            accel_lpf, 0.0025);
 
 	/* prepare position and velocity data */
 	float curr_pos_enu[3] = {0.0f}, curr_pos_ned[3] = {0.0f};

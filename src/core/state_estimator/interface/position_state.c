@@ -4,6 +4,7 @@
 #include "proj_config.h"
 #include "ms5611.h"
 #include "gps.h"
+#include "ins.h"
 
 bool is_xy_position_info_available(void)
 {

@@ -151,9 +151,6 @@ void task_flight_ctrl(void *param)
 		vins_mono_send_imu_50hz();
 #endif
 
-		/* full state estimation (position + orientation) */
-		//ins_state_estimate();
-
 		sbus_rc_read(&rc);
 		rc_yaw_setpoint_handler(&desired_yaw, -rc.yaw, 0.0025);
 
@@ -164,7 +161,7 @@ void task_flight_ctrl(void *param)
 		}
 		perf_end(PERF_AHRS);
 
-		//ins_state_estimate(); //XXX
+		ins_state_estimate();
 
 		/* controller */
 		perf_start(PERF_CONTROLLER);
