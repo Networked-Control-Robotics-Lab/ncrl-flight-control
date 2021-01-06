@@ -38,10 +38,10 @@ void ins_init(void)
 	ins_sync_buffer_init();
 
 	//sampling time = 0.2s (5Hz), cutoff frequency = 10Hz
-	lpf_first_order_init(&gps_px_lpf_gain, 0.2, 10);
-	lpf_first_order_init(&gps_py_lpf_gain, 0.2, 10);
-	lpf_first_order_init(&gps_vx_lpf_gain, 0.2, 10);
-	lpf_first_order_init(&gps_vy_lpf_gain, 0.2, 10);
+	lpf_first_order_init(&gps_px_lpf_gain, 0.2, 1);
+	lpf_first_order_init(&gps_py_lpf_gain, 0.2, 1);
+	lpf_first_order_init(&gps_vx_lpf_gain, 0.2, 1);
+	lpf_first_order_init(&gps_vy_lpf_gain, 0.2, 1);
 
 #if (SELECT_INS == INS_COMPLEMENTARY_FILTER)
 	ins_comp_filter_init(INS_LOOP_PERIOD);
@@ -68,17 +68,17 @@ void ins_state_estimate(void)
 	float gps_ned_vx, gps_ned_vy, gps_ned_vz;
 	float barometer_height, barometer_height_rate;
 
-	bool recvd_gps =
-	        ins_gps_sync_buffer_pop(&longitude, &latitude, &gps_msl_height,
-	                                &gps_ned_vx, &gps_ned_vy, &gps_ned_vz);
-	bool recvd_barometer =
-	        ins_barometer_sync_buffer_pop(&barometer_height, &barometer_height_rate);
+	bool recvd_barometer = ins_barometer_sync_buffer_available();
+	bool recvd_gps = ins_barometer_sync_buffer_available();
 
 	/* predict position and velocity with kinematics equations (400Hz) */
 	ins_comp_filter_predict(pos_enu_fused, vel_enu_fused,
 	                        gps_ready, barometer_ready);
 
 	if(recvd_barometer == true) {
+		/* get barometer data from sync buffer */
+		ins_barometer_sync_buffer_pop(&barometer_height,
+		                              &barometer_height_rate);
 		pos_enu_raw[2] = barometer_height;
 		vel_enu_raw[2] = barometer_height_rate;
 
@@ -88,6 +88,10 @@ void ins_state_estimate(void)
 		        pos_enu_fused, vel_enu_fused);
 
 		if(recvd_gps == true) {
+			/* get gps data from sync buffer */
+			ins_gps_sync_buffer_pop(&longitude, &latitude, &gps_msl_height,
+			                        &gps_ned_vx, &gps_ned_vy, &gps_ned_vz);
+
 			/* convert gps data from geographic coordinate system to
 			 * enu frame */
 			float dummy_z;
@@ -105,10 +109,10 @@ void ins_state_estimate(void)
 			vel_enu_raw[1] = gps_ned_vx; //y_enu = x_ned
 
 			/* gps low pass filtering */
-			lpf_first_order(pos_enu_raw[0], &gps_px_lpf, gps_px_lpf_gain);
-			lpf_first_order(pos_enu_raw[1], &gps_py_lpf, gps_py_lpf_gain);
-			lpf_first_order(vel_enu_raw[0], &gps_vx_lpf, gps_vx_lpf_gain);
-			lpf_first_order(vel_enu_raw[1], &gps_vy_lpf, gps_vy_lpf_gain);
+			//lpf_first_order(pos_enu_raw[0], &gps_px_lpf, gps_px_lpf_gain);
+			//lpf_first_order(pos_enu_raw[1], &gps_py_lpf, gps_py_lpf_gain);
+			//lpf_first_order(vel_enu_raw[0], &gps_vx_lpf, gps_vx_lpf_gain);
+			//lpf_first_order(vel_enu_raw[1], &gps_vy_lpf, gps_vy_lpf_gain);
 
 			//run gps correction (~5Hz)
 			ins_comp_filter_gps_correct(gps_px_lpf, gps_py_lpf,

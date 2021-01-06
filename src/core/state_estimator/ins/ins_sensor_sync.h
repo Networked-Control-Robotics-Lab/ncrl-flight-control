@@ -19,9 +19,11 @@ typedef struct {
 
 void ins_sync_buffer_init(void);
 
+bool ins_barometer_sync_buffer_available(void);
 void ins_barometer_sync_buffer_push(float height, float height_rate);
 bool ins_barometer_sync_buffer_pop(float *height, float *height_rate);
 
+bool ins_gps_sync_buffer_available(void);
 void ins_gps_sync_buffer_push(float longitude, float latitude, float height_msl,
                               float vx_ned, float vy_ned, float vz_ned);
 bool ins_gps_sync_buffer_pop(float *longitude, float *latitude, float *height_msl,

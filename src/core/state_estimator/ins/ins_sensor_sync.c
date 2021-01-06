@@ -21,6 +21,16 @@ void ins_sync_buffer_init(void)
 	        xQueueCreate(INS_SYNC_GPS_BUF_SIZE, sizeof(ins_sync_gps_item_t));
 }
 
+bool ins_barometer_sync_buffer_available(void)
+{
+	if(uxQueueSpacesAvailable(ins_sync_barometer_queue) !=
+	    INS_SYNC_BAROMETER_BUF_SIZE) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
 void ins_barometer_sync_buffer_push(float height, float height_rate)
 {
 	ins_sync_barometer_item_t barometer_item = {
@@ -38,6 +48,16 @@ bool ins_barometer_sync_buffer_pop(float *height, float *height_rate)
 	if(xQueueReceive(ins_sync_barometer_queue, &recvd_barometer_item, 0) == pdTRUE) {
 		*height = recvd_barometer_item.height;
 		*height_rate = recvd_barometer_item.height_rate;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool ins_gps_sync_buffer_available(void)
+{
+	if(uxQueueSpacesAvailable(ins_sync_gps_queue) !=
+	    INS_SYNC_GPS_BUF_SIZE) {
 		return true;
 	} else {
 		return false;
