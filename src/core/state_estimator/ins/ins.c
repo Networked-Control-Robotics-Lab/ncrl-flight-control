@@ -69,7 +69,7 @@ void ins_state_estimate(void)
 	float barometer_height, barometer_height_rate;
 
 	bool recvd_barometer = ins_barometer_sync_buffer_available();
-	bool recvd_gps = ins_barometer_sync_buffer_available();
+	bool recvd_gps = ins_gps_sync_buffer_available();
 
 	/* predict position and velocity with kinematics equations (400Hz) */
 	ins_comp_filter_predict(pos_enu_fused, vel_enu_fused,
@@ -115,8 +115,8 @@ void ins_state_estimate(void)
 			//lpf_first_order(vel_enu_raw[1], &gps_vy_lpf, gps_vy_lpf_gain);
 
 			//run gps correction (~5Hz)
-			ins_comp_filter_gps_correct(gps_px_lpf, gps_py_lpf,
-			                            gps_vx_lpf, gps_vy_lpf,
+			ins_comp_filter_gps_correct(pos_enu_raw[0], pos_enu_raw[1],
+			                            vel_enu_raw[0], vel_enu_raw[1],
 			                            pos_enu_fused, vel_enu_fused);
 		}
 	}
