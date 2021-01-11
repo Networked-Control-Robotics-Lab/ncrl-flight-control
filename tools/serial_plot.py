@@ -577,7 +577,7 @@ class serial_thread(threading.Thread):
 		    serial_plotter.serial_receive()
 
         def join(self):
-            super(self).join()
+            super(serial_thread, self).join()
 
 serial_thread().start()
 
