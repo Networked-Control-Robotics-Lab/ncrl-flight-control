@@ -10,9 +10,13 @@
 #include "lpf.h"
 #include "ins_sensor_sync.h"
 #include "coroutine.h"
+#include "sys_time.h"
+#include "barometer.h"
 
 #define POW2(x) ((x) * (x))
 #define MBAR_TO_PASCAL(press) (press * 100.0f)
+
+#define MS5611_UPDATE_FREQ (50)
 
 ms5611_t ms5611;
 
@@ -91,6 +95,11 @@ void ms5611_wait_until_stable(void)
 	ms5611.press_sea_level = ms5611.press_lpf;
 }
 
+float ms5611_get_update_freq(void)
+{
+	return ms5611.update_freq;
+}
+
 void ms5611_convert_pressure_temperature(int32_t d1, int32_t d2)
 {
 	int64_t off, sens, dt;
@@ -154,12 +163,12 @@ static void ms5611_calc_relative_altitude_and_velocity(BaseType_t *higher_priori
 		ms5611.rel_alt_last = 0.0f;
 	} else {
 		/* low pass filtering */
-		ms5611.rel_vel_raw = (ms5611.rel_alt - ms5611.rel_alt_last) * 50;
+		ms5611.rel_vel_raw = (ms5611.rel_alt - ms5611.rel_alt_last) * MS5611_UPDATE_FREQ;
 		ms5611.rel_alt_last = ms5611.rel_alt;
 		lpf_first_order(ms5611.rel_vel_raw, &ms5611.rel_vel_lpf, 0.35);
 
-		ins_barometer_sync_buffer_push_from_isr(ms5611.rel_alt, ms5611.rel_vel_raw,
-	                                               higher_priority_task_woken);
+		ins_barometer_sync_buffer_push_from_isr(ms5611.rel_alt, ms5611.rel_vel_lpf,
+	                                                higher_priority_task_woken);
 	}
 }
 
@@ -185,9 +194,11 @@ float ms5611_get_relative_altitude_rate(void)
 
 void send_barometer_debug_message(debug_msg_t *payload)
 {
+	float barometer_update_freq = barometer_get_update_freq();
 	float press_lpf_bar = ms5611.press_lpf * 0.001;
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_BAROMETER);
+	pack_debug_debug_message_float(&barometer_update_freq, payload);
 	pack_debug_debug_message_float(&press_lpf_bar, payload);
 	pack_debug_debug_message_float(&ms5611.temp_raw, payload);
 	pack_debug_debug_message_float(&ms5611.rel_alt, payload);
@@ -225,6 +236,10 @@ void ms5611_driver_handler(BaseType_t *higher_priority_task_woken)
 
 	/* convert pressure and temperature to height and velocity value */
 	ms5611_calc_relative_altitude_and_velocity(higher_priority_task_woken);
+
+	float curr_time = get_sys_time_s();
+	ms5611.update_freq = 1.0f / (curr_time - ms5611.last_read_time);
+	ms5611.last_read_time = curr_time;
 
 	/* trigger ms5611 d1 conversion, need to wait 10ms for getting
 	 * the result */

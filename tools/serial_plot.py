@@ -10,7 +10,7 @@ from collections import deque
 from datetime import datetime
 
 ser = serial.Serial(
-    port='/dev/ttyUSB0',\
+    port='/dev/ttyUSB1',\
     baudrate=115200,\
     parity=serial.PARITY_NONE,\
     stopbits=serial.STOPBITS_ONE,\
@@ -317,25 +317,31 @@ class serial_plotter_class:
         	self.show_subplot()
 
         elif (message_id == 16):
-          	plt.subplot(411)
+                plt.subplot(511)
+                plt.ylabel('barometer freq')
+                plt.ylim([-1.0, 100.0])
+                self.create_curve('gps freq', 'red')
+                self.show_subplot()
+
+          	plt.subplot(512)
         	plt.ylabel('pressure [mbar]')
         	plt.ylim([-0.75, 1.5])
         	self.create_curve('pressure', 'red')
         	self.show_subplot()
 
-          	plt.subplot(412)
+          	plt.subplot(513)
         	plt.ylabel('temperature [deg c]')
         	plt.ylim([-30, 75])
         	self.create_curve('temperature', 'red')
         	self.show_subplot()
 
-          	plt.subplot(413)
+          	plt.subplot(514)
         	plt.ylabel('height [m]')
         	plt.ylim([-0.15, 2.0])
         	self.create_curve('height', 'red')
         	self.show_subplot()
 
-          	plt.subplot(414)
+          	plt.subplot(515)
         	plt.ylabel('velocity [m/s]')
         	plt.ylim([-5.0, 5.0])
         	self.create_curve('velocity', 'red')

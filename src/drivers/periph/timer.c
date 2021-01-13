@@ -15,7 +15,7 @@
 #define FLIGHT_CTL_PRESCALER_RELOAD      1000  //400Hz
 #define LED_CTRL_PRESCALER_RELOAD        16000 //25Hz
 #define COMPASS_PRESCALER_RELOAD         8     //50Hz
-#define BAROMETER_PRESCALER_RELOAD       16     //100Hz
+#define BAROMETER_PRESCALER_RELOAD       4     //100Hz
 
 extern SemaphoreHandle_t flight_ctl_semphr;
 

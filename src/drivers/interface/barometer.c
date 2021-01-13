@@ -29,3 +29,8 @@ float barometer_get_relative_altitude_rate(void)
 {
 	return ms5611_get_relative_altitude_rate();
 }
+
+float barometer_get_update_freq(void)
+{
+	return ms5611_get_update_freq();
+}

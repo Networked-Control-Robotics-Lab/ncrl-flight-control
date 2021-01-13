@@ -45,6 +45,9 @@ typedef struct {
 	float rel_alt_last; //save for numerical differentiation
 	float rel_vel_raw;  //raw data of relative altitude rate [m/s]
 	float rel_vel_lpf;  //low pass filtered relative altitude rate [m/s]
+
+	float last_read_time;
+	float update_freq;
 } ms5611_t;
 
 bool ms5611_available(void);
@@ -54,6 +57,7 @@ void ms5611_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_si
 void ms5611_wait_until_stable(void);
 void ms5611_set_sea_level(void);
 
+float ms5611_get_update_freq(void);
 float ms5611_get_pressure(void);
 float ms5611_get_relative_altitude(void);
 float ms5611_get_relative_altitude_rate(void);
