@@ -83,7 +83,6 @@ int main(void)
 	/* barometer (ms5611) */
 	spi3_init();
 	ms5611_init();
-	ms5611_register_task("barometer driver", 512, tskIDLE_PRIORITY + 5);
 #endif
 
 	timer3_init();

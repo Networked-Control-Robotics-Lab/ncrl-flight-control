@@ -30,6 +30,8 @@
 typedef struct {
 	uint32_t c1, c2, c3, c4, c5, c6; //internal calibration datas of ms5611
 
+	int32_t d1, d2;
+
 	float temp_raw;        //raw temperature
 
 	bool init_finished;
@@ -56,8 +58,7 @@ float ms5611_get_pressure(void);
 float ms5611_get_relative_altitude(void);
 float ms5611_get_relative_altitude_rate(void);
 
-void ms5611_driver_semaphore_handler(BaseType_t *higher_priority_task_woken);
-void ms5611_driver_task(void *param);
+void ms5611_driver_handler(BaseType_t *higher_priority_task_woken);
 
 void send_barometer_debug_message(debug_msg_t *payload);
 

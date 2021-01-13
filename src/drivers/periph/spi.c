@@ -96,12 +96,13 @@ void spi3_init(void)
 		.SPI_CPOL = SPI_CPOL_High,
 		.SPI_CPHA = SPI_CPHA_2Edge,
 		.SPI_NSS = SPI_NSS_Soft,
-		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_256,
+		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_4,
 		.SPI_FirstBit = SPI_FirstBit_MSB,
 		.SPI_CRCPolynomial = 7
 	};
 	SPI_Init(SPI3, &SPI_InitStruct);
 
+#if 0
 	NVIC_InitTypeDef NVIC_InitStruct = {
 		.NVIC_IRQChannel = SPI3_IRQn,
 		.NVIC_IRQChannelPreemptionPriority = BAROMETER_ISR_PRIORITY,
@@ -109,7 +110,7 @@ void spi3_init(void)
 		.NVIC_IRQChannelCmd = ENABLE
 	};
 	NVIC_Init(&NVIC_InitStruct);
-
+#endif
 	SPI_Cmd(SPI3, ENABLE);
 }
 

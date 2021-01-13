@@ -9,11 +9,10 @@
 #include "debug_link.h"
 #include "lpf.h"
 #include "ins_sensor_sync.h"
+#include "coroutine.h"
 
 #define POW2(x) ((x) * (x))
 #define MBAR_TO_PASCAL(press) (press * 100.0f)
-
-SemaphoreHandle_t ms5611_task_semphr;
 
 ms5611_t ms5611;
 
@@ -43,20 +42,22 @@ void ms5611_read_uint16(uint8_t address, uint32_t *data)
 	ms5611_chip_deselect();
 }
 
-void ms5611_read_int24(uint8_t address, int32_t *data)
+void ms5611_read_int24_addr(uint8_t address)
+{
+	ms5611_chip_select();
+	spi_read_write(SPI3, address);
+	ms5611_chip_deselect();
+}
+
+void ms5611_read_int24_data(int32_t *data)
 {
 	uint8_t byte1, byte2, byte3;
 
 	ms5611_chip_select();
-	spi3_read_write(address);
-	ms5611_chip_deselect();
-	freertos_task_delay(10);
-
-	ms5611_chip_select();
-	spi3_read_write(0x00);
-	byte1 = spi3_read_write(0x00);
-	byte2 = spi3_read_write(0x00);
-	byte3 = spi3_read_write(0x00);
+	spi_read_write(SPI3, 0x00);
+	byte1 = spi_read_write(SPI3, 0x00);
+	byte2 = spi_read_write(SPI3, 0x00);
+	byte3 = spi_read_write(SPI3, 0x00);
 	*data = ((int32_t)byte1 << 16) | ((int32_t)byte2 << 8) | (int32_t)byte3;
 	ms5611_chip_deselect();
 }
@@ -75,8 +76,6 @@ void ms5611_read_prom(void)
 
 void ms5611_init(void)
 {
-	ms5611_task_semphr = xSemaphoreCreateBinary();
-
 	ms5611_reset();
 	ms5611_read_prom();
 }
@@ -92,13 +91,9 @@ void ms5611_wait_until_stable(void)
 	ms5611.press_sea_level = ms5611.press_lpf;
 }
 
-void ms5611_read_pressure(void)
+void ms5611_convert_pressure_temperature(int32_t d1, int32_t d2)
 {
-	int32_t d1, d2;
 	int64_t off, sens, dt;
-
-	ms5611_read_int24(MS5611_D1_CONVERT_OSR4096, &d1);
-	ms5611_read_int24(MS5611_D2_CONVERT_OSR4096, &d2);
 
 	dt = (int32_t)d2 - ((int32_t)ms5611.c5 << 8);
 	int32_t temp = 2000 + (int32_t)(((int64_t)dt * ms5611.c6) >> 23);
@@ -134,7 +129,7 @@ void ms5611_read_pressure(void)
 	lpf_first_order(ms5611.press_raw, &ms5611.press_lpf, 0.18f);
 }
 
-static void ms5611_calc_relative_altitude_and_velocity(void)
+static void ms5611_calc_relative_altitude_and_velocity(BaseType_t *higher_priority_task_woken)
 {
 	//wait until pressure data is stable
 	if(ms5611.init_finished == false) {
@@ -163,7 +158,8 @@ static void ms5611_calc_relative_altitude_and_velocity(void)
 		ms5611.rel_alt_last = ms5611.rel_alt;
 		lpf_first_order(ms5611.rel_vel_raw, &ms5611.rel_vel_lpf, 0.35);
 
-		ins_barometer_sync_buffer_push(ms5611.rel_alt, ms5611.rel_vel_raw);
+		ins_barometer_sync_buffer_push_from_isr(ms5611.rel_alt, ms5611.rel_vel_raw,
+	                                               higher_priority_task_woken);
 	}
 }
 
@@ -198,23 +194,41 @@ void send_barometer_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_float(&ms5611.rel_vel_lpf, payload);
 }
 
-void ms5611_driver_semaphore_handler(BaseType_t *higher_priority_task_woken)
+void ms5611_driver_handler(BaseType_t *higher_priority_task_woken)
 {
-	xSemaphoreGiveFromISR(ms5611_task_semphr, higher_priority_task_woken);
-}
+	static bool do_initial_start = true;
+	if(do_initial_start == true) {
+		do_initial_start = false;
 
-void ms5611_driver_task(void *param)
-{
-	while(1) {
-		while(xSemaphoreTake(ms5611_task_semphr, portMAX_DELAY) == pdFALSE);
-
-		ms5611_read_pressure();
-		ms5611_calc_relative_altitude_and_velocity();
+		/* trigger ms5611 d1 conversion, need to wait 10ms for
+		 * getting the result */
+		ms5611_read_int24_addr(MS5611_D1_CONVERT_OSR4096);
+		return;
 	}
-}
 
-void ms5611_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
-                          UBaseType_t priority)
-{
-	xTaskCreate(ms5611_driver_task, task_name, stack_size, NULL, priority, NULL);
+	CR_START();
+
+	/* get the result of d1 conversion */
+	ms5611_read_int24_data(&ms5611.d1);
+
+	/* trigger ms5611 d2 conversion, need to wait 10ms for getting
+	 * the result */
+	ms5611_read_int24_addr(MS5611_D2_CONVERT_OSR4096);
+
+	CR_YIELD();
+
+	/* get the result of d2 conversion */
+	ms5611_read_int24_data(&ms5611.d2);
+
+	/* convert ms5611 register to pressure and temperature value */
+	ms5611_convert_pressure_temperature(ms5611.d1, ms5611.d2);
+
+	/* convert pressure and temperature to height and velocity value */
+	ms5611_calc_relative_altitude_and_velocity(higher_priority_task_woken);
+
+	/* trigger ms5611 d1 conversion, need to wait 10ms for getting
+	 * the result */
+	ms5611_read_int24_addr(MS5611_D1_CONVERT_OSR4096);
+
+	CR_END();
 }

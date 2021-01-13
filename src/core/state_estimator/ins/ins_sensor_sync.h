@@ -1,6 +1,10 @@
 #ifndef __INS_SENSOR_SYNC_H__
 #define __INS_SENSOR_SYNC_H__
 
+#include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
+
 typedef struct {
 	float timestamp_s;
 	float height;
@@ -20,7 +24,8 @@ typedef struct {
 void ins_sync_buffer_init(void);
 
 bool ins_barometer_sync_buffer_available(void);
-void ins_barometer_sync_buffer_push(float height, float height_rate);
+void ins_barometer_sync_buffer_push_from_isr(float height, float height_rate,
+                                             BaseType_t *higher_priority_task_woken);
 bool ins_barometer_sync_buffer_pop(float *height, float *height_rate);
 
 bool ins_gps_sync_buffer_available(void);

@@ -31,7 +31,8 @@ bool ins_barometer_sync_buffer_available(void)
 	}
 }
 
-void ins_barometer_sync_buffer_push(float height, float height_rate)
+void ins_barometer_sync_buffer_push_from_isr(float height, float height_rate,
+                BaseType_t *higher_priority_task_woken)
 {
 	ins_sync_barometer_item_t barometer_item = {
 		.timestamp_s = get_sys_time_s(),
@@ -39,7 +40,7 @@ void ins_barometer_sync_buffer_push(float height, float height_rate)
 		.height_rate = height_rate
 	};
 
-	xQueueSendToBack(ins_sync_barometer_queue, &barometer_item, 0);
+	xQueueSendToBackFromISR(ins_sync_barometer_queue, &barometer_item, higher_priority_task_woken);
 }
 
 bool ins_barometer_sync_buffer_pop(float *height, float *height_rate)
