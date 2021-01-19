@@ -27,12 +27,12 @@ void ins_comp_filter_init(float _dt)
 	/* position fusion weights */
 	pos_a[0] = 0.5f; //weight of using gps raw x position
 	pos_a[1] = 0.5f; //weight of using gps raw y position
-	pos_a[2] = 0.03f; //weight of using barometer height
+	pos_a[2] = 0.05f; //weight of using barometer height
 
 	/* velocity fusion weights */
 	vel_a[0] = 0.2f; //weight of using gps raw x velocity
 	vel_a[1] = 0.2f; //weight of using gps raw y velocity
-	vel_a[2] = 0.03f; //weight of using barometer height velocity
+	vel_a[2] = 0.05f; //weight of using barometer height velocity
 }
 
 /* estimate position and velocity using complementary filter */
