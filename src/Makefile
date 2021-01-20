@@ -198,8 +198,8 @@ clean:
 	rm -rf *.orig
 
 flash:
-	openocd -f interface/stlink-v2.cfg \
-	-f target/stm32f4x_stlink.cfg \
+	openocd -f interface/stlink.cfg \
+	-f target/stm32f4x.cfg \
 	-c "init" \
 	-c "reset init" \
 	-c "halt" \
