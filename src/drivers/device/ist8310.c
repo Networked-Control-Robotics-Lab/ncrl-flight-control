@@ -7,6 +7,7 @@
 #include "ist8310.h"
 #include "sys_time.h"
 #include "gpio.h"
+#include "lpf.h"
 
 SemaphoreHandle_t ist8310_semphr;
 
@@ -21,6 +22,8 @@ ist8310_t ist8310 = {
 	.div_squared_semi_axis_size_y = 1.0f,
 	.div_squared_semi_axis_size_z = 1.0f
 };
+
+float ist8310_lpf_gain;
 
 bool ist8310_available(void)
 {
@@ -143,6 +146,9 @@ void ist8130_init(void)
 	blocked_delay_ms(100);
 
 	ist8310.last_update_time = get_sys_time_s();
+
+	//sampling time = 0.02s (50Hz), cutoff frequency = 20Hz
+	lpf_first_order_init(&ist8310_lpf_gain, 0.02, 5);
 }
 
 void ist8310_semaphore_handler(BaseType_t *higher_priority_task_woken)
@@ -195,6 +201,11 @@ void ist8310_read_sensor(void)
 	ist8310.mag_raw[1] = ist8310.mag_unscaled[1] * IST8310_RESOLUTION * 0.01;
 	ist8310.mag_raw[2] = ist8310.mag_unscaled[2] * IST8310_RESOLUTION * 0.01;
 
+	/* low pass filtering */
+	lpf_first_order(ist8310.mag_raw[0], &(ist8310.mag_lpf[0]), ist8310_lpf_gain);
+	lpf_first_order(ist8310.mag_raw[1], &(ist8310.mag_lpf[1]), ist8310_lpf_gain);
+	lpf_first_order(ist8310.mag_raw[2], &(ist8310.mag_lpf[2]), ist8310_lpf_gain);
+
 	/* calculate update frequency */
 	float curr_time = get_sys_time_s();
 	float elapsed_time = curr_time - ist8310.last_update_time;
@@ -218,11 +229,34 @@ void ist8310_get_mag_raw(float *mag_raw)
 	ist8310_cancel_bias(mag_raw);
 }
 
+void ist8310_get_mag_lpf(float *mag_lpf)
+{
+	mag_lpf[0] = ist8310.mag_lpf[0];
+	mag_lpf[1] = ist8310.mag_lpf[1];
+	mag_lpf[2] = ist8310.mag_lpf[2];
+
+	/* apply calibration here since the function will called by the flight control task
+	 * (which has the highest priority) */
+	ist8310_cancel_bias(mag_lpf);
+}
+
 float ist8310_get_mag_raw_strength(void)
 {
 	float mx = ist8310.mag_raw[0];
 	float my = ist8310.mag_raw[1];
 	float mz = ist8310.mag_raw[2];
+
+	float mag_strength;
+	arm_sqrt_f32(mx*mx + my*my + mz*mz, &mag_strength);
+
+	return mag_strength;
+}
+
+float ist8310_get_mag_lpf_strength(void)
+{
+	float mx = ist8310.mag_lpf[0];
+	float my = ist8310.mag_lpf[1];
+	float mz = ist8310.mag_lpf[2];
 
 	float mag_strength;
 	arm_sqrt_f32(mx*mx + my*my + mz*mz, &mag_strength);
@@ -237,6 +271,8 @@ float ist8310_get_update_rate(void)
 
 void ist8310_driver_task(void *param)
 {
+	ist8130_init();
+
 	while(1) {
 		while(xSemaphoreTake(ist8310_semphr, portMAX_DELAY) == pdFALSE);
 

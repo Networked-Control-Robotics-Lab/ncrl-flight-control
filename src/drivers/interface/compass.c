@@ -10,6 +10,11 @@ void get_compass_raw(float *mag)
 	ist8310_get_mag_raw(mag);
 }
 
+void get_compass_lpf(float *mag)
+{
+	ist8310_get_mag_lpf(mag);
+}
+
 bool is_compass_available(void)
 {
 #if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_COMPASS)
@@ -31,6 +36,11 @@ float get_compass_raw_strength(void)
 	return ist8310_get_mag_raw_strength();
 }
 
+float get_compass_lpf_strength(void)
+{
+	return ist8310_get_mag_lpf_strength();
+}
+
 void compass_undistortion(float *mag)
 {
 	ist8310_undistortion(mag);
@@ -39,9 +49,9 @@ void compass_undistortion(float *mag)
 void send_compass_debug_message(debug_msg_t *payload)
 {
 	float mag_raw[3] = {0.0f};
-	get_compass_raw(mag_raw);
+	get_compass_lpf(mag_raw);
 
-	float mag_strength = get_compass_raw_strength();
+	float mag_strength = get_compass_lpf_strength();
 	float update_freq = get_compass_update_rate();
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_COMPASS);
