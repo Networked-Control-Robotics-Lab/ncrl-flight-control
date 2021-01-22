@@ -134,13 +134,22 @@ void reset_quaternion_yaw_angle(float *q)
 
 bool compass_quality_is_good(float *mag)
 {
-	/* TODO: check magnetic field size (normally about 25 to 65 uT) */
+	//TODO: check magnetic field size (normally about 25 to 65 uT)
 
-	/* no data output, bad connection and so forth */
+	/* data lost */
 	if(mag[0] == 0.0f && mag[1] == 0.0f && mag[2] == 0.0f) {
 		return false;
 	} else {
 		return true;
+	}
+
+	/* magnetic interference is too high */
+	float curr_roll, curr_pitch, curr_yaw;
+	get_attitude_euler_angles(&curr_roll, &curr_pitch, &curr_yaw);
+	float compass_yaw = -rad_to_deg(atan2(mag[1], mag[0]));
+
+	if(fabs(curr_yaw - compass_yaw) > 30) {
+		return false;
 	}
 }
 

@@ -1,9 +1,11 @@
 #include <stdint.h>
 #include <stdbool.h>
+#include <math.h>
 #include "proj_config.h"
 #include "ist8310.h"
 #include "optitrack.h"
 #include "debug_link.h"
+#include "ahrs_selector.h"
 
 void get_compass_raw(float *mag)
 {
@@ -54,10 +56,19 @@ void send_compass_debug_message(debug_msg_t *payload)
 	float mag_strength = get_compass_lpf_strength();
 	float update_freq = get_compass_update_rate();
 
+	/* get current ahrs yaw angle */
+	float curr_ahrs_roll, curr_ahrs_pitch, curr_ahrs_yaw;
+	get_attitude_euler_angles(&curr_ahrs_roll, &curr_ahrs_pitch, &curr_ahrs_yaw);
+
+	/* get compass yaw angle */
+	float compass_yaw = -rad_to_deg(atan2(mag_raw[1], mag_raw[0]));
+
 	pack_debug_debug_message_header(payload, MESSAGE_ID_COMPASS);
 	pack_debug_debug_message_float(&mag_raw[0], payload);
 	pack_debug_debug_message_float(&mag_raw[1], payload);
 	pack_debug_debug_message_float(&mag_raw[2], payload);
 	pack_debug_debug_message_float(&mag_strength, payload);
 	pack_debug_debug_message_float(&update_freq, payload);
+	pack_debug_debug_message_float(&curr_ahrs_yaw, payload);
+	pack_debug_debug_message_float(&compass_yaw, payload);
 }

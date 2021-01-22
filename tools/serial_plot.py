@@ -296,7 +296,7 @@ class serial_plotter_class:
         	self.show_subplot()
 
         elif (message_id == 15):
-          	plt.subplot(311)
+          	plt.subplot(511)
         	plt.ylabel('magnetic induction [uT]')
         	plt.ylim([-100, 100])
         	self.create_curve('mx', 'red')
@@ -304,16 +304,28 @@ class serial_plotter_class:
         	self.create_curve('mz', 'green')
         	self.show_subplot()
 
-          	plt.subplot(312)
+          	plt.subplot(512)
         	plt.ylabel('magnetic field strength [uT]')
         	plt.ylim([0, 100])
         	self.create_curve('mx', 'red')
         	self.show_subplot()
 
-          	plt.subplot(313)
+          	plt.subplot(513)
         	plt.ylabel('update frequency')
         	plt.ylim([0, 100])
         	self.create_curve('mx', 'red')
+        	self.show_subplot()
+
+          	plt.subplot(514)
+        	plt.ylabel('ahrs yaw')
+        	plt.ylim([-185, 185])
+        	self.create_curve('yaw', 'red')
+        	self.show_subplot()
+
+          	plt.subplot(515)
+        	plt.ylabel('compass yaw')
+        	plt.ylim([-185, 185])
+        	self.create_curve('yaw', 'red')
         	self.show_subplot()
 
         elif (message_id == 16):
