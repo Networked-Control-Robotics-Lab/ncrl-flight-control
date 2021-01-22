@@ -8,6 +8,7 @@
 #include "sys_time.h"
 #include "gpio.h"
 #include "lpf.h"
+#include "ins_sensor_sync.h"
 
 SemaphoreHandle_t ist8310_semphr;
 
@@ -212,6 +213,8 @@ void ist8310_read_sensor(void)
 	ist8310.update_rate = 1.0f / elapsed_time;
 	ist8310.last_update_time = curr_time;
 
+	ins_compass_sync_buffer_push(ist8310.mag_raw);
+
 	/* update timer only if data is valid */
 	if(ist8310.mag_raw[0] != 0 || ist8310.mag_raw[1] != 0 || ist8310.mag_raw[2] != 0) {
 		ist8310.last_read_time = get_sys_time_ms();
@@ -272,6 +275,8 @@ float ist8310_get_update_rate(void)
 void ist8310_driver_task(void *param)
 {
 	ist8130_init();
+
+	while(ins_sync_buffer_is_ready() == false);
 
 	while(1) {
 		while(xSemaphoreTake(ist8310_semphr, portMAX_DELAY) == pdFALSE);

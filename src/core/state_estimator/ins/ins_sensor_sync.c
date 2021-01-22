@@ -13,6 +13,8 @@ QueueHandle_t ins_sync_barometer_queue;
 QueueHandle_t ins_sync_gps_queue;
 QueueHandle_t ins_sync_compass_queue;
 
+bool sync_buffer_is_ready = false;
+
 void ins_sync_buffer_init(void)
 {
 	ins_sync_barometer_queue =
@@ -24,6 +26,13 @@ void ins_sync_buffer_init(void)
 
 	ins_sync_compass_queue =
 	        xQueueCreate(INS_SYNC_COMPASS_BUF_SIZE, sizeof(ins_sync_compass_item_t));
+
+	sync_buffer_is_ready = true;
+}
+
+bool ins_sync_buffer_is_ready(void)
+{
+	return sync_buffer_is_ready;
 }
 
 bool ins_barometer_sync_buffer_available(void)
@@ -113,7 +122,7 @@ bool ins_compass_sync_buffer_available(void)
 	}
 }
 
-void ins_compasss_sync_buffer_push(float *mag)
+void ins_compass_sync_buffer_push(float *mag)
 {
 	ins_sync_compass_item_t compass_item = {
 		.timestamp_s = get_sys_time_s(),

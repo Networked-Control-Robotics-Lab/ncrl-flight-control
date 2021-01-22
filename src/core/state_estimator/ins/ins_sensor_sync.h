@@ -29,6 +29,7 @@ typedef struct {
 } ins_sync_compass_item_t;
 
 void ins_sync_buffer_init(void);
+bool ins_sync_buffer_is_ready(void);
 
 bool ins_barometer_sync_buffer_available(void);
 void ins_barometer_sync_buffer_push_from_isr(float height, float height_rate,
@@ -42,7 +43,7 @@ bool ins_gps_sync_buffer_pop(float *longitude, float *latitude, float *height_ms
                              float *vx_ned, float *vy_ned, float *vz_ned);
 
 bool ins_compass_sync_buffer_available(void);
-void ins_compasss_sync_buffer_push(float *mag);
+void ins_compass_sync_buffer_push(float *mag);
 bool ins_compass_sync_buffer_pop(float *mag);
 
 #endif
