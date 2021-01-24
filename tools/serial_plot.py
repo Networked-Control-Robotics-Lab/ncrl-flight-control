@@ -317,13 +317,13 @@ class serial_plotter_class:
         	self.show_subplot()
 
           	plt.subplot(514)
-        	plt.ylabel('ahrs yaw')
+        	plt.ylabel('angular velocity')
         	plt.ylim([-185, 185])
         	self.create_curve('yaw', 'red')
         	self.show_subplot()
 
           	plt.subplot(515)
-        	plt.ylabel('compass yaw')
+        	plt.ylabel('compass angle rate')
         	plt.ylim([-185, 185])
         	self.create_curve('yaw', 'red')
         	self.show_subplot()

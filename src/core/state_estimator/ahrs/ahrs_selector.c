@@ -16,6 +16,7 @@
 #include "quaternion.h"
 #include "free_fall.h"
 #include "compass.h"
+#include "ins_sensor_sync.h"
 
 extern optitrack_t optitrack;
 
@@ -132,32 +133,13 @@ void reset_quaternion_yaw_angle(float *q)
 	quaternion_mult(q_negative_yaw, q_original, q);
 }
 
-bool compass_quality_is_good(float *mag)
-{
-	//TODO: check magnetic field size (normally about 25 to 65 uT)
-
-	/* data lost */
-	if(mag[0] == 0.0f && mag[1] == 0.0f && mag[2] == 0.0f) {
-		return false;
-	} else {
-		return true;
-	}
-
-	/* magnetic interference is too high */
-	float curr_roll, curr_pitch, curr_yaw;
-	get_attitude_euler_angles(&curr_roll, &curr_pitch, &curr_yaw);
-	float compass_yaw = -rad_to_deg(atan2(mag[1], mag[0]));
-
-	if(fabs(curr_yaw - compass_yaw) > 30) {
-		return false;
-	}
-}
-
 void ahrs_estimate(void)
 {
+	static bool mag_init = false;
+
 	float accel[3];
 	float gyro[3];
-	float mag[3];
+	float mag[3], mag_last[3];
 	get_accel_lpf(accel);
 	get_gyro_lpf(gyro);
 	get_compass_raw(mag);
@@ -174,21 +156,36 @@ void ahrs_estimate(void)
 	gyro_rad[1] = deg_to_rad(gyro[1]);
 	gyro_rad[2] = deg_to_rad(gyro[2]);
 
-	if(compass_quality_is_good(mag) == true) {
-		compass_undistortion(mag);
-		mag_error = false;
-	} else {
-		mag_error = true;
+	/* check compass data is availabe or not */
+	bool recvd_compass = ins_compass_sync_buffer_available();
+	if(recvd_compass == true) {
+		/* pop compass data from ins sync buffer (50Hz) */
+		ins_compass_sync_buffer_pop(mag);
+
+		if(mag_init == false) {
+			mag_last[0] = mag[0];
+			mag_last[1] = mag[1];
+			mag_last[2] = mag[2];
+			mag_init = true;
+		}
+
+		/* check compass quality */
+		if(is_compass_quality_good(mag, mag_last) == true) {
+			compass_undistortion(mag);
+			mag_error = false;
+		} else {
+			mag_error = true;
+		}
 	}
 
 #if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
-	if(mag_error == false && use_compass == true) {
+	if(mag_error == false && recvd_compass == true) {
 		ahrs_marg_complementary_filter_estimate(attitude.q, gravity, gyro_rad, mag);
 	} else {
 		ahrs_imu_complementary_filter_estimate(attitude.q, gravity, gyro_rad);
 	}
 #elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
-	if(mag_error == false && use_compass == true) {
+	if(mag_error == false && recvd_compass == true) {
 		madgwick_margs_ahrs(&madgwick_ahrs, gravity, gyro_rad, mag);
 	} else {
 		madgwick_imu_ahrs(&madgwick_ahrs, gravity, gyro_rad);
@@ -197,9 +194,11 @@ void ahrs_estimate(void)
 #elif (SELECT_AHRS == AHRS_ESKF)
 	eskf_ahrs_predict(gyro_rad);
 	eskf_ahrs_accelerometer_correct(gravity);
-	if(mag_error == false && use_compass == true) {
+
+	if(mag_error == false && recvd_compass == true) {
 		eskf_ahrs_magnetometer_correct(mag);
 	}
+
 	get_eskf_attitude_quaternion(attitude.q);
 #endif
 
