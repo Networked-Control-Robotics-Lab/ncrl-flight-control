@@ -18,5 +18,6 @@ void vee_map_3x3(float *mat, float *vec);
 void cross_product_3x1(float *vec_a, float *vec_b, float *vec_result);
 void norm_3x1(float *vec, float *norm);
 void normalize_3x1(float *vec);
+float calc_vectors_angle_3x1(float *vec1, float *vec2);
 
 #endif

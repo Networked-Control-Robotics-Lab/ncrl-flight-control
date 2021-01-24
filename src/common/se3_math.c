@@ -122,3 +122,15 @@ void normalize_3x1(float *vec)
 	vec[1] /= norm;
 	vec[2] /= norm;
 }
+
+float calc_vectors_angle_3x1(float *vec1, float *vec2)
+{
+	//angle = acos(dot(vec1, vec2) / ||vec1||*||vec2||)
+	float dot_prod = vec2[0]*vec1[0] + vec2[1]*vec1[1] + vec2[2]*vec1[2];
+
+	float vec1_norm, vec2_norm;
+	norm_3x1(vec1, &vec1_norm);
+	norm_3x1(vec2, &vec2_norm);
+
+	return rad_to_deg(acos(dot_prod / (vec1_norm * vec2_norm)));
+}
