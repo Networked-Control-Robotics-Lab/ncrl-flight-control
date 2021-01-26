@@ -1,6 +1,7 @@
 #include "arm_math.h"
 #include "ahrs_selector.h"
 #include "se3_math.h"
+#include "bound.h"
 
 void euler_to_rotation_matrix(euler_t *euler, float *r, float *r_transpose)
 {
@@ -132,5 +133,8 @@ float calc_vectors_angle_3x1(float *vec1, float *vec2)
 	norm_3x1(vec1, &vec1_norm);
 	norm_3x1(vec2, &vec2_norm);
 
-	return rad_to_deg(acos(dot_prod / (vec1_norm * vec2_norm)));
+	float dot_div_norm = dot_prod / (vec1_norm * vec2_norm);
+	bound_float(&dot_div_norm, +1, -1);
+
+	return rad_to_deg(acosf(dot_div_norm));
 }
