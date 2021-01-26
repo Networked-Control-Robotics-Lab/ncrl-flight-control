@@ -136,13 +136,15 @@ void reset_quaternion_yaw_angle(float *q)
 void ahrs_estimate(void)
 {
 	static bool mag_init = false;
+	static float mag_last[3];
 
 	float accel[3];
 	float gyro[3];
-	float mag[3], mag_last[3];
+	float mag[3];
+
+	/* read imu data (update with 1KHz, read with 400Hz) */
 	get_accel_lpf(accel);
 	get_gyro_lpf(gyro);
-	get_compass_raw(mag);
 
 	/* note that acceleromter senses the negative gravity acceleration (normal force)
 	 * a_imu = (R(phi, theta, psi) * a_translation) - (R(phi, theta, psi) * g) */
@@ -159,7 +161,7 @@ void ahrs_estimate(void)
 	/* check compass data is availabe or not */
 	bool recvd_compass = ins_compass_sync_buffer_available();
 	if(recvd_compass == true) {
-		/* pop compass data from ins sync buffer (50Hz) */
+		/* pop compass data from ins sync buffer (update and read with 50Hz) */
 		ins_compass_sync_buffer_pop(mag);
 
 		if(mag_init == false) {
@@ -171,11 +173,17 @@ void ahrs_estimate(void)
 
 		/* check compass quality */
 		if(is_compass_quality_good(mag, mag_last) == true) {
+			//good quality, apply calibration
 			compass_undistortion(mag);
 			mag_error = false;
 		} else {
 			mag_error = true;
 		}
+
+		//save current measured compass data for quality check later
+		mag_last[0] = mag[0];
+		mag_last[1] = mag[1];
+		mag_last[2] = mag[2];
 	}
 
 #if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)

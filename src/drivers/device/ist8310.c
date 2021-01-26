@@ -213,7 +213,7 @@ void ist8310_read_sensor(void)
 	ist8310.update_rate = 1.0f / elapsed_time;
 	ist8310.last_update_time = curr_time;
 
-	ins_compass_sync_buffer_push(ist8310.mag_raw);
+	ins_compass_sync_buffer_push(ist8310.mag_lpf);
 
 	/* update timer only if data is valid */
 	if(ist8310.mag_raw[0] != 0 || ist8310.mag_raw[1] != 0 || ist8310.mag_raw[2] != 0) {

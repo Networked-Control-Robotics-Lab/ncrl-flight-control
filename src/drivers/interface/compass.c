@@ -43,9 +43,9 @@ bool is_compass_quality_good(float *mag_now, float *mag_last)
 	}
 
 	/* calculate angle change rate from compass */
-	float mag_update_period = 0.02; //XXX
+	float mag_update_freq = 50; //XXX
 	float mag_vec_angle_change = calc_vectors_angle_3x1(mag_last, mag_now);
-	float mag_vec_angle_change_rate = mag_vec_angle_change / mag_update_period;
+	float mag_vec_angle_change_rate = mag_vec_angle_change * mag_update_freq;
 
 	/* get angular velocity from gyroscope */
 	float gyro[3], gyro_magnitude;
