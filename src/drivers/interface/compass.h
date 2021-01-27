@@ -4,7 +4,6 @@
 #include "debug_link.h"
 
 bool is_compass_available(void);
-bool is_compass_quality_good(float *mag_now, float *mag_last);
 bool is_compass_present(void);
 void get_compass_raw(float *mag);
 void get_compass_lpf(float *mag);

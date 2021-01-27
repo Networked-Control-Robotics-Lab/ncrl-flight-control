@@ -296,7 +296,7 @@ class serial_plotter_class:
         	self.show_subplot()
 
         elif (message_id == 15):
-          	plt.subplot(511)
+          	plt.subplot(311)
         	plt.ylabel('magnetic induction [uT]')
         	plt.ylim([-100, 100])
         	self.create_curve('mx', 'red')
@@ -304,28 +304,16 @@ class serial_plotter_class:
         	self.create_curve('mz', 'green')
         	self.show_subplot()
 
-          	plt.subplot(512)
+          	plt.subplot(312)
         	plt.ylabel('magnetic field strength [uT]')
         	plt.ylim([0, 100])
         	self.create_curve('mx', 'red')
         	self.show_subplot()
 
-          	plt.subplot(513)
+          	plt.subplot(313)
         	plt.ylabel('update frequency')
         	plt.ylim([0, 100])
         	self.create_curve('mx', 'red')
-        	self.show_subplot()
-
-          	plt.subplot(514)
-        	plt.ylabel('angular velocity')
-        	plt.ylim([-185, 185])
-        	self.create_curve('yaw', 'red')
-        	self.show_subplot()
-
-          	plt.subplot(515)
-        	plt.ylabel('compass angle rate')
-        	plt.ylim([-185, 185])
-        	self.create_curve('yaw', 'red')
         	self.show_subplot()
 
         elif (message_id == 16):
@@ -492,6 +480,45 @@ class serial_plotter_class:
                 self.create_curve('vy', 'blue')
                 self.create_curve('vz', 'green')
                 self.show_subplot()
+
+        elif (message_id == 21):
+          	plt.subplot(611)
+        	plt.ylabel('magnetic induction [uT]')
+        	plt.ylim([-100, 100])
+        	self.create_curve('mx', 'red')
+                self.create_curve('my', 'blue')
+        	self.create_curve('mz', 'green')
+        	self.show_subplot()
+
+          	plt.subplot(612)
+        	plt.ylabel('magnetic field strength [uT]')
+        	plt.ylim([0, 100])
+        	self.create_curve('mx', 'red')
+        	self.show_subplot()
+
+          	plt.subplot(613)
+        	plt.ylabel('update frequency')
+        	plt.ylim([0, 100])
+        	self.create_curve('mx', 'red')
+        	self.show_subplot()
+
+          	plt.subplot(614)
+        	plt.ylabel('angular velocity')
+        	plt.ylim([-185, 185])
+        	self.create_curve('ang vel', 'red')
+        	self.show_subplot()
+
+          	plt.subplot(615)
+        	plt.ylabel('compass angle rate')
+        	plt.ylim([-185, 185])
+        	self.create_curve('ang vel', 'red')
+        	self.show_subplot()
+
+                plt.subplot(616)
+        	plt.ylabel('angular rate error')
+        	plt.ylim([-250, 250])
+        	self.create_curve('ang vel', 'red')
+        	self.show_subplot()
 
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \

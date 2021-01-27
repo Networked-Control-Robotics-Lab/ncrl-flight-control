@@ -17,6 +17,7 @@
 #include "free_fall.h"
 #include "compass.h"
 #include "ins_sensor_sync.h"
+#include "debug_link.h"
 
 extern optitrack_t optitrack;
 
@@ -26,6 +27,11 @@ madgwick_t madgwick_ahrs;
 
 bool use_compass;
 volatile bool mag_error;
+
+/* debug variables */
+float debug_mag_vec_angle_change_rate;
+float debug_gyro_angular_velocity;
+float debug_compass_angular_rate_error;
 
 void ahrs_init(void)
 {
@@ -133,11 +139,61 @@ void reset_quaternion_yaw_angle(float *q)
 	quaternion_mult(q_negative_yaw, q_original, q);
 }
 
+bool ahrs_compass_quality_test(float *mag_new)
+{
+	static bool quality_check_init = false;
+	static float mag_last[3];
+	static float mag_last_stable[3];
+
+	if(quality_check_init == false) {
+		mag_last[0] = mag_new[0];
+		mag_last[1] = mag_new[1];
+		mag_last[2] = mag_new[2];
+		quality_check_init = true;
+	}
+
+	//TODO: check magnetic field size (normally about 25 to 65 uT)
+
+	/* no data */
+	if(mag_new[0] == 0.0f && mag_new[1] == 0.0f && mag_new[2] == 0.0f) {
+		return false;
+	}
+
+	/* calculate angle change rate from compass */
+	float mag_update_freq = 50; //XXX
+	float mag_vec_angle_change = calc_vectors_angle_3x1(mag_last, mag_new);
+	float mag_vec_angle_change_rate = mag_vec_angle_change * mag_update_freq;
+
+	/* get angular velocity from gyroscope */
+	float gyro[3], gyro_magnitude;
+	get_gyro_lpf(gyro);
+	norm_3x1(gyro, &gyro_magnitude);
+
+	/* get angular rate error of gyroscope and compass */
+	float compass_angular_rate_error = fabs(mag_vec_angle_change_rate - gyro_magnitude);
+
+	/* save current measured compass data for quality check later */
+	mag_last[0] = mag_new[0];
+	mag_last[1] = mag_new[1];
+	mag_last[2] = mag_new[2];
+
+	/* debugging: */
+	debug_mag_vec_angle_change_rate = mag_vec_angle_change_rate;
+	debug_gyro_angular_velocity = gyro_magnitude;
+	debug_compass_angular_rate_error = compass_angular_rate_error;
+
+	/* if the angle rate difference of compass and gyroscope is larger than 180deg/sec
+	 * then the compass quality is highly possible to be bad */
+	if(fabs(mag_vec_angle_change_rate - gyro_magnitude) > 180.0f) {
+		return false;
+	}
+
+	/* compass quality is good */
+	return true;
+}
+
 void ahrs_estimate(void)
 {
-	static bool mag_init = false;
-	static float mag_last[3];
-
 	float accel[3];
 	float gyro[3];
 	float mag[3];
@@ -164,26 +220,14 @@ void ahrs_estimate(void)
 		/* pop compass data from ins sync buffer (update and read with 50Hz) */
 		ins_compass_sync_buffer_pop(mag);
 
-		if(mag_init == false) {
-			mag_last[0] = mag[0];
-			mag_last[1] = mag[1];
-			mag_last[2] = mag[2];
-			mag_init = true;
-		}
-
 		/* check compass quality */
-		if(is_compass_quality_good(mag, mag_last) == true) {
+		if(ahrs_compass_quality_test(mag) == true) {
 			//good quality, apply calibration
 			compass_undistortion(mag);
 			mag_error = false;
 		} else {
 			mag_error = true;
 		}
-
-		//save current measured compass data for quality check later
-		mag_last[0] = mag[0];
-		mag_last[1] = mag[1];
-		mag_last[2] = mag[2];
 	}
 
 #if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
@@ -248,4 +292,23 @@ void get_attitude_direction_cosine_matrix(float **rotation_mat_ptr)
 void get_attitude_transposed_direction_cosine_matrix(float **transposed_rotation_mat_ptr)
 {
 	*transposed_rotation_mat_ptr = attitude.transposed_rotation_mat_data;
+}
+
+void send_ahrs_compass_quality_check_debug_message(debug_msg_t *payload)
+{
+	float mag_raw[3] = {0.0f};
+	get_compass_lpf(mag_raw);
+
+	float mag_strength = get_compass_lpf_strength();
+	float update_freq = get_compass_update_rate();
+
+	pack_debug_debug_message_header(payload, MESSAGE_ID_AHRS_COMPASS_QUALITY_CHECK);
+	pack_debug_debug_message_float(&mag_raw[0], payload);
+	pack_debug_debug_message_float(&mag_raw[1], payload);
+	pack_debug_debug_message_float(&mag_raw[2], payload);
+	pack_debug_debug_message_float(&mag_strength, payload);
+	pack_debug_debug_message_float(&update_freq, payload);
+	pack_debug_debug_message_float(&debug_gyro_angular_velocity, payload);
+	pack_debug_debug_message_float(&debug_mag_vec_angle_change_rate, payload);
+	pack_debug_debug_message_float(&debug_compass_angular_rate_error, payload);
 }
