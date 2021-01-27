@@ -482,7 +482,7 @@ class serial_plotter_class:
                 self.show_subplot()
 
         elif (message_id == 21):
-          	plt.subplot(611)
+          	plt.subplot(811)
         	plt.ylabel('magnetic induction [uT]')
         	plt.ylim([-100, 100])
         	self.create_curve('mx', 'red')
@@ -490,34 +490,46 @@ class serial_plotter_class:
         	self.create_curve('mz', 'green')
         	self.show_subplot()
 
-          	plt.subplot(612)
+          	plt.subplot(812)
         	plt.ylabel('magnetic field strength [uT]')
         	plt.ylim([0, 100])
         	self.create_curve('mx', 'red')
         	self.show_subplot()
 
-          	plt.subplot(613)
+          	plt.subplot(813)
         	plt.ylabel('update frequency')
         	plt.ylim([0, 100])
         	self.create_curve('mx', 'red')
         	self.show_subplot()
 
-          	plt.subplot(614)
+          	plt.subplot(814)
         	plt.ylabel('angular velocity')
         	plt.ylim([-185, 185])
-        	self.create_curve('ang vel', 'red')
+        	self.create_curve('deg/sec', 'red')
         	self.show_subplot()
 
-          	plt.subplot(615)
+          	plt.subplot(815)
         	plt.ylabel('compass angle rate')
         	plt.ylim([-185, 185])
-        	self.create_curve('ang vel', 'red')
+        	self.create_curve('deg/sec', 'red')
         	self.show_subplot()
 
-                plt.subplot(616)
+                plt.subplot(816)
         	plt.ylabel('angular rate error')
         	plt.ylim([-250, 250])
-        	self.create_curve('ang vel', 'red')
+        	self.create_curve('deg/s', 'red')
+        	self.show_subplot()
+
+                plt.subplot(817)
+        	plt.ylabel('angular error')
+        	plt.ylim([-250, 250])
+        	self.create_curve('deg', 'red')
+        	self.show_subplot()
+
+                plt.subplot(818)
+        	plt.ylabel('angular error')
+        	plt.ylim([-1.2, 1.2])
+        	self.create_curve('deg', 'red')
         	self.show_subplot()
 
     def show_graph(self):

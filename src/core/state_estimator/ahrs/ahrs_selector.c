@@ -18,6 +18,7 @@
 #include "compass.h"
 #include "ins_sensor_sync.h"
 #include "debug_link.h"
+#include "sys_time.h"
 
 extern optitrack_t optitrack;
 
@@ -32,6 +33,8 @@ volatile bool mag_error;
 float debug_mag_vec_angle_change_rate;
 float debug_gyro_angular_velocity;
 float debug_compass_angular_rate_error;
+float debug_compass_angle_error;
+float debug_compass_quality;
 
 void ahrs_init(void)
 {
@@ -145,6 +148,16 @@ bool ahrs_compass_quality_test(float *mag_new)
 	static float mag_last[3];
 	static float mag_last_stable[3];
 
+	//once the compass is detected as unstable, this flag will be trigger on for 1 seconds
+	static bool compass_is_stable = true;
+	static float last_failed_time = 0;
+
+	if(compass_is_stable == false) {
+		if((get_sys_time_s() - last_failed_time) > 1.0f) {
+			compass_is_stable = true;
+		}
+	}
+
 	if(quality_check_init == false) {
 		mag_last[0] = mag_new[0];
 		mag_last[1] = mag_new[1];
@@ -156,8 +169,13 @@ bool ahrs_compass_quality_test(float *mag_new)
 
 	/* no data */
 	if(mag_new[0] == 0.0f && mag_new[1] == 0.0f && mag_new[2] == 0.0f) {
-		return false;
+		last_failed_time = get_sys_time_s();
+		compass_is_stable = false;
 	}
+
+	/*================================================================*
+	 * check if angular change rate of magnetic flux vector is stable *
+	 *================================================================*/
 
 	/* calculate angle change rate from compass */
 	float mag_update_freq = 50; //XXX
@@ -172,24 +190,46 @@ bool ahrs_compass_quality_test(float *mag_new)
 	/* get angular rate error of gyroscope and compass */
 	float compass_angular_rate_error = fabs(mag_vec_angle_change_rate - gyro_magnitude);
 
+	/* angular rate difference is larger thab 180deg/sec, unstable */
+	if(compass_angular_rate_error > 180.0f) {
+		last_failed_time = get_sys_time_s();
+		compass_is_stable = false;
+	}
+
+	/*=====================================================================================*
+	 * compare current magnetic flux vector with last record stable vector, if the angular *
+	 * difference is larger than 90deg then we consider it as unstable                     *
+	 *=====================================================================================*/
+	float angle_diff_with_last_stable = calc_vectors_angle_3x1(mag_new, mag_last_stable);
+	if(angle_diff_with_last_stable > 90.0f) {
+		last_failed_time = get_sys_time_s();
+		compass_is_stable = false;
+	}
+
+	/*=========================================*
+	 * save data and return the testing result *
+	 *=========================================*/
+
 	/* save current measured compass data for quality check later */
 	mag_last[0] = mag_new[0];
 	mag_last[1] = mag_new[1];
 	mag_last[2] = mag_new[2];
 
-	/* debugging: */
+	if(compass_is_stable == true) {
+		/* compass quality is good */
+		mag_last_stable[0] = mag_new[0];
+		mag_last_stable[1] = mag_new[1];
+		mag_last_stable[2] = mag_new[2];
+	}
+
+	/* debugging */
 	debug_mag_vec_angle_change_rate = mag_vec_angle_change_rate;
 	debug_gyro_angular_velocity = gyro_magnitude;
 	debug_compass_angular_rate_error = compass_angular_rate_error;
+	debug_compass_angle_error = angle_diff_with_last_stable;
+	debug_compass_quality = (float)compass_is_stable;
 
-	/* if the angle rate difference of compass and gyroscope is larger than 180deg/sec
-	 * then the compass quality is highly possible to be bad */
-	if(fabs(mag_vec_angle_change_rate - gyro_magnitude) > 180.0f) {
-		return false;
-	}
-
-	/* compass quality is good */
-	return true;
+	return compass_is_stable;
 }
 
 void ahrs_estimate(void)
@@ -311,4 +351,6 @@ void send_ahrs_compass_quality_check_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_float(&debug_gyro_angular_velocity, payload);
 	pack_debug_debug_message_float(&debug_mag_vec_angle_change_rate, payload);
 	pack_debug_debug_message_float(&debug_compass_angular_rate_error, payload);
+	pack_debug_debug_message_float(&debug_compass_angle_error, payload);
+	pack_debug_debug_message_float(&debug_compass_quality, payload);
 }
