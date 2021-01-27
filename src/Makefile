@@ -66,7 +66,7 @@ SRC+=lib/FreeRTOS/Source/croutine.c \
 SRC+=./core/main.c \
 	./core/filters/lpf.c \
 	./core/state_estimator/misc/free_fall/free_fall.c \
-	./core/state_estimator/ahrs/ahrs_selector.c \
+	./core/state_estimator/ahrs/ahrs.c \
 	./core/state_estimator/ahrs/comp_ahrs.c \
 	./core/state_estimator/ahrs/madgwick_ahrs.c \
 	./core/state_estimator/ahrs/eskf_ahrs.c \

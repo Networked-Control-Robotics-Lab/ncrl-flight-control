@@ -3,7 +3,7 @@
 #include "arm_math.h"
 #include "mpu6500.h"
 #include "optitrack.h"
-#include "ahrs_selector.h"
+#include "ahrs.h"
 #include "comp_ahrs.h"
 #include "madgwick_ahrs.h"
 #include "eskf_ahrs.h"
@@ -190,7 +190,7 @@ bool ahrs_compass_quality_test(float *mag_new)
 	/* get angular rate error of gyroscope and compass */
 	float compass_angular_rate_error = fabs(mag_vec_angle_change_rate - gyro_magnitude);
 
-	/* angular rate difference is larger thab 180deg/sec, unstable */
+	/* angular rate difference is larger than 180deg/sec, unstable */
 	if(compass_angular_rate_error > 180.0f) {
 		last_failed_time = get_sys_time_s();
 		compass_is_stable = false;
@@ -201,7 +201,7 @@ bool ahrs_compass_quality_test(float *mag_new)
 	 * difference is larger than 90deg then we consider it as unstable                     *
 	 *=====================================================================================*/
 	float angle_diff_with_last_stable = calc_vectors_angle_3x1(mag_new, mag_last_stable);
-	if(angle_diff_with_last_stable > 90.0f) {
+	if(angle_diff_with_last_stable > 45.0f) {
 		last_failed_time = get_sys_time_s();
 		compass_is_stable = false;
 	}

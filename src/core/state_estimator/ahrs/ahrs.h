@@ -1,5 +1,5 @@
-#ifndef __AHRS_SELECTOR__
-#define __AHRS_SELECTOR__
+#ifndef __AHRS_H__
+#define __AHRS_H__
 
 #include <stdbool.h>
 #include "se3_math.h"

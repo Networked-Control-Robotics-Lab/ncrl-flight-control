@@ -5,7 +5,7 @@
 #include "ist8310.h"
 #include "optitrack.h"
 #include "debug_link.h"
-#include "ahrs_selector.h"
+#include "ahrs.h"
 #include "imu.h"
 
 void get_compass_raw(float *mag)

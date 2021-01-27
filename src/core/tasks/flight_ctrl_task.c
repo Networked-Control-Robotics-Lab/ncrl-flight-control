@@ -15,7 +15,7 @@
 #include "optitrack.h"
 #include "lpf.h"
 #include "imu.h"
-#include "ahrs_selector.h"
+#include "ahrs.h"
 #include "multirotor_pid_ctrl.h"
 #include "multirotor_geometry_ctrl.h"
 #include "motor_thrust_fitting.h"

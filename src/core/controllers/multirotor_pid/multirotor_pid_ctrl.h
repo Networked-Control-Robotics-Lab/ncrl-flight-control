@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 #include "pid.h"
-#include "ahrs_selector.h"
+#include "ahrs.h"
 #include "debug_link.h"
 #include "imu.h"
 #include "sbus_radio.h"

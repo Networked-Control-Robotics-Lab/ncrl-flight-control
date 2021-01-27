@@ -1,7 +1,7 @@
 #include <math.h>
 #include <stdio.h>
 #include "arm_math.h"
-#include "ahrs_selector.h"
+#include "ahrs.h"
 #include "comp_ahrs.h"
 #include "lpf.h"
 #include "matrix.h"

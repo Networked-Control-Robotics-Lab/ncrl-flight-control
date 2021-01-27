@@ -2,7 +2,7 @@
 #define __MULTIROTOR_GEOMETRY_CTRL_H__
 
 #include "imu.h"
-#include "ahrs_selector.h"
+#include "ahrs.h"
 #include "debug_link.h"
 
 void geometry_ctrl_init(void);

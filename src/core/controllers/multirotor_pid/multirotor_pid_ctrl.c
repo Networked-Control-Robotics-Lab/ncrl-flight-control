@@ -14,7 +14,7 @@
 #include "optitrack.h"
 #include "lpf.h"
 #include "imu.h"
-#include "ahrs_selector.h"
+#include "ahrs.h"
 #include "madgwick_ahrs.h"
 #include "multirotor_pid_ctrl.h"
 #include "multirotor_pid_param.h"

@@ -5,7 +5,7 @@
 #include "gps_to_enu.h"
 #include "position_state.h"
 #include "ins_comp_filter.h"
-#include "ahrs_selector.h"
+#include "ahrs.h"
 
 /* position (enu) */
 float pos_last[3] = {0.0f};

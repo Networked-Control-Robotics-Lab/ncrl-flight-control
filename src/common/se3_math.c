@@ -1,5 +1,5 @@
 #include "arm_math.h"
-#include "ahrs_selector.h"
+#include "ahrs.h"
 #include "se3_math.h"
 #include "bound.h"
 
