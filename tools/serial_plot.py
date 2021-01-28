@@ -10,7 +10,7 @@ from collections import deque
 from datetime import datetime
 
 ser = serial.Serial(
-    port='/dev/ttyUSB0',\
+    port='/dev/ttyUSB1',\
     baudrate=115200,\
     parity=serial.PARITY_NONE,\
     stopbits=serial.STOPBITS_ONE,\
@@ -482,7 +482,7 @@ class serial_plotter_class:
                 self.show_subplot()
 
         elif (message_id == 21):
-          	plt.subplot(911)
+          	plt.subplot(511)
         	plt.ylabel('mag [uT]')
         	plt.ylim([-100, 100])
         	self.create_curve('mx', 'red')
@@ -490,49 +490,25 @@ class serial_plotter_class:
         	self.create_curve('mz', 'green')
         	self.show_subplot()
 
-          	plt.subplot(912)
+          	plt.subplot(512)
         	plt.ylabel('mag strength [uT]')
         	plt.ylim([0, 100])
         	self.create_curve('mx', 'red')
         	self.show_subplot()
 
-          	plt.subplot(913)
+          	plt.subplot(513)
         	plt.ylabel('update freq')
         	plt.ylim([0, 100])
         	self.create_curve('mx', 'red')
         	self.show_subplot()
 
-          	plt.subplot(914)
-        	plt.ylabel('gyro')
-        	plt.ylim([-185, 185])
-        	self.create_curve('deg/s', 'red')
-        	self.show_subplot()
-
-          	plt.subplot(915)
-        	plt.ylabel('compass rate')
-        	plt.ylim([-185, 185])
-        	self.create_curve('deg/s', 'red')
-        	self.show_subplot()
-
-                plt.subplot(916)
-        	plt.ylabel('rate error')
-        	plt.ylim([-250, 250])
-        	self.create_curve('deg/s', 'red')
-        	self.show_subplot()
-
-                plt.subplot(917)
-        	plt.ylabel('angular error')
-        	plt.ylim([-250, 250])
-        	self.create_curve('deg', 'red')
-        	self.show_subplot()
-
-                plt.subplot(918)
+                plt.subplot(514)
         	plt.ylabel('quality')
         	plt.ylim([-1.2, 1.2])
         	self.create_curve('1: good 0: bad', 'red')
         	self.show_subplot()
 
-                plt.subplot(919)
+                plt.subplot(515)
         	plt.ylabel('deg')
         	plt.ylim([-200, 200])
         	self.create_curve('compass yaw', 'red')

@@ -32,10 +32,6 @@ bool use_compass;
 volatile bool mag_error;
 
 /* debug variables */
-float debug_mag_vec_angle_change_rate;
-float debug_gyro_angular_velocity;
-float debug_compass_angular_rate_error;
-float debug_compass_angle_error;
 float debug_compass_quality;
 float debug_compass_yaw;
 float debug_ahrs_yaw;
@@ -148,10 +144,6 @@ void reset_quaternion_yaw_angle(float *q)
 
 bool ahrs_compass_quality_test(float *mag_new)
 {
-	static bool quality_check_init = false;
-	static float mag_last[3];
-	static float mag_last_stable[3];
-
 	//once the compass is detected as unstable, this flag will be trigger on for 1 seconds
 	static bool compass_is_stable = true;
 	static float last_failed_time = 0;
@@ -162,84 +154,29 @@ bool ahrs_compass_quality_test(float *mag_new)
 		}
 	}
 
-	if(quality_check_init == false) {
-		mag_last[0] = mag_new[0];
-		mag_last[1] = mag_new[1];
-		mag_last[2] = mag_new[2];
-		quality_check_init = true;
-	}
-
 	//TODO: check magnetic field size (normally about 25 to 65 uT)
 
-	/* no datconvert_magnetic_field_to_quatconvert_magnetic_field_to_quatconvert_magnetic_field_to_quatconvert_magnetic_field_to_quata */
+	/* no data */
 	if(mag_new[0] == 0.0f && mag_new[1] == 0.0f && mag_new[2] == 0.0f) {
 		last_failed_time = get_sys_time_s();
 		compass_is_stable = false;
 	}
 
-	/*================================================================*
-	 * check if angular change rate of magnetic flux vector is stable *
-	 *================================================================*/
-
-	/* calculate angle change rate from compass */
-	float mag_update_freq = 50; //XXX
-	float mag_vec_angle_change = calc_vectors_angle_3x1(mag_last, mag_new);
-	float mag_vec_angle_change_rate = mag_vec_angle_change * mag_update_freq;
-
-	/* get angular velocity from gyroscope */
-	float gyro[3], gyro_magnitude;
-	get_gyro_lpf(gyro);
-	norm_3x1(gyro, &gyro_magnitude);
-
-	/* get angular rate error of gyroscope and compass */
-	float compass_angular_rate_error = fabs(mag_vec_angle_change_rate - gyro_magnitude);
-
-	/* angular rate difference is larger than 180deg/sec, unstable */
-	if(compass_angular_rate_error > 180.0f) {
-//		last_failed_time = get_sys_time_s();
-//		compass_is_stable = false;
-	}
-
-	/*=====================================================================================*
-	 * compare current magnetic flux vector with last record stable vector, if the angular *
-	 * difference is larger than 90deg then we consider it as unstable                     *
-	 *=====================================================================================*/
+	/* compare compass heading with ahrs yaw angle */
 	float roll, pitch, yaw;
 	get_attitude_euler_angles(&roll, &pitch, &yaw);
 	float compass_angle = rad_to_deg(-atan2f(mag_new[1], mag_new[0]));
-	float angle_diff_with_last_stable = fabs(compass_angle - yaw);
-	if(angle_diff_with_last_stable > 45) {
+	float compass_ahrs_yaw_diff = fabs(compass_angle - yaw);
+	if(compass_ahrs_yaw_diff > 45) {
 		last_failed_time = get_sys_time_s();
 		compass_is_stable = false;
 	}
-#if 0
-	float angle_diff_with_last_stable = calc_vectors_angle_3x1(mag_new, mag_last_stable);
-	if(angle_diff_with_last_stable > 45.0f) {
-		last_failed_time = get_sys_time_s();
-		compass_is_stable = false;
-	}
-#endif
+
 	/*=========================================*
 	 * save data and return the testing result *
 	 *=========================================*/
 
-	/* save current measured compass data for quality check later */
-	mag_last[0] = mag_new[0];
-	mag_last[1] = mag_new[1];
-	mag_last[2] = mag_new[2];
-
-	if(compass_is_stable == true) {
-		/* compass quality is good */
-		mag_last_stable[0] = mag_new[0];
-		mag_last_stable[1] = mag_new[1];
-		mag_last_stable[2] = mag_new[2];
-	}
-
 	/* debugging */
-	debug_mag_vec_angle_change_rate = mag_vec_angle_change_rate;
-	debug_gyro_angular_velocity = gyro_magnitude;
-	debug_compass_angular_rate_error = compass_angular_rate_error;
-	debug_compass_angle_error = angle_diff_with_last_stable;
 	debug_compass_quality = (float)compass_is_stable;
 	debug_compass_yaw = compass_angle;
 	debug_ahrs_yaw = yaw;
@@ -372,10 +309,6 @@ void send_ahrs_compass_quality_check_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_float(&mag_raw[2], payload);
 	pack_debug_debug_message_float(&mag_strength, payload);
 	pack_debug_debug_message_float(&update_freq, payload);
-	pack_debug_debug_message_float(&debug_gyro_angular_velocity, payload);
-	pack_debug_debug_message_float(&debug_mag_vec_angle_change_rate, payload);
-	pack_debug_debug_message_float(&debug_compass_angular_rate_error, payload);
-	pack_debug_debug_message_float(&debug_compass_angle_error, payload);
 	pack_debug_debug_message_float(&debug_compass_quality, payload);
 	pack_debug_debug_message_float(&debug_compass_yaw, payload);
 	pack_debug_debug_message_float(&debug_ahrs_yaw, payload);
