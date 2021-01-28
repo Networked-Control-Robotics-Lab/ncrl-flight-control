@@ -162,7 +162,10 @@ bool ahrs_compass_quality_test(float *mag_new)
 		compass_is_stable = false;
 	}
 
-	/* compare compass heading with ahrs yaw angle */
+#if 1
+	/*=============================================================*
+	 * euler angles based ahrs-compass angle difference comparison *
+	 *=============================================================*/
 	float roll, pitch, yaw;
 	get_attitude_euler_angles(&roll, &pitch, &yaw);
 	float compass_angle = rad_to_deg(-atan2f(mag_new[1], mag_new[0]));
@@ -171,10 +174,43 @@ bool ahrs_compass_quality_test(float *mag_new)
 		last_failed_time = get_sys_time_s();
 		compass_is_stable = false;
 	}
+#endif
 
-	/*=========================================*
-	 * save data and return the testing result *
-	 *=========================================*/
+#if 0
+	/*===========================================================*
+	 * quaternion based ahrs-compass angle difference comparison *
+	 *===========================================================*/
+	float mag_normalized[3];
+	mag_normalized[0] = mag_new[0];
+	mag_normalized[1] = mag_new[1];
+	mag_normalized[2] = mag_new[2];
+	normalize_3x1(mag_normalized);
+
+	//get rotation matrix of current attitude
+	float *R;
+	get_attitude_transposed_direction_cosine_matrix(&R);
+
+	//calculate predicted earth frame magnetic vector
+	float l_predict[3];
+	l_predict[0] = R[0*3+0]*mag_normalized[0] + R[0*3+1]*mag_normalized[1] + R[0*3+2]*mag_normalized[2];
+	l_predict[1] = R[1*3+0]*mag_normalized[0] + R[1*3+1]*mag_normalized[1] + R[1*3+2]*mag_normalized[2];
+	l_predict[2] = R[2*3+0]*mag_normalized[0] + R[2*3+1]*mag_normalized[1] + R[2*3+2]*mag_normalized[2];
+
+	//convert predicted earth frame magnetic vector to quaternion
+	float q_mag[4];
+	convert_magnetic_field_to_quat(l_predict, q_mag);
+
+	//get conjugated ahrs quaternion
+	float q_ahrs_conj[4];
+	get_attitude_quaternion(q_ahrs);
+
+	//calculate rotation difference between q_ahrs and q_mag
+	float q_diff[4];
+	quaternion_mult(q_ahrs_conj, q_mag, q_diff);
+
+	//get euler principal axis agnle of q_mag minus q_ahrs
+	compass_ahrs_yaw_diff = rad_to_deg(2 * acos(q_diff[0]));
+#endif
 
 	/* debugging */
 	debug_compass_quality = (float)compass_is_stable;
