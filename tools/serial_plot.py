@@ -10,7 +10,7 @@ from collections import deque
 from datetime import datetime
 
 ser = serial.Serial(
-    port='/dev/ttyUSB1',\
+    port='/dev/ttyUSB0',\
     baudrate=115200,\
     parity=serial.PARITY_NONE,\
     stopbits=serial.STOPBITS_ONE,\
@@ -482,54 +482,61 @@ class serial_plotter_class:
                 self.show_subplot()
 
         elif (message_id == 21):
-          	plt.subplot(811)
-        	plt.ylabel('magnetic induction [uT]')
+          	plt.subplot(911)
+        	plt.ylabel('mag [uT]')
         	plt.ylim([-100, 100])
         	self.create_curve('mx', 'red')
                 self.create_curve('my', 'blue')
         	self.create_curve('mz', 'green')
         	self.show_subplot()
 
-          	plt.subplot(812)
-        	plt.ylabel('magnetic field strength [uT]')
+          	plt.subplot(912)
+        	plt.ylabel('mag strength [uT]')
         	plt.ylim([0, 100])
         	self.create_curve('mx', 'red')
         	self.show_subplot()
 
-          	plt.subplot(813)
-        	plt.ylabel('update frequency')
+          	plt.subplot(913)
+        	plt.ylabel('update freq')
         	plt.ylim([0, 100])
         	self.create_curve('mx', 'red')
         	self.show_subplot()
 
-          	plt.subplot(814)
-        	plt.ylabel('angular velocity')
+          	plt.subplot(914)
+        	plt.ylabel('gyro')
         	plt.ylim([-185, 185])
-        	self.create_curve('deg/sec', 'red')
+        	self.create_curve('deg/s', 'red')
         	self.show_subplot()
 
-          	plt.subplot(815)
-        	plt.ylabel('compass angle rate')
+          	plt.subplot(915)
+        	plt.ylabel('compass rate')
         	plt.ylim([-185, 185])
-        	self.create_curve('deg/sec', 'red')
+        	self.create_curve('deg/s', 'red')
         	self.show_subplot()
 
-                plt.subplot(816)
-        	plt.ylabel('angular rate error')
+                plt.subplot(916)
+        	plt.ylabel('rate error')
         	plt.ylim([-250, 250])
         	self.create_curve('deg/s', 'red')
         	self.show_subplot()
 
-                plt.subplot(817)
+                plt.subplot(917)
         	plt.ylabel('angular error')
         	plt.ylim([-250, 250])
         	self.create_curve('deg', 'red')
         	self.show_subplot()
 
-                plt.subplot(818)
-        	plt.ylabel('angular error')
+                plt.subplot(918)
+        	plt.ylabel('quality')
         	plt.ylim([-1.2, 1.2])
-        	self.create_curve('deg', 'red')
+        	self.create_curve('1: good 0: bad', 'red')
+        	self.show_subplot()
+
+                plt.subplot(919)
+        	plt.ylabel('deg')
+        	plt.ylim([-200, 200])
+        	self.create_curve('compass yaw', 'red')
+        	self.create_curve('ahrs yaw', 'blue')
         	self.show_subplot()
 
     def show_graph(self):
