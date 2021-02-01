@@ -161,6 +161,7 @@ bool ahrs_compass_quality_test(float *mag_new)
 		compass_is_stable = false;
 	}
 
+	float compass_angle;
 	float compass_ahrs_yaw_diff;
 #if 1
 	/*=============================================================*
@@ -168,7 +169,7 @@ bool ahrs_compass_quality_test(float *mag_new)
 	 *=============================================================*/
 	float roll, pitch, yaw;
 	get_attitude_euler_angles(&roll, &pitch, &yaw);
-	float compass_angle = rad_to_deg(-atan2f(mag_new[1], mag_new[0]));
+	compass_angle = rad_to_deg(-atan2f(mag_new[1], mag_new[0]));
 	compass_ahrs_yaw_diff = fabs(compass_angle - yaw);
 	if(compass_ahrs_yaw_diff > 45) {
 		last_failed_time = get_sys_time_s();
@@ -187,35 +188,31 @@ bool ahrs_compass_quality_test(float *mag_new)
 	normalize_3x1(mag_normalized);
 
 	//get rotation matrix of current attitude
-	float *R;
-	get_attitude_direction_cosine_matrix(&R);
+	float *R_i2b;
+	get_attitude_direction_cosine_matrix(&R_i2b);
 
 	//calculate predicted earth frame magnetic vector
-	float l_predict[3];
-	l_predict[0] = R[0*3+0]*mag_normalized[0] + R[0*3+1]*mag_normalized[1] + R[0*3+2]*mag_normalized[2];
-	l_predict[1] = R[1*3+0]*mag_normalized[0] + R[1*3+1]*mag_normalized[1] + R[1*3+2]*mag_normalized[2];
-	l_predict[2] = R[2*3+0]*mag_normalized[0] + R[2*3+1]*mag_normalized[1] + R[2*3+2]*mag_normalized[2];
+	float l_predict[3], q_delta_mag[4];
+	l_predict[0] = R_i2b[0*3+0]*mag_normalized[0] + R_i2b[0*3+1]*mag_normalized[1] + R_i2b[0*3+2]*mag_normalized[2];
+	l_predict[1] = R_i2b[1*3+0]*mag_normalized[0] + R_i2b[1*3+1]*mag_normalized[1] + R_i2b[1*3+2]*mag_normalized[2];
+	l_predict[2] = R_i2b[2*3+0]*mag_normalized[0] + R_i2b[2*3+1]*mag_normalized[1] + R_i2b[2*3+2]*mag_normalized[2];
 
-	//convert predicted earth frame magnetic vector to quaternion
-	float q_delta_mag[4];
+	//calculate delta quaternion of compass correction
 	convert_magnetic_field_to_quat(l_predict, q_delta_mag);
 
-	//get conjugated ahrs quaternion
-	float q_ahrs_conj[4];
-	get_attitude_quaternion(q_ahrs_conj);
+	//get attitude quaternion from ahrs
+	float q_ahrs_b2i[4], q_ahrs_i2b[4];
+	get_attitude_quaternion(q_ahrs_b2i);
+	quaternion_conj(q_ahrs_b2i, q_ahrs_i2b);
 
-	float q_ahrs[4];
-	quaternion_conj(q_ahrs_conj, q_ahrs);
-
-	float q_mag[4];
-	quaternion_mult(q_ahrs, q_delta_mag, q_mag);
-
-	float q_mag_conj[4];
-	quaternion_conj(q_mag, q_mag_conj);
+	//predict new attitude quaternion with 100% trust of compass
+	float q_mag_i2b[4], q_mag_b2i[4];
+	quaternion_mult(q_ahrs_i2b, q_delta_mag, q_mag_i2b);
+	quaternion_conj(q_mag_i2b, q_mag_b2i);
 
 	//calculate rotation difference between q_ahrs and q_mag
 	float q_diff[4];
-	quaternion_mult(q_ahrs, q_mag_conj, q_diff);
+	quaternion_mult(q_ahrs_i2b, q_mag_b2i, q_diff);
 
 	//get euler principal axis agnle of q_mag minus q_ahrs
 	compass_ahrs_yaw_diff = rad_to_deg(acos(q_diff[0]));
@@ -225,8 +222,8 @@ bool ahrs_compass_quality_test(float *mag_new)
 		compass_is_stable = false;
 	}
 
-	compass_angle = -rad_to_deg(atan2(2.0*(q_mag[0]*q_mag[3] + q_mag[1]*q_mag[2]), 1.0-2.0*(q_mag[2]*q_mag[2] + q_mag[3]*q_mag[3])));
-	//float compass_angle = 0;
+	compass_angle = -rad_to_deg(atan2(2.0*(q_mag_i2b[0]*q_mag_i2b[3] + q_mag_i2b[1]*q_mag_i2b[2]),
+	                                  1.0-2.0*(q_mag_i2b[2]*q_mag_i2b[2] + q_mag_i2b[3]*q_mag_i2b[3])));
 #endif
 
 	/* debugging */
