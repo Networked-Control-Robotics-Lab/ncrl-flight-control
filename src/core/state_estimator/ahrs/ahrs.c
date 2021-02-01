@@ -170,7 +170,15 @@ bool ahrs_compass_quality_test(float *mag_new)
 	float roll, pitch, yaw;
 	get_attitude_euler_angles(&roll, &pitch, &yaw);
 	compass_angle = rad_to_deg(-atan2f(mag_new[1], mag_new[0]));
-	compass_ahrs_yaw_diff = fabs(compass_angle - yaw);
+
+	if(compass_angle < 0 && yaw > 0) {
+		compass_ahrs_yaw_diff = fabs(compass_angle + yaw);
+	} else if(compass_angle > 0 && yaw < 0) {
+		compass_ahrs_yaw_diff = fabs(compass_angle + yaw);
+	} else {
+		compass_ahrs_yaw_diff = fabs(compass_angle - yaw);
+	}
+
 	if(compass_ahrs_yaw_diff > 45) {
 		last_failed_time = get_sys_time_s();
 		compass_is_stable = false;
