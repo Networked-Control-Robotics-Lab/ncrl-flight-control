@@ -32,6 +32,7 @@
 #include "compass.h"
 #include "vins_mono.h"
 #include "ins.h"
+#include "ins_sensor_sync.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 10
 
@@ -125,6 +126,20 @@ void task_flight_ctrl(void *param)
 	barometer_wait_until_stable();
 #endif
 
+	/* initialize sensor synchronization buffer */
+	ins_sync_buffer_init();
+
+	/* sensor initialization loop */
+	while(1) {
+		while(xSemaphoreTake(flight_ctrl_semphr, 9) == pdFALSE);
+
+		bool compass_ready = ins_compass_sync_buffer_available();
+		if(compass_ready == true) {
+			break;
+		}
+	}
+
+	/* ahrs and ins initialization */
 	ahrs_init();
 	ins_init();
 
@@ -132,8 +147,7 @@ void task_flight_ctrl(void *param)
 	led_off(LED_G);
 	led_on(LED_B);
 
-	//TODO: wait until sensor data and fusion algorithm are stable
-
+	/* flight control loop */
 	while(1) {
 		perf_start(PERF_FLIGHT_CONTROL_TRIGGER_TIME);
 		while(xSemaphoreTake(flight_ctrl_semphr, 9) == pdFALSE);

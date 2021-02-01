@@ -35,8 +35,6 @@ float gps_vy_lpf;
 
 void ins_init(void)
 {
-	ins_sync_buffer_init();
-
 	//sampling time = 0.2s (5Hz), cutoff frequency = 10Hz
 	lpf_first_order_init(&gps_px_lpf_gain, 0.2, 1);
 	lpf_first_order_init(&gps_py_lpf_gain, 0.2, 1);

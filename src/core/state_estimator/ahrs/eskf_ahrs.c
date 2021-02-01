@@ -5,6 +5,8 @@
 #include "matrix.h"
 #include "se3_math.h"
 #include "quaternion.h"
+#include "comp_ahrs.h"
+#include "compass.h"
 
 #define ESKF_RESCALE(number) (number * 10e7) //to improve the numerical stability
 
@@ -162,6 +164,12 @@ void eskf_ahrs_init(float dt)
 			mat_data(FQFt)[r*3 + c] = mat_data(Q_i)[r*3 + c];
 		}
 	}
+
+	/* initialize quaternion with compass and accelerometer */
+	float mag[3] = {1, 0, 0};
+	get_compass_lpf(mag);
+	normalize_3x1(mag);
+	convert_magnetic_field_to_quat(mag, mat_data(x_nominal));
 }
 
 void eskf_ahrs_predict(float *gyro)
