@@ -419,7 +419,7 @@ class serial_plotter_class:
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \
 		interval=0, blit=True)
 
-	plt.show(block=False)
+	plt.show()
 
     def save_csv(self, datas):
             for i in range(0, len(datas)):
@@ -517,7 +517,7 @@ class serial_thread(threading.Thread):
 		    serial_plotter.serial_receive()
 
         def join(self):
-            super(self).join()
+            super(serial_thread, self).join()
 
 serial_thread().start()
 

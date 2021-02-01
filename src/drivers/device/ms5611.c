@@ -29,7 +29,7 @@ void ms5611_reset(void)
 	blocked_delay_ms(100);
 }
 
-void ms5611_read_uint16(uint8_t address, uint16_t *data)
+void ms5611_read_uint16(uint8_t address, uint32_t *data)
 {
 	uint8_t byte1, byte2;
 
@@ -37,7 +37,7 @@ void ms5611_read_uint16(uint8_t address, uint16_t *data)
 	spi_read_write(SPI3, address);
 	byte1 = spi_read_write(SPI3, 0x00);
 	byte2 = spi_read_write(SPI3, 0x00);
-	*data = ((uint16_t)byte1 << 8) | (uint16_t)byte2;
+	*data = ((uint32_t)byte1 << 8) | (uint32_t)byte2;
 	ms5611_chip_deselect();
 }
 
@@ -48,7 +48,7 @@ void ms5611_read_int24(uint8_t address, int32_t *data)
 	ms5611_chip_select();
 	spi3_read_write(address);
 	ms5611_chip_deselect();
-	freertos_task_delay(1);
+	freertos_task_delay(20);
 
 	ms5611_chip_select();
 	spi3_read_write(0x00);
@@ -95,8 +95,8 @@ void ms5611_read_pressure(void)
 	int32_t d1, d2;
 	int64_t off, sens, dt;
 
-	ms5611_read_int24(0x40, &d1);
-	ms5611_read_int24(0x50, &d2);
+	ms5611_read_int24(MS5611_D1_CONVERT_OSR4096, &d1);
+	ms5611_read_int24(MS5611_D2_CONVERT_OSR4096, &d2);
 
 	dt = (int64_t)d2 - (int64_t)ms5611.c5 * (1 << 8);
 	int32_t temp32 = 2000 + (dt * (int64_t)ms5611.c6) / (1 << 23);
@@ -121,7 +121,7 @@ void ms5611_read_pressure(void)
 	ms5611.temp_raw = (float)temp32 * 0.01f; //[deg c]
 	ms5611.press_raw = (float)pressure32 * 0.01f; //[mbar]
 
-	lpf_first_order(ms5611.press_raw, &ms5611.press_lpf, 0.011f);
+	lpf_first_order(ms5611.press_raw, &ms5611.press_lpf, 0.18f);
 }
 
 static void ms5611_calc_relative_altitude_and_velocity(void)
@@ -140,6 +140,8 @@ static void ms5611_calc_relative_altitude_and_velocity(void)
 	float press_diff = ms5611.press_sea_level - ms5611.press_lpf;
 	ms5611.rel_alt = MBAR_TO_PASCAL(press_diff) * 0.07992535611;
 
+	//ms5611.rel_alt = 44330.0f * (1.0f - pow(ms5611.press_raw / ms5611.press_sea_level, 0.1902949f));
+
 	if(ms5611.velocity_ready == false) {
 		ms5611.velocity_ready = true;
 		ms5611.rel_vel_lpf = 0.0f;
@@ -147,9 +149,9 @@ static void ms5611_calc_relative_altitude_and_velocity(void)
 		ms5611.rel_alt_last = 0.0f;
 	} else {
 		/* low pass filtering */
-		ms5611.rel_vel_raw = (ms5611.rel_alt - ms5611.rel_alt_last) * 400;
+		ms5611.rel_vel_raw = (ms5611.rel_alt - ms5611.rel_alt_last) * 50;
 		ms5611.rel_alt_last = ms5611.rel_alt;
-		lpf_first_order(ms5611.rel_vel_raw, &ms5611.rel_vel_lpf, 1.0);
+		lpf_first_order(ms5611.rel_vel_raw, &ms5611.rel_vel_lpf, 0.35);
 	}
 }
 

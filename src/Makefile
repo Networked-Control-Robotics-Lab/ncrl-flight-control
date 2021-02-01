@@ -69,6 +69,7 @@ SRC+=./core/main.c \
 	./core/estimators/attitude/ahrs.c \
 	./core/estimators/attitude/comp_ahrs.c \
 	./core/estimators/attitude/madgwick_ahrs.c \
+	./core/estimators/attitude/eskf_ahrs.c \
 	./core/estimators/localization/altitude_est.c \
 	./core/estimators/localization/gps_ekf.c \
 	./core/controllers/multirotor_pid/multirotor_pid_ctrl.c \
@@ -196,8 +197,8 @@ clean:
 	rm -rf *.orig
 
 flash:
-	openocd -f interface/stlink-v2.cfg \
-	-f target/stm32f4x_stlink.cfg \
+	openocd -f interface/stlink.cfg \
+	-f target/stm32f4x.cfg \
 	-c "init" \
 	-c "reset init" \
 	-c "halt" \

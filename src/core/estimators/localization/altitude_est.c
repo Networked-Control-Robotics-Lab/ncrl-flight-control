@@ -10,6 +10,9 @@ float alt_last = 0.0f;
 float alt_predict = 0.0f;
 float alt_fused = 0.0f;
 
+float alt_bias = -0.75;
+float alt_rate_bias = -0.9;
+
 /* altitude rate estimation using barometer and acceleromter with complementary filter algorithm */
 void barometer_alt_rate_estimate(float *dcm, float barometer_alt, float barometer_alt_rate,
                                  float *accel_body, float dt)
@@ -46,7 +49,7 @@ void barometer_alt_rate_estimate(float *dcm, float barometer_alt, float baromete
 	alt_predict = alt_last + (alt_rate_fused * dt) + 0.5f * (accel_earth_z * dt * dt);
 
 	/* complementary filter for altitude estimation */
-	const float a_alt = 0.998;
+	const float a_alt = 0.997;
 	alt_fused = (a_alt * alt_predict) + ((1.0f - a_alt) * barometer_alt);
 
 	/* save fused altitude for next iteration */
@@ -55,12 +58,12 @@ void barometer_alt_rate_estimate(float *dcm, float barometer_alt, float baromete
 
 float get_fused_barometer_relative_altitude(void)
 {
-	return alt_fused;
+	return alt_fused - alt_bias;
 }
 
 float get_fused_barometer_relative_altitude_rate(void)
 {
-	return alt_rate_fused;
+	return alt_rate_fused - alt_rate_bias;
 }
 
 void send_alt_est_debug_message(debug_msg_t *payload)
@@ -71,14 +74,16 @@ void send_alt_est_debug_message(debug_msg_t *payload)
 	altitude = get_fused_barometer_relative_altitude();
 	optitrack_read_pos_z(&optitrack_z);
 
+	float altitude_rate = 0.0f;
 	float optitrack_vz = 0.0f;
 	optitrack_read_vel_z(&optitrack_vz);
+	altitude_rate = get_fused_barometer_relative_altitude_rate();
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_ALT_EST);
 	/* position */
 	pack_debug_debug_message_float(&altitude, payload);
 	pack_debug_debug_message_float(&optitrack_z, payload);
 	/* velocity */
-	pack_debug_debug_message_float(&alt_rate_fused, payload);
+	pack_debug_debug_message_float(&altitude_rate, payload);
 	pack_debug_debug_message_float(&optitrack_vz, payload);
 }
