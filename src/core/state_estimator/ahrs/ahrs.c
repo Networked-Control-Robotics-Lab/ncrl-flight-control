@@ -30,10 +30,12 @@ madgwick_t madgwick_ahrs;
 bool use_compass;
 volatile bool mag_error;
 
-/* debug variables */
-float debug_compass_quality;
-float debug_compass_yaw;
-float debug_ahrs_yaw;
+/* debugging */
+struct {
+	float good;
+	float compass_yaw;
+	float ahrs_yaw;
+} compass_quality_debug;
 
 void ahrs_init(void)
 {
@@ -161,15 +163,15 @@ bool ahrs_compass_quality_test(float *mag_new)
 		compass_is_stable = false;
 	}
 
-	float compass_angle;
 	float compass_ahrs_yaw_diff;
+
+	float roll, pitch, yaw;
+	get_attitude_euler_angles(&roll, &pitch, &yaw);
 #if 0
 	/*=============================================================*
 	 * euler angles based ahrs-compass angle difference comparison *
 	 *=============================================================*/
-	float roll, pitch, yaw;
-	get_attitude_euler_angles(&roll, &pitch, &yaw);
-	compass_angle = rad_to_deg(-atan2f(mag_new[1], mag_new[0]));
+	float compass_angle = rad_to_deg(-atan2f(mag_new[1], mag_new[0]));
 
 	if(compass_angle < 0 && yaw > 0) {
 		compass_ahrs_yaw_diff = fabs(compass_angle + yaw);
@@ -183,9 +185,12 @@ bool ahrs_compass_quality_test(float *mag_new)
 		last_failed_time = get_sys_time_s();
 		compass_is_stable = false;
 	}
-#endif
 
-#if 1
+	/* debugging */
+	compass_quality_debug.good = (float)compass_is_stable;
+	compass_quality_debug.compass_yaw = compass_angle;
+	compass_quality_debug.ahrs_yaw = yaw;
+#else
 	/*===========================================================*
 	 * quaternion based ahrs-compass angle difference comparison *
 	 *===========================================================*/
@@ -230,14 +235,17 @@ bool ahrs_compass_quality_test(float *mag_new)
 		compass_is_stable = false;
 	}
 
-	compass_angle = -rad_to_deg(atan2(2.0*(q_mag_b2i[0]*q_mag_b2i[3] + q_mag_b2i[1]*q_mag_b2i[2]),
-	                                  1.0-2.0*(q_mag_b2i[2]*q_mag_b2i[2] + q_mag_b2i[3]*q_mag_b2i[3])));
-#endif
-
 	/* debugging */
-	debug_compass_quality = (float)compass_is_stable;
-	debug_compass_yaw = 0;//compass_angle;
-	debug_ahrs_yaw = compass_ahrs_yaw_diff;//yaw;
+	compass_quality_debug.good = (float)compass_is_stable;
+
+	float q0 = q_mag_i2b[0];
+	float q1 = q_mag_i2b[1];
+	float q2 = q_mag_i2b[2];
+	float q3 = q_mag_i2b[3];
+	compass_quality_debug.compass_yaw = rad_to_deg(atan2(2.0*(q0*q3 + q1*q2), 1.0-2.0*(q2*q2 + q3*q3)));
+
+	compass_quality_debug.ahrs_yaw = yaw;
+#endif
 
 	return compass_is_stable;
 }
@@ -367,7 +375,7 @@ void send_ahrs_compass_quality_check_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_float(&mag_raw[2], payload);
 	pack_debug_debug_message_float(&mag_strength, payload);
 	pack_debug_debug_message_float(&update_freq, payload);
-	pack_debug_debug_message_float(&debug_compass_quality, payload);
-	pack_debug_debug_message_float(&debug_compass_yaw, payload);
-	pack_debug_debug_message_float(&debug_ahrs_yaw, payload);
+	pack_debug_debug_message_float(&compass_quality_debug.good, payload);
+	pack_debug_debug_message_float(&compass_quality_debug.compass_yaw, payload);
+	pack_debug_debug_message_float(&compass_quality_debug.ahrs_yaw, payload);
 }
