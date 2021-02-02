@@ -549,8 +549,8 @@ void multirotor_geometry_control(radio_t *rc, float *desired_heading)
 	get_attitude_euler_angles(&attitude_roll, &attitude_pitch, &attitude_yaw);
 
 	/* get direction consine matrix of current attitude */
-	get_attitude_direction_cosine_matrix(&mat_data(R));
-	get_attitude_transposed_direction_cosine_matrix(&mat_data(Rt));
+	get_rotation_matrix_b2i(&mat_data(R));
+	get_rotation_matrix_i2b(&mat_data(Rt));
 
 	/* prepare position and velocity data */
 	float curr_pos_enu[3] = {0.0f}, curr_pos_ned[3] = {0.0f};

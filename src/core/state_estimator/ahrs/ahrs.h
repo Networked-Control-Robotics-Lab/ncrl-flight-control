@@ -15,8 +15,8 @@ typedef struct {
 	float q[4];
 
 	//direction cosine matrix (rotation matrix)
-	float rotation_mat_data[3 * 3];            //earth frame to body-fixed frame
-	float transposed_rotation_mat_data[3 * 3]; //body-fixed frame to earth frame
+	float R_i2b[3 * 3]; //earth frame to body-fixed frame
+	float R_b2i[3 * 3]; //body-fixed frame to earth frame
 } attitude_t;
 
 void ahrs_init(void);
@@ -26,8 +26,8 @@ bool ahrs_compass_quality_test(float *mag_new);
 
 void get_attitude_euler_angles(float *roll, float *pitch, float *yaw);
 void get_attitude_quaternion(float *q);
-void get_attitude_direction_cosine_matrix(float **R_data);
-void get_attitude_transposed_direction_cosine_matrix(float **R_transposed_data);
+void get_rotation_matrix_b2i(float **R_b2i);
+void get_rotation_matrix_i2b(float **R_i2b);
 
 void send_ahrs_compass_quality_check_debug_message(debug_msg_t *payload);
 

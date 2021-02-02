@@ -234,7 +234,7 @@ bool ahrs_compass_quality_test(float *mag_new)
 
 	//get rotation matrix of current attitude
 	float *R_b2i;
-	get_attitude_direction_cosine_matrix(&R_b2i);
+	get_rotation_matrix_b2i(&R_b2i);
 
 	//calculate predicted earth frame magnetic vector
 	float l_predict[3], q_delta_mag[4];
@@ -364,8 +364,7 @@ void ahrs_estimate(void)
 	attitude.pitch = rad_to_deg(euler.pitch);
 	attitude.yaw = rad_to_deg(euler.yaw);
 
-	quat_to_rotation_matrix(attitude.q, attitude.rotation_mat_data,
-	                        attitude.transposed_rotation_mat_data);
+	quat_to_rotation_matrix(attitude.q, attitude.R_i2b, attitude.R_b2i);
 }
 
 void get_attitude_euler_angles(float *roll, float *pitch, float *yaw)
@@ -383,14 +382,14 @@ void get_attitude_quaternion(float *q)
 	q[3] = attitude.q[3];
 }
 
-void get_attitude_direction_cosine_matrix(float **rotation_mat_ptr)
+void get_rotation_matrix_b2i(float **R_b2i)
 {
-	*rotation_mat_ptr = attitude.rotation_mat_data;
+	*R_b2i = attitude.R_b2i;
 }
 
-void get_attitude_transposed_direction_cosine_matrix(float **transposed_rotation_mat_ptr)
+void get_rotation_matrix_i2b(float **R_i2b)
 {
-	*transposed_rotation_mat_ptr = attitude.transposed_rotation_mat_data;
+	*R_i2b = attitude.R_i2b;
 }
 
 void send_ahrs_compass_quality_check_debug_message(debug_msg_t *payload)

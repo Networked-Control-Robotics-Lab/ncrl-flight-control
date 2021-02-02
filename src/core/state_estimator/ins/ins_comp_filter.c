@@ -41,7 +41,7 @@ void ins_comp_filter_predict(float *pos_enu_out, float *vel_enu_out,
 {
 	/* read rotation matrix of current attitude */
 	float *Rt;
-	get_attitude_direction_cosine_matrix(&Rt);
+	get_rotation_matrix_b2i(&Rt);
 
 	/* read accelerometer (which is represented in body-fixed frame) */
 	float accel_b_ned[3];
