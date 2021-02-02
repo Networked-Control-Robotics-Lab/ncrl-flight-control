@@ -1,15 +1,14 @@
 #include "madgwick_ahrs.h"
 #include "arm_math.h"
 #include "quaternion.h"
+#include "ahrs.h"
 
 void madgwick_init(madgwick_t *madgwick, float sample_rate, float beta)
 {
 	madgwick->beta = beta;
 	madgwick->dt = 1.0f / sample_rate;
-	madgwick->q[0] = 1.0f;
-	madgwick->q[1] = 0.0f;
-	madgwick->q[2] = 0.0f;
-	madgwick->q[3] = 0.0f;
+
+	init_ahrs_quaternion_with_accel_and_compass(madgwick->q);
 }
 
 void ahrs_madgwick_filter_set_quat(madgwick_t* madgwick, float *q)

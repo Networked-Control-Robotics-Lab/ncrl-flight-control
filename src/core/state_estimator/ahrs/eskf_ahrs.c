@@ -166,22 +166,7 @@ void eskf_ahrs_init(float dt)
 		}
 	}
 
-	/* initialize quaternion with compass and accelerometer */
-	float accel[3];
-	get_accel_lpf(accel);
-	accel[0] *= -1;
-	accel[1] *= -1;
-	accel[2] *= -1;
-	normalize_3x1(accel);
-
-	float mag[3];
-	get_compass_lpf(mag);
-	normalize_3x1(mag);
-
-	float q_accel[4], q_mag[4];
-	convert_magnetic_field_to_quat(mag, q_mag);
-	convert_gravity_to_quat(accel, q_accel);
-	quaternion_mult(q_accel, q_mag, mat_data(x_nominal));
+	init_ahrs_quaternion_with_accel_and_compass(mat_data(x_nominal));
 }
 
 void eskf_ahrs_predict(float *gyro)

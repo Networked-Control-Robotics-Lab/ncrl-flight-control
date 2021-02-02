@@ -55,6 +55,38 @@ void ahrs_init(void)
 	}
 }
 
+void init_ahrs_quaternion_with_accel_and_compass(float *q_ahrs)
+{
+	/* compass not available */
+	if(is_compass_available() == false) {
+		q_ahrs[0] = 1.0f;
+		q_ahrs[1] = 0.0f;
+		q_ahrs[2] = 0.0f;
+		q_ahrs[3] = 0.0f;
+		return;
+	}
+
+	/* initialize quaternion with compass and accelerometer */
+	float accel[3];
+	get_accel_lpf(accel);
+	accel[0] *= -1;
+	accel[1] *= -1;
+	accel[2] *= -1;
+	normalize_3x1(accel);
+
+	float mag[3];
+	get_compass_lpf(mag);
+	normalize_3x1(mag);
+
+	float q_mag[4];
+	convert_magnetic_field_to_quat(mag, q_mag);
+
+	float q_accel[4];
+	convert_gravity_to_quat(accel, q_accel);
+
+	quaternion_mult(q_accel, q_mag, q_ahrs);
+}
+
 void ahrs_gyro_integration(float *q, float *gyro, float time)
 {
 #if 0

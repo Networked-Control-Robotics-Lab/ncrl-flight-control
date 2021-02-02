@@ -34,10 +34,7 @@ void complementary_ahrs_init(float ahrs_dt)
 
 	comp_ahrs_dt = ahrs_dt;
 
-	mat_data(q)[0] = 1.0f;
-	mat_data(q)[1] = 0.0f;
-	mat_data(q)[2] = 0.0f;
-	mat_data(q)[3] = 0.0f;
+	init_ahrs_quaternion_with_accel_and_compass(mat_data(q));
 }
 
 void convert_gravity_to_quat(float *a, float *q)

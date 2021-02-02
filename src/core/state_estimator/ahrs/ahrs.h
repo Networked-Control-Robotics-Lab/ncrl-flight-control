@@ -20,6 +20,7 @@ typedef struct {
 } attitude_t;
 
 void ahrs_init(void);
+void init_ahrs_quaternion_with_accel_and_compass(float *q_ahrs);
 void ahrs_estimate(void);
 bool ahrs_compass_quality_test(float *mag_new);
 
