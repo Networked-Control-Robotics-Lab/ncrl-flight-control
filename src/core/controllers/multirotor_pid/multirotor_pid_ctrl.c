@@ -27,6 +27,7 @@
 #include "sys_param.h"
 #include "position_state.h"
 #include "compass.h"
+#include "led.h"
 
 pid_control_t pid_roll;
 pid_control_t pid_pitch;
@@ -395,13 +396,11 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 	}
 
 	if(rc->safety == true) {
-		led_on(LED_B);
-		led_off(LED_R);
 		set_yaw_pd_setpoint(&pid_yaw, attitude_yaw);
 		*desired_heading = attitude_yaw;
+		set_rgb_led_service_motor_lock_flag(true);
 	} else {
-		led_on(LED_R);
-		led_off(LED_B);
+		set_rgb_led_service_motor_lock_flag(false);
 	}
 
 	bool lock_motor = false;

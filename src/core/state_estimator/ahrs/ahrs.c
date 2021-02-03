@@ -19,6 +19,7 @@
 #include "ins_sensor_sync.h"
 #include "debug_link.h"
 #include "sys_time.h"
+#include "led.h"
 
 extern optitrack_t optitrack;
 extern SemaphoreHandle_t flight_ctrl_semphr;
@@ -199,7 +200,7 @@ bool ahrs_compass_quality_test(float *mag_new)
 
 	float roll, pitch, yaw;
 	get_attitude_euler_angles(&roll, &pitch, &yaw);
-#if 0
+#if 1
 	/*=============================================================*
 	 * euler angles based ahrs-compass angle difference comparison *
 	 *=============================================================*/
@@ -278,6 +279,9 @@ bool ahrs_compass_quality_test(float *mag_new)
 
 	compass_quality_debug.ahrs_yaw = yaw;
 #endif
+
+	/* change led indicator to yellow if sensor fault detected */
+	set_rgb_led_service_sensor_error_flag(!compass_is_stable);
 
 	return compass_is_stable;
 }

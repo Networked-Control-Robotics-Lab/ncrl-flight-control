@@ -14,6 +14,7 @@
 #include "ins_sensor_sync.h"
 #include "sys_time.h"
 #include "lpf.h"
+#include "led.h"
 
 #define INS_LOOP_PERIOD 0.0025f //400Hz
 
@@ -56,11 +57,7 @@ void ins_state_estimate(void)
 	bool sensor_all_ready = gps_ready && compass_ready && barometer_ready;
 
 	/* change led state to indicate the sensor status */
-	if(sensor_all_ready == true) {
-		led_on(LED_G);
-	} else {
-		led_off(LED_G);
-	}
+	set_rgb_led_service_navigation_on_flag(sensor_all_ready);
 
 	float longitude, latitude, gps_msl_height;
 	float gps_ned_vx, gps_ned_vy, gps_ned_vz;

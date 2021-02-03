@@ -69,7 +69,7 @@ void timer3_init(void)
 void TIM8_BRK_TIM12_IRQHandler(void)
 {
 	static int flight_ctrl_cnt = FLIGHT_CTL_PRESCALER_RELOAD;
-	//static int led_ctrl_cnt = LED_CTRL_PRESCALER_RELOAD;
+	static int led_ctrl_cnt = LED_CTRL_PRESCALER_RELOAD;
 
 	if(TIM_GetITStatus(TIM12, TIM_IT_Update) == SET) {
 		TIM_ClearITPendingBit(TIM12, TIM_IT_Update);
@@ -82,7 +82,7 @@ void TIM8_BRK_TIM12_IRQHandler(void)
 			flight_ctrl_semaphore_handler();
 		}
 
-#if 0
+#if 1
 		led_ctrl_cnt--;
 		if(led_ctrl_cnt == 0) {
 			led_ctrl_cnt = LED_CTRL_PRESCALER_RELOAD;

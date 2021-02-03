@@ -1,35 +1,40 @@
 #ifndef __LED_H__
 #define __LED_H__
 
+#include <stdbool.h>
 #include "stm32f4xx.h"
 #include "gpio.h"
 
 enum {
-	LED_OFF,
-	LED_ON
+	LED_OFF = 0,
+	LED_ON =  1
 } LED_STATE;
-
-enum {
-        LED_MODE_RC_PROTECTION,
-        LED_MODE_MOTOR_LOCKED,
-	LED_MODE_MOTOR_UNLOCKED
-};
 
 typedef struct {
 	/* gpio pin */
 	GPIO_TypeDef *gpio_group;
 	uint16_t pin_num;
 
-	float on_time;
-	float off_time;
+	uint8_t state;
+} led_t;
 
-	int state;
+typedef struct {
+	bool service_enabled;
 
-	float timer;
-} led_ctrl_t;
+	struct {
+		bool rc_protection;
+		bool motor_lock;
+		bool sensor_error;
+		bool navigation_on;
+	} flags;
+} rgb_led_service_t;
 
 void rgb_led_init(void);
 void rgb_led_handler(void);
-void set_led_mode(int led_mode);
+
+void enable_rgb_led_service(void);
+void set_rgb_led_service_motor_lock_flag(bool new_state);
+void set_rgb_led_service_sensor_error_flag(bool new_state);
+void set_rgb_led_service_navigation_on_flag(bool new_state);
 
 #endif

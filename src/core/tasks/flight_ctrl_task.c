@@ -33,6 +33,7 @@
 #include "vins_mono.h"
 #include "ins.h"
 #include "ins_sensor_sync.h"
+#include "led.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 10
 
@@ -146,6 +147,9 @@ void task_flight_ctrl(void *param)
 	led_off(LED_R);
 	led_off(LED_G);
 	led_on(LED_B);
+
+	/* from now on, led control task will be taken by rgb_led_service driver */
+	enable_rgb_led_service();
 
 	/* flight control loop */
 	while(1) {

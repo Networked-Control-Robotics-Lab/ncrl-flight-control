@@ -21,6 +21,7 @@
 #include "barometer.h"
 #include "compass.h"
 #include "sys_param.h"
+#include "led.h"
 
 #define dt 0.0025 //[s]
 #define MOTOR_TO_CG_LENGTH 16.25f //[cm]
@@ -603,14 +604,11 @@ void multirotor_geometry_control(radio_t *rc, float *desired_heading)
 	}
 
 	if(rc->safety == true) {
-		led_on(LED_B);
-		led_off(LED_R);
-
 		*desired_heading = attitude_yaw;
 		barometer_set_sea_level();
+		set_rgb_led_service_motor_lock_flag(true);
 	} else {
-		led_on(LED_R);
-		led_off(LED_B);
+		set_rgb_led_service_motor_lock_flag(false);
 	}
 
 	bool lock_motor = false;
