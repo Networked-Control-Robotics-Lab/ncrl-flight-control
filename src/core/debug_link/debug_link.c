@@ -39,7 +39,7 @@ void send_onboard_data(uint8_t *payload, int payload_count)
 	payload[payload_count] = checksum;
 	payload_count++;
 
-	uart3_puts((char *)payload, payload_count);
+	uart1_puts((char *)payload, payload_count);
 }
 
 void send_general_float_debug_message(float val, debug_msg_t *payload)
