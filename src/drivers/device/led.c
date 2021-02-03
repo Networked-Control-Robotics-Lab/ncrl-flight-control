@@ -48,10 +48,10 @@ void config_rgb_mode(void)
 		led_b.state = LED_ON;
 	} else {
 		if(rgb_led_service.flags.sensor_error == true) {
-			/* yellow static */
+			/* pink static */
 			led_r.state = LED_ON;
 			led_g.state = LED_ON;
-			led_b.state = LED_OFF;
+			led_b.state = LED_ON;
 		} else {
 			/* blue static */
 			led_r.state = LED_ON;
