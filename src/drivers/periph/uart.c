@@ -20,6 +20,7 @@ typedef struct {
 SemaphoreHandle_t uart3_tx_semphr;
 SemaphoreHandle_t uart7_tx_semphr;
 
+QueueHandle_t uart1_rx_queue;
 QueueHandle_t uart3_rx_queue;
 
 /*
@@ -30,6 +31,8 @@ QueueHandle_t uart3_rx_queue;
  */
 void uart1_init(int baudrate)
 {
+	uart1_rx_queue = xQueueCreate(UART3_QUEUE_SIZE, sizeof(uart_c_t));
+
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
@@ -56,6 +59,15 @@ void uart1_init(int baudrate)
 	USART_Init(USART1, &USART_InitStruct);
 	USART_Cmd(USART1, ENABLE);
 	USART_ClearFlag(USART1, USART_FLAG_TC);
+
+	NVIC_InitTypeDef NVIC_InitStruct;
+	NVIC_InitStruct.NVIC_IRQChannelSubPriority = 0;
+	NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
+
+	NVIC_InitStruct.NVIC_IRQChannel = USART1_IRQn;
+	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = UART1_RX_ISR_PRIORITY;
+	NVIC_Init(&NVIC_InitStruct);
+	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
 }
 
 /*
@@ -433,6 +445,19 @@ void DMA1_Stream3_IRQHandler(void)
 	}
 }
 
+void USART1_IRQHandler(void)
+{
+	if(USART_GetITStatus(USART1, USART_IT_RXNE) == SET) {
+		uart_c_t uart_queue_item;
+		uart_queue_item.c = USART_ReceiveData(USART1);
+		USART1->SR;
+
+		BaseType_t higher_priority_task_woken = pdFALSE;
+		xQueueSendToBackFromISR(uart1_rx_queue, &uart_queue_item, &higher_priority_task_woken);
+		portEND_SWITCHING_ISR(higher_priority_task_woken)
+	}
+}
+
 void USART3_IRQHandler(void)
 {
 	if(USART_GetITStatus(USART3, USART_IT_RXNE) == SET) {
@@ -471,6 +496,8 @@ void UART7_IRQHandler(void)
 		ublox_m8n_isr_handler(c);
 #elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)
 		optitrack_isr_handler(c);
+#else
+		(void)c; //prevent from unused variable warning
 #endif
 	}
 }
