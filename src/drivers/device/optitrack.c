@@ -34,7 +34,6 @@ bool optitrack_available(void)
 	//timeout if no data available more than 300ms
 	float current_time = get_sys_time_ms();
 	if((current_time - optitrack.time_now) > 300) {
-		set_rgb_led_service_navigation_on_flag(false);
 		return false;
 	}
 	return true;
@@ -80,7 +79,6 @@ void optitrack_update(void)
 		if(c == '+' && optitrack.buf[0] == '@') {
 			/* decode optitrack message */
 			if(optitrack_serial_decoder(optitrack.buf) == 0) {
-				set_rgb_led_service_navigation_on_flag(false);
 				optitrack.buf_pos = 0; //reset position pointer
 			}
 		}

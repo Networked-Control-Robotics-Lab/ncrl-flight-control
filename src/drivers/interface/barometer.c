@@ -1,3 +1,4 @@
+#include "proj_config.h"
 #include "ms5611.h"
 
 bool is_barometer_available(void)

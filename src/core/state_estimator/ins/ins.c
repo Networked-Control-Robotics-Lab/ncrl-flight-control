@@ -15,6 +15,7 @@
 #include "sys_time.h"
 #include "lpf.h"
 #include "led.h"
+#include "optitrack.h"
 
 #define INS_LOOP_PERIOD 0.0025f //400Hz
 
@@ -49,6 +50,11 @@ void ins_init(void)
 
 void ins_state_estimate(void)
 {
+#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)
+	set_rgb_led_service_navigation_on_flag(optitrack_available());
+	return;
+#endif
+
 	/* check sensor status */
 	bool gps_ready = is_gps_available();
 	bool compass_ready = is_compass_available();
