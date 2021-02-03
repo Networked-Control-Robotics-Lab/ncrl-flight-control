@@ -59,6 +59,7 @@ typedef struct {
 } ist8310_t;
 
 void ist8130_init(void);
+void ist8310_wait_until_stable(void);
 bool ist8310_available(void);
 void ist8310_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
                            UBaseType_t priority);

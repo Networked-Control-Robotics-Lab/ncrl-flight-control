@@ -3,6 +3,7 @@
 
 #include "debug_link.h"
 
+void imu_init(void);
 bool imu_calibration_not_finished(void);
 
 void set_accel_scale_factor(float x_scale, float y_scale, float z_scale);

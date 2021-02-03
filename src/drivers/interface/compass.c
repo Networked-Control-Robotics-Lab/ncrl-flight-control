@@ -29,6 +29,13 @@ bool is_compass_available(void)
 #endif
 }
 
+void compass_wait_until_stable(void)
+{
+#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_COMPASS)
+	ist8310_wait_until_stable();
+#endif
+}
+
 float get_compass_update_rate(void)
 {
 	return ist8310_get_update_rate();

@@ -152,6 +152,13 @@ void ist8130_init(void)
 	lpf_first_order_init(&ist8310_lpf_gain, 0.02, 5);
 }
 
+void ist8310_wait_until_stable(void)
+{
+	while(ins_compass_sync_buffer_available() != true) {
+		freertos_task_delay(2.5);
+	}
+}
+
 void ist8310_semaphore_handler(BaseType_t *higher_priority_task_woken)
 {
 	xSemaphoreGiveFromISR(ist8310_semphr, higher_priority_task_woken);
