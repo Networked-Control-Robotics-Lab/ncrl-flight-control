@@ -19,9 +19,7 @@ void lpf_second_order_init(lpf2_t *lpf, float sampling_freq, float cutoff_freq)
 {
 	//reference: How does a low-pass filter programmatically work? (stackexchange)
 
-	//float alpha = tan(1.0f / (2.0f * M_PI * cuttoff_freq / sampling_freq));
-	//float alpha = tan(M_PI* cuttoff_freq / sampling_freq);
-	float alpha = tan(M_PI*cutoff_freq/sampling_freq);
+	float alpha = tan(M_PI * cutoff_freq / sampling_freq);
 	float sqrt2 = sqrt(2.0f);
 	float alpha_squared = alpha * alpha;
 	float sqrt2_alpha = sqrt2 * alpha;
