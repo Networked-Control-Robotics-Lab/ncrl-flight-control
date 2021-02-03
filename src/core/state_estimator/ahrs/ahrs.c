@@ -200,7 +200,8 @@ bool ahrs_compass_quality_test(float *mag_new)
 
 	float roll, pitch, yaw;
 	get_attitude_euler_angles(&roll, &pitch, &yaw);
-#if 1
+
+#if 0
 	/*=============================================================*
 	 * euler angles based ahrs-compass angle difference comparison *
 	 *=============================================================*/
@@ -368,7 +369,7 @@ void ahrs_estimate(void)
 	attitude.pitch = rad_to_deg(euler.pitch);
 	attitude.yaw = rad_to_deg(euler.yaw);
 
-	quat_to_rotation_matrix(attitude.q, attitude.R_i2b, attitude.R_b2i);
+	quat_to_rotation_matrix(attitude.q, attitude.R_b2i, attitude.R_i2b);
 }
 
 void get_attitude_euler_angles(float *roll, float *pitch, float *yaw)
