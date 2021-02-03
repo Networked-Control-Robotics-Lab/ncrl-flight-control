@@ -20,6 +20,7 @@ void uart3_puts(char *s, int size);
 void uart6_puts(char *s, int size);
 void uart7_puts(char *s, int size);
 
+bool uart1_getc(char *c, long sleep_ticks);
 bool uart3_getc(char *c, long sleep_ticks);
 
 #endif
