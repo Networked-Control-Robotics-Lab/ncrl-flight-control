@@ -192,6 +192,26 @@ float optitrack_read_vel_z(void)
 	return optitrack.vel_raw[2];
 }
 
+void optitrack_read_q_0(float *q0)
+{
+	*q0 = optitrack.q[0];
+}
+
+void optitrack_read_q_1(float *q1)
+{
+	*q1 = optitrack.q[1];
+}
+
+void optitrack_read_q_2(float *q2)
+{
+	*q2 = optitrack.q[2];
+}
+
+void optitrack_read_q_3(float *q3)
+{
+	*q3 = optitrack.q[3];
+}
+
 void send_optitrack_position_debug_message(debug_msg_t *payload)
 {
 	float px = optitrack.pos[0] * 100.0f; //[cm]
