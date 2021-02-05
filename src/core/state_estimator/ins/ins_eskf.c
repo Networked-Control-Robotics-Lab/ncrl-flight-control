@@ -15,6 +15,7 @@
 #define ESKF_RESCALE(number) (number * 10e7) //to improve the numerical stability
 
 #define R(r, c)            _R.pData[(r * 3) + c]
+#define Rt(r, c)           _Rt.pData[(r * 3) + c]
 #define P_prior(r, c)      _P_prior.pData[(r * 9) + c]
 #define P_post(r, c)       _P_post.pData[(r * 9) + c]
 #define R_am_ab_dt(r, c)   _R_am_ab_dt.pData[(r * 3) + c]
@@ -34,6 +35,7 @@ MAT_ALLOC(FP, 9, 9);
 MAT_ALLOC(FPFt, 9, 9);
 MAT_ALLOC(FQFt, 9, 9);
 MAT_ALLOC(_R, 3, 3);
+MAT_ALLOC(_Rt, 3, 3);
 MAT_ALLOC(_R_am_ab_dt, 3, 3);
 MAT_ALLOC(_Rt_wm_wb_dt, 3, 3);
 MAT_ALLOC(Q_delta_theta, 4, 3);
@@ -75,46 +77,7 @@ void eskf_ins_init(float dt)
 	neg_half_dt = -0.5f * dt;
 	half_dt_squared = 0.5f * dt * dt;
 
-	MAT_INIT(x_nominal, 10, 1);
-	MAT_INIT(x_error_state, 9, 1);
-	MAT_INIT(F_x, 9, 9);
-	MAT_INIT(_Q_i, 6, 6);
-	MAT_INIT(_P_prior, 9, 9);
-	MAT_INIT(_P_post, 9, 9);
-	MAT_INIT(V_accel, 3, 3);
-	MAT_INIT(V_mag, 3, 3);
-	MAT_INIT(F_x_t, 9, 9);
-	MAT_INIT(FP, 9, 9);
-	MAT_INIT(FPFt, 9, 9);
-	MAT_INIT(FQFt, 9, 9);
-	MAT_INIT(Q_delta_theta, 4, 3);
-	MAT_INIT(X_delta_x, 10, 9);
-	MAT_INIT(H_x_accel, 3, 10);
-	MAT_INIT(H_accel, 3, 9);
-	MAT_INIT(H_accel_t, 9, 3);
-	MAT_INIT(PHt_accel, 9, 3);
-	MAT_INIT(HPHt_accel, 3, 3);
-	MAT_INIT(HPHt_V_accel, 3, 3);
-	MAT_INIT(HPHt_V_accel_inv, 3, 3);
-	MAT_INIT(K_accel, 9, 3);
-	MAT_INIT(KH_accel, 9, 9);
-	MAT_INIT(I_KH_accel, 9, 9);
-	MAT_INIT(y_accel, 3, 1);
-	MAT_INIT(h_accel, 3, 1);
-	MAT_INIT(accel_resid, 3, 1);
-	MAT_INIT(H_x_mag, 3, 10);
-	MAT_INIT(H_mag, 3, 9);
-	MAT_INIT(H_mag_t, 9, 3);
-	MAT_INIT(PHt_mag, 9, 3);
-	MAT_INIT(HPHt_mag, 3, 3);
-	MAT_INIT(HPHt_V_mag, 3, 3);
-	MAT_INIT(HPHt_V_mag_inv, 3, 3);
-	MAT_INIT(K_mag, 9, 3);
-	MAT_INIT(KH_mag, 9, 9);
-	MAT_INIT(I_KH_mag, 9, 9);
-	MAT_INIT(y_mag, 3, 1);
-	MAT_INIT(h_mag, 3, 1);
-	MAT_INIT(mag_resid, 3, 1);
+	//TODO: initialize all matrices!
 
 	/* initialize the nominal state */
 	mat_data(x_nominal)[0] = 0.0f; //px
@@ -178,24 +141,34 @@ void eskf_ins_init(float dt)
 
 void eskf_ins_predict(float *accel, float *gyro)
 {
-	float accel_i_ned[3] = {0}; //accelerometer reading in inertial frame
-	//XXX: coordinate transform
+	/* input variables (ned frame) */
+	float accel_b_x = accel[0];
+	float accel_b_y = accel[1];
+	float accel_b_z = accel[2];
+	float gyro_b_x = gyro[0];
+	float gyro_b_y = gyro[1];
+	float gyro_b_z = gyro[2];
 
-	//convert acceleration from ned frame to enu frame
+	/* body-frame to inertial-frame conversion */
+	float accel_i_ned[3] = {0};
+	accel_i_ned[0] = Rt(0, 0) * accel_b_x + Rt(0, 1) * accel_b_y + Rt(0, 2) * accel_b_z;
+	accel_i_ned[1] = Rt(1, 0) * accel_b_x + Rt(1, 1) * accel_b_y + Rt(1, 2) * accel_b_z;
+	accel_i_ned[2] = Rt(2, 0) * accel_b_x + Rt(2, 1) * accel_b_y + Rt(1, 2) * accel_b_z;
+
+	//ned to enu conversion
 	float accel_i[3];
 	accel_i[0] =  accel_i_ned[1];
 	accel_i[1] =  accel_i_ned[0];
 	accel_i[2] = -accel_i_ned[2];
 
-	/* update nominal state (quaternion integration) */
-	float w[4];
-	w[0] = 0.0f;
-	w[1] = gyro[0];
-	w[2] = gyro[1];
-	w[3] = gyro[2];
+	/*======================*
+	 * nominal state update *
+	 *======================*/
 
-	float q_dot[4];
-	quaternion_mult(w, &mat_data(x_nominal)[6], q_dot);
+	//velocity integration
+	mat_data(x_nominal)[0] += accel_i[0] * dt;
+	mat_data(x_nominal)[1] += accel_i[1] * dt;
+	mat_data(x_nominal)[2] += accel_i[2] * dt;
 
 	//position integration
 	mat_data(x_nominal)[0] += (mat_data(x_nominal)[3] * dt) +
@@ -204,10 +177,16 @@ void eskf_ins_predict(float *accel, float *gyro)
 	                          (accel_i[1] * half_dt_squared);
 	mat_data(x_nominal)[2] += (mat_data(x_nominal)[5] * dt) +
 	                          (accel_i[2] * half_dt_squared);
-	//velocity integration
-	mat_data(x_nominal)[0] += accel_i[0] * dt;
-	mat_data(x_nominal)[1] += accel_i[1] * dt;
-	mat_data(x_nominal)[2] += accel_i[2] * dt;
+
+	/* calculate quaternion time derivative */
+	float w[4];
+	w[0] = 0.0f;
+	w[1] = gyro[0];
+	w[2] = gyro[1];
+	w[3] = gyro[2];
+	float q_dot[4];
+	quaternion_mult(w, &mat_data(x_nominal)[6], q_dot);
+
 	//quaternion integration
 	mat_data(x_nominal)[6] = mat_data(x_nominal)[6] + (q_dot[0] * neg_half_dt);
 	mat_data(x_nominal)[7] = mat_data(x_nominal)[7] + (q_dot[1] * neg_half_dt);
@@ -215,12 +194,9 @@ void eskf_ins_predict(float *accel, float *gyro)
 	mat_data(x_nominal)[9] = mat_data(x_nominal)[9] + (q_dot[3] * neg_half_dt);
 	quat_normalize(mat_data(x_nominal));
 
-	float accel_b_x = accel[0];
-	float accel_b_y = accel[1];
-	float accel_b_z = accel[2];
-	float gyro_b_x = gyro[0];
-	float gyro_b_y = gyro[1];
-	float gyro_b_z = gyro[2];
+	/*==================================*
+	 * process covatiance matrix update *
+	 *==================================*/
 
 	/* codeblock for preventing nameing conflict */
 	{
@@ -253,6 +229,7 @@ void eskf_ins_predict(float *accel, float *gyro)
 
 	/* codeblock for preventing nameing conflict */
 	{
+		/* calculate a priori process covariance matrix */
 		float c0 = P_post(5,8)+P_post(6,8)*R_am_ab_dt(2,0)+P_post(7,8)*R_am_ab_dt(2,1)+P_post(8,8)*R_am_ab_dt(2,2);
 		float c1 = P_post(5,7)+P_post(6,7)*R_am_ab_dt(2,0)+P_post(7,7)*R_am_ab_dt(2,1)+P_post(8,7)*R_am_ab_dt(2,2);
 		float c2 = P_post(5,6)+P_post(6,6)*R_am_ab_dt(2,0)+P_post(7,6)*R_am_ab_dt(2,1)+P_post(8,6)*R_am_ab_dt(2,2);
@@ -405,6 +382,12 @@ void eskf_ins_predict(float *accel, float *gyro)
 		P_prior(8, 7) = P_prior(7, 8);
 		P_prior(8, 8) = Q_i(5,5)+Rt_wm_wb_dt(2,0)*c11+Rt_wm_wb_dt(2,1)*c10+Rt_wm_wb_dt(2,2)*c9;
 	}
+
+	/*=================================================*
+	 * convert estimated quaternion to R and Rt matrix *
+	 *=================================================*/
+	float *q = &mat_data(x_nominal)[0];
+	quat_to_rotation_matrix(q, mat_data(_Rt), mat_data(_R));
 }
 
 void eskf_ins_accelerometer_correct(float *accel)
