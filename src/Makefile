@@ -73,7 +73,7 @@ SRC+=./core/main.c \
 	./core/state_estimator/ins/ins_comp_filter.c \
 	./core/state_estimator/ins/gps_to_enu.c \
 	./core/state_estimator/ins/ins.c \
-	./core/state_estimator/ins/ins_full_state_eskf.c \
+	./core/state_estimator/ins/ins_eskf.c \
 	./core/state_estimator/ins/ins_sensor_sync.c \
 	./core/state_estimator/interface/attitude_state.c \
 	./core/state_estimator/interface/position_state.c \
