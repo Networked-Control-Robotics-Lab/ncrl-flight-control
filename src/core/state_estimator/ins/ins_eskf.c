@@ -21,6 +21,10 @@
 #define R_am_ab_dt(r, c)   _R_am_ab_dt.pData[(r * 3) + c]
 #define Rt_wm_wb_dt(r, c)  _Rt_wm_wb_dt.pData[(r * 3) + c]
 #define Q_i(r, c)          _Q_i.pData[(r * 6) + c]
+#define K_accel(r, c)      _K_accel.pData[(r * 3) + c]
+#define K_mag(r, c)        _K_mag.pData[(r * 3) + c]
+#define K_gps(r, c)        _K_gps.pData[(r * 4) + c]
+#define K_baro(r, c)       _K_baro.pData[(r * 2) + c]
 
 MAT_ALLOC(x_nominal, 10, 1);
 MAT_ALLOC(x_error_state, 9, 1);
@@ -47,7 +51,7 @@ MAT_ALLOC(PHt_accel, 9, 3);
 MAT_ALLOC(HPHt_accel, 3, 3);
 MAT_ALLOC(HPHt_V_accel, 3, 3);
 MAT_ALLOC(HPHt_V_accel_inv, 3, 3);
-MAT_ALLOC(K_accel, 9, 3);
+MAT_ALLOC(_K_accel, 9, 3);
 MAT_ALLOC(KH_accel, 9, 9);
 MAT_ALLOC(I_KH_accel, 9, 9);
 MAT_ALLOC(y_accel, 3, 1);
@@ -60,12 +64,14 @@ MAT_ALLOC(PHt_mag, 9, 3);
 MAT_ALLOC(HPHt_mag, 3, 3);
 MAT_ALLOC(HPHt_V_mag, 3, 3);
 MAT_ALLOC(HPHt_V_mag_inv, 3, 3);
-MAT_ALLOC(K_mag, 9, 3);
+MAT_ALLOC(_K_mag, 9, 3);
 MAT_ALLOC(KH_mag, 9, 9);
 MAT_ALLOC(I_KH_mag, 9, 9);
 MAT_ALLOC(y_mag, 3, 1);
 MAT_ALLOC(h_mag, 3, 1);
 MAT_ALLOC(mag_resid, 3, 1);
+MAT_ALLOC(_K_gps, 9, 4);
+MAT_ALLOC(_K_baro, 9, 2);
 
 float dt;
 float neg_half_dt;
@@ -392,6 +398,10 @@ void eskf_ins_predict(float *accel, float *gyro)
 
 void eskf_ins_accelerometer_correct(float *accel)
 {
+	float gx = accel[0];
+	float gy = accel[1];
+	float gz = accel[2];
+
 	mat_data(y_accel)[0] = accel[0];
 	mat_data(y_accel)[1] = accel[1];
 	mat_data(y_accel)[2] = accel[2];
@@ -437,12 +447,6 @@ void eskf_ins_accelerometer_correct(float *accel)
 	MAT_SCALE(&Q_delta_theta, 0.5, &X_delta_x);
 	MAT_MULT(&H_x_accel, &X_delta_x, &H_accel)
 
-	/* use the state from prediction step (gyroscope) to predict the
-	 * gravity vector */
-	mat_data(h_accel)[0] = 2 * (q0*q2 + q1*q3);
-	mat_data(h_accel)[1] = 2 * (q2*q3 - q0*q1);
-	mat_data(h_accel)[2] = q0*q0 - q1*q1 - q2*q2 + q3*q3;
-
 	/* calculate kalman gain */
 	//K = P * Ht * inv(H*P*Ht + V)
 	MAT_TRANS(&H_accel, &H_accel_t);
@@ -450,28 +454,138 @@ void eskf_ins_accelerometer_correct(float *accel)
 	MAT_MULT(&H_accel, &PHt_accel, &HPHt_accel);
 	MAT_ADD(&HPHt_accel, &V_accel, &HPHt_V_accel);
 	MAT_INV(&HPHt_V_accel, &HPHt_V_accel_inv);
-	MAT_MULT(&PHt_accel, &HPHt_V_accel_inv, &K_accel);
+	MAT_MULT(&PHt_accel, &HPHt_V_accel_inv, &_K_accel);
 
-	/* calculate error state residual */
-	//delta_x = K * (y_accel - h_accel)
-	MAT_SUB(&y_accel, &h_accel, &accel_resid);
-	MAT_MULT(&K_accel, &accel_resid, &x_error_state);
+	/* codeblock for preventing nameing conflict */
+	{
+		/* calculate error state residual */
+		float c0 = gz-q0*q0+q1*q1+q2*q2-q3*q3;
+		float c1 = -gx+q0*q2*2.0+q1*q3*2.0;
+		float c2 = gy+q0*q1*2.0-q2*q3*2.0;
 
-	/* calculate a posteriori process covariance matrix */
-	//P = (I - K*H) * P
-	MAT_MULT(&K_accel, &H_accel, &KH_accel);
-	mat_data(I_KH_accel)[0*3 + 0] = 1.0f - mat_data(KH_accel)[0*3 + 0];
-	mat_data(I_KH_accel)[0*3 + 1] =        mat_data(KH_accel)[0*3 + 1];
-	mat_data(I_KH_accel)[0*3 + 2] =        mat_data(KH_accel)[0*3 + 2];
+		mat_data(x_error_state)[6] = -K_accel(6,0)*c1+K_accel(6,2)*c0+K_accel(6,1)*c2;
+		mat_data(x_error_state)[7] = -K_accel(7,0)*c1+K_accel(7,2)*c0+K_accel(7,1)*c2;
+		mat_data(x_error_state)[8] = -K_accel(8,0)*c1+K_accel(8,2)*c0+K_accel(8,1)*c2;
+	}
 
-	mat_data(I_KH_accel)[1*3 + 0] =        mat_data(KH_accel)[1*3 + 0];
-	mat_data(I_KH_accel)[1*3 + 1] = 1.0f - mat_data(KH_accel)[1*3 + 1];
-	mat_data(I_KH_accel)[1*3 + 2] =        mat_data(KH_accel)[1*3 + 2];
+	/* codeblock for preventing nameing conflict */
+	{
+		/* calculate a posteriori process covariance matrix */
+		//P = (I - K*H) * P
+		float c0_ = -q3*q3;
+		float c1_ = q0*q3*2.0;
+		float c2_ = q2*q2;
+		float c3_ = q1*q1;
+		float c4_ = q0*q0;
+		float c5_ = q1*q2*2.0;
 
-	mat_data(I_KH_accel)[2*3 + 0] =        mat_data(KH_accel)[2*3 + 0];
-	mat_data(I_KH_accel)[2*3 + 1] =        mat_data(KH_accel)[2*3 + 1];
-	mat_data(I_KH_accel)[2*3 + 2] = 1.0f - mat_data(KH_accel)[2*3 + 2];
-	MAT_MULT(&I_KH_accel, &_P_prior, &_P_post);
+		float c0 = c0_-c2_+c3_+c4_;
+		float c1 = c0_+c2_-c3_+c4_;
+		float c2 = c1_-c5_;
+		float c3 = q0*q2*2.0-q1*q3*2.0;
+		float c4 = c1_+c5_;
+		float c5 = q0*q1*2.0+q2*q3*2.0;
+		float c6 = K_accel(7,0)*c0+K_accel(7,1)*c4-K_accel(7,2)*c3-1.0;
+		float c7 = -K_accel(6,0)*c2+K_accel(6,1)*c1+K_accel(6,2)*c5+1.0;
+		float c8 = -K_accel(8,0)*c2+K_accel(8,1)*c1+K_accel(8,2)*c5;
+		float c9 = K_accel(8,0)*c0+K_accel(8,1)*c4-K_accel(8,2)*c3;
+		float c10 = -K_accel(7,0)*c2+K_accel(7,1)*c1+K_accel(7,2)*c5;
+		float c11 = K_accel(6,0)*c0+K_accel(6,1)*c4-K_accel(6,2)*c3;
+		float c12 = -K_accel(5,0)*c2+K_accel(5,1)*c1+K_accel(5,2)*c5;
+		float c13 = K_accel(5,0)*c0+K_accel(5,1)*c4-K_accel(5,2)*c3;
+		float c14 = -K_accel(4,0)*c2+K_accel(4,1)*c1+K_accel(4,2)*c5;
+		float c15 = K_accel(4,0)*c0+K_accel(4,1)*c4-K_accel(4,2)*c3;
+		float c16 = -K_accel(3,0)*c2+K_accel(3,1)*c1+K_accel(3,2)*c5;
+		float c17 = K_accel(3,0)*c0+K_accel(3,1)*c4-K_accel(3,2)*c3;
+		float c18 = -K_accel(2,0)*c2+K_accel(2,1)*c1+K_accel(2,2)*c5;
+		float c19 = K_accel(2,0)*c0+K_accel(2,1)*c4-K_accel(2,2)*c3;
+		float c20 = -K_accel(1,0)*c2+K_accel(1,1)*c1+K_accel(1,2)*c5;
+		float c21 = K_accel(1,0)*c0+K_accel(1,1)*c4-K_accel(1,2)*c3;
+		float c22 = -K_accel(0,0)*c2+K_accel(0,1)*c1+K_accel(0,2)*c5;
+		float c23 = K_accel(0,0)*c0+K_accel(0,1)*c4-K_accel(0,2)*c3;
+
+		P_post(0, 0) = P_prior(0,0)+P_prior(6,0)*c22-P_prior(7,0)*c23;
+		P_post(0, 1) = P_prior(0,1)+P_prior(6,1)*c22-P_prior(7,1)*c23;
+		P_post(0, 2) = P_prior(0,2)+P_prior(6,2)*c22-P_prior(7,2)*c23;
+		P_post(0, 3) = P_prior(0,3)+P_prior(6,3)*c22-P_prior(7,3)*c23;
+		P_post(0, 4) = P_prior(0,4)+P_prior(6,4)*c22-P_prior(7,4)*c23;
+		P_post(0, 5) = P_prior(0,5)+P_prior(6,5)*c22-P_prior(7,5)*c23;
+		P_post(0, 6) = P_prior(0,6)+P_prior(6,6)*c22-P_prior(7,6)*c23;
+		P_post(0, 7) = P_prior(0,7)+P_prior(6,7)*c22-P_prior(7,7)*c23;
+		P_post(0, 8) = P_prior(0,8)+P_prior(6,8)*c22-P_prior(7,8)*c23;
+		P_post(1, 0) = P_post(0, 1);
+		P_post(1, 1) = P_prior(1,1)+P_prior(6,1)*c20-P_prior(7,1)*c21;
+		P_post(1, 2) = P_prior(1,2)+P_prior(6,2)*c20-P_prior(7,2)*c21;
+		P_post(1, 3) = P_prior(1,3)+P_prior(6,3)*c20-P_prior(7,3)*c21;
+		P_post(1, 4) = P_prior(1,4)+P_prior(6,4)*c20-P_prior(7,4)*c21;
+		P_post(1, 5) = P_prior(1,5)+P_prior(6,5)*c20-P_prior(7,5)*c21;
+		P_post(1, 6) = P_prior(1,6)+P_prior(6,6)*c20-P_prior(7,6)*c21;
+		P_post(1, 7) = P_prior(1,7)+P_prior(6,7)*c20-P_prior(7,7)*c21;
+		P_post(1, 8) = P_prior(1,8)+P_prior(6,8)*c20-P_prior(7,8)*c21;
+		P_post(2, 0) = P_post(0, 2);
+		P_post(2, 1) = P_post(1, 2);
+		P_post(2, 2) = P_prior(2,2)+P_prior(6,2)*c18-P_prior(7,2)*c19;
+		P_post(2, 3) = P_prior(2,3)+P_prior(6,3)*c18-P_prior(7,3)*c19;
+		P_post(2, 4) = P_prior(2,4)+P_prior(6,4)*c18-P_prior(7,4)*c19;
+		P_post(2, 5) = P_prior(2,5)+P_prior(6,5)*c18-P_prior(7,5)*c19;
+		P_post(2, 6) = P_prior(2,6)+P_prior(6,6)*c18-P_prior(7,6)*c19;
+		P_post(2, 7) = P_prior(2,7)+P_prior(6,7)*c18-P_prior(7,7)*c19;
+		P_post(2, 8) = P_prior(2,8)+P_prior(6,8)*c18-P_prior(7,8)*c19;
+		P_post(3, 0) = P_post(0, 3);
+		P_post(3, 1) = P_post(1, 3);
+		P_post(3, 2) = P_post(2, 3);
+		P_post(3, 3) = P_prior(3,3)+P_prior(6,3)*c16-P_prior(7,3)*c17;
+		P_post(3, 4) = P_prior(3,4)+P_prior(6,4)*c16-P_prior(7,4)*c17;
+		P_post(3, 5) = P_prior(3,5)+P_prior(6,5)*c16-P_prior(7,5)*c17;
+		P_post(3, 6) = P_prior(3,6)+P_prior(6,6)*c16-P_prior(7,6)*c17;
+		P_post(3, 7) = P_prior(3,7)+P_prior(6,7)*c16-P_prior(7,7)*c17;
+		P_post(3, 8) = P_prior(3,8)+P_prior(6,8)*c16-P_prior(7,8)*c17;
+		P_post(4, 0) = P_post(0, 4);
+		P_post(4, 1) = P_post(1, 4);
+		P_post(4, 2) = P_post(2, 4);
+		P_post(4, 3) = P_post(3, 4);
+		P_post(4, 4) = P_prior(4,4)+P_prior(6,4)*c14-P_prior(7,4)*c15;
+		P_post(4, 5) = P_prior(4,5)+P_prior(6,5)*c14-P_prior(7,5)*c15;
+		P_post(4, 6) = P_prior(4,6)+P_prior(6,6)*c14-P_prior(7,6)*c15;
+		P_post(4, 7) = P_prior(4,7)+P_prior(6,7)*c14-P_prior(7,7)*c15;
+		P_post(4, 8) = P_prior(4,8)+P_prior(6,8)*c14-P_prior(7,8)*c15;
+		P_post(5, 0) = P_post(0, 5);
+		P_post(5, 1) = P_post(1, 5);
+		P_post(5, 2) = P_post(2, 5);
+		P_post(5, 3) = P_post(3, 5);
+		P_post(5, 4) = P_post(4, 5);
+		P_post(5, 5) = P_prior(5,5)+P_prior(6,5)*c12-P_prior(7,5)*c13;
+		P_post(5, 6) = P_prior(5,6)+P_prior(6,6)*c12-P_prior(7,6)*c13;
+		P_post(5, 7) = P_prior(5,7)+P_prior(6,7)*c12-P_prior(7,7)*c13;
+		P_post(5, 8) = P_prior(5,8)+P_prior(6,8)*c12-P_prior(7,8)*c13;
+		P_post(6, 0) = P_post(0, 6);
+		P_post(6, 1) = P_post(1, 6);
+		P_post(6, 2) = P_post(2, 6);
+		P_post(6, 3) = P_post(3, 6);
+		P_post(6, 4) = P_post(4, 6);
+		P_post(6, 5) = P_post(5, 6);
+		P_post(6, 6) = P_prior(6,6)*c7-P_prior(7,6)*c11;
+		P_post(6, 7) = P_prior(6,7)*c7-P_prior(7,7)*c11;
+		P_post(6, 8) = P_prior(6,8)*c7-P_prior(7,8)*c11;
+		P_post(7, 0) = P_post(0, 7);
+		P_post(7, 1) = P_post(1, 7);
+		P_post(7, 2) = P_post(2, 7);
+		P_post(7, 3) = P_post(3, 7);
+		P_post(7, 4) = P_post(4, 7);
+		P_post(7, 5) = P_post(5, 7);
+		P_post(7, 6) = P_post(6, 7);
+		P_post(7, 7) = P_prior(6,7)*c10-P_prior(7,7)*c6;
+		P_post(7, 8) = P_prior(6,8)*c10-P_prior(7,8)*c6;
+		P_post(8, 0) = P_post(0, 8);
+		P_post(8, 1) = P_post(1, 8);
+		P_post(8, 2) = P_post(2, 8);
+		P_post(8, 3) = P_post(3, 8);
+		P_post(8, 4) = P_post(4, 8);
+		P_post(8, 5) = P_post(5, 8);
+		P_post(8, 6) = P_post(6, 8);
+		P_post(8, 7) = P_post(7, 8);
+		P_post(8, 8) = P_prior(8,8)+P_prior(6,8)*c8-P_prior(7,8)*c9;
+	}
 
 	/* _P_post becoms the _P_prior of the magnatometer correction */
 	memcpy(mat_data(_P_prior), mat_data(_P_post), sizeof(float) * 9);
@@ -494,6 +608,10 @@ void eskf_ins_accelerometer_correct(float *accel)
 
 void eskf_ins_magnetometer_correct(float *mag)
 {
+	float mx = mag[0];
+	float my = mag[1];
+	float mz = mag[2];
+
 	mat_data(y_mag)[0] = mag[0];
 	mat_data(y_mag)[1] = mag[1];
 	mat_data(y_mag)[2] = mag[2];
@@ -540,12 +658,6 @@ void eskf_ins_magnetometer_correct(float *mag)
 	MAT_SCALE(&Q_delta_theta, 0.5, &X_delta_x);
 	MAT_MULT(&H_x_mag, &X_delta_x, &H_mag)
 
-	/* use the state from prediction step (gyroscope) and stage1 correction (accelerometer)
-	 * to predict the magnetic field vector */
-	mat_data(h_mag)[0] = gamma*(q0*q0 + q1*q1 - q2*q2 - q3*q3) + 2*mag[2]*(q0*q2 + q1*q3);
-	mat_data(h_mag)[1] = 2*gamma*(q1*q2 + q0*q3) + 2*mag[2]*(q2*q3 - q0*q1);
-	mat_data(h_mag)[2] = 2*gamma*(q1*q3 - q0*q2) + mag[2]*(q0*q0 - q1*q1 - q2*q2 + q3*q3);
-
 	/* calculate kalman gain */
 	//K = P * Ht * inv(H*P*Ht + V)
 	MAT_TRANS(&H_mag, &H_mag_t);
@@ -553,28 +665,170 @@ void eskf_ins_magnetometer_correct(float *mag)
 	MAT_MULT(&H_mag, &PHt_mag, &HPHt_mag);
 	MAT_ADD(&HPHt_mag, &V_mag, &HPHt_V_mag);
 	MAT_INV(&HPHt_V_mag, &HPHt_V_mag_inv);
-	MAT_MULT(&PHt_mag, &HPHt_V_mag_inv, &K_mag);
+	MAT_MULT(&PHt_mag, &HPHt_V_mag_inv, &_K_mag);
 
-	/* calculate error state residual */
-	//delta_x = K * (y_mag - h_mag)
-	MAT_SUB(&y_mag, &h_mag, &mag_resid);
-	MAT_MULT(&K_mag, &mag_resid, &x_error_state);
+	/* codeblock for preventing nameing conflict */
+	{
+		/* calculate error state residual */
+		float c0_ = -q2*q2;
+		float c1_ = q3*q3;
+		float c2_ = q1*q1;
+		float c3_ = q0*q0;
+		float c4_ = q0*q2;
+		float c5_ = q1*q3;
 
-	/* calculate a posteriori process covariance matrix */
-	//P = (I - K*H) * P
-	MAT_MULT(&K_mag, &H_mag, &KH_mag);
-	mat_data(I_KH_mag)[0*3 + 0] = 1.0f - mat_data(KH_mag)[0*3 + 0];
-	mat_data(I_KH_mag)[0*3 + 1] =        mat_data(KH_mag)[0*3 + 1];
-	mat_data(I_KH_mag)[0*3 + 2] =        mat_data(KH_mag)[0*3 + 2];
+		float c0 = mz-mz*(c0_+c1_-c2_+c3_)+gamma*(c4_-c5_)*2.0;
+		float c1 = -mx+gamma*(c0_-c1_+c2_+c3_)+mz*(c4_+c5_)*2.0;
+		float c2 = my-gamma*(q0*q3+q1*q2)*2.0+mz*(q0*q1-q2*q3)*2.0;
 
-	mat_data(I_KH_mag)[1*3 + 0] =        mat_data(KH_mag)[1*3 + 0];
-	mat_data(I_KH_mag)[1*3 + 1] = 1.0f - mat_data(KH_mag)[1*3 + 1];
-	mat_data(I_KH_mag)[1*3 + 2] =        mat_data(KH_mag)[1*3 + 2];
+		mat_data(x_error_state)[6] = -K_mag(6,0)*c1+K_mag(6,2)*c0+K_mag(6,1)*c2;
+		mat_data(x_error_state)[7] = -K_mag(7,0)*c1+K_mag(7,2)*c0+K_mag(7,1)*c2;
+		mat_data(x_error_state)[8] = -K_mag(8,0)*c1+K_mag(8,2)*c0+K_mag(8,1)*c2;
+	}
 
-	mat_data(I_KH_mag)[2*3 + 0] =        mat_data(KH_mag)[2*3 + 0];
-	mat_data(I_KH_mag)[2*3 + 1] =        mat_data(KH_mag)[2*3 + 1];
-	mat_data(I_KH_mag)[2*3 + 2] = 1.0f - mat_data(KH_mag)[2*3 + 2];
-	MAT_MULT(&I_KH_mag, &_P_prior, &_P_post);
+	/* codeblock for preventing nameing conflict */
+	{
+		/* calculate a posteriori process covariance matrix */
+		//P = (I - K*H) * P
+		float c0 = gamma*q3*2.0-mz*q1*2.0;
+		float c0_ = (c0*q2)*0.5;
+		float c7_ = (c0*q3)*0.5;
+		float c8_ = (c0*q1)*0.5;
+		float c9_ = (c0*q0)*0.5;
+		float c1 = gamma*q2*2.0-mz*q0*2.0;
+		float c1_ = (c1*q3)*0.5;
+		float c5_ = c1*q2*(-1.0*0.5);
+		float c14_ = (c1*q1)*0.5;
+		float c15_ = (c1*q0)*0.5;
+		float c2 = gamma*q1*2.0+mz*q3*2.0;
+		float c2_ = (c2*q0)*0.5;
+		float c4_ = c2*q2*(-1.0*0.5);
+		float c11_ = (c2*q3)*0.5;
+		float c13_ = (c2*q1)*0.5;
+		float c3 = gamma*q0*2.0+mz*q2*2.0;
+		float c3_ = c3*q1*(-1.0*0.5);
+		float c6_ = (c3*q2)*0.5;
+		float c10_ = (c3*q3)*0.5;
+		float c12_ = (c3*q0)*0.5;
+		float c4 = -c11_-c15_+c6_+c8_;
+		float c5 = -c12_+c13_+c5_+c7_;
+		float c6 = c12_-c13_+c5_+c7_;
+		float c7 = c0_-c1_+c2_+c3_;
+		float c8 = c0_+c1_-c2_+c3_;
+		float c9 = -c10_+c14_+c4_+c9_;
+		float c10 = c10_-c14_+c4_+c9_;
+		float c11 = c0_+c1_+c2_+(c3*q1)*0.5;
+		float c12 = c11_+c15_+c6_+c8_;
+		float c13 = K_mag(6,1)*c4-K_mag(6,0)*c7-K_mag(6,2)*c9+1.0;
+		float c14 = K_mag(8,1)*c5+K_mag(8,0)*c10-K_mag(8,2)*c11+1.0;
+		float c15 = -K_mag(8,1)*c4+K_mag(8,0)*c7+K_mag(8,2)*c9;
+		float c16 = K_mag(7,1)*c5+K_mag(7,0)*c10-K_mag(7,2)*c11;
+		float c17 = -K_mag(7,1)*c4+K_mag(7,0)*c7+K_mag(7,2)*c9;
+		float c18 = K_mag(6,1)*c5+K_mag(6,0)*c10-K_mag(6,2)*c11;
+		float c19 = K_mag(5,1)*c5+K_mag(5,0)*c10-K_mag(5,2)*c11;
+		float c20 = -K_mag(5,1)*c4+K_mag(5,0)*c7+K_mag(5,2)*c9;
+		float c21 = K_mag(4,1)*c5+K_mag(4,0)*c10-K_mag(4,2)*c11;
+		float c22 = -K_mag(4,1)*c4+K_mag(4,0)*c7+K_mag(4,2)*c9;
+		float c23 = K_mag(3,1)*c5+K_mag(3,0)*c10-K_mag(3,2)*c11;
+		float c24 = -K_mag(3,1)*c4+K_mag(3,0)*c7+K_mag(3,2)*c9;
+		float c25 = K_mag(2,1)*c5+K_mag(2,0)*c10-K_mag(2,2)*c11;
+		float c26 = -K_mag(2,1)*c4+K_mag(2,0)*c7+K_mag(2,2)*c9;
+		float c27 = K_mag(1,1)*c5+K_mag(1,0)*c10-K_mag(1,2)*c11;
+		float c28 = -K_mag(1,1)*c4+K_mag(1,0)*c7+K_mag(1,2)*c9;
+		float c29 = K_mag(0,1)*c5+K_mag(0,0)*c10-K_mag(0,2)*c11;
+		float c30 = -K_mag(0,1)*c4+K_mag(0,0)*c7+K_mag(0,2)*c9;
+		float c31 = K_mag(7,2)*c6+K_mag(7,1)*c8+K_mag(7,0)*c12+1.0;
+		float c32 = K_mag(8,2)*c6+K_mag(8,1)*c8+K_mag(8,0)*c12;
+		float c33 = K_mag(6,2)*c6+K_mag(6,1)*c8+K_mag(6,0)*c12;
+		float c34 = K_mag(5,2)*c6+K_mag(5,1)*c8+K_mag(5,0)*c12;
+		float c35 = K_mag(4,2)*c6+K_mag(4,1)*c8+K_mag(4,0)*c12;
+		float c36 = K_mag(3,2)*c6+K_mag(3,1)*c8+K_mag(3,0)*c12;
+		float c37 = K_mag(2,2)*c6+K_mag(2,1)*c8+K_mag(2,0)*c12;
+		float c38 = K_mag(1,2)*c6+K_mag(1,1)*c8+K_mag(1,0)*c12;
+		float c39 = K_mag(0,2)*c6+K_mag(0,1)*c8+K_mag(0,0)*c12;
+
+		P_post(0, 0) = P_prior(0,0)-P_prior(6,0)*c30+P_prior(7,0)*c39+P_prior(8,0)*c29;
+		P_post(0, 1) = P_prior(0,1)-P_prior(6,1)*c30+P_prior(7,1)*c39+P_prior(8,1)*c29;
+		P_post(0, 2) = P_prior(0,2)-P_prior(6,2)*c30+P_prior(7,2)*c39+P_prior(8,2)*c29;
+		P_post(0, 3) = P_prior(0,3)-P_prior(6,3)*c30+P_prior(7,3)*c39+P_prior(8,3)*c29;
+		P_post(0, 4) = P_prior(0,4)-P_prior(6,4)*c30+P_prior(7,4)*c39+P_prior(8,4)*c29;
+		P_post(0, 5) = P_prior(0,5)-P_prior(6,5)*c30+P_prior(7,5)*c39+P_prior(8,5)*c29;
+		P_post(0, 6) = P_prior(0,6)-P_prior(6,6)*c30+P_prior(7,6)*c39+P_prior(8,6)*c29;
+		P_post(0, 7) = P_prior(0,7)-P_prior(6,7)*c30+P_prior(7,7)*c39+P_prior(8,7)*c29;
+		P_post(0, 8) = P_prior(0,8)-P_prior(6,8)*c30+P_prior(7,8)*c39+P_prior(8,8)*c29;
+		P_post(1, 0) = P_post(0, 1);
+		P_post(1, 1) = P_prior(1,1)-P_prior(6,1)*c28+P_prior(8,1)*c27+P_prior(7,1)*c38;
+		P_post(1, 2) = P_prior(1,2)-P_prior(6,2)*c28+P_prior(8,2)*c27+P_prior(7,2)*c38;
+		P_post(1, 3) = P_prior(1,3)-P_prior(6,3)*c28+P_prior(8,3)*c27+P_prior(7,3)*c38;
+		P_post(1, 4) = P_prior(1,4)-P_prior(6,4)*c28+P_prior(8,4)*c27+P_prior(7,4)*c38;
+		P_post(1, 5) = P_prior(1,5)-P_prior(6,5)*c28+P_prior(8,5)*c27+P_prior(7,5)*c38;
+		P_post(1, 6) = P_prior(1,6)-P_prior(6,6)*c28+P_prior(8,6)*c27+P_prior(7,6)*c38;
+		P_post(1, 7) = P_prior(1,7)-P_prior(6,7)*c28+P_prior(8,7)*c27+P_prior(7,7)*c38;
+		P_post(1, 8) = P_prior(1,8)-P_prior(6,8)*c28+P_prior(8,8)*c27+P_prior(7,8)*c38;
+		P_post(2, 0) = P_post(0, 2);
+		P_post(2, 1) = P_post(1, 2);
+		P_post(2, 2) = P_prior(2,2)-P_prior(6,2)*c26+P_prior(8,2)*c25+P_prior(7,2)*c37;
+		P_post(2, 3) = P_prior(2,3)-P_prior(6,3)*c26+P_prior(8,3)*c25+P_prior(7,3)*c37;
+		P_post(2, 4) = P_prior(2,4)-P_prior(6,4)*c26+P_prior(8,4)*c25+P_prior(7,4)*c37;
+		P_post(2, 5) = P_prior(2,5)-P_prior(6,5)*c26+P_prior(8,5)*c25+P_prior(7,5)*c37;
+		P_post(2, 6) = P_prior(2,6)-P_prior(6,6)*c26+P_prior(8,6)*c25+P_prior(7,6)*c37;
+		P_post(2, 7) = P_prior(2,7)-P_prior(6,7)*c26+P_prior(8,7)*c25+P_prior(7,7)*c37;
+		P_post(2, 8) = P_prior(2,8)-P_prior(6,8)*c26+P_prior(8,8)*c25+P_prior(7,8)*c37;
+		P_post(3, 0) = P_post(0, 3);
+		P_post(3, 1) = P_post(1, 3);
+		P_post(3, 2) = P_post(2, 3);
+		P_post(3, 3) = P_prior(3,3)-P_prior(6,3)*c24+P_prior(8,3)*c23+P_prior(7,3)*c36;
+		P_post(3, 4) = P_prior(3,4)-P_prior(6,4)*c24+P_prior(8,4)*c23+P_prior(7,4)*c36;
+		P_post(3, 5) = P_prior(3,5)-P_prior(6,5)*c24+P_prior(8,5)*c23+P_prior(7,5)*c36;
+		P_post(3, 6) = P_prior(3,6)-P_prior(6,6)*c24+P_prior(8,6)*c23+P_prior(7,6)*c36;
+		P_post(3, 7) = P_prior(3,7)-P_prior(6,7)*c24+P_prior(8,7)*c23+P_prior(7,7)*c36;
+		P_post(3, 8) = P_prior(3,8)-P_prior(6,8)*c24+P_prior(8,8)*c23+P_prior(7,8)*c36;
+		P_post(4, 0) = P_post(0, 4);
+		P_post(4, 1) = P_post(1, 4);
+		P_post(4, 2) = P_post(2, 4);
+		P_post(4, 3) = P_post(3, 4);
+		P_post(4, 4) = P_prior(4,4)-P_prior(6,4)*c22+P_prior(8,4)*c21+P_prior(7,4)*c35;
+		P_post(4, 5) = P_prior(4,5)-P_prior(6,5)*c22+P_prior(8,5)*c21+P_prior(7,5)*c35;
+		P_post(4, 6) = P_prior(4,6)-P_prior(6,6)*c22+P_prior(8,6)*c21+P_prior(7,6)*c35;
+		P_post(4, 7) = P_prior(4,7)-P_prior(6,7)*c22+P_prior(8,7)*c21+P_prior(7,7)*c35;
+		P_post(4, 8) = P_prior(4,8)-P_prior(6,8)*c22+P_prior(8,8)*c21+P_prior(7,8)*c35;
+		P_post(5, 0) = P_post(0, 5);
+		P_post(5, 1) = P_post(1, 5);
+		P_post(5, 2) = P_post(2, 5);
+		P_post(5, 3) = P_post(3, 5);
+		P_post(5, 4) = P_post(4, 5);
+		P_post(5, 5) = P_prior(5,5)-P_prior(6,5)*c20+P_prior(8,5)*c19+P_prior(7,5)*c34;
+		P_post(5, 6) = P_prior(5,6)-P_prior(6,6)*c20+P_prior(8,6)*c19+P_prior(7,6)*c34;
+		P_post(5, 7) = P_prior(5,7)-P_prior(6,7)*c20+P_prior(8,7)*c19+P_prior(7,7)*c34;
+		P_post(5, 8) = P_prior(5,8)-P_prior(6,8)*c20+P_prior(8,8)*c19+P_prior(7,8)*c34;
+		P_post(6, 0) = P_post(0, 6);
+		P_post(6, 1) = P_post(1, 6);
+		P_post(6, 2) = P_post(2, 6);
+		P_post(6, 3) = P_post(3, 6);
+		P_post(6, 4) = P_post(4, 6);
+		P_post(6, 5) = P_post(5, 6);
+		P_post(6, 6) = P_prior(6,6)*c13+P_prior(8,6)*c18+P_prior(7,6)*c33;
+		P_post(6, 7) = P_prior(6,7)*c13+P_prior(8,7)*c18+P_prior(7,7)*c33;
+		P_post(6, 8) = P_prior(6,8)*c13+P_prior(8,8)*c18+P_prior(7,8)*c33;
+		P_post(7, 0) = P_post(0, 7);
+		P_post(7, 1) = P_post(1, 7);
+		P_post(7, 2) = P_post(2, 7);
+		P_post(7, 3) = P_post(3, 7);
+		P_post(7, 4) = P_post(4, 7);
+		P_post(7, 5) = P_post(5, 7);
+		P_post(7, 6) = P_post(6, 7);
+		P_post(7, 7) = -P_prior(6,7)*c17+P_prior(8,7)*c16+P_prior(7,7)*c31;
+		P_post(7, 8) = -P_prior(6,8)*c17+P_prior(8,8)*c16+P_prior(7,8)*c31;
+		P_post(8, 0) = P_post(0, 8);
+		P_post(8, 1) = P_post(1, 8);
+		P_post(8, 2) = P_post(2, 8);
+		P_post(8, 3) = P_post(3, 8);
+		P_post(8, 4) = P_post(4, 8);
+		P_post(8, 5) = P_post(5, 8);
+		P_post(8, 6) = P_post(6, 8);
+		P_post(8, 7) = P_post(7, 8);
+		P_post(8, 8) = -P_prior(6,8)*c15+P_prior(8,8)*c14+P_prior(7,8)*c32;
+	}
 
 	/* error state injection */
 	float q_error[4];
@@ -592,13 +846,229 @@ void eskf_ins_magnetometer_correct(float *mag)
 	quat_normalize(mat_data(x_nominal));
 }
 
-void eskf_ins_gps_correct(float longitude, float latitude,
-                          float vx_ned, float vy_ned)
+void eskf_ins_gps_correct(float px_enu, float py_enu,
+                          float vx_enu, float vy_enu)
 {
+	float px_gps = px_enu;
+	float py_gps = py_enu;
+	float vx_gps = vx_enu;
+	float vy_gps = vy_enu;
+	float px = mat_data(x_nominal)[0];
+	float py = mat_data(x_nominal)[1];
+	float vx = mat_data(x_nominal)[3];
+	float vy = mat_data(x_nominal)[4];
+
+	/* codeblock for preventing nameing conflict */
+	{
+		/* calculate error state residual */
+		float c0 = vy-vy_gps;
+		float c1 = vx-vx_gps;
+		float c2 = py-py_gps;
+		float c3 = px-px_gps;
+
+		mat_data(x_error_state)[0] = -K_gps(0,0)*c3-K_gps(0,1)*c2-K_gps(0,2)*c1-K_gps(0,3)*c0;
+		mat_data(x_error_state)[1] = -K_gps(1,0)*c3-K_gps(1,1)*c2-K_gps(1,2)*c1-K_gps(1,3)*c0;
+		mat_data(x_error_state)[3] = -K_gps(3,0)*c3-K_gps(3,1)*c2-K_gps(3,2)*c1-K_gps(3,3)*c0;
+		mat_data(x_error_state)[4] = -K_gps(4,0)*c3-K_gps(4,1)*c2-K_gps(4,2)*c1-K_gps(4,3)*c0;
+	}
+
+	/* codeblock for preventing nameing conflict */
+	{
+		/* calculate a posteriori process covariance matrix */
+		float c0 = K_gps(4,3)-1.0;
+		float c1 = K_gps(3,2)-1.0;
+		float c2 = K_gps(1,1)-1.0;
+		float c3 = K_gps(0,0)-1.0;
+
+		P_post(0, 0) = -P_prior(0,0)*c3-K_gps(0,1)*P_prior(1,0)-K_gps(0,2)*P_prior(3,0)-K_gps(0,3)*P_prior(4,0);
+		P_post(0, 1) = -P_prior(0,1)*c3-K_gps(0,1)*P_prior(1,1)-K_gps(0,2)*P_prior(3,1)-K_gps(0,3)*P_prior(4,1);
+		P_post(0, 2) = -P_prior(0,2)*c3-K_gps(0,1)*P_prior(1,2)-K_gps(0,2)*P_prior(3,2)-K_gps(0,3)*P_prior(4,2);
+		P_post(0, 3) = -P_prior(0,3)*c3-K_gps(0,1)*P_prior(1,3)-K_gps(0,2)*P_prior(3,3)-K_gps(0,3)*P_prior(4,3);
+		P_post(0, 4) = -P_prior(0,4)*c3-K_gps(0,1)*P_prior(1,4)-K_gps(0,2)*P_prior(3,4)-K_gps(0,3)*P_prior(4,4);
+		P_post(0, 5) = -P_prior(0,5)*c3-K_gps(0,1)*P_prior(1,5)-K_gps(0,2)*P_prior(3,5)-K_gps(0,3)*P_prior(4,5);
+		P_post(0, 6) = -P_prior(0,6)*c3-K_gps(0,1)*P_prior(1,6)-K_gps(0,2)*P_prior(3,6)-K_gps(0,3)*P_prior(4,6);
+		P_post(0, 7) = -P_prior(0,7)*c3-K_gps(0,1)*P_prior(1,7)-K_gps(0,2)*P_prior(3,7)-K_gps(0,3)*P_prior(4,7);
+		P_post(0, 8) = -P_prior(0,8)*c3-K_gps(0,1)*P_prior(1,8)-K_gps(0,2)*P_prior(3,8)-K_gps(0,3)*P_prior(4,8);
+		P_post(1, 0) = P_post(0, 1);
+		P_post(1, 1) = -P_prior(1,1)*c2-K_gps(1,0)*P_prior(0,1)-K_gps(1,2)*P_prior(3,1)-K_gps(1,3)*P_prior(4,1);
+		P_post(1, 2) = -P_prior(1,2)*c2-K_gps(1,0)*P_prior(0,2)-K_gps(1,2)*P_prior(3,2)-K_gps(1,3)*P_prior(4,2);
+		P_post(1, 3) = -P_prior(1,3)*c2-K_gps(1,0)*P_prior(0,3)-K_gps(1,2)*P_prior(3,3)-K_gps(1,3)*P_prior(4,3);
+		P_post(1, 4) = -P_prior(1,4)*c2-K_gps(1,0)*P_prior(0,4)-K_gps(1,2)*P_prior(3,4)-K_gps(1,3)*P_prior(4,4);
+		P_post(1, 5) = -P_prior(1,5)*c2-K_gps(1,0)*P_prior(0,5)-K_gps(1,2)*P_prior(3,5)-K_gps(1,3)*P_prior(4,5);
+		P_post(1, 6) = -P_prior(1,6)*c2-K_gps(1,0)*P_prior(0,6)-K_gps(1,2)*P_prior(3,6)-K_gps(1,3)*P_prior(4,6);
+		P_post(1, 7) = -P_prior(1,7)*c2-K_gps(1,0)*P_prior(0,7)-K_gps(1,2)*P_prior(3,7)-K_gps(1,3)*P_prior(4,7);
+		P_post(1, 8) = -P_prior(1,8)*c2-K_gps(1,0)*P_prior(0,8)-K_gps(1,2)*P_prior(3,8)-K_gps(1,3)*P_prior(4,8);
+		P_post(2, 0) = P_post(0, 2);
+		P_post(2, 1) = P_post(1, 2);
+		P_post(2, 2) = P_prior(2,2)-K_gps(2,0)*P_prior(0,2)-K_gps(2,1)*P_prior(1,2)-K_gps(2,2)*P_prior(3,2)-K_gps(2,3)*P_prior(4,2);
+		P_post(2, 3) = P_prior(2,3)-K_gps(2,0)*P_prior(0,3)-K_gps(2,1)*P_prior(1,3)-K_gps(2,2)*P_prior(3,3)-K_gps(2,3)*P_prior(4,3);
+		P_post(2, 4) = P_prior(2,4)-K_gps(2,0)*P_prior(0,4)-K_gps(2,1)*P_prior(1,4)-K_gps(2,2)*P_prior(3,4)-K_gps(2,3)*P_prior(4,4);
+		P_post(2, 5) = P_prior(2,5)-K_gps(2,0)*P_prior(0,5)-K_gps(2,1)*P_prior(1,5)-K_gps(2,2)*P_prior(3,5)-K_gps(2,3)*P_prior(4,5);
+		P_post(2, 6) = P_prior(2,6)-K_gps(2,0)*P_prior(0,6)-K_gps(2,1)*P_prior(1,6)-K_gps(2,2)*P_prior(3,6)-K_gps(2,3)*P_prior(4,6);
+		P_post(2, 7) = P_prior(2,7)-K_gps(2,0)*P_prior(0,7)-K_gps(2,1)*P_prior(1,7)-K_gps(2,2)*P_prior(3,7)-K_gps(2,3)*P_prior(4,7);
+		P_post(2, 8) = P_prior(2,8)-K_gps(2,0)*P_prior(0,8)-K_gps(2,1)*P_prior(1,8)-K_gps(2,2)*P_prior(3,8)-K_gps(2,3)*P_prior(4,8);
+		P_post(3, 0) = P_post(0, 3);
+		P_post(3, 1) = P_post(1, 3);
+		P_post(3, 2) = P_post(2, 3);
+		P_post(3, 3) = -P_prior(3,3)*c1-K_gps(3,0)*P_prior(0,3)-K_gps(3,1)*P_prior(1,3)-K_gps(3,3)*P_prior(4,3);
+		P_post(3, 4) = -P_prior(3,4)*c1-K_gps(3,0)*P_prior(0,4)-K_gps(3,1)*P_prior(1,4)-K_gps(3,3)*P_prior(4,4);
+		P_post(3, 5) = -P_prior(3,5)*c1-K_gps(3,0)*P_prior(0,5)-K_gps(3,1)*P_prior(1,5)-K_gps(3,3)*P_prior(4,5);
+		P_post(3, 6) = -P_prior(3,6)*c1-K_gps(3,0)*P_prior(0,6)-K_gps(3,1)*P_prior(1,6)-K_gps(3,3)*P_prior(4,6);
+		P_post(3, 7) = -P_prior(3,7)*c1-K_gps(3,0)*P_prior(0,7)-K_gps(3,1)*P_prior(1,7)-K_gps(3,3)*P_prior(4,7);
+		P_post(3, 8) = -P_prior(3,8)*c1-K_gps(3,0)*P_prior(0,8)-K_gps(3,1)*P_prior(1,8)-K_gps(3,3)*P_prior(4,8);
+		P_post(4, 0) = P_post(0, 4);
+		P_post(4, 1) = P_post(1, 4);
+		P_post(4, 2) = P_post(2, 4);
+		P_post(4, 3) = P_post(3, 4);
+		P_post(4, 4) = -P_prior(4,4)*c0-K_gps(4,0)*P_prior(0,4)-K_gps(4,1)*P_prior(1,4)-K_gps(4,2)*P_prior(3,4);
+		P_post(4, 5) = -P_prior(4,5)*c0-K_gps(4,0)*P_prior(0,5)-K_gps(4,1)*P_prior(1,5)-K_gps(4,2)*P_prior(3,5);
+		P_post(4, 6) = -P_prior(4,6)*c0-K_gps(4,0)*P_prior(0,6)-K_gps(4,1)*P_prior(1,6)-K_gps(4,2)*P_prior(3,6);
+		P_post(4, 7) = -P_prior(4,7)*c0-K_gps(4,0)*P_prior(0,7)-K_gps(4,1)*P_prior(1,7)-K_gps(4,2)*P_prior(3,7);
+		P_post(4, 8) = -P_prior(4,8)*c0-K_gps(4,0)*P_prior(0,8)-K_gps(4,1)*P_prior(1,8)-K_gps(4,2)*P_prior(3,8);
+		P_post(5, 0) = P_post(0, 5);
+		P_post(5, 1) = P_post(1, 5);
+		P_post(5, 2) = P_post(2, 5);
+		P_post(5, 3) = P_post(3, 5);
+		P_post(5, 4) = P_post(4, 5);
+		P_post(5, 5) = P_prior(5,5)-K_gps(5,0)*P_prior(0,5)-K_gps(5,1)*P_prior(1,5)-K_gps(5,2)*P_prior(3,5)-K_gps(5,3)*P_prior(4,5);
+		P_post(5, 6) = P_prior(5,6)-K_gps(5,0)*P_prior(0,6)-K_gps(5,1)*P_prior(1,6)-K_gps(5,2)*P_prior(3,6)-K_gps(5,3)*P_prior(4,6);
+		P_post(5, 7) = P_prior(5,7)-K_gps(5,0)*P_prior(0,7)-K_gps(5,1)*P_prior(1,7)-K_gps(5,2)*P_prior(3,7)-K_gps(5,3)*P_prior(4,7);
+		P_post(5, 8) = P_prior(5,8)-K_gps(5,0)*P_prior(0,8)-K_gps(5,1)*P_prior(1,8)-K_gps(5,2)*P_prior(3,8)-K_gps(5,3)*P_prior(4,8);
+		P_post(6, 0) = P_post(0, 6);
+		P_post(6, 1) = P_post(1, 6);
+		P_post(6, 2) = P_post(2, 6);
+		P_post(6, 3) = P_post(3, 6);
+		P_post(6, 4) = P_post(4, 6);
+		P_post(6, 5) = P_post(5, 6);
+		P_post(6, 6) = P_prior(6,6)-K_gps(6,0)*P_prior(0,6)-K_gps(6,1)*P_prior(1,6)-K_gps(6,2)*P_prior(3,6)-K_gps(6,3)*P_prior(4,6);
+		P_post(6, 7) = P_prior(6,7)-K_gps(6,0)*P_prior(0,7)-K_gps(6,1)*P_prior(1,7)-K_gps(6,2)*P_prior(3,7)-K_gps(6,3)*P_prior(4,7);
+		P_post(6, 8) = P_prior(6,8)-K_gps(6,0)*P_prior(0,8)-K_gps(6,1)*P_prior(1,8)-K_gps(6,2)*P_prior(3,8)-K_gps(6,3)*P_prior(4,8);
+		P_post(7, 0) = P_post(0, 7);
+		P_post(7, 1) = P_post(1, 7);
+		P_post(7, 2) = P_post(2, 7);
+		P_post(7, 3) = P_post(3, 7);
+		P_post(7, 4) = P_post(4, 7);
+		P_post(7, 5) = P_post(5, 7);
+		P_post(7, 6) = P_post(6, 7);
+		P_post(7, 7) = P_prior(7,7)-K_gps(7,0)*P_prior(0,7)-K_gps(7,1)*P_prior(1,7)-K_gps(7,2)*P_prior(3,7)-K_gps(7,3)*P_prior(4,7);
+		P_post(7, 8) = P_prior(7,8)-K_gps(7,0)*P_prior(0,8)-K_gps(7,1)*P_prior(1,8)-K_gps(7,2)*P_prior(3,8)-K_gps(7,3)*P_prior(4,8);
+		P_post(8, 0) = P_post(0, 8);
+		P_post(8, 1) = P_post(1, 8);
+		P_post(8, 2) = P_post(2, 8);
+		P_post(8, 3) = P_post(3, 8);
+		P_post(8, 4) = P_post(4, 8);
+		P_post(8, 5) = P_post(5, 8);
+		P_post(8, 6) = P_post(6, 8);
+		P_post(8, 7) = P_post(7, 8);
+		P_post(8, 8) = P_prior(8,8)-K_gps(8,0)*P_prior(0,8)-K_gps(8,1)*P_prior(1,8)-K_gps(8,2)*P_prior(3,8)-K_gps(8,3)*P_prior(4,8);
+	}
 }
 
 void eskf_ins_barometer_correct(float barometer_z, float barometer_vz)
 {
+	float pz_baro = barometer_z;
+	float vz_baro = barometer_vz;
+	float pz = mat_data(x_nominal)[2];
+	float vz = mat_data(x_nominal)[5];
+
+	/* codeblock for preventing nameing conflict */
+	{
+		/* calculate error state residual */
+		float c0 = vz-vz_baro;
+		float c1 = pz-pz_baro;
+
+		mat_data(x_error_state)[2] = -K_baro(2,0)*c1-K_baro(2,1)*c0;
+		mat_data(x_error_state)[5] = -K_baro(5,0)*c1-K_baro(5,1)*c0;
+	}
+
+	/* codeblock for preventing nameing conflict */
+	{
+		/* calculate a posteriori process covariance matrix */
+		float c0 = K_baro(5,1)-1.0;
+		float c1 = K_baro(2,0)-1.0;
+
+		P_post(0, 0) = P_prior(0,0)-K_baro(0,0)*P_prior(2,0)-K_baro(0,1)*P_prior(5,0);
+		P_post(0, 1) = P_prior(0,1)-K_baro(0,0)*P_prior(2,1)-K_baro(0,1)*P_prior(5,1);
+		P_post(0, 2) = P_prior(0,2)-K_baro(0,0)*P_prior(2,2)-K_baro(0,1)*P_prior(5,2);
+		P_post(0, 3) = P_prior(0,3)-K_baro(0,0)*P_prior(2,3)-K_baro(0,1)*P_prior(5,3);
+		P_post(0, 4) = P_prior(0,4)-K_baro(0,0)*P_prior(2,4)-K_baro(0,1)*P_prior(5,4);
+		P_post(0, 5) = P_prior(0,5)-K_baro(0,0)*P_prior(2,5)-K_baro(0,1)*P_prior(5,5);
+		P_post(0, 6) = P_prior(0,6)-K_baro(0,0)*P_prior(2,6)-K_baro(0,1)*P_prior(5,6);
+		P_post(0, 7) = P_prior(0,7)-K_baro(0,0)*P_prior(2,7)-K_baro(0,1)*P_prior(5,7);
+		P_post(0, 8) = P_prior(0,8)-K_baro(0,0)*P_prior(2,8)-K_baro(0,1)*P_prior(5,8);
+		P_post(1, 0) = P_post(0, 1);
+		P_post(1, 1) = P_prior(1,1)-K_baro(1,0)*P_prior(2,1)-K_baro(1,1)*P_prior(5,1);
+		P_post(1, 2) = P_prior(1,2)-K_baro(1,0)*P_prior(2,2)-K_baro(1,1)*P_prior(5,2);
+		P_post(1, 3) = P_prior(1,3)-K_baro(1,0)*P_prior(2,3)-K_baro(1,1)*P_prior(5,3);
+		P_post(1, 4) = P_prior(1,4)-K_baro(1,0)*P_prior(2,4)-K_baro(1,1)*P_prior(5,4);
+		P_post(1, 5) = P_prior(1,5)-K_baro(1,0)*P_prior(2,5)-K_baro(1,1)*P_prior(5,5);
+		P_post(1, 6) = P_prior(1,6)-K_baro(1,0)*P_prior(2,6)-K_baro(1,1)*P_prior(5,6);
+		P_post(1, 7) = P_prior(1,7)-K_baro(1,0)*P_prior(2,7)-K_baro(1,1)*P_prior(5,7);
+		P_post(1, 8) = P_prior(1,8)-K_baro(1,0)*P_prior(2,8)-K_baro(1,1)*P_prior(5,8);
+		P_post(2, 0) = P_post(0, 2);
+		P_post(2, 1) = P_post(1, 2);
+		P_post(2, 2) = -P_prior(2,2)*c1-K_baro(2,1)*P_prior(5,2);
+		P_post(2, 3) = -P_prior(2,3)*c1-K_baro(2,1)*P_prior(5,3);
+		P_post(2, 4) = -P_prior(2,4)*c1-K_baro(2,1)*P_prior(5,4);
+		P_post(2, 5) = -P_prior(2,5)*c1-K_baro(2,1)*P_prior(5,5);
+		P_post(2, 6) = -P_prior(2,6)*c1-K_baro(2,1)*P_prior(5,6);
+		P_post(2, 7) = -P_prior(2,7)*c1-K_baro(2,1)*P_prior(5,7);
+		P_post(2, 8) = -P_prior(2,8)*c1-K_baro(2,1)*P_prior(5,8);
+		P_post(3, 0) = P_post(0, 3);
+		P_post(3, 1) = P_post(1, 3);
+		P_post(3, 2) = P_post(2, 3);
+		P_post(3, 3) = P_prior(3,3)-K_baro(3,0)*P_prior(2,3)-K_baro(3,1)*P_prior(5,3);
+		P_post(3, 4) = P_prior(3,4)-K_baro(3,0)*P_prior(2,4)-K_baro(3,1)*P_prior(5,4);
+		P_post(3, 5) = P_prior(3,5)-K_baro(3,0)*P_prior(2,5)-K_baro(3,1)*P_prior(5,5);
+		P_post(3, 6) = P_prior(3,6)-K_baro(3,0)*P_prior(2,6)-K_baro(3,1)*P_prior(5,6);
+		P_post(3, 7) = P_prior(3,7)-K_baro(3,0)*P_prior(2,7)-K_baro(3,1)*P_prior(5,7);
+		P_post(3, 8) = P_prior(3,8)-K_baro(3,0)*P_prior(2,8)-K_baro(3,1)*P_prior(5,8);
+		P_post(4, 0) = P_post(0, 4);
+		P_post(4, 1) = P_post(1, 4);
+		P_post(4, 2) = P_post(2, 4);
+		P_post(4, 3) = P_post(3, 4);
+		P_post(4, 4) = P_prior(4,4)-K_baro(4,0)*P_prior(2,4)-K_baro(4,1)*P_prior(5,4);
+		P_post(4, 5) = P_prior(4,5)-K_baro(4,0)*P_prior(2,5)-K_baro(4,1)*P_prior(5,5);
+		P_post(4, 6) = P_prior(4,6)-K_baro(4,0)*P_prior(2,6)-K_baro(4,1)*P_prior(5,6);
+		P_post(4, 7) = P_prior(4,7)-K_baro(4,0)*P_prior(2,7)-K_baro(4,1)*P_prior(5,7);
+		P_post(4, 8) = P_prior(4,8)-K_baro(4,0)*P_prior(2,8)-K_baro(4,1)*P_prior(5,8);
+		P_post(5, 0) = P_post(0, 5);
+		P_post(5, 1) = P_post(1, 5);
+		P_post(5, 2) = P_post(2, 5);
+		P_post(5, 3) = P_post(3, 5);
+		P_post(5, 4) = P_post(4, 5);
+		P_post(5, 5) = -P_prior(5,5)*c0-K_baro(5,0)*P_prior(2,5);
+		P_post(5, 6) = -P_prior(5,6)*c0-K_baro(5,0)*P_prior(2,6);
+		P_post(5, 7) = -P_prior(5,7)*c0-K_baro(5,0)*P_prior(2,7);
+		P_post(5, 8) = -P_prior(5,8)*c0-K_baro(5,0)*P_prior(2,8);
+		P_post(6, 0) = P_post(0, 6);
+		P_post(6, 1) = P_post(1, 6);
+		P_post(6, 2) = P_post(2, 6);
+		P_post(6, 3) = P_post(3, 6);
+		P_post(6, 4) = P_post(4, 6);
+		P_post(6, 5) = P_post(5, 6);
+		P_post(6, 6) = P_prior(6,6)-K_baro(6,0)*P_prior(2,6)-K_baro(6,1)*P_prior(5,6);
+		P_post(6, 7) = P_prior(6,7)-K_baro(6,0)*P_prior(2,7)-K_baro(6,1)*P_prior(5,7);
+		P_post(6, 8) = P_prior(6,8)-K_baro(6,0)*P_prior(2,8)-K_baro(6,1)*P_prior(5,8);
+		P_post(7, 0) = P_post(0, 7);
+		P_post(7, 1) = P_post(1, 7);
+		P_post(7, 2) = P_post(2, 7);
+		P_post(7, 3) = P_post(3, 7);
+		P_post(7, 4) = P_post(4, 7);
+		P_post(7, 5) = P_post(5, 7);
+		P_post(7, 6) = P_post(6, 7);
+		P_post(7, 7) = P_prior(7,7)-K_baro(7,0)*P_prior(2,7)-K_baro(7,1)*P_prior(5,7);
+		P_post(7, 8) = P_prior(7,8)-K_baro(7,0)*P_prior(2,8)-K_baro(7,1)*P_prior(5,8);
+		P_post(8, 0) = P_post(0, 8);
+		P_post(8, 1) = P_post(1, 8);
+		P_post(8, 2) = P_post(2, 8);
+		P_post(8, 3) = P_post(3, 8);
+		P_post(8, 4) = P_post(4, 8);
+		P_post(8, 5) = P_post(5, 8);
+		P_post(8, 6) = P_post(6, 8);
+		P_post(8, 7) = P_post(7, 8);
+		P_post(8, 8) = P_prior(8,8)-K_baro(8,0)*P_prior(2,8)-K_baro(8,1)*P_prior(5,8);
+	}
 }
 
 void get_eskf_ins_attitude_quaternion(float *q_out)
