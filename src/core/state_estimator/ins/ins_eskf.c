@@ -114,22 +114,38 @@ void eskf_ins_init(float dt)
 	P_post(8, 8) = ESKF_RESCALE(5.0f); //Var(theta_z)
 
 	/* initialize V_accel matrix */
-	matrix_reset(mat_data(_V_accel), 9, 9);
+	matrix_reset(mat_data(_V_accel), 3, 3);
 	V_accel(0, 0) = ESKF_RESCALE(7e-1); //Var(gx)
 	V_accel(1, 1) = ESKF_RESCALE(7e-1); //Var(gy)
 	V_accel(2, 2) = ESKF_RESCALE(7e-1); //Var(gz)
 
 	/* initialize V_mag matrix */
-	matrix_reset(mat_data(_V_mag), 9, 9);
+	matrix_reset(mat_data(_V_mag), 3, 3);
 	V_mag(0, 0) = ESKF_RESCALE(3); //Var(mx)
 	V_mag(1, 1) = ESKF_RESCALE(3); //Var(my)
 	V_mag(2, 2) = ESKF_RESCALE(3); //Var(mz)
 
 	/* initial V_gps matrix */
-	//TODO
+	matrix_reset(mat_data(_V_gps), 4, 4);
+	V_gps(0, 0) = ESKF_RESCALE(5e-5); //Var(px)
+	V_gps(1, 1) = ESKF_RESCALE(5e-5); //Var(py)
+	V_gps(2, 2) = ESKF_RESCALE(1e-4); //Var(vx)
+	V_gps(3, 3) = ESKF_RESCALE(1e-4); //Var(vy)
 
-	/* initialize V_barometer matrix */
-	//TODO
+	/* initialize V_baro matrix */
+	matrix_reset(mat_data(_V_baro), 3, 3);
+	V_baro(0, 0) = ESKF_RESCALE(1e-5); //Var(pz)
+	V_baro(1, 1) = ESKF_RESCALE(1e-2); //Var(vz)
+
+	matrix_reset(mat_data(_PHt_accel), 9, 3);
+	matrix_reset(mat_data(_PHt_mag), 9, 3);
+	matrix_reset(mat_data(_PHt_gps), 9, 4);
+	matrix_reset(mat_data(_PHt_baro), 9, 2);
+
+	matrix_reset(mat_data(_HPHt_V_accel), 3, 3);
+	matrix_reset(mat_data(_HPHt_V_mag), 3, 3);
+	matrix_reset(mat_data(_HPHt_V_gps), 4, 4);
+	matrix_reset(mat_data(_HPHt_V_baro), 2, 2);
 }
 
 void eskf_ins_predict(float *accel, float *gyro)
