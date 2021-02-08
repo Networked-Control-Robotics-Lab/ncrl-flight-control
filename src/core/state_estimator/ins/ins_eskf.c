@@ -14,62 +14,53 @@
 
 #define ESKF_RESCALE(number) (number * 10e7) //to improve the numerical stability
 
-#define R(r, c)            _R.pData[(r * 3) + c]
-#define Rt(r, c)           _Rt.pData[(r * 3) + c]
-#define P_prior(r, c)      _P_prior.pData[(r * 9) + c]
-#define P_post(r, c)       _P_post.pData[(r * 9) + c]
-#define R_am_ab_dt(r, c)   _R_am_ab_dt.pData[(r * 3) + c]
-#define Rt_wm_wb_dt(r, c)  _Rt_wm_wb_dt.pData[(r * 3) + c]
-#define Q_i(r, c)          _Q_i.pData[(r * 6) + c]
-#define K_accel(r, c)      _K_accel.pData[(r * 3) + c]
-#define K_mag(r, c)        _K_mag.pData[(r * 3) + c]
-#define K_gps(r, c)        _K_gps.pData[(r * 4) + c]
-#define K_baro(r, c)       _K_baro.pData[(r * 2) + c]
+#define R(r, c)             _R.pData[(r * 3) + c]
+#define Rt(r, c)            _Rt.pData[(r * 3) + c]
+#define P_prior(r, c)       _P_prior.pData[(r * 9) + c]
+#define P_post(r, c)        _P_post.pData[(r * 9) + c]
+#define R_am_ab_dt(r, c)    _R_am_ab_dt.pData[(r * 3) + c]
+#define Rt_wm_wb_dt(r, c)   _Rt_wm_wb_dt.pData[(r * 3) + c]
+#define Q_i(r, c)           _Q_i.pData[(r * 6) + c]
+#define K_accel(r, c)       _K_accel.pData[(r * 3) + c]
+#define K_mag(r, c)         _K_mag.pData[(r * 3) + c]
+#define K_gps(r, c)         _K_gps.pData[(r * 4) + c]
+#define K_baro(r, c)        _K_baro.pData[(r * 2) + c]
+#define V_accel(r, c)       _V_accel.pData[(r * 3) + c]
+#define V_mag(r, c)         _V_mag.pData[(r * 3) + c]
+#define PHt_accel(r, c)     _PHt_accel.pData[(r * 3) + c]
+#define PHt_mag(r, c)       _PHt_mag.pData[(r * 3) + c]
+#define PHt_gps             _PHt_gps.pData[(r * 4) + c]
+#define PHt_baro            _PHt_baro.pData[(r * 2) + c]
+#define HPHt_V_accel(r, c)  _HPHt_V_accel.pData[(r * 3) + c]
+#define HPHt_V_mag(r, c)    _HPHt_V_mag.pData[(r * 3) + c]
+#define HPHt_V_gps          _HPHt_V_gps.pData[(r * 4) + c]
+#define HPHt_V_baro         _HPHt_V_baro.pData[(r * 2) + c]
 
 MAT_ALLOC(x_nominal, 10, 1);
 MAT_ALLOC(x_error_state, 9, 1);
-MAT_ALLOC(F_x, 9, 9);
 MAT_ALLOC(_Q_i, 6, 6);
+MAT_ALLOC(_V_accel, 3, 3);
+MAT_ALLOC(_V_mag, 3, 3);
 MAT_ALLOC(_P_prior, 9, 9);
 MAT_ALLOC(_P_post, 9, 9);
-MAT_ALLOC(V_accel, 3, 3);
-MAT_ALLOC(V_mag, 3, 3);
-MAT_ALLOC(F_x_t, 9, 9);
-MAT_ALLOC(FP, 9, 9);
-MAT_ALLOC(FPFt, 9, 9);
-MAT_ALLOC(FQFt, 9, 9);
 MAT_ALLOC(_R, 3, 3);
 MAT_ALLOC(_Rt, 3, 3);
 MAT_ALLOC(_R_am_ab_dt, 3, 3);
 MAT_ALLOC(_Rt_wm_wb_dt, 3, 3);
-MAT_ALLOC(Q_delta_theta, 4, 3);
-MAT_ALLOC(X_delta_x, 10, 9);
-MAT_ALLOC(H_x_accel, 3, 10);
-MAT_ALLOC(H_accel, 3, 9);
-MAT_ALLOC(H_accel_t, 9, 3);
-MAT_ALLOC(PHt_accel, 9, 3);
-MAT_ALLOC(HPHt_accel, 3, 3);
-MAT_ALLOC(HPHt_V_accel, 3, 3);
-MAT_ALLOC(HPHt_V_accel_inv, 3, 3);
+MAT_ALLOC(_PHt_accel, 9, 3);
+MAT_ALLOC(_PHt_mag, 9, 3);
+MAT_ALLOC(_PHt_gps, 9, 4);
+MAT_ALLOC(_PHt_baro, 9, 2);
+MAT_ALLOC(_HPHt_V_accel, 3, 3);
+MAT_ALLOC(_HPHt_V_mag, 3, 3);
+MAT_ALLOC(_HPHt_V_gps, 4, 4);
+MAT_ALLOC(_HPHt_V_baro, 2, 2);
+MAT_ALLOC(_HPHt_V_accel_inv, 3, 3);
+MAT_ALLOC(_HPHt_V_mag_inv, 3, 3);
+MAT_ALLOC(_HPHt_V_gps_inv, 4, 4);
+MAT_ALLOC(_HPHt_V_baro_inv, 2, 2);
 MAT_ALLOC(_K_accel, 9, 3);
-MAT_ALLOC(KH_accel, 9, 9);
-MAT_ALLOC(I_KH_accel, 9, 9);
-MAT_ALLOC(y_accel, 3, 1);
-MAT_ALLOC(h_accel, 3, 1);
-MAT_ALLOC(accel_resid, 3, 1);
-MAT_ALLOC(H_x_mag, 3, 10);
-MAT_ALLOC(H_mag, 3, 9);
-MAT_ALLOC(H_mag_t, 9, 3);
-MAT_ALLOC(PHt_mag, 9, 3);
-MAT_ALLOC(HPHt_mag, 3, 3);
-MAT_ALLOC(HPHt_V_mag, 3, 3);
-MAT_ALLOC(HPHt_V_mag_inv, 3, 3);
 MAT_ALLOC(_K_mag, 9, 3);
-MAT_ALLOC(KH_mag, 9, 9);
-MAT_ALLOC(I_KH_mag, 9, 9);
-MAT_ALLOC(y_mag, 3, 1);
-MAT_ALLOC(h_mag, 3, 1);
-MAT_ALLOC(mag_resid, 3, 1);
 MAT_ALLOC(_K_gps, 9, 4);
 MAT_ALLOC(_K_baro, 9, 2);
 
@@ -99,50 +90,42 @@ void eskf_ins_init(float dt)
 
 	/* initialize _Q_i matrix */
 	matrix_reset(mat_data(_Q_i), 6, 6);
-	mat_data(_Q_i)[0*6 + 0] = ESKF_RESCALE(1e-5); //Var(ax)
-	mat_data(_Q_i)[1*6 + 1] = ESKF_RESCALE(1e-5); //Var(ay)
-	mat_data(_Q_i)[2*6 + 2] = ESKF_RESCALE(1e-5); //Var(az)
-	mat_data(_Q_i)[3*6 + 3] = ESKF_RESCALE(1e-5); //Var(wx)
-	mat_data(_Q_i)[4*6 + 4] = ESKF_RESCALE(1e-5); //Var(wy)
-	mat_data(_Q_i)[5*6 + 5] = ESKF_RESCALE(1e-5); //Var(wz)
+	Q_i(0, 0) = ESKF_RESCALE(1e-5); //Var(ax)
+	Q_i(1, 1) = ESKF_RESCALE(1e-5); //Var(ay)
+	Q_i(2, 2) = ESKF_RESCALE(1e-5); //Var(az)
+	Q_i(3, 3) = ESKF_RESCALE(1e-5); //Var(wx)
+	Q_i(4, 4) = ESKF_RESCALE(1e-5); //Var(wy)
+	Q_i(5, 5) = ESKF_RESCALE(1e-5); //Var(wz)
 
 	/* initialize P matrix */
 	matrix_reset(mat_data(_P_post), 9, 9);
-	mat_data(_P_post)[0*9 + 0] = ESKF_RESCALE(5.0f); //Var(px)
-	mat_data(_P_post)[1*9 + 1] = ESKF_RESCALE(5.0f); //Var(py)
-	mat_data(_P_post)[2*9 + 2] = ESKF_RESCALE(5.0f); //Var(pz)
-	mat_data(_P_post)[3*9 + 3] = ESKF_RESCALE(5.0f); //Var(vx)
-	mat_data(_P_post)[4*9 + 4] = ESKF_RESCALE(5.0f); //Var(vy)
-	mat_data(_P_post)[5*9 + 5] = ESKF_RESCALE(5.0f); //Var(vz)
-	mat_data(_P_post)[6*9 + 6] = ESKF_RESCALE(5.0f); //Var(theta_x)
-	mat_data(_P_post)[7*9 + 7] = ESKF_RESCALE(5.0f); //Var(theta_y)
-	mat_data(_P_post)[8*9 + 8] = ESKF_RESCALE(5.0f); //Var(theta_z)
+	P_post(0, 0) = ESKF_RESCALE(5.0f); //Var(px)
+	P_post(1, 1) = ESKF_RESCALE(5.0f); //Var(py)
+	P_post(2, 2) = ESKF_RESCALE(5.0f); //Var(pz)
+	P_post(3, 3) = ESKF_RESCALE(5.0f); //Var(vx)
+	P_post(4, 4) = ESKF_RESCALE(5.0f); //Var(vy)
+	P_post(5, 5) = ESKF_RESCALE(5.0f); //Var(vz)
+	P_post(6, 6) = ESKF_RESCALE(5.0f); //Var(theta_x)
+	P_post(7, 7) = ESKF_RESCALE(5.0f); //Var(theta_y)
+	P_post(8, 8) = ESKF_RESCALE(5.0f); //Var(theta_z)
 
 	/* initialize V_accel matrix */
-	matrix_reset(mat_data(V_accel), 9, 9);
-	mat_data(V_accel)[0*3 + 0] = ESKF_RESCALE(7e-1); //Var(gx)
-	mat_data(V_accel)[1*3 + 1] = ESKF_RESCALE(7e-1); //Var(gy)
-	mat_data(V_accel)[2*3 + 2] = ESKF_RESCALE(7e-1); //Var(gz)
+	matrix_reset(mat_data(_V_accel), 9, 9);
+	V_accel(0, 0) = ESKF_RESCALE(7e-1); //Var(gx)
+	V_accel(1, 1) = ESKF_RESCALE(7e-1); //Var(gy)
+	V_accel(2, 2) = ESKF_RESCALE(7e-1); //Var(gz)
 
 	/* initialize V_mag matrix */
-	matrix_reset(mat_data(V_mag), 9, 9);
-	mat_data(V_mag)[0*3 + 0] = ESKF_RESCALE(3); //Var(mx)
-	mat_data(V_mag)[1*3 + 1] = ESKF_RESCALE(3); //Var(my)
-	mat_data(V_mag)[2*3 + 2] = ESKF_RESCALE(3); //Var(mz)
+	matrix_reset(mat_data(_V_mag), 9, 9);
+	V_mag(0, 0) = ESKF_RESCALE(3); //Var(mx)
+	V_mag(1, 1) = ESKF_RESCALE(3); //Var(my)
+	V_mag(2, 2) = ESKF_RESCALE(3); //Var(mz)
 
 	/* initial V_gps matrix */
 	//TODO
 
 	/* initialize V_barometer matrix */
 	//TODO
-
-	//FIXME: precalculation of FQFt
-	int r, c;
-	for(r = 0; r < 3; r++) {
-		for(c = 0; c < 3; c++) {
-			mat_data(FQFt)[r*3 + c] = mat_data(_Q_i)[r*3 + c];
-		}
-	}
 }
 
 void eskf_ins_predict(float *accel, float *gyro)
@@ -402,59 +385,23 @@ void eskf_ins_accelerometer_correct(float *accel)
 	float gy = accel[1];
 	float gz = accel[2];
 
-	mat_data(y_accel)[0] = accel[0];
-	mat_data(y_accel)[1] = accel[1];
-	mat_data(y_accel)[2] = accel[2];
-
 	float q0 = mat_data(x_nominal)[6];
 	float q1 = mat_data(x_nominal)[7];
 	float q2 = mat_data(x_nominal)[8];
 	float q3 = mat_data(x_nominal)[9];
 
-	/* construct error state observation matrix */
-	//FIXME
-	mat_data(H_x_accel)[0*4 + 0] = +2*q2;
-	mat_data(H_x_accel)[0*4 + 1] = +2*q3;
-	mat_data(H_x_accel)[0*4 + 2] = +2*q0;
-	mat_data(H_x_accel)[0*4 + 3] = +2*q1;
+	/* codeblock for preventing nameing conflict */
+	{
+	}
 
-	mat_data(H_x_accel)[1*4 + 0] = -2*q1;
-	mat_data(H_x_accel)[1*4 + 1] = -2*q0;
-	mat_data(H_x_accel)[1*4 + 2] = +2*q3;
-	mat_data(H_x_accel)[1*4 + 3] = +2*q2;
-
-	mat_data(H_x_accel)[2*4 + 0] = +2*q0;
-	mat_data(H_x_accel)[2*4 + 1] = -2*q1;
-	mat_data(H_x_accel)[2*4 + 2] = -2*q2;
-	mat_data(H_x_accel)[2*4 + 3] = +2*q3;
-
-	mat_data(Q_delta_theta)[0*3 + 0] = -q1;
-	mat_data(Q_delta_theta)[0*3 + 1] = -q2;
-	mat_data(Q_delta_theta)[0*3 + 2] = -q3;
-
-	mat_data(Q_delta_theta)[1*3 + 0] = +q0;
-	mat_data(Q_delta_theta)[1*3 + 1] = -q3;
-	mat_data(Q_delta_theta)[1*3 + 2] = +q2;
-
-	mat_data(Q_delta_theta)[2*3 + 0] = +q3;
-	mat_data(Q_delta_theta)[2*3 + 1] = +q0;
-	mat_data(Q_delta_theta)[2*3 + 2] = -q1;
-
-	mat_data(Q_delta_theta)[3*3 + 0] = -q2;
-	mat_data(Q_delta_theta)[3*3 + 1] = +q1;
-	mat_data(Q_delta_theta)[3*3 + 2] = +q0;
-
-	MAT_SCALE(&Q_delta_theta, 0.5, &X_delta_x);
-	MAT_MULT(&H_x_accel, &X_delta_x, &H_accel)
+	/* codeblock for preventing nameing conflict */
+	{
+	}
 
 	/* calculate kalman gain */
 	//K = P * Ht * inv(H*P*Ht + V)
-	MAT_TRANS(&H_accel, &H_accel_t);
-	MAT_MULT(&_P_prior, &H_accel_t, &PHt_accel);
-	MAT_MULT(&H_accel, &PHt_accel, &HPHt_accel);
-	MAT_ADD(&HPHt_accel, &V_accel, &HPHt_V_accel);
-	MAT_INV(&HPHt_V_accel, &HPHt_V_accel_inv);
-	MAT_MULT(&PHt_accel, &HPHt_V_accel_inv, &_K_accel);
+	MAT_INV(&_HPHt_V_accel, &_HPHt_V_accel_inv);
+	MAT_MULT(&_PHt_accel, &_HPHt_V_accel_inv, &_K_accel);
 
 	/* codeblock for preventing nameing conflict */
 	{
@@ -612,10 +559,6 @@ void eskf_ins_magnetometer_correct(float *mag)
 	float my = mag[1];
 	float mz = mag[2];
 
-	mat_data(y_mag)[0] = mag[0];
-	mat_data(y_mag)[1] = mag[1];
-	mat_data(y_mag)[2] = mag[2];
-
 	float q0 = mat_data(x_nominal)[0];
 	float q1 = mat_data(x_nominal)[1];
 	float q2 = mat_data(x_nominal)[2];
@@ -623,49 +566,147 @@ void eskf_ins_magnetometer_correct(float *mag)
 
 	float gamma = sqrt(mag[0]*mag[0] + mag[1]*mag[1]);
 
-	/* construct error state observation matrix */
-	mat_data(H_x_mag)[0*4 + 0] = 2*(+gamma*q0 + mag[2]*q2);
-	mat_data(H_x_mag)[0*4 + 1] = 2*(+gamma*q1 + mag[2]*q3);
-	mat_data(H_x_mag)[0*4 + 2] = 2*(-gamma*q2 + mag[2]*q0);
-	mat_data(H_x_mag)[0*4 + 3] = 2*(-gamma*q3 + mag[2]*q1);
+	/* codeblock for preventing nameing conflict */
+	{
+		float c0 = P_post(5,8)+P_post(6,8)*R_am_ab_dt(2,0)+P_post(7,8)*R_am_ab_dt(2,1)+P_post(8,8)*R_am_ab_dt(2,2);
+		float c1 = P_post(5,7)+P_post(6,7)*R_am_ab_dt(2,0)+P_post(7,7)*R_am_ab_dt(2,1)+P_post(8,7)*R_am_ab_dt(2,2);
+		float c2 = P_post(5,6)+P_post(6,6)*R_am_ab_dt(2,0)+P_post(7,6)*R_am_ab_dt(2,1)+P_post(8,6)*R_am_ab_dt(2,2);
+		float c3 = P_post(4,8)+P_post(6,8)*R_am_ab_dt(1,0)+P_post(7,8)*R_am_ab_dt(1,1)+P_post(8,8)*R_am_ab_dt(1,2);
+		float c4 = P_post(4,7)+P_post(6,7)*R_am_ab_dt(1,0)+P_post(7,7)*R_am_ab_dt(1,1)+P_post(8,7)*R_am_ab_dt(1,2);
+		float c5 = P_post(4,6)+P_post(6,6)*R_am_ab_dt(1,0)+P_post(7,6)*R_am_ab_dt(1,1)+P_post(8,6)*R_am_ab_dt(1,2);
+		float c6 = P_post(3,8)+P_post(6,8)*R_am_ab_dt(0,0)+P_post(7,8)*R_am_ab_dt(0,1)+P_post(8,8)*R_am_ab_dt(0,2);
+		float c7 = P_post(3,7)+P_post(6,7)*R_am_ab_dt(0,0)+P_post(7,7)*R_am_ab_dt(0,1)+P_post(8,7)*R_am_ab_dt(0,2);
+		float c8 = P_post(3,6)+P_post(6,6)*R_am_ab_dt(0,0)+P_post(7,6)*R_am_ab_dt(0,1)+P_post(8,6)*R_am_ab_dt(0,2);
+		float c9 = P_post(6,8)*Rt_wm_wb_dt(2,0)+P_post(7,8)*Rt_wm_wb_dt(2,1)+P_post(8,8)*Rt_wm_wb_dt(2,2);
+		float c10 = P_post(6,7)*Rt_wm_wb_dt(2,0)+P_post(7,7)*Rt_wm_wb_dt(2,1)+P_post(8,7)*Rt_wm_wb_dt(2,2);
+		float c11 = P_post(6,6)*Rt_wm_wb_dt(2,0)+P_post(7,6)*Rt_wm_wb_dt(2,1)+P_post(8,6)*Rt_wm_wb_dt(2,2);
+		float c12 = P_post(6,8)*Rt_wm_wb_dt(1,0)+P_post(7,8)*Rt_wm_wb_dt(1,1)+P_post(8,8)*Rt_wm_wb_dt(1,2);
+		float c13 = P_post(6,7)*Rt_wm_wb_dt(1,0)+P_post(7,7)*Rt_wm_wb_dt(1,1)+P_post(8,7)*Rt_wm_wb_dt(1,2);
+		float c14 = P_post(6,6)*Rt_wm_wb_dt(1,0)+P_post(7,6)*Rt_wm_wb_dt(1,1)+P_post(8,6)*Rt_wm_wb_dt(1,2);
+		float c15 = P_post(6,8)*Rt_wm_wb_dt(0,0)+P_post(7,8)*Rt_wm_wb_dt(0,1)+P_post(8,8)*Rt_wm_wb_dt(0,2);
+		float c16 = P_post(6,7)*Rt_wm_wb_dt(0,0)+P_post(7,7)*Rt_wm_wb_dt(0,1)+P_post(8,7)*Rt_wm_wb_dt(0,2);
+		float c17 = P_post(6,6)*Rt_wm_wb_dt(0,0)+P_post(7,6)*Rt_wm_wb_dt(0,1)+P_post(8,6)*Rt_wm_wb_dt(0,2);
+		float c18 = P_post(2,8)+P_post(5,8)*dt;
+		float c19 = P_post(2,7)+P_post(5,7)*dt;
+		float c20 = P_post(2,6)+P_post(5,6)*dt;
+		float c21 = P_post(1,8)+P_post(4,8)*dt;
+		float c22 = P_post(1,7)+P_post(4,7)*dt;
+		float c23 = P_post(1,6)+P_post(4,6)*dt;
+		float c24 = P_post(0,8)+P_post(3,8)*dt;
+		float c25 = P_post(0,7)+P_post(3,7)*dt;
+		float c26 = P_post(0,6)+P_post(3,6)*dt;
+		float c27 = P_post(5,4)*dt;
+		float c28 = P_post(5,3)*dt;
+		float c29 = P_post(4,4)*dt;
+		float c30 = P_post(4,3)*dt;
+		float c31 = P_post(3,4)*dt;
+		float c32 = P_post(3,3)*dt;
+		float c33 = P_post(8,4)*Rt_wm_wb_dt(2,2);
+		float c34 = P_post(8,3)*Rt_wm_wb_dt(2,2);
+		float c35 = P_post(8,4)*Rt_wm_wb_dt(1,2);
+		float c36 = P_post(8,3)*Rt_wm_wb_dt(1,2);
+		float c37 = P_post(7,4)*Rt_wm_wb_dt(2,1);
+		float c38 = P_post(7,3)*Rt_wm_wb_dt(2,1);
+		float c39 = P_post(8,4)*Rt_wm_wb_dt(0,2);
+		float c40 = P_post(8,3)*Rt_wm_wb_dt(0,2);
+		float c41 = P_post(7,4)*Rt_wm_wb_dt(1,1);
+		float c42 = P_post(7,3)*Rt_wm_wb_dt(1,1);
+		float c43 = P_post(6,4)*Rt_wm_wb_dt(2,0);
+		float c44 = P_post(6,3)*Rt_wm_wb_dt(2,0);
+		float c45 = P_post(7,4)*Rt_wm_wb_dt(0,1);
+		float c46 = P_post(7,3)*Rt_wm_wb_dt(0,1);
+		float c47 = P_post(6,4)*Rt_wm_wb_dt(1,0);
+		float c48 = P_post(6,3)*Rt_wm_wb_dt(1,0);
+		float c49 = P_post(6,4)*Rt_wm_wb_dt(0,0);
+		float c50 = P_post(6,3)*Rt_wm_wb_dt(0,0);
+		float c51 = P_post(8,4)*R_am_ab_dt(2,2);
+		float c52 = P_post(8,3)*R_am_ab_dt(2,2);
+		float c53 = P_post(8,4)*R_am_ab_dt(1,2);
+		float c54 = P_post(8,3)*R_am_ab_dt(1,2);
+		float c55 = P_post(7,4)*R_am_ab_dt(2,1);
+		float c56 = P_post(7,3)*R_am_ab_dt(2,1);
+		float c57 = P_post(8,4)*R_am_ab_dt(0,2);
+		float c58 = P_post(8,3)*R_am_ab_dt(0,2);
+		float c59 = P_post(7,4)*R_am_ab_dt(1,1);
+		float c60 = P_post(7,3)*R_am_ab_dt(1,1);
+		float c61 = P_post(6,4)*R_am_ab_dt(2,0);
+		float c62 = P_post(6,3)*R_am_ab_dt(2,0);
+		float c63 = P_post(7,4)*R_am_ab_dt(0,1);
+		float c64 = P_post(7,3)*R_am_ab_dt(0,1);
+		float c65 = P_post(6,4)*R_am_ab_dt(1,0);
+		float c66 = P_post(6,3)*R_am_ab_dt(1,0);
+		float c67 = P_post(6,4)*R_am_ab_dt(0,0);
+		float c68 = P_post(6,3)*R_am_ab_dt(0,0);
+		float c69 = P_post(5,3)+c52+c56+c62;
+		float c70 = P_post(4,3)+c54+c60+c66;
+		float c71 = P_post(3,3)+c58+c64+c68;
+		float c72 = P_post(5,4)+c51+c55+c61;
+		float c73 = P_post(4,4)+c53+c59+c65;
+		float c74 = P_post(3,4)+c57+c63+c67;
+		float c75 = c40+c46+c50;
+		float c76 = c39+c45+c49;
+		float c77 = c36+c42+c48;
+		float c78 = c35+c41+c47;
+		float c79 = c34+c38+c44;
+		float c80 = c33+c37+c43;
+		float c81 = P_post(2,4)+c27;
+		float c82 = P_post(2,3)+c28;
+		float c83 = P_post(1,4)+c29;
+		float c84 = P_post(1,3)+c30;
+		float c85 = P_post(0,4)+c31;
+		float c86 = P_post(0,3)+c32;
 
-	mat_data(H_x_mag)[1*4 + 0] = 2*(+gamma*q3 - mag[2]*q1);
-	mat_data(H_x_mag)[1*4 + 1] = 2*(+gamma*q2 - mag[2]*q0);
-	mat_data(H_x_mag)[1*4 + 2] = 2*(+gamma*q1 + mag[2]*q3);
-	mat_data(H_x_mag)[1*4 + 3] = 2*(+gamma*q0 + mag[2]*q2);
+		PHt_mag(0, 0) = P_post(0,0)+P_post(3,0)*dt+c86*dt;
+		PHt_mag(0, 1) = P_post(0,1)+P_post(3,1)*dt+c85*dt;
+		PHt_mag(0, 2) = c86+R_am_ab_dt(0,0)*c26+R_am_ab_dt(0,1)*c25+R_am_ab_dt(0,2)*c24;
+		PHt_mag(0, 3) = c85+R_am_ab_dt(1,0)*c26+R_am_ab_dt(1,1)*c25+R_am_ab_dt(1,2)*c24;
+		PHt_mag(1, 0) = P_post(1,0)+P_post(4,0)*dt+c84*dt;
+		PHt_mag(1, 1) = P_post(1,1)+P_post(4,1)*dt+c83*dt;
+		PHt_mag(1, 2) = c84+R_am_ab_dt(0,0)*c23+R_am_ab_dt(0,1)*c22+R_am_ab_dt(0,2)*c21;
+		PHt_mag(1, 3) = c83+R_am_ab_dt(1,0)*c23+R_am_ab_dt(1,1)*c22+R_am_ab_dt(1,2)*c21;
+		PHt_mag(2, 0) = P_post(2,0)+P_post(5,0)*dt+c82*dt;
+		PHt_mag(2, 1) = P_post(2,1)+P_post(5,1)*dt+c81*dt;
+		PHt_mag(2, 2) = c82+R_am_ab_dt(0,0)*c20+R_am_ab_dt(0,1)*c19+R_am_ab_dt(0,2)*c18;
+		PHt_mag(2, 3) = c81+R_am_ab_dt(1,0)*c20+R_am_ab_dt(1,1)*c19+R_am_ab_dt(1,2)*c18;
+		PHt_mag(3, 0) = P_post(3,0)+P_post(6,0)*R_am_ab_dt(0,0)+P_post(7,0)*R_am_ab_dt(0,1)+P_post(8,0)*R_am_ab_dt(0,2)+c71*dt;
+		PHt_mag(3, 1) = P_post(3,1)+P_post(6,1)*R_am_ab_dt(0,0)+P_post(7,1)*R_am_ab_dt(0,1)+P_post(8,1)*R_am_ab_dt(0,2)+c74*dt;
+		PHt_mag(3, 2) = Q_i(0,0)+c71+R_am_ab_dt(0,0)*c8+R_am_ab_dt(0,1)*c7+R_am_ab_dt(0,2)*c6;
+		PHt_mag(3, 3) = c74+R_am_ab_dt(1,0)*c8+R_am_ab_dt(1,1)*c7+R_am_ab_dt(1,2)*c6;
+		PHt_mag(4, 0) = P_post(4,0)+P_post(6,0)*R_am_ab_dt(1,0)+P_post(7,0)*R_am_ab_dt(1,1)+P_post(8,0)*R_am_ab_dt(1,2)+c70*dt;
+		PHt_mag(4, 1) = P_post(4,1)+P_post(6,1)*R_am_ab_dt(1,0)+P_post(7,1)*R_am_ab_dt(1,1)+P_post(8,1)*R_am_ab_dt(1,2)+c73*dt;
+		PHt_mag(4, 2) = c70+R_am_ab_dt(0,0)*c5+R_am_ab_dt(0,1)*c4+R_am_ab_dt(0,2)*c3;
+		PHt_mag(4, 3) = Q_i(1,1)+c73+R_am_ab_dt(1,0)*c5+R_am_ab_dt(1,1)*c4+R_am_ab_dt(1,2)*c3;
+		PHt_mag(5, 0) = P_post(5,0)+P_post(6,0)*R_am_ab_dt(2,0)+P_post(7,0)*R_am_ab_dt(2,1)+P_post(8,0)*R_am_ab_dt(2,2)+c69*dt;
+		PHt_mag(5, 1) = P_post(5,1)+P_post(6,1)*R_am_ab_dt(2,0)+P_post(7,1)*R_am_ab_dt(2,1)+P_post(8,1)*R_am_ab_dt(2,2)+c72*dt;
+		PHt_mag(5, 2) = c69+R_am_ab_dt(0,0)*c2+R_am_ab_dt(0,1)*c1+R_am_ab_dt(0,2)*c0;
+		PHt_mag(5, 3) = c72+R_am_ab_dt(1,0)*c2+R_am_ab_dt(1,1)*c1+R_am_ab_dt(1,2)*c0;
+		PHt_mag(6, 0) = P_post(6,0)*Rt_wm_wb_dt(0,0)+P_post(7,0)*Rt_wm_wb_dt(0,1)+P_post(8,0)*Rt_wm_wb_dt(0,2)+c75*dt;
+		PHt_mag(6, 1) = P_post(6,1)*Rt_wm_wb_dt(0,0)+P_post(7,1)*Rt_wm_wb_dt(0,1)+P_post(8,1)*Rt_wm_wb_dt(0,2)+c76*dt;
+		PHt_mag(6, 2) = c75+R_am_ab_dt(0,0)*c17+R_am_ab_dt(0,1)*c16+R_am_ab_dt(0,2)*c15;
+		PHt_mag(6, 3) = c76+R_am_ab_dt(1,0)*c17+R_am_ab_dt(1,1)*c16+R_am_ab_dt(1,2)*c15;
+		PHt_mag(7, 0) = P_post(6,0)*Rt_wm_wb_dt(1,0)+P_post(7,0)*Rt_wm_wb_dt(1,1)+P_post(8,0)*Rt_wm_wb_dt(1,2)+c77*dt;
+		PHt_mag(7, 1) = P_post(6,1)*Rt_wm_wb_dt(1,0)+P_post(7,1)*Rt_wm_wb_dt(1,1)+P_post(8,1)*Rt_wm_wb_dt(1,2)+c78*dt;
+		PHt_mag(7, 2) = c77+R_am_ab_dt(0,0)*c14+R_am_ab_dt(0,1)*c13+R_am_ab_dt(0,2)*c12;
+		PHt_mag(7, 3) = c78+R_am_ab_dt(1,0)*c14+R_am_ab_dt(1,1)*c13+R_am_ab_dt(1,2)*c12;
+		PHt_mag(8, 0) = P_post(6,0)*Rt_wm_wb_dt(2,0)+P_post(7,0)*Rt_wm_wb_dt(2,1)+P_post(8,0)*Rt_wm_wb_dt(2,2)+c79*dt;
+		PHt_mag(8, 1) = P_post(6,1)*Rt_wm_wb_dt(2,0)+P_post(7,1)*Rt_wm_wb_dt(2,1)+P_post(8,1)*Rt_wm_wb_dt(2,2)+c80*dt;
+		PHt_mag(8, 2) = c79+R_am_ab_dt(0,0)*c11+R_am_ab_dt(0,1)*c10+R_am_ab_dt(0,2)*c9;
+		PHt_mag(8, 3) = c80+R_am_ab_dt(1,0)*c11+R_am_ab_dt(1,1)*c10+R_am_ab_dt(1,2)*c9;
 
-	mat_data(H_x_mag)[2*4 + 0] = 2*(-gamma*q2 + mag[2]*q0);
-	mat_data(H_x_mag)[2*4 + 1] = 2*(+gamma*q3 - mag[2]*q1);
-	mat_data(H_x_mag)[2*4 + 2] = 2*(-gamma*q0 - mag[2]*q2);
-	mat_data(H_x_mag)[2*4 + 3] = 2*(+gamma*q1 + mag[2]*q3);
+	}
 
-	mat_data(Q_delta_theta)[0*3 + 0] = -q1;
-	mat_data(Q_delta_theta)[0*3 + 1] = -q2;
-	mat_data(Q_delta_theta)[0*3 + 2] = -q3;
+	/* codeblock for preventing nameing conflict */
+	{
+	}
 
-	mat_data(Q_delta_theta)[1*3 + 0] = +q0;
-	mat_data(Q_delta_theta)[1*3 + 1] = -q3;
-	mat_data(Q_delta_theta)[1*3 + 2] = +q2;
-
-	mat_data(Q_delta_theta)[2*3 + 0] = +q3;
-	mat_data(Q_delta_theta)[2*3 + 1] = +q0;
-	mat_data(Q_delta_theta)[2*3 + 2] = -q1;
-
-	mat_data(Q_delta_theta)[3*3 + 0] = -q2;
-	mat_data(Q_delta_theta)[3*3 + 1] = +q1;
-	mat_data(Q_delta_theta)[3*3 + 2] = +q0;
-
-	MAT_SCALE(&Q_delta_theta, 0.5, &X_delta_x);
-	MAT_MULT(&H_x_mag, &X_delta_x, &H_mag)
+	/* codeblock for preventing nameing conflict */
+	{
+	}
 
 	/* calculate kalman gain */
 	//K = P * Ht * inv(H*P*Ht + V)
-	MAT_TRANS(&H_mag, &H_mag_t);
-	MAT_MULT(&_P_prior, &H_mag_t, &PHt_mag);
-	MAT_MULT(&H_mag, &PHt_mag, &HPHt_mag);
-	MAT_ADD(&HPHt_mag, &V_mag, &HPHt_V_mag);
-	MAT_INV(&HPHt_V_mag, &HPHt_V_mag_inv);
-	MAT_MULT(&PHt_mag, &HPHt_V_mag_inv, &_K_mag);
+	MAT_INV(&_HPHt_V_mag, &_HPHt_V_mag_inv);
+	MAT_MULT(&_PHt_mag, &_HPHt_V_mag_inv, &_K_mag);
 
 	/* codeblock for preventing nameing conflict */
 	{
@@ -860,6 +901,19 @@ void eskf_ins_gps_correct(float px_enu, float py_enu,
 
 	/* codeblock for preventing nameing conflict */
 	{
+	}
+
+	/* codeblock for preventing nameing conflict */
+	{
+	}
+
+	/* calculate kalman gain */
+	//K = P * Ht * inv(H*P*Ht + V)
+	MAT_INV(&_HPHt_V_gps, &_HPHt_V_gps_inv);
+	MAT_MULT(&_PHt_gps, &_HPHt_V_gps_inv, &_K_gps);
+
+	/* codeblock for preventing nameing conflict */
+	{
 		/* calculate error state residual */
 		float c0 = vy-vy_gps;
 		float c1 = vx-vx_gps;
@@ -962,6 +1016,12 @@ void eskf_ins_gps_correct(float px_enu, float py_enu,
 		P_post(8, 7) = P_post(7, 8);
 		P_post(8, 8) = P_prior(8,8)-K_gps(8,0)*P_prior(0,8)-K_gps(8,1)*P_prior(1,8)-K_gps(8,2)*P_prior(3,8)-K_gps(8,3)*P_prior(4,8);
 	}
+
+	/* error state injection */
+	mat_data(x_nominal)[0] += mat_data(x_error_state)[0];
+	mat_data(x_nominal)[1] += mat_data(x_error_state)[1];
+	mat_data(x_nominal)[3] += mat_data(x_error_state)[3];
+	mat_data(x_nominal)[4] += mat_data(x_error_state)[4];
 }
 
 void eskf_ins_barometer_correct(float barometer_z, float barometer_vz)
@@ -970,6 +1030,19 @@ void eskf_ins_barometer_correct(float barometer_z, float barometer_vz)
 	float vz_baro = barometer_vz;
 	float pz = mat_data(x_nominal)[2];
 	float vz = mat_data(x_nominal)[5];
+
+	/* codeblock for preventing nameing conflict */
+	{
+	}
+
+	/* codeblock for preventing nameing conflict */
+	{
+	}
+
+	/* calculate kalman gain */
+	//K = P * Ht * inv(H*P*Ht + V)
+	MAT_INV(&_HPHt_V_baro, &_HPHt_V_baro_inv);
+	MAT_MULT(&_PHt_baro, &_HPHt_V_baro_inv, &_K_baro);
 
 	/* codeblock for preventing nameing conflict */
 	{
@@ -1069,6 +1142,10 @@ void eskf_ins_barometer_correct(float barometer_z, float barometer_vz)
 		P_post(8, 7) = P_post(7, 8);
 		P_post(8, 8) = P_prior(8,8)-K_baro(8,0)*P_prior(2,8)-K_baro(8,1)*P_prior(5,8);
 	}
+
+	/* error state injection */
+	mat_data(x_nominal)[2] += mat_data(x_error_state)[2];
+	mat_data(x_nominal)[5] += mat_data(x_error_state)[5];
 }
 
 void get_eskf_ins_attitude_quaternion(float *q_out)
