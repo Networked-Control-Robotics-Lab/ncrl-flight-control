@@ -38,8 +38,8 @@
 #define HPHt_V_gps(r, c)    _HPHt_V_gps.pData[(r * 4) + c]
 #define HPHt_V_baro(r, c)   _HPHt_V_baro.pData[(r * 2) + c]
 
-MAT_ALLOC(x_nominal, 10, 1);
-MAT_ALLOC(x_error_state, 9, 1);
+MAT_ALLOC(nominal_state, 10, 1);
+MAT_ALLOC(error_state, 9, 1);
 MAT_ALLOC(_Q_i, 6, 6);
 MAT_ALLOC(_V_accel, 3, 3);
 MAT_ALLOC(_V_mag, 3, 3);
@@ -81,16 +81,16 @@ void eskf_ins_init(float dt)
 	//TODO: initialize all matrices!
 
 	/* initialize the nominal state */
-	mat_data(x_nominal)[0] = 0.0f; //px
-	mat_data(x_nominal)[1] = 0.0f; //py
-	mat_data(x_nominal)[2] = 0.0f; //pz
-	mat_data(x_nominal)[3] = 0.0f; //vx
-	mat_data(x_nominal)[4] = 0.0f; //vy
-	mat_data(x_nominal)[5] = 0.0f; //vz
-	mat_data(x_nominal)[6] = 1.0f; //q0
-	mat_data(x_nominal)[7] = 0.0f; //q1
-	mat_data(x_nominal)[8] = 0.0f; //q2
-	mat_data(x_nominal)[9] = 0.0f; //q3
+	mat_data(nominal_state)[0] = 0.0f; //px
+	mat_data(nominal_state)[1] = 0.0f; //py
+	mat_data(nominal_state)[2] = 0.0f; //pz
+	mat_data(nominal_state)[3] = 0.0f; //vx
+	mat_data(nominal_state)[4] = 0.0f; //vy
+	mat_data(nominal_state)[5] = 0.0f; //vz
+	mat_data(nominal_state)[6] = 1.0f; //q0
+	mat_data(nominal_state)[7] = 0.0f; //q1
+	mat_data(nominal_state)[8] = 0.0f; //q2
+	mat_data(nominal_state)[9] = 0.0f; //q3
 
 	/* initialize _Q_i matrix */
 	matrix_reset(mat_data(_Q_i), 6, 6);
@@ -175,16 +175,16 @@ void eskf_ins_predict(float *accel, float *gyro)
 	 *======================*/
 
 	//velocity integration
-	mat_data(x_nominal)[0] += accel_i[0] * dt;
-	mat_data(x_nominal)[1] += accel_i[1] * dt;
-	mat_data(x_nominal)[2] += accel_i[2] * dt;
+	mat_data(nominal_state)[0] += accel_i[0] * dt;
+	mat_data(nominal_state)[1] += accel_i[1] * dt;
+	mat_data(nominal_state)[2] += accel_i[2] * dt;
 
 	//position integration
-	mat_data(x_nominal)[0] += (mat_data(x_nominal)[3] * dt) +
+	mat_data(nominal_state)[0] += (mat_data(nominal_state)[3] * dt) +
 	                          (accel_i[0] * half_dt_squared);
-	mat_data(x_nominal)[1] += (mat_data(x_nominal)[4] * dt) +
+	mat_data(nominal_state)[1] += (mat_data(nominal_state)[4] * dt) +
 	                          (accel_i[1] * half_dt_squared);
-	mat_data(x_nominal)[2] += (mat_data(x_nominal)[5] * dt) +
+	mat_data(nominal_state)[2] += (mat_data(nominal_state)[5] * dt) +
 	                          (accel_i[2] * half_dt_squared);
 
 	/* calculate quaternion time derivative */
@@ -194,14 +194,14 @@ void eskf_ins_predict(float *accel, float *gyro)
 	w[2] = gyro[1];
 	w[3] = gyro[2];
 	float q_dot[4];
-	quaternion_mult(w, &mat_data(x_nominal)[6], q_dot);
+	quaternion_mult(w, &mat_data(nominal_state)[6], q_dot);
 
 	//quaternion integration
-	mat_data(x_nominal)[6] = mat_data(x_nominal)[6] + (q_dot[0] * neg_half_dt);
-	mat_data(x_nominal)[7] = mat_data(x_nominal)[7] + (q_dot[1] * neg_half_dt);
-	mat_data(x_nominal)[8] = mat_data(x_nominal)[8] + (q_dot[2] * neg_half_dt);
-	mat_data(x_nominal)[9] = mat_data(x_nominal)[9] + (q_dot[3] * neg_half_dt);
-	quat_normalize(mat_data(x_nominal));
+	mat_data(nominal_state)[6] = mat_data(nominal_state)[6] + (q_dot[0] * neg_half_dt);
+	mat_data(nominal_state)[7] = mat_data(nominal_state)[7] + (q_dot[1] * neg_half_dt);
+	mat_data(nominal_state)[8] = mat_data(nominal_state)[8] + (q_dot[2] * neg_half_dt);
+	mat_data(nominal_state)[9] = mat_data(nominal_state)[9] + (q_dot[3] * neg_half_dt);
+	quat_normalize(mat_data(nominal_state));
 
 	/*==================================*
 	 * process covatiance matrix update *
@@ -395,7 +395,7 @@ void eskf_ins_predict(float *accel, float *gyro)
 	/*=================================================*
 	 * convert estimated quaternion to R and Rt matrix *
 	 *=================================================*/
-	float *q = &mat_data(x_nominal)[0];
+	float *q = &mat_data(nominal_state)[0];
 	quat_to_rotation_matrix(q, mat_data(_Rt), mat_data(_R));
 }
 
@@ -405,10 +405,10 @@ void eskf_ins_accelerometer_correct(float *accel)
 	float gy = accel[1];
 	float gz = accel[2];
 
-	float q0 = mat_data(x_nominal)[6];
-	float q1 = mat_data(x_nominal)[7];
-	float q2 = mat_data(x_nominal)[8];
-	float q3 = mat_data(x_nominal)[9];
+	float q0 = mat_data(nominal_state)[6];
+	float q1 = mat_data(nominal_state)[7];
+	float q2 = mat_data(nominal_state)[8];
+	float q3 = mat_data(nominal_state)[9];
 
 	/* codeblock for preventing nameing conflict */
 	{
@@ -496,9 +496,9 @@ void eskf_ins_accelerometer_correct(float *accel)
 		float c1 = -gx+q0*q2*2.0+q1*q3*2.0;
 		float c2 = gy+q0*q1*2.0-q2*q3*2.0;
 
-		mat_data(x_error_state)[6] = -K_accel(6,0)*c1+K_accel(6,2)*c0+K_accel(6,1)*c2;
-		mat_data(x_error_state)[7] = -K_accel(7,0)*c1+K_accel(7,2)*c0+K_accel(7,1)*c2;
-		mat_data(x_error_state)[8] = -K_accel(8,0)*c1+K_accel(8,2)*c0+K_accel(8,1)*c2;
+		mat_data(error_state)[6] = -K_accel(6,0)*c1+K_accel(6,2)*c0+K_accel(6,1)*c2;
+		mat_data(error_state)[7] = -K_accel(7,0)*c1+K_accel(7,2)*c0+K_accel(7,1)*c2;
+		mat_data(error_state)[8] = -K_accel(8,0)*c1+K_accel(8,2)*c0+K_accel(8,1)*c2;
 	}
 
 	/* codeblock for preventing nameing conflict */
@@ -626,17 +626,17 @@ void eskf_ins_accelerometer_correct(float *accel)
 	/* error state injection */
 	float q_error[4];
 	q_error[0] = 1.0f;
-	q_error[1] = 0.5 * mat_data(x_error_state)[0];
-	q_error[2] = 0.5 * mat_data(x_error_state)[1];
-	q_error[3] = 0.5 * mat_data(x_error_state)[2];
+	q_error[1] = 0.5 * mat_data(error_state)[0];
+	q_error[2] = 0.5 * mat_data(error_state)[1];
+	q_error[3] = 0.5 * mat_data(error_state)[2];
 
-	//x_nominal (a posteriori) = q_error * x_nominal (a priori)
+	//nominal_state (a posteriori) = q_error * nominal_state (a priori)
 	float x_last[4];
-	quaternion_copy(x_last, mat_data(x_nominal));
-	quaternion_mult(x_last, q_error, mat_data(x_nominal));
+	quaternion_copy(x_last, mat_data(nominal_state));
+	quaternion_mult(x_last, q_error, mat_data(nominal_state));
 
 	//renormailization
-	quat_normalize(mat_data(x_nominal));
+	quat_normalize(mat_data(nominal_state));
 }
 
 void eskf_ins_magnetometer_correct(float *mag)
@@ -645,10 +645,10 @@ void eskf_ins_magnetometer_correct(float *mag)
 	float my = mag[1];
 	float mz = mag[2];
 
-	float q0 = mat_data(x_nominal)[0];
-	float q1 = mat_data(x_nominal)[1];
-	float q2 = mat_data(x_nominal)[2];
-	float q3 = mat_data(x_nominal)[3];
+	float q0 = mat_data(nominal_state)[0];
+	float q1 = mat_data(nominal_state)[1];
+	float q2 = mat_data(nominal_state)[2];
+	float q3 = mat_data(nominal_state)[3];
 
 	float gamma = sqrt(mag[0]*mag[0] + mag[1]*mag[1]);
 
@@ -777,9 +777,9 @@ void eskf_ins_magnetometer_correct(float *mag)
 		float c1 = -mx+gamma*(c0_-c1_+c2_+c3_)+mz*(c4_+c5_)*2.0;
 		float c2 = my-gamma*(q0*q3+q1*q2)*2.0+mz*(q0*q1-q2*q3)*2.0;
 
-		mat_data(x_error_state)[6] = -K_mag(6,0)*c1+K_mag(6,2)*c0+K_mag(6,1)*c2;
-		mat_data(x_error_state)[7] = -K_mag(7,0)*c1+K_mag(7,2)*c0+K_mag(7,1)*c2;
-		mat_data(x_error_state)[8] = -K_mag(8,0)*c1+K_mag(8,2)*c0+K_mag(8,1)*c2;
+		mat_data(error_state)[6] = -K_mag(6,0)*c1+K_mag(6,2)*c0+K_mag(6,1)*c2;
+		mat_data(error_state)[7] = -K_mag(7,0)*c1+K_mag(7,2)*c0+K_mag(7,1)*c2;
+		mat_data(error_state)[8] = -K_mag(8,0)*c1+K_mag(8,2)*c0+K_mag(8,1)*c2;
 	}
 
 	/* codeblock for preventing nameing conflict */
@@ -929,17 +929,17 @@ void eskf_ins_magnetometer_correct(float *mag)
 	/* error state injection */
 	float q_error[4];
 	q_error[0] = 1.0f;
-	q_error[1] = 0.0f; //0.5 * mat_data(x_error_state)[0];
-	q_error[2] = 0.0f; //0.5 * mat_data(x_error_state)[1];
-	q_error[3] = 0.5 * mat_data(x_error_state)[2];
+	q_error[1] = 0.0f; //0.5 * mat_data(error_state)[0];
+	q_error[2] = 0.0f; //0.5 * mat_data(error_state)[1];
+	q_error[3] = 0.5 * mat_data(error_state)[2];
 
-	//x_nominal (a posteriori) = q_error * x_nominal (a priori)
+	//nominal_state (a posteriori) = q_error * nominal_state (a priori)
 	float x_last[4];
-	quaternion_copy(x_last, mat_data(x_nominal));
-	quaternion_mult(x_last, q_error, mat_data(x_nominal));
+	quaternion_copy(x_last, mat_data(nominal_state));
+	quaternion_mult(x_last, q_error, mat_data(nominal_state));
 
 	//renormailization
-	quat_normalize(mat_data(x_nominal));
+	quat_normalize(mat_data(nominal_state));
 }
 
 void eskf_ins_gps_correct(float px_enu, float py_enu,
@@ -949,10 +949,10 @@ void eskf_ins_gps_correct(float px_enu, float py_enu,
 	float py_gps = py_enu;
 	float vx_gps = vx_enu;
 	float vy_gps = vy_enu;
-	float px = mat_data(x_nominal)[0];
-	float py = mat_data(x_nominal)[1];
-	float vx = mat_data(x_nominal)[3];
-	float vy = mat_data(x_nominal)[4];
+	float px = mat_data(nominal_state)[0];
+	float py = mat_data(nominal_state)[1];
+	float vx = mat_data(nominal_state)[3];
+	float vy = mat_data(nominal_state)[4];
 
 	/* codeblock for preventing nameing conflict */
 	{
@@ -1029,10 +1029,10 @@ void eskf_ins_gps_correct(float px_enu, float py_enu,
 		float c2 = py-py_gps;
 		float c3 = px-px_gps;
 
-		mat_data(x_error_state)[0] = -K_gps(0,0)*c3-K_gps(0,1)*c2-K_gps(0,2)*c1-K_gps(0,3)*c0;
-		mat_data(x_error_state)[1] = -K_gps(1,0)*c3-K_gps(1,1)*c2-K_gps(1,2)*c1-K_gps(1,3)*c0;
-		mat_data(x_error_state)[3] = -K_gps(3,0)*c3-K_gps(3,1)*c2-K_gps(3,2)*c1-K_gps(3,3)*c0;
-		mat_data(x_error_state)[4] = -K_gps(4,0)*c3-K_gps(4,1)*c2-K_gps(4,2)*c1-K_gps(4,3)*c0;
+		mat_data(error_state)[0] = -K_gps(0,0)*c3-K_gps(0,1)*c2-K_gps(0,2)*c1-K_gps(0,3)*c0;
+		mat_data(error_state)[1] = -K_gps(1,0)*c3-K_gps(1,1)*c2-K_gps(1,2)*c1-K_gps(1,3)*c0;
+		mat_data(error_state)[3] = -K_gps(3,0)*c3-K_gps(3,1)*c2-K_gps(3,2)*c1-K_gps(3,3)*c0;
+		mat_data(error_state)[4] = -K_gps(4,0)*c3-K_gps(4,1)*c2-K_gps(4,2)*c1-K_gps(4,3)*c0;
 	}
 
 	/* codeblock for preventing nameing conflict */
@@ -1127,18 +1127,18 @@ void eskf_ins_gps_correct(float px_enu, float py_enu,
 	}
 
 	/* error state injection */
-	mat_data(x_nominal)[0] += mat_data(x_error_state)[0];
-	mat_data(x_nominal)[1] += mat_data(x_error_state)[1];
-	mat_data(x_nominal)[3] += mat_data(x_error_state)[3];
-	mat_data(x_nominal)[4] += mat_data(x_error_state)[4];
+	mat_data(nominal_state)[0] += mat_data(error_state)[0];
+	mat_data(nominal_state)[1] += mat_data(error_state)[1];
+	mat_data(nominal_state)[3] += mat_data(error_state)[3];
+	mat_data(nominal_state)[4] += mat_data(error_state)[4];
 }
 
 void eskf_ins_barometer_correct(float barometer_z, float barometer_vz)
 {
 	float pz_baro = barometer_z;
 	float vz_baro = barometer_vz;
-	float pz = mat_data(x_nominal)[2];
-	float vz = mat_data(x_nominal)[5];
+	float pz = mat_data(nominal_state)[2];
+	float vz = mat_data(nominal_state)[5];
 
 	/* codeblock for preventing nameing conflict */
 	{
@@ -1183,8 +1183,8 @@ void eskf_ins_barometer_correct(float barometer_z, float barometer_vz)
 		float c0 = vz-vz_baro;
 		float c1 = pz-pz_baro;
 
-		mat_data(x_error_state)[2] = -K_baro(2,0)*c1-K_baro(2,1)*c0;
-		mat_data(x_error_state)[5] = -K_baro(5,0)*c1-K_baro(5,1)*c0;
+		mat_data(error_state)[2] = -K_baro(2,0)*c1-K_baro(2,1)*c0;
+		mat_data(error_state)[5] = -K_baro(5,0)*c1-K_baro(5,1)*c0;
 	}
 
 	/* codeblock for preventing nameing conflict */
@@ -1277,8 +1277,8 @@ void eskf_ins_barometer_correct(float barometer_z, float barometer_vz)
 	}
 
 	/* error state injection */
-	mat_data(x_nominal)[2] += mat_data(x_error_state)[2];
-	mat_data(x_nominal)[5] += mat_data(x_error_state)[5];
+	mat_data(nominal_state)[2] += mat_data(error_state)[2];
+	mat_data(nominal_state)[5] += mat_data(error_state)[5];
 }
 
 void get_eskf_ins_attitude_quaternion(float *q_out)
@@ -1286,5 +1286,5 @@ void get_eskf_ins_attitude_quaternion(float *q_out)
 	/* return the conjugated quaternion since we use opposite convention compared to the paper.
 	 * paper: quaternion of earth frame to body-fixed frame
 	 * us: quaternion of body-fixed frame to earth frame */
-	quaternion_conj(mat_data(x_nominal), q_out);
+	quaternion_conj(mat_data(nominal_state), q_out);
 }
