@@ -17,6 +17,7 @@
 #include "led.h"
 #include "optitrack.h"
 #include "ahrs.h"
+#include "ins_eskf.h"
 
 #define INS_LOOP_PERIOD 0.0025f //400Hz
 
@@ -64,7 +65,8 @@ void ins_state_estimate(void)
 	                                  pos_enu_fused, vel_enu_fused);
 #elif (SELECT_INS == INS_ESKF)
 	/* full state estimator */
-	ins_eskf_estimate(pos_enu_raw, vel_enu_raw,
+	ins_eskf_estimate(&attitude,
+	                  pos_enu_raw, vel_enu_raw,
 	                  pos_enu_fused, vel_enu_fused);
 #endif
 }

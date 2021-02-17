@@ -1304,7 +1304,7 @@ void get_eskf_ins_attitude_quaternion(float *q_out)
 	quaternion_conj(mat_data(nominal_state), q_out);
 }
 
-void ins_eskf_estimate(float *q,
+void ins_eskf_estimate(attitude_t *attitude,
                        float *pos_enu_raw, float *vel_enu_raw,
                        float *pos_enu_fused, float *vel_enu_fused)
 {
@@ -1397,8 +1397,16 @@ void ins_eskf_estimate(float *q,
 	vel_enu_fused[0] = mat_data(nominal_state)[3]; //vx
 	vel_enu_fused[1] = mat_data(nominal_state)[4]; //vy
 	vel_enu_fused[2] = mat_data(nominal_state)[5]; //vz
-	q[0] = mat_data(nominal_state)[6];             //q0
-	q[1] = mat_data(nominal_state)[7];             //q1
-	q[2] = mat_data(nominal_state)[8];             //q2
-	q[3] = mat_data(nominal_state)[9];             //q3
+	attitude->q[0] = mat_data(nominal_state)[6];   //q0
+	attitude->q[1] = mat_data(nominal_state)[7];   //q1
+	attitude->q[2] = mat_data(nominal_state)[8];   //q2
+	attitude->q[3] = mat_data(nominal_state)[9];   //q3
+
+	euler_t euler;
+	quat_to_euler(attitude->q, &euler);
+	attitude->roll = rad_to_deg(euler.roll);
+	attitude->pitch = rad_to_deg(euler.pitch);
+	attitude->yaw = rad_to_deg(euler.yaw);
+
+	quat_to_rotation_matrix(attitude->q, attitude->R_b2i, attitude->R_i2b);
 }
