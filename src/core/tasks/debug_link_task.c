@@ -45,8 +45,9 @@ void task_debug_link(void *param)
 		//send_barometer_debug_message(&payload);
 		//send_alt_est_debug_message(&payload);
 		//send_ins_sensor_debug_message(&payload);
-		send_adaptive_ICL_mass_estimation_debug(&payload);
+		//send_adaptive_ICL_mass_estimation_debug(&payload);
 		//send_adaptive_ICL_inertia_estimation_debug(&payload);
+		send_adaptive_ICL_mass_inertia_estimation_debug(&payload);
 		//send_ins_raw_position_debug_message(&payload);
 		//send_ins_fusion_debug_message(&payload);
 		//send_ahrs_compass_quality_check_debug_message(&payload);

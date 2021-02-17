@@ -16,5 +16,6 @@ extern arm_matrix_instance_f32 theta_diag_hat_dot_ICL;
 
 void send_adaptive_ICL_mass_estimation_debug(debug_msg_t *payload);
 void send_adaptive_ICL_inertia_estimation_debug(debug_msg_t *payload);
+void send_adaptive_ICL_mass_inertia_estimation_debug(debug_msg_t *payload);
 
 #endif
