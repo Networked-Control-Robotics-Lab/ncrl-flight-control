@@ -478,6 +478,32 @@ class serial_plotter_class:
 		self.create_curve('y', 'blue')
 		self.create_curve('z', 'green')
 		self.show_subplot()
+
+	elif (message_id == 33):
+		plt.subplot(411)
+		plt.ylabel('mass [kg]')
+		plt.ylim([-2, 2])
+		self.create_curve('mass', 'red')
+		self.show_subplot()
+
+		plt.subplot(412)
+		plt.ylabel('Jxx [kg*m^2/s]')
+		plt.ylim([-0.1, 0.1])
+		self.create_curve('J_xx', 'red')
+		self.show_subplot()
+
+		plt.subplot(413)
+		plt.ylabel('Jyy [kg*m^2/s]')
+		plt.ylim([-0.1, 0.1])
+		self.create_curve('Jyy', 'red')
+		self.show_subplot()
+
+		plt.subplot(414)
+		plt.ylabel('Jzz [kg*m^2/s]')
+		plt.ylim([-0.1, 0.1])
+		self.create_curve('Jzz', 'red')
+		self.show_subplot()
+
         elif (message_id == 19):
                 plt.subplot(111)
                 plt.ylabel('gps raw position [m/s]')
