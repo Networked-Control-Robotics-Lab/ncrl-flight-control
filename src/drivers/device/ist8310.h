@@ -41,6 +41,7 @@
 typedef struct {
 	int16_t mag_unscaled[3];
 	float mag_raw[3];
+	float mag_lpf[3];
 	float last_update_time;
 	float update_rate;
 
@@ -53,16 +54,22 @@ typedef struct {
 	float div_squared_semi_axis_size_x;
 	float div_squared_semi_axis_size_y;
 	float div_squared_semi_axis_size_z;
+
+	float last_read_time;
 } ist8310_t;
 
 void ist8130_init(void);
+void ist8310_wait_until_stable(void);
+bool ist8310_available(void);
 void ist8310_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
                            UBaseType_t priority);
 void ist8310_semaphore_handler(BaseType_t *higher_priority_task_woken);
 
 void ist8310_get_mag_raw(float *mag_raw);
+void ist8310_get_mag_lpf(float *mag_lpf);
 float ist8310_get_update_rate(void);
 float ist8310_get_mag_raw_strength(void);
+float ist8310_get_mag_lpf_strength(void);
 void ist8310_undistortion(float *mag);
 
 #endif

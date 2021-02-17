@@ -1,21 +1,38 @@
 #include <stdint.h>
 #include <stdbool.h>
+#include <math.h>
 #include "proj_config.h"
 #include "ist8310.h"
+#include "optitrack.h"
 #include "debug_link.h"
+#include "ahrs.h"
+#include "imu.h"
 
 void get_compass_raw(float *mag)
 {
 	ist8310_get_mag_raw(mag);
 }
 
-bool is_compass_present(void)
+void get_compass_lpf(float *mag)
 {
-#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_COMPASS) || \
-    (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK)
-	return true;
+	ist8310_get_mag_lpf(mag);
+}
+
+bool is_compass_available(void)
+{
+#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_COMPASS)
+	return ist8310_available();
+#elif (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK)
+	return optitrack_available();
 #else
 	return false;
+#endif
+}
+
+void compass_wait_until_stable(void)
+{
+#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_COMPASS)
+	ist8310_wait_until_stable();
 #endif
 }
 
@@ -29,6 +46,11 @@ float get_compass_raw_strength(void)
 	return ist8310_get_mag_raw_strength();
 }
 
+float get_compass_lpf_strength(void)
+{
+	return ist8310_get_mag_lpf_strength();
+}
+
 void compass_undistortion(float *mag)
 {
 	ist8310_undistortion(mag);
@@ -37,9 +59,9 @@ void compass_undistortion(float *mag)
 void send_compass_debug_message(debug_msg_t *payload)
 {
 	float mag_raw[3] = {0.0f};
-	get_compass_raw(mag_raw);
+	get_compass_lpf(mag_raw);
 
-	float mag_strength = get_compass_raw_strength();
+	float mag_strength = get_compass_lpf_strength();
 	float update_freq = get_compass_update_rate();
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_COMPASS);

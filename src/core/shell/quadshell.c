@@ -11,13 +11,13 @@ void shell_reset_struct(struct shell_struct *shell);
 char shell_getc(void)
 {
 	char c;
-	while(uart3_getc(&c, portMAX_DELAY) == false);
+	while(uart1_getc(&c, portMAX_DELAY) == false);
 	return c;
 }
 
 void shell_puts(char *s)
 {
-	usart_puts(USART3, s, strlen(s));
+	usart_puts(USART1, s, strlen(s));
 }
 
 static void shell_ctrl_c_handler(struct shell_struct *shell)

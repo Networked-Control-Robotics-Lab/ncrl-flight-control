@@ -5,7 +5,24 @@
 #include "imu.h"
 #include "compass.h"
 #include "barometer.h"
-#include "position_sensor.h"
+#include "position_state.h"
+#include "ins.h"
+#include "gps.h"
+#include "optitrack.h"
+
+void send_alt_est_debug_message(debug_msg_t *payload)
+{
+	float altitude = ins_get_fused_position_z();
+	float optitrack_z = optitrack_read_pos_z();
+	float altitude_rate = ins_get_fused_velocity_z();
+	float optitrack_vz = optitrack_read_vel_z();
+
+	pack_debug_debug_message_header(payload, MESSAGE_ID_ALT_EST);
+	pack_debug_debug_message_float(&altitude, payload);
+	pack_debug_debug_message_float(&optitrack_z, payload);
+	pack_debug_debug_message_float(&altitude_rate, payload);
+	pack_debug_debug_message_float(&optitrack_vz, payload);
+}
 
 void send_ins_sensor_debug_message(debug_msg_t *payload)
 {
@@ -53,4 +70,58 @@ void send_ins_sensor_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_float(&vz, payload);
 	pack_debug_debug_message_float(&barometer_height, payload);
 	pack_debug_debug_message_float(&barometer_velocity, payload);
+}
+
+void send_ins_raw_position_debug_message(debug_msg_t *payload)
+{
+	float pos_enu[3]; //x, y from gps, z from height sensor
+	pos_enu[0] = ins_get_raw_position_x();
+	pos_enu[1] = ins_get_raw_position_y();
+	pos_enu[2] = ins_get_raw_position_z();
+
+	pack_debug_debug_message_header(payload, MESSAGE_ID_INS_RAW_POSITION);
+	pack_debug_debug_message_float(&pos_enu[0], payload);
+	pack_debug_debug_message_float(&pos_enu[1], payload);
+	pack_debug_debug_message_float(&pos_enu[2], payload);
+}
+
+void send_ins_fusion_debug_message(debug_msg_t *payload)
+{
+	float curr_time_ms = get_sys_time_ms();
+	float satellite_num = get_gps_satellite_numbers();
+	float gps_update_rate = get_gps_update_freq();
+
+	float pos_raw_x = ins_get_raw_position_x();
+	float pos_raw_y = ins_get_raw_position_y();
+	float pos_raw_z = ins_get_raw_position_z();
+
+	float pos_fused_x = ins_get_fused_position_x();
+	float pos_fused_y = ins_get_fused_position_y();
+	float pos_fused_z = ins_get_fused_position_z();
+
+	float vel_raw_x = ins_get_raw_velocity_x();
+	float vel_raw_y = ins_get_raw_velocity_y();
+	float vel_raw_z = ins_get_raw_velocity_z();
+
+	float vel_fused_x = ins_get_fused_velocity_x();
+	float vel_fused_y = ins_get_fused_velocity_y();
+	float vel_fused_z = ins_get_fused_velocity_z();
+
+	pack_debug_debug_message_header(payload, MESSAGE_ID_INS_FUSION);
+
+	pack_debug_debug_message_float(&curr_time_ms, payload);
+	pack_debug_debug_message_float(&satellite_num, payload);
+	pack_debug_debug_message_float(&gps_update_rate, payload);
+	pack_debug_debug_message_float(&pos_raw_x, payload);
+	pack_debug_debug_message_float(&pos_raw_y, payload);
+	pack_debug_debug_message_float(&pos_raw_z, payload);
+	pack_debug_debug_message_float(&pos_fused_x, payload);
+	pack_debug_debug_message_float(&pos_fused_y, payload);
+	pack_debug_debug_message_float(&pos_fused_z, payload);
+	pack_debug_debug_message_float(&vel_raw_x, payload);
+	pack_debug_debug_message_float(&vel_raw_y, payload);
+	pack_debug_debug_message_float(&vel_raw_z, payload);
+	pack_debug_debug_message_float(&vel_fused_x, payload);
+	pack_debug_debug_message_float(&vel_fused_y, payload);
+	pack_debug_debug_message_float(&vel_fused_z, payload);
 }

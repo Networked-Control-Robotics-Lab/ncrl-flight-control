@@ -11,15 +11,19 @@
 #include "optitrack.h"
 #include "ublox_m8n.h"
 #include "proj_config.h"
+
+#define UART1_QUEUE_SIZE 100
 #define UART3_QUEUE_SIZE 500
 
 typedef struct {
 	char c;
 } uart_c_t;
 
+SemaphoreHandle_t uart1_tx_semphr;
 SemaphoreHandle_t uart3_tx_semphr;
 SemaphoreHandle_t uart7_tx_semphr;
 
+QueueHandle_t uart1_rx_queue;
 QueueHandle_t uart3_rx_queue;
 
 /*
@@ -30,6 +34,9 @@ QueueHandle_t uart3_rx_queue;
  */
 void uart1_init(int baudrate)
 {
+	uart1_tx_semphr = xSemaphoreCreateBinary();
+	uart1_rx_queue = xQueueCreate(UART1_QUEUE_SIZE, sizeof(uart_c_t));
+
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
@@ -56,6 +63,20 @@ void uart1_init(int baudrate)
 	USART_Init(USART1, &USART_InitStruct);
 	USART_Cmd(USART1, ENABLE);
 	USART_ClearFlag(USART1, USART_FLAG_TC);
+
+	NVIC_InitTypeDef NVIC_InitStruct = {
+		.NVIC_IRQChannel = DMA2_Stream7_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = UART1_TX_ISR_PRIORITY,
+		.NVIC_IRQChannelSubPriority = 0,
+		.NVIC_IRQChannelCmd = ENABLE
+	};
+	NVIC_Init(&NVIC_InitStruct);
+	DMA_ITConfig(DMA2_Stream7, DMA_IT_TC, ENABLE);
+
+	NVIC_InitStruct.NVIC_IRQChannel = USART1_IRQn;
+	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = UART1_RX_ISR_PRIORITY;
+	NVIC_Init(&NVIC_InitStruct);
+	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
 }
 
 /*
@@ -290,7 +311,7 @@ void uart1_puts(char *s, int size)
 	DMA_Cmd(DMA2_Stream7, ENABLE);
 	USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);
 
-	while(DMA_GetFlagStatus(DMA2_Stream7, DMA_FLAG_TCIF7) == RESET);
+	xSemaphoreTake(uart1_tx_semphr, portMAX_DELAY);
 }
 
 void uart3_puts(char *s, int size)
@@ -397,6 +418,16 @@ void uart7_puts(char *s, int size)
 	xSemaphoreTake(uart7_tx_semphr, portMAX_DELAY);
 }
 
+bool uart1_getc(char *c, long sleep_ticks)
+{
+	uart_c_t recpt_c;
+	if(xQueueReceive(uart1_rx_queue, &recpt_c, sleep_ticks) == pdFALSE) {
+		return false;
+	} else {
+		*c = recpt_c.c;
+		return true;
+	}
+}
 
 bool uart3_getc(char *c, long sleep_ticks)
 {
@@ -430,6 +461,31 @@ void DMA1_Stream3_IRQHandler(void)
 		BaseType_t higher_priority_task_woken = pdFALSE;
 		xSemaphoreGiveFromISR(uart3_tx_semphr, &higher_priority_task_woken);
 		portEND_SWITCHING_ISR(higher_priority_task_woken);
+	}
+}
+
+void DMA2_Stream7_IRQHandler(void)
+{
+	/* uart1 tx dma */
+	if(DMA_GetITStatus(DMA2_Stream7, DMA_IT_TCIF7) == SET) {
+		DMA_ClearITPendingBit(DMA2_Stream7, DMA_IT_TCIF7);
+
+		BaseType_t higher_priority_task_woken = pdFALSE;
+		xSemaphoreGiveFromISR(uart1_tx_semphr, &higher_priority_task_woken);
+		portEND_SWITCHING_ISR(higher_priority_task_woken);
+	}
+}
+
+void USART1_IRQHandler(void)
+{
+	if(USART_GetITStatus(USART1, USART_IT_RXNE) == SET) {
+		uart_c_t uart_queue_item;
+		uart_queue_item.c = USART_ReceiveData(USART1);
+		USART1->SR;
+
+		BaseType_t higher_priority_task_woken = pdFALSE;
+		xQueueSendToBackFromISR(uart1_rx_queue, &uart_queue_item, &higher_priority_task_woken);
+		portEND_SWITCHING_ISR(higher_priority_task_woken)
 	}
 }
 
@@ -471,6 +527,8 @@ void UART7_IRQHandler(void)
 		ublox_m8n_isr_handler(c);
 #elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)
 		optitrack_isr_handler(c);
+#else
+		(void)c; //prevent from unused variable warning
 #endif
 	}
 }

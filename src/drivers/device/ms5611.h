@@ -30,6 +30,8 @@
 typedef struct {
 	uint32_t c1, c2, c3, c4, c5, c6; //internal calibration datas of ms5611
 
+	int32_t d1, d2;
+
 	float temp_raw;        //raw temperature
 
 	bool init_finished;
@@ -43,6 +45,9 @@ typedef struct {
 	float rel_alt_last; //save for numerical differentiation
 	float rel_vel_raw;  //raw data of relative altitude rate [m/s]
 	float rel_vel_lpf;  //low pass filtered relative altitude rate [m/s]
+
+	float last_read_time;
+	float update_freq;
 } ms5611_t;
 
 bool ms5611_available(void);
@@ -52,12 +57,12 @@ void ms5611_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_si
 void ms5611_wait_until_stable(void);
 void ms5611_set_sea_level(void);
 
+float ms5611_get_update_freq(void);
 float ms5611_get_pressure(void);
 float ms5611_get_relative_altitude(void);
 float ms5611_get_relative_altitude_rate(void);
 
-void ms5611_driver_semaphore_handler(BaseType_t *higher_priority_task_woken);
-void ms5611_driver_task(void *param);
+void ms5611_driver_handler(BaseType_t *higher_priority_task_woken);
 
 void send_barometer_debug_message(debug_msg_t *payload);
 

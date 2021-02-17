@@ -83,7 +83,6 @@ int main(void)
 	/* barometer (ms5611) */
 	spi3_init();
 	ms5611_init();
-	ms5611_register_task("barometer driver", 512, tskIDLE_PRIORITY + 5);
 #endif
 
 	timer3_init();
@@ -91,13 +90,16 @@ int main(void)
 	/* flight controller task (highest priority) */
 	flight_controller_register_task("flight controller", 4096, tskIDLE_PRIORITY + 6);
 
-	/* telemetry tasks */
-#if (SELECT_TELEM == TELEM_DEBUG_LINK)
-	debug_link_register_task("debug_link", 512, tskIDLE_PRIORITY + 3);
-#elif (SELECT_TELEM == TELEM_MAVLINK)
+	/* main telemetry tasks */
+#if (SELECT_TELEM == TELEM_MAVLINK)
 	mavlink_tx_register_task("mavlink publisher", 1024, tskIDLE_PRIORITY + 3);
 	mavlink_rx_register_task("mavlink receiver", 2048, tskIDLE_PRIORITY + 3);
-#elif (SELECT_TELEM == TELEM_SHELL)
+#endif
+
+	/* debug telemetry tasks */
+#if (SELECT_DEBUG_TELEM == TELEM_DEBUG_LINK)
+	debug_link_register_task("debug_link", 512, tskIDLE_PRIORITY + 3);
+#elif (SELECT_DEBUG_TELEM == TELEM_SHELL)
 	shell_register_task("shell", 1024, tskIDLE_PRIORITY + 3);
 #endif
 

@@ -5,6 +5,11 @@
 #include "ist8310.h"
 #include "debug_link.h"
 
+void imu_init(void)
+{
+	mpu6500_init();
+}
+
 bool imu_calibration_not_finished(void)
 {
 	return mpu6500_calibration_not_finished();

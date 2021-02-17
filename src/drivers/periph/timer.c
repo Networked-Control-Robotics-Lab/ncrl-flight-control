@@ -15,13 +15,7 @@
 #define FLIGHT_CTL_PRESCALER_RELOAD      1000  //400Hz
 #define LED_CTRL_PRESCALER_RELOAD        16000 //25Hz
 #define COMPASS_PRESCALER_RELOAD         8     //50Hz
-#define BAROMETER_PRESCALER_RELOAD       8     //100Hz
-
-#if (DEBUG_LINK_PUBLISH_RATE == DEBUG_LINK_PUBLISH_100Hz)
-#define DEBUG_LINK_TASK_PRESCALER_RELOAD 4
-#elif (DEBUG_LINK_PUBLISH_RATE == DEBUG_LINK_PUBLISH_20Hz)
-#define DEBUG_LINK_TASK_PRESCALER_RELOAD 20
-#endif
+#define BAROMETER_PRESCALER_RELOAD       4     //100Hz
 
 extern SemaphoreHandle_t flight_ctl_semphr;
 
@@ -75,7 +69,7 @@ void timer3_init(void)
 void TIM8_BRK_TIM12_IRQHandler(void)
 {
 	static int flight_ctrl_cnt = FLIGHT_CTL_PRESCALER_RELOAD;
-	//static int led_ctrl_cnt = LED_CTRL_PRESCALER_RELOAD;
+	static int led_ctrl_cnt = LED_CTRL_PRESCALER_RELOAD;
 
 	if(TIM_GetITStatus(TIM12, TIM_IT_Update) == SET) {
 		TIM_ClearITPendingBit(TIM12, TIM_IT_Update);
@@ -88,7 +82,7 @@ void TIM8_BRK_TIM12_IRQHandler(void)
 			flight_ctrl_semaphore_handler();
 		}
 
-#if 0
+#if 1
 		led_ctrl_cnt--;
 		if(led_ctrl_cnt == 0) {
 			led_ctrl_cnt = LED_CTRL_PRESCALER_RELOAD;
@@ -108,10 +102,6 @@ void TIM3_IRQHandler(void)
 	static int compass_cnt = COMPASS_PRESCALER_RELOAD;
 #endif
 
-#if (SELECT_TELEM == TELEM_DEBUG_LINK)
-	static int debug_link_task_cnt = DEBUG_LINK_TASK_PRESCALER_RELOAD;
-#endif
-
 	/* trigger ms5611 driver task (400Hz) */
 	if(TIM_GetITStatus(TIM3, TIM_IT_Update) == SET) {
 		BaseType_t higher_priority_task_woken = pdFALSE;
@@ -121,7 +111,7 @@ void TIM3_IRQHandler(void)
 		barometer_cnt--;
 		if(barometer_cnt == 0) {
 			barometer_cnt = BAROMETER_PRESCALER_RELOAD;
-			ms5611_driver_semaphore_handler(&higher_priority_task_woken);
+			ms5611_driver_handler(&higher_priority_task_woken);
 		}
 #endif
 
@@ -131,14 +121,6 @@ void TIM3_IRQHandler(void)
 		if(compass_cnt == 0) {
 			compass_cnt = COMPASS_PRESCALER_RELOAD;
 			ist8310_semaphore_handler(&higher_priority_task_woken);
-		}
-#endif
-
-#if (SELECT_TELEM == TELEM_DEBUG_LINK)
-		debug_link_task_cnt--;
-		if(debug_link_task_cnt == 0) {
-			debug_link_task_cnt = DEBUG_LINK_TASK_PRESCALER_RELOAD;
-			debug_link_task_semaphore_handler();
 		}
 #endif
 

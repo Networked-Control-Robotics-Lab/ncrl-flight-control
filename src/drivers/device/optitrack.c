@@ -11,6 +11,7 @@
 #include "sys_time.h"
 #include "lpf.h"
 #include "debug_link.h"
+#include "led.h"
 
 #define OPTITRACK_QUEUE_SIZE (32 * 400) //~400 packets
 
@@ -33,7 +34,6 @@ bool optitrack_available(void)
 	//timeout if no data available more than 300ms
 	float current_time = get_sys_time_ms();
 	if((current_time - optitrack.time_now) > 300) {
-		led_off(LED_G);
 		return false;
 	}
 	return true;
@@ -79,7 +79,6 @@ void optitrack_update(void)
 		if(c == '+' && optitrack.buf[0] == '@') {
 			/* decode optitrack message */
 			if(optitrack_serial_decoder(optitrack.buf) == 0) {
-				led_on(LED_G);
 				optitrack.buf_pos = 0; //reset position pointer
 			}
 		}
@@ -163,34 +162,34 @@ int optitrack_serial_decoder(uint8_t *buf)
 	return 0;
 }
 
-void optitrack_read_pos_x(float *x)
+float optitrack_read_pos_x(void)
 {
-	*x = optitrack.pos[0];
+	return optitrack.pos[0];
 }
 
-void optitrack_read_pos_y(float *y)
+float optitrack_read_pos_y(void)
 {
-	*y = optitrack.pos[1];
+	return optitrack.pos[1];
 }
 
-void optitrack_read_pos_z(float *z)
+float optitrack_read_pos_z(void)
 {
-	*z = optitrack.pos[2];
+	return optitrack.pos[2];
 }
 
-void optitrack_read_vel_x(float *vx)
+float optitrack_read_vel_x(void)
 {
-	*vx = optitrack.vel_raw[0];
+	return optitrack.vel_raw[0];
 }
 
-void optitrack_read_vel_y(float *vy)
+float optitrack_read_vel_y(void)
 {
-	*vy = optitrack.vel_raw[1];
+	return optitrack.vel_raw[1];
 }
 
-void optitrack_read_vel_z(float *vz)
+float optitrack_read_vel_z(void)
 {
-	*vz = optitrack.vel_raw[2];
+	return optitrack.vel_raw[2];
 }
 
 void send_optitrack_position_debug_message(debug_msg_t *payload)

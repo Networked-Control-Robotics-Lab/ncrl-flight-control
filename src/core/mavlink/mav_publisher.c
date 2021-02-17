@@ -7,7 +7,7 @@
 #include "sys_time.h"
 #include "optitrack.h"
 #include "sbus_radio.h"
-#include "position_sensor.h"
+#include "position_state.h"
 
 extern attitude_t attitude;
 

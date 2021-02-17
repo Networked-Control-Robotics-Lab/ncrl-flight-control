@@ -34,10 +34,7 @@ void complementary_ahrs_init(float ahrs_dt)
 
 	comp_ahrs_dt = ahrs_dt;
 
-	mat_data(q)[0] = 1.0f;
-	mat_data(q)[1] = 0.0f;
-	mat_data(q)[2] = 0.0f;
-	mat_data(q)[3] = 0.0f;
+	init_ahrs_quaternion_with_accel_and_compass(mat_data(q));
 }
 
 void convert_gravity_to_quat(float *a, float *q)
@@ -71,6 +68,24 @@ void convert_gravity_to_quat(float *a, float *q)
 	quat_normalize(q);
 }
 
+void convert_gravity_to_delta_quat(float *a, float *q)
+{
+	float sqrt_tmp;
+
+	arm_sqrt_f32(2.0f * (a[2] + 1.0f), &sqrt_tmp);
+
+	//q0
+	arm_sqrt_f32(0.5f * (a[2] + 1.0f), &q[0]);
+	//q1
+	q[1] = -a[1] / sqrt_tmp;
+	//q2
+	q[2] = +a[0] / sqrt_tmp;
+	//q3
+	q[3] = 0.0f;
+
+	quat_normalize(q);
+}
+
 void convert_magnetic_field_to_quat(float *l, float *q)
 {
 	float gamma = l[0]*l[0] + l[1]*l[1];
@@ -93,6 +108,24 @@ void convert_magnetic_field_to_quat(float *l, float *q)
 		q[2] = 0.0f;
 		q[3] = _sqrt / sqrt_2gamma;
 	}
+
+	quat_normalize(q);
+}
+
+void convert_magnetic_field_to_delta_quat(float *l, float *q)
+{
+	float gamma = l[0]*l[0] + l[1]*l[1];
+	float sqrt_gamma, sqrt_2gamma;
+	arm_sqrt_f32(gamma, &sqrt_gamma);
+	arm_sqrt_f32(2.0f * gamma, &sqrt_2gamma);
+
+	float _sqrt;
+
+	arm_sqrt_f32(gamma + l[0]*sqrt_gamma, &_sqrt);
+	q[0] = _sqrt / sqrt_2gamma;
+	q[1] = 0.0f;
+	q[2] = 0.0f;
+	q[3] = l[1] / (sqrt_2 * _sqrt);
 
 	quat_normalize(q);
 }

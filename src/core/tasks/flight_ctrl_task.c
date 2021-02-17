@@ -31,6 +31,9 @@
 #include "esc_calibration.h"
 #include "compass.h"
 #include "vins_mono.h"
+#include "ins.h"
+#include "ins_sensor_sync.h"
+#include "led.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 10
 
@@ -97,41 +100,59 @@ void task_flight_ctrl(void *param)
 	geometry_ctrl_init();
 #endif
 
-	mpu6500_init();
+	/* imu initialization */
+	imu_init();
 
-	rc_safety_protection();
-
-	if(is_esc_range_calibration_triggered() == true) {
-		esc_range_calibration();
-	}
-
-	if(is_motor_force_testing_triggered() == true) {
-		motor_force_testing();
-	}
-
-	motor_init();
-
-	float desired_yaw = 0.0f;
-
+	/* imu calibration (triggered by qgroundcontrol) */
 	while(imu_calibration_not_finished() == true) {
+		/* led: purple */
 		led_on(LED_R);
 		led_off(LED_G);
 		led_on(LED_B);
 		freertos_task_delay(2.5);
 	}
 
-#if (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_BAROMETER)
+	/* blocked until user reset remote controller to safe position */
+	rc_safety_protection();
+
+	/* electronic speed controller calibration (triggered by qgroundcontrol or shell) */
+	if(is_esc_range_calibration_triggered() == true) {
+		/* since esc calibration is dangerous, once the program entered into
+		 * the calibration process, it will never able to leave until the
+		 * user reboot the system */
+		esc_range_calibration();
+	}
+
+	/* motor force calibration (triggered by shell) */
+	if(is_motor_force_testing_triggered() == true) {
+		/* since motor force calibration is dangerous, once the program entered
+		 * into the calibration process, it will never able to leave until the
+		 * user reboot the system
+		 */
+		motor_force_testing();
+	}
+
+	/* user did not triggered the calibration process, now we can sefely reset the
+	 * motors to 0% thrust */
+	motor_init();
+
+	/* initialize sensor synchronization buffer */
+	ins_sync_buffer_init();
+
+	/* initialize barometer and compass */
 	barometer_wait_until_stable();
-#endif
+	compass_wait_until_stable();
 
+	/* ahrs and ins initialization */
 	ahrs_init();
+	ins_init();
 
-	led_off(LED_R);
-	led_off(LED_G);
-	led_on(LED_B);
+	/* from now on, led control task will be taken by rgb_led_service driver */
+	enable_rgb_led_service();
 
-	//TODO: wait until sensor data and fusion algorithm are stable
+	float desired_yaw = 0.0f;
 
+	/* flight control loop */
 	while(1) {
 		perf_start(PERF_FLIGHT_CONTROL_TRIGGER_TIME);
 		while(xSemaphoreTake(flight_ctrl_semphr, 9) == pdFALSE);
@@ -158,6 +179,8 @@ void task_flight_ctrl(void *param)
 			ahrs_estimate();
 		}
 		perf_end(PERF_AHRS);
+
+		ins_state_estimate();
 
 		/* controller */
 		perf_start(PERF_CONTROLLER);

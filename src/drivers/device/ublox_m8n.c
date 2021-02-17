@@ -6,8 +6,10 @@
 #include "ublox_m8n.h"
 #include "uart.h"
 #include "delay.h"
+#include "sys_time.h"
 #include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"
 #include "ncrl_mavlink.h"
+#include "ins_sensor_sync.h"
 
 #define UBLOX_M8N_QUEUE_SIZE 2000
 
@@ -56,6 +58,16 @@ typedef struct {
 QueueHandle_t ublox_m8n_queue;
 
 ublox_t ublox;
+
+bool ublox_available(void)
+{
+	//timeout if no gps data available more than 1000ms
+	float current_time = get_sys_time_s();
+	if((current_time - ublox.last_read_time) > 1.0) {
+		return false;
+	}
+	return true;
+}
 
 void ublox_command_send(uint8_t *cmd, int size)
 {
@@ -161,6 +173,11 @@ float ublox_m8n_get_heading(void)
 	return (float)ublox.heading * 1e5; //[deg]
 }
 
+float ublox_m8n_get_update_freq(void)
+{
+	return ublox.update_freq;
+}
+
 void ublox_checksum_calc(uint8_t *result, uint8_t *payload, uint16_t len)
 {
 	result[0] = 0;
@@ -218,6 +235,24 @@ void ublox_decode_nav_pvt_msg(void)
 	memcpy(&ublox.fix_type, (ublox_payload_addr + 20), sizeof(uint8_t));
 	memcpy(&ublox.num_sv, (ublox_payload_addr + 23), sizeof(uint8_t));
 	memcpy(&ublox.pdop, (ublox_payload_addr + 76), sizeof(uint16_t));
+
+	/* push gps data to ins sync buffer if satellite number >= 6 and
+	 * fix mode = 3D fix mode */
+	if((ublox.num_sv >= 6) && (ublox.fix_type == 3)) {
+		/* set ublox state to be available */
+		float curr_time = get_sys_time_s();
+		ublox.update_freq = 1.0f / (curr_time - ublox.last_read_time);
+		ublox.last_read_time = curr_time;
+
+		float longitude = ublox.longitude * 1e-7;
+		float latitude = ublox.latitude * 1e-7;
+		float height_msl = ublox.height_msl * 1e2;
+		float vel_n = ublox.vel_n * 1e-3;
+		float vel_e = ublox.vel_e * 1e-3;
+		float vel_d = ublox.vel_d * 1e-3;
+		ins_gps_sync_buffer_push(longitude, latitude, height_msl,
+		                         vel_n, vel_e, vel_d);
+	}
 }
 
 void ublox_m8n_gps_update(void)
@@ -307,10 +342,10 @@ void ublox_m8n_gps_update(void)
 			ublox.parse_state = UBX_STATE_RECEIVE_CK2;
 			break;
 		case UBX_STATE_RECEIVE_CK2:
+			/* decode phase */
 			ublox.recept_ck[1] = c;
 			ublox_decode_nav_pvt_msg();
 			ublox.parse_state = UBX_STATE_WAIT_SYNC_C1;
-			break;
 		}
 	}
 }

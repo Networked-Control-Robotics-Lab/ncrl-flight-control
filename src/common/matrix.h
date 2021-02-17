@@ -38,4 +38,6 @@
 
 extern volatile arm_status mat_op_status;
 
+void matrix_reset(float *data, int row_num, int column_num);
+
 #endif

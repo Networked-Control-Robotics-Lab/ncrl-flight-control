@@ -1,8 +1,16 @@
+#include "proj_config.h"
 #include "ms5611.h"
+
+bool is_barometer_available(void)
+{
+	return ms5611_available();
+}
 
 void barometer_wait_until_stable(void)
 {
+#if (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_BAROMETER)
 	ms5611_wait_until_stable();
+#endif
 }
 
 void barometer_set_sea_level(void)
@@ -23,4 +31,9 @@ float barometer_get_relative_altitude(void)
 float barometer_get_relative_altitude_rate(void)
 {
 	return ms5611_get_relative_altitude_rate();
+}
+
+float barometer_get_update_freq(void)
+{
+	return ms5611_get_update_freq();
 }

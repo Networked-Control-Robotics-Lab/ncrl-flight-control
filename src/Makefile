@@ -64,14 +64,19 @@ SRC+=lib/FreeRTOS/Source/croutine.c \
 	lib/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c \
 
 SRC+=./core/main.c \
-	./core/estimators/filters/lpf.c \
-	./core/estimators/free_fall/free_fall.c \
-	./core/estimators/attitude/ahrs.c \
-	./core/estimators/attitude/comp_ahrs.c \
-	./core/estimators/attitude/madgwick_ahrs.c \
-	./core/estimators/attitude/eskf_ahrs.c \
-	./core/estimators/localization/altitude_est.c \
-	./core/estimators/localization/gps_ekf.c \
+	./core/filters/lpf.c \
+	./core/state_estimator/misc/free_fall/free_fall.c \
+	./core/state_estimator/ahrs/ahrs.c \
+	./core/state_estimator/ahrs/comp_ahrs.c \
+	./core/state_estimator/ahrs/madgwick_ahrs.c \
+	./core/state_estimator/ahrs/eskf_ahrs.c \
+	./core/state_estimator/ins/ins_comp_filter.c \
+	./core/state_estimator/ins/gps_to_enu.c \
+	./core/state_estimator/ins/ins.c \
+	./core/state_estimator/ins/ins_full_state_eskf.c \
+	./core/state_estimator/ins/ins_sensor_sync.c \
+	./core/state_estimator/interface/attitude_state.c \
+	./core/state_estimator/interface/position_state.c \
 	./core/controllers/multirotor_pid/multirotor_pid_ctrl.c \
 	./core/controllers/multirotor_pid/multirotor_pid_param.c \
 	./core/controllers/multirotor_geometry/multirotor_geometry_ctrl.c \
@@ -132,18 +137,19 @@ SRC+=./drivers/periph/uart.c \
 	./drivers/device/ublox_m8n.c \
 	./drivers/device/vins_mono.c \
 	./drivers/interface/imu.c \
-	./drivers/interface/position_sensor.c \
 	./drivers/interface/barometer.c \
-	./drivers/interface/compass.c
+	./drivers/interface/compass.c \
+	./drivers/interface/gps.c
 
 CFLAGS+=-I./
 CFLAGS+=-I./platform
 CFLAGS+=-I./core
-CFLAGS+=-I./core/estimators
-CFLAGS+=-I./core/estimators/filters
-CFLAGS+=-I./core/estimators/free_fall
-CFLAGS+=-I./core/estimators/attitude
-CFLAGS+=-I./core/estimators/localization
+CFLAGS+=-I./core/filters
+CFLAGS+=-I./core/state_estimator
+CFLAGS+=-I./core/state_estimator/ahrs
+CFLAGS+=-I./core/state_estimator/ins
+CFLAGS+=-I./core/state_estimator/interface
+CFLAGS+=-I./core/state_estimator/misc/free_fall
 CFLAGS+=-I./core/controllers
 CFLAGS+=-I./core/controllers/multirotor_pid
 CFLAGS+=-I./core/controllers/multirotor_geometry

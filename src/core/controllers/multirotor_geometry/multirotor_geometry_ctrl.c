@@ -16,13 +16,13 @@
 #include "autopilot.h"
 #include "debug_link.h"
 #include "multirotor_geometry_param.h"
-#include "position_sensor.h"
+#include "position_state.h"
 #include "multirotor_rc.h"
 #include "barometer.h"
-#include "altitude_est.h"
 #include "compass.h"
 #include "sys_param.h"
 #include "proj_config.h"
+#include "led.h"
 
 #define dt 0.0025 //[s]
 #define MOTOR_TO_CG_LENGTH 16.25f //[cm]
@@ -967,7 +967,7 @@ void multirotor_geometry_control(radio_t *rc, float *desired_heading)
 	/* get sensor status */
 	bool xy_pos_available = is_xy_position_info_available();
 	bool height_availabe = is_height_info_available();
-	bool heading_available = is_compass_present();
+	bool heading_available = is_compass_available();
 
 	/* get imu datay */
 	float accel_lpf[3];
@@ -984,17 +984,8 @@ void multirotor_geometry_control(radio_t *rc, float *desired_heading)
 	get_attitude_euler_angles(&attitude_roll, &attitude_pitch, &attitude_yaw);
 
 	/* get direction consine matrix of current attitude */
-	get_attitude_direction_cosine_matrix(&mat_data(R));
-	get_attitude_transposed_direction_cosine_matrix(&mat_data(Rt));
-
-	/* read altitude raw data from barometer */
-	float barometer_alt = barometer_get_relative_altitude();
-	/* read altitude rate raw data from barometer */
-	float barometer_alt_rate = barometer_get_relative_altitude_rate();
-
-	/* fuse barometer data with accelerometer */
-	barometer_alt_rate_estimate(mat_data(R), barometer_alt, barometer_alt_rate,
-	                            accel_lpf, 0.0025);
+	get_rotation_matrix_b2i(&mat_data(R));
+	get_rotation_matrix_i2b(&mat_data(Rt));
 
 	/* prepare position and velocity data */
 	float curr_pos_enu[3] = {0.0f}, curr_pos_ned[3] = {0.0f};
@@ -1047,14 +1038,11 @@ void multirotor_geometry_control(radio_t *rc, float *desired_heading)
 	}
 
 	if(rc->safety == true) {
-		led_on(LED_B);
-		led_off(LED_R);
-
 		*desired_heading = attitude_yaw;
 		barometer_set_sea_level();
+		set_rgb_led_service_motor_lock_flag(true);
 	} else {
-		led_on(LED_R);
-		led_off(LED_B);
+		set_rgb_led_service_motor_lock_flag(false);
 	}
 
 	bool lock_motor = false;
