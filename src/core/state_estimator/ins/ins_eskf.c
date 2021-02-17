@@ -138,7 +138,7 @@ void eskf_ins_init(float dt)
 	V_gps(3, 3) = ESKF_RESCALE(1e-4); //Var(vy)
 
 	/* initialize V_baro matrix */
-	matrix_reset(mat_data(_V_baro), 3, 3);
+	matrix_reset(mat_data(_V_baro), 2, 2);
 	V_baro(0, 0) = ESKF_RESCALE(1e-5); //Var(pz)
 	V_baro(1, 1) = ESKF_RESCALE(1e-2); //Var(vz)
 
