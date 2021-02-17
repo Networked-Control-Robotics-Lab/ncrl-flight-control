@@ -84,7 +84,35 @@ void eskf_ins_init(float dt)
 	neg_half_dt = -0.5f * dt;
 	half_dt_squared = 0.5f * dt * dt;
 
-	//TODO: initialize all matrices!
+	MAT_INIT(nominal_state, 10, 1);
+	MAT_INIT(error_state, 9, 1);
+	MAT_INIT(_Q_i, 6, 6);
+	MAT_INIT(_V_accel, 3, 3);
+	MAT_INIT(_V_mag, 3, 3);
+	MAT_INIT(_V_gps, 4, 4);
+	MAT_INIT(_V_baro, 2, 2);
+	MAT_INIT(_P_prior, 9, 9);
+	MAT_INIT(_P_post, 9, 9);
+	MAT_INIT(_R, 3, 3);
+	MAT_INIT(_Rt, 3, 3);
+	MAT_INIT(_R_am_ab_dt, 3, 3);
+	MAT_INIT(_Rt_wm_wb_dt, 3, 3);
+	MAT_INIT(_PHt_accel, 9, 3);
+	MAT_INIT(_PHt_mag, 9, 3);
+	MAT_INIT(_PHt_gps, 9, 4);
+	MAT_INIT(_PHt_baro, 9, 2);
+	MAT_INIT(_HPHt_V_accel, 3, 3);
+	MAT_INIT(_HPHt_V_mag, 3, 3);
+	MAT_INIT(_HPHt_V_gps, 4, 4);
+	MAT_INIT(_HPHt_V_baro, 2, 2);
+	MAT_INIT(_HPHt_V_accel_inv, 3, 3);
+	MAT_INIT(_HPHt_V_mag_inv, 3, 3);
+	MAT_INIT(_HPHt_V_gps_inv, 4, 4);
+	MAT_INIT(_HPHt_V_baro_inv, 2, 2);
+	MAT_INIT(_K_accel, 9, 3);
+	MAT_INIT(_K_mag, 9, 3);
+	MAT_INIT(_K_gps, 9, 4);
+	MAT_INIT(_K_baro, 9, 2);
 
 	/* initialize the nominal state */
 	mat_data(nominal_state)[0] = 0.0f; //px
