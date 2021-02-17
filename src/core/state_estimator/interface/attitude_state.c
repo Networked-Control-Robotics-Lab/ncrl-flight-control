@@ -17,5 +17,5 @@ void get_rotation_matrix_b2i(float **R_b2i)
 
 void get_rotation_matrix_i2b(float **R_i2b)
 {
-	get_rotation_matrix_i2b(R_i2b);
+	ins_ahrs_get_rotation_matrix_i2b(R_i2b);
 }
