@@ -468,7 +468,7 @@ void shell_cmd_perf(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 
 	float flight_control_trigger_time = perf_get_time_s(PERF_FLIGHT_CONTROL_TRIGGER_TIME);
 	float flight_loop_time = perf_get_time_s(PERF_FLIGHT_CONTROL_LOOP);
-	float ahrs_time = perf_get_time_s(PERF_AHRS);
+	float ahrs_time = perf_get_time_s(PERF_AHRS_INS);
 	float controller_time = perf_get_time_s(PERF_CONTROLLER);
 	float ahrs_cpu_percentage = ahrs_time / flight_control_trigger_time * 100;
 	float controller_cpu_percentage = controller_time / flight_control_trigger_time * 100;

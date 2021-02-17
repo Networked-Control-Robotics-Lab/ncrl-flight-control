@@ -34,6 +34,7 @@
 #include "ins.h"
 #include "ins_sensor_sync.h"
 #include "led.h"
+#include "attitude_state.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 10
 
@@ -174,13 +175,11 @@ void task_flight_ctrl(void *param)
 		rc_yaw_setpoint_handler(&desired_yaw, -rc.yaw, 0.0025);
 
 		/* attitude estimation */
-		perf_start(PERF_AHRS);
+		perf_start(PERF_AHRS_INS);
 		{
-			ahrs_estimate();
+			ins_state_estimate();
 		}
-		perf_end(PERF_AHRS);
-
-		ins_state_estimate();
+		perf_end(PERF_AHRS_INS);
 
 		/* controller */
 		perf_start(PERF_CONTROLLER);

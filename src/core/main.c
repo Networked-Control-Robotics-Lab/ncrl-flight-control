@@ -35,7 +35,7 @@
 #include "ist8310.h"
 
 perf_t perf_list[] = {
-	DEF_PERF(PERF_AHRS, "ahrs")
+	DEF_PERF(PERF_AHRS_INS, "ahrs and ins")
 	DEF_PERF(PERF_CONTROLLER, "controller")
 	DEF_PERF(PERF_FLIGHT_CONTROL_LOOP, "flight control loop")
 	DEF_PERF(PERF_FLIGHT_CONTROL_TRIGGER_TIME, "flight control trigger time")

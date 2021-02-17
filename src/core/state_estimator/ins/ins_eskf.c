@@ -5,6 +5,11 @@
 #include "matrix.h"
 #include "se3_math.h"
 #include "quaternion.h"
+#include "ins_sensor_sync.h"
+#include "led.h"
+#include "gps_to_enu.h"
+#include "optitrack.h"
+#include "imu.h"
 
 /*==================================================================*
  * error-state kalman filter for multirotor full state estimation   *
@@ -401,9 +406,10 @@ void eskf_ins_predict(float *accel, float *gyro)
 
 void eskf_ins_accelerometer_correct(float *accel)
 {
-	float gx = accel[0];
-	float gy = accel[1];
-	float gz = accel[2];
+	//TODO: a_translation = a_measured - cross(gyroscope_b_frame, velocity_b_frame)
+	float gx = -accel[0];
+	float gy = -accel[1];
+	float gz = -accel[2];
 
 	float q0 = mat_data(nominal_state)[6];
 	float q1 = mat_data(nominal_state)[7];
@@ -1296,4 +1302,103 @@ void get_eskf_ins_attitude_quaternion(float *q_out)
 	 * paper: quaternion of earth frame to body-fixed frame
 	 * us: quaternion of body-fixed frame to earth frame */
 	quaternion_conj(mat_data(nominal_state), q_out);
+}
+
+void ins_eskf_estimate(float *q,
+                       float *pos_enu_raw, float *vel_enu_raw,
+                       float *pos_enu_fused, float *vel_enu_fused)
+{
+#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)
+	set_rgb_led_service_navigation_on_flag(optitrack_available());
+	return;
+#endif
+
+	/* check sensor status */
+	bool gps_ready = true;//is_gps_available();
+	bool compass_ready = true;//is_compass_available();
+	bool barometer_ready = true;//is_barometer_available();
+
+	bool sensor_all_ready = gps_ready && compass_ready && barometer_ready;
+
+	/* change led state to indicate the sensor status */
+	set_rgb_led_service_navigation_on_flag(sensor_all_ready);
+
+	/* variables of sensor readings */
+	float accel[3];
+	float gyro[3], gyro_rad[3];
+	float mag[3];
+	float longitude, latitude, gps_msl_height;
+	float gps_ned_vx, gps_ned_vy, gps_ned_vz;
+	float barometer_height, barometer_height_rate;
+
+	bool recvd_compass = ins_compass_sync_buffer_available();
+	bool recvd_barometer = ins_barometer_sync_buffer_available();
+	bool recvd_gps = ins_gps_sync_buffer_available();
+
+	get_accel_lpf(accel);
+	get_gyro_lpf(gyro);
+	gyro_rad[0] = deg_to_rad(gyro[0]);
+	gyro_rad[1] = deg_to_rad(gyro[1]);
+	gyro_rad[2] = deg_to_rad(gyro[2]);
+
+	/* eskf prediction (400Hz) */
+	eskf_ins_predict(accel, gyro_rad);
+
+	/* accelerometer (gravity) correction for attitude states (400Hz) */
+	eskf_ins_accelerometer_correct(accel);
+
+	/* compass correction (50Hz)*/
+	if(recvd_compass == true) {
+		ins_compass_sync_buffer_pop(mag);
+
+		eskf_ins_magnetometer_correct(mag);
+	}
+
+	/* barometer correction (50Hz) */
+	if(recvd_barometer == true) {
+		/* get barometer data from sync buffer */
+		ins_barometer_sync_buffer_pop(&barometer_height,
+		                              &barometer_height_rate);
+		pos_enu_raw[2] = barometer_height;
+		vel_enu_raw[2] = barometer_height_rate;
+
+		eskf_ins_barometer_correct(pos_enu_raw[2], vel_enu_raw[2]);
+	}
+
+	/* gps correction (5Hz) */
+	if(recvd_gps == true) {
+		/* get gps data from sync buffer */
+		ins_gps_sync_buffer_pop(&longitude, &latitude, &gps_msl_height,
+		                        &gps_ned_vx, &gps_ned_vy, &gps_ned_vz);
+
+		/* convert gps data from geographic coordinate system to
+		 * enu frame */
+		float dummy_z;
+		longitude_latitude_to_enu(
+		        longitude, latitude, 0,
+		        &pos_enu_raw[0], &pos_enu_raw[1], &dummy_z);
+
+		if(gps_home_is_set() == false) {
+			set_home_longitude_latitude(
+			        longitude, latitude, barometer_height);
+		}
+
+		/* convert gps velocity from ned frame to enu frame */
+		vel_enu_raw[0] = gps_ned_vy; //x_enu = y_ned
+		vel_enu_raw[1] = gps_ned_vx; //y_enu = x_ned
+
+		eskf_ins_gps_correct(pos_enu_raw[0], pos_enu_raw[1],
+		                     vel_enu_raw[0], vel_enu_raw[1]);
+	}
+
+	pos_enu_fused[0] = mat_data(nominal_state)[0]; //px
+	pos_enu_fused[1] = mat_data(nominal_state)[1]; //py
+	pos_enu_fused[2] = mat_data(nominal_state)[2]; //pz
+	vel_enu_fused[0] = mat_data(nominal_state)[3]; //vx
+	vel_enu_fused[1] = mat_data(nominal_state)[4]; //vy
+	vel_enu_fused[2] = mat_data(nominal_state)[5]; //vz
+	q[0] = mat_data(nominal_state)[6];             //q0
+	q[1] = mat_data(nominal_state)[7];             //q1
+	q[2] = mat_data(nominal_state)[8];             //q2
+	q[3] = mat_data(nominal_state)[9];             //q3
 }
