@@ -1391,16 +1391,16 @@ void ins_eskf_estimate(attitude_t *attitude,
 		                     vel_enu_raw[0], vel_enu_raw[1]);
 	}
 
-	pos_enu_fused[0] = mat_data(nominal_state)[0]; //px
-	pos_enu_fused[1] = mat_data(nominal_state)[1]; //py
-	pos_enu_fused[2] = mat_data(nominal_state)[2]; //pz
-	vel_enu_fused[0] = mat_data(nominal_state)[3]; //vx
-	vel_enu_fused[1] = mat_data(nominal_state)[4]; //vy
-	vel_enu_fused[2] = mat_data(nominal_state)[5]; //vz
-	attitude->q[0] = mat_data(nominal_state)[6];   //q0
-	attitude->q[1] = mat_data(nominal_state)[7];   //q1
-	attitude->q[2] = mat_data(nominal_state)[8];   //q2
-	attitude->q[3] = mat_data(nominal_state)[9];   //q3
+	pos_enu_fused[0] = mat_data(nominal_state)[0];  //px
+	pos_enu_fused[1] = mat_data(nominal_state)[1];  //py
+	pos_enu_fused[2] = mat_data(nominal_state)[2];  //pz
+	vel_enu_fused[0] = mat_data(nominal_state)[3];  //vx
+	vel_enu_fused[1] = mat_data(nominal_state)[4];  //vy
+	vel_enu_fused[2] = mat_data(nominal_state)[5];  //vz
+	attitude->q[0] = mat_data(nominal_state)[6];    //q0
+	attitude->q[1] = -mat_data(nominal_state)[7];   //q1
+	attitude->q[2] = -mat_data(nominal_state)[8];   //q2
+	attitude->q[3] = -mat_data(nominal_state)[9];   //q3
 
 	euler_t euler;
 	quat_to_euler(attitude->q, &euler);
