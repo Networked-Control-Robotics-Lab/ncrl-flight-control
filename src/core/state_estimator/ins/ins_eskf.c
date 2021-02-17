@@ -10,6 +10,7 @@
 #include "gps_to_enu.h"
 #include "optitrack.h"
 #include "imu.h"
+#include "proj_config.h"
 
 /*==================================================================*
  * error-state kalman filter for multirotor full state estimation   *

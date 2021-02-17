@@ -11,6 +11,7 @@
 #include "optitrack.h"
 #include "led.h"
 #include "attitude_state.h"
+#include "proj_config.h"
 
 /* position (enu) */
 float pos_last[3] = {0.0f};
