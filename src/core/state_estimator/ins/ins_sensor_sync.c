@@ -45,6 +45,17 @@ bool ins_barometer_sync_buffer_available(void)
 	}
 }
 
+void ins_barometer_sync_buffer_push(float height, float height_rate)
+{
+	ins_sync_barometer_item_t barometer_item = {
+		.timestamp_s = get_sys_time_s(),
+		.height = height,
+		.height_rate = height_rate
+	};
+
+	xQueueSendToBack(ins_sync_barometer_queue, &barometer_item, 0);
+}
+
 void ins_barometer_sync_buffer_push_from_isr(float height, float height_rate,
                 BaseType_t *higher_priority_task_woken)
 {
@@ -95,6 +106,23 @@ void ins_gps_sync_buffer_push(float longitude, float latitude, float height_msl,
 	xQueueSendToBack(ins_sync_gps_queue, &gps_item, 0);
 }
 
+void ins_gps_sync_buffer_push_from_isr(float longitude, float latitude, float height_msl,
+                                       float vx_ned, float vy_ned, float vz_ned,
+                                       BaseType_t *higher_priority_task_woken)
+{
+	ins_sync_gps_item_t gps_item = {
+		.timestamp_s = get_sys_time_s(),
+		.longitude = longitude,
+		.latitude = latitude,
+		.height_msl = height_msl,
+		.vx_ned = vx_ned,
+		.vy_ned = vy_ned,
+		.vz_ned = vz_ned
+	};
+
+	xQueueSendToBackFromISR(ins_sync_gps_queue, &gps_item, higher_priority_task_woken);
+}
+
 bool ins_gps_sync_buffer_pop(float *longitude, float *latitude, float *height_msl,
                              float *vx_ned, float *vy_ned, float *vz_ned)
 {
@@ -132,6 +160,18 @@ void ins_compass_sync_buffer_push(float *mag)
 	};
 
 	xQueueSendToBack(ins_sync_compass_queue, &compass_item, 0);
+}
+
+void ins_compass_sync_buffer_push_from_isr(float *mag, BaseType_t *higher_priority_task_woken)
+{
+	ins_sync_compass_item_t compass_item = {
+		.timestamp_s = get_sys_time_s(),
+		.mag_x = mag[0],
+		.mag_y = mag[1],
+		.mag_z = mag[2]
+	};
+
+	xQueueSendToBackFromISR(ins_sync_compass_queue, &compass_item, higher_priority_task_woken);
 }
 
 bool ins_compass_sync_buffer_pop(float *mag)
