@@ -126,6 +126,8 @@ void eskf_ins_init(float dt)
 	mat_data(nominal_state)[8] = 0.0f; //q2
 	mat_data(nominal_state)[9] = 0.0f; //q3
 
+	matrix_reset(mat_data(error_state), 9, 1);
+
 	/* initialize _Q_i matrix */
 	matrix_reset(mat_data(_Q_i), 6, 6);
 	Q_i(0, 0) = ESKF_RESCALE(1e-5); //Var(ax)
@@ -209,9 +211,9 @@ void eskf_ins_predict(float *accel, float *gyro)
 	 *======================*/
 
 	//velocity integration
-	mat_data(nominal_state)[0] += accel_i[0] * dt;
-	mat_data(nominal_state)[1] += accel_i[1] * dt;
-	mat_data(nominal_state)[2] += accel_i[2] * dt;
+	mat_data(nominal_state)[3] += accel_i[0] * dt;
+	mat_data(nominal_state)[4] += accel_i[1] * dt;
+	mat_data(nominal_state)[5] += accel_i[2] * dt;
 
 	//position integration
 	mat_data(nominal_state)[0] += (mat_data(nominal_state)[3] * dt) +
@@ -235,7 +237,7 @@ void eskf_ins_predict(float *accel, float *gyro)
 	mat_data(nominal_state)[7] = mat_data(nominal_state)[7] + (q_dot[1] * neg_half_dt);
 	mat_data(nominal_state)[8] = mat_data(nominal_state)[8] + (q_dot[2] * neg_half_dt);
 	mat_data(nominal_state)[9] = mat_data(nominal_state)[9] + (q_dot[3] * neg_half_dt);
-	quat_normalize(mat_data(nominal_state));
+	quat_normalize(&mat_data(nominal_state)[6]);
 
 	/*==================================*
 	 * process covatiance matrix update *
@@ -429,7 +431,7 @@ void eskf_ins_predict(float *accel, float *gyro)
 	/*=================================================*
 	 * convert estimated quaternion to R and Rt matrix *
 	 *=================================================*/
-	float *q = &mat_data(nominal_state)[0];
+	float *q = &mat_data(nominal_state)[6];
 	quat_to_rotation_matrix(q, mat_data(_Rt), mat_data(_R));
 }
 
@@ -666,12 +668,12 @@ void eskf_ins_accelerometer_correct(float *accel)
 	q_error[3] = 0.5 * mat_data(error_state)[2];
 
 	//nominal_state (a posteriori) = q_error * nominal_state (a priori)
-	float x_last[4];
-	quaternion_copy(x_last, mat_data(nominal_state));
-	quaternion_mult(x_last, q_error, mat_data(nominal_state));
+	float q_last[4];
+	quaternion_copy(q_last, &mat_data(nominal_state)[6]);
+	quaternion_mult(q_last, q_error, &mat_data(nominal_state)[6]);
 
 	//renormailization
-	quat_normalize(mat_data(nominal_state));
+	quat_normalize(&mat_data(nominal_state)[6]);
 }
 
 void eskf_ins_magnetometer_correct(float *mag)
@@ -972,12 +974,12 @@ void eskf_ins_magnetometer_correct(float *mag)
 	q_error[3] = 0.5 * mat_data(error_state)[2];
 
 	//nominal_state (a posteriori) = q_error * nominal_state (a priori)
-	float x_last[4];
-	quaternion_copy(x_last, mat_data(nominal_state));
-	quaternion_mult(x_last, q_error, mat_data(nominal_state));
+	float q_last[4];
+	quaternion_copy(q_last, &mat_data(nominal_state)[6]);
+	quaternion_mult(q_last, q_error, &mat_data(nominal_state)[6]);
 
 	//renormailization
-	quat_normalize(mat_data(nominal_state));
+	quat_normalize(&mat_data(nominal_state)[6]);
 }
 
 void eskf_ins_gps_correct(float px_enu, float py_enu,
