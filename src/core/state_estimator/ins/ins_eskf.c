@@ -627,7 +627,7 @@ void eskf_ins_accelerometer_correct(float *accel)
 	}
 
 	/* P_post becoms the P_prior of other measurement's correction */
-	memcpy(mat_data(_P_prior), mat_data(_P_post), sizeof(float) * 9);
+	memcpy(mat_data(_P_prior), mat_data(_P_post), sizeof(float) * 9 * 9);
 
 	/* error state injection */
 	float q_error[4];
@@ -933,7 +933,7 @@ void eskf_ins_magnetometer_correct(float *mag)
 	}
 
 	/* P_post becoms the P_prior of other measurement's correction */
-	memcpy(mat_data(_P_prior), mat_data(_P_post), sizeof(float) * 9);
+	memcpy(mat_data(_P_prior), mat_data(_P_post), sizeof(float) * 9 * 9);
 
 	/* error state injection */
 	float q_error[4];
@@ -1136,7 +1136,7 @@ void eskf_ins_gps_correct(float px_enu, float py_enu,
 	}
 
 	/* P_post becoms the P_prior of other measurement's correction */
-	memcpy(mat_data(_P_prior), mat_data(_P_post), sizeof(float) * 9);
+	memcpy(mat_data(_P_prior), mat_data(_P_post), sizeof(float) * 9 * 9);
 
 	/* error state injection */
 	mat_data(nominal_state)[0] += mat_data(error_state)[0];
@@ -1289,7 +1289,7 @@ void eskf_ins_barometer_correct(float barometer_z, float barometer_vz)
 	}
 
 	/* P_post becoms the P_prior of other measurement's correction */
-	memcpy(mat_data(_P_prior), mat_data(_P_post), sizeof(float) * 9);
+	memcpy(mat_data(_P_prior), mat_data(_P_post), sizeof(float) * 9 * 9);
 
 	/* error state injection */
 	mat_data(nominal_state)[2] += mat_data(error_state)[2];
