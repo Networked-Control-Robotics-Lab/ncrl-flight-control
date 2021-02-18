@@ -137,9 +137,6 @@ void task_flight_ctrl(void *param)
 	 * motors to 0% thrust */
 	motor_init();
 
-	/* initialize sensor synchronization buffer */
-	ins_sync_buffer_init();
-
 	/* initialize barometer and compass */
 	barometer_wait_until_stable();
 	compass_wait_until_stable();

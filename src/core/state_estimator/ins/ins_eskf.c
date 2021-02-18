@@ -125,6 +125,7 @@ void eskf_ins_init(float dt)
 	mat_data(nominal_state)[7] = 0.0f; //q1
 	mat_data(nominal_state)[8] = 0.0f; //q2
 	mat_data(nominal_state)[9] = 0.0f; //q3
+	init_ahrs_quaternion_with_accel_and_compass(&mat_data(nominal_state)[6]);
 
 	matrix_reset(mat_data(error_state), 9, 1);
 
