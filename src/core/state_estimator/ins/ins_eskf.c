@@ -1453,3 +1453,30 @@ void ins_eskf_estimate(attitude_t *attitude,
 
 	quat_to_rotation_matrix(attitude->q, attitude->R_b2i, attitude->R_i2b);
 }
+
+void send_ins_eskf1_covariance_matrix_debug_message(debug_msg_t *payload)
+{
+	float recover_covariance_scaling = 1.0f / ESKF_RESCALE(1);
+
+	float p00, p11, p22, p33, p44, p55, p66, p77, p88;
+	p00 = P_post(0, 0) * recover_covariance_scaling;
+	p11 = P_post(1, 1) * recover_covariance_scaling;
+	p22 = P_post(2, 2) * recover_covariance_scaling;
+	p33 = P_post(3, 3) * recover_covariance_scaling;
+	p44 = P_post(4, 4) * recover_covariance_scaling;
+	p55 = P_post(5, 5) * recover_covariance_scaling;
+	p66 = P_post(6, 6) * recover_covariance_scaling;
+	p77 = P_post(7, 7) * recover_covariance_scaling;
+	p88 = P_post(8, 8) * recover_covariance_scaling;
+
+	pack_debug_debug_message_header(payload, MESSAGE_ID_INS_ESKF1_COVARIANCE);
+	pack_debug_debug_message_float(&p00, payload);
+	pack_debug_debug_message_float(&p11, payload);
+	pack_debug_debug_message_float(&p22, payload);
+	pack_debug_debug_message_float(&p33, payload);
+	pack_debug_debug_message_float(&p44, payload);
+	pack_debug_debug_message_float(&p55, payload);
+	pack_debug_debug_message_float(&p66, payload);
+	pack_debug_debug_message_float(&p77, payload);
+	pack_debug_debug_message_float(&p88, payload);
+}

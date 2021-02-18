@@ -8,4 +8,6 @@ void ins_eskf_estimate(attitude_t *attitude,
 
 void get_eskf_ins_attitude_quaternion(float *q_out);
 
+void send_ins_eskf1_covariance_matrix_debug_message(debug_msg_t *payload);
+
 #endif

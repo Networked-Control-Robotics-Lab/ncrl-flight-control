@@ -515,6 +515,21 @@ class serial_plotter_class:
         	self.create_curve('ahrs yaw', 'blue')
         	self.show_subplot()
 
+        elif (message_id == 22):
+          	plt.subplot(111)
+        	plt.ylabel('eskf1 P matrix')
+        	plt.ylim([-100, 100])
+        	self.create_curve('P00', 'blue')
+                self.create_curve('P11', 'orange')
+        	self.create_curve('P22', 'green')
+                self.create_curve('P33', 'red')
+                self.create_curve('P44', 'purple')
+                self.create_curve('P55', 'brown')
+                self.create_curve('P66', 'pink')
+                self.create_curve('P77', 'gray')
+                self.create_curve('P88', 'cyan')
+                self.show_subplot()
+
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \
 		interval=0, blit=True)
