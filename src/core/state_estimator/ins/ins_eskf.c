@@ -18,7 +18,7 @@
  * estimate state = [position(3x1); velocity(3x1); quaternion(4x1)] *
  *==================================================================*/
 
-#define ESKF_RESCALE(number) (number * 10e7) //to improve the numerical stability
+#define ESKF_RESCALE(number) (number * 1e7) //to improve the numerical stability
 
 #define R(r, c)             _R.pData[(r * 3) + c]
 #define Rt(r, c)            _Rt.pData[(r * 3) + c]
@@ -438,10 +438,15 @@ void eskf_ins_predict(float *accel, float *gyro)
 
 void eskf_ins_accelerometer_correct(float *accel)
 {
-	//TODO: a_translation = a_measured - cross(gyroscope_b_frame, velocity_b_frame)
-	float gx = -accel[0];
-	float gy = -accel[1];
-	float gz = -accel[2];
+	float accel_sum_squared = (accel[0])*(accel[0]) + (accel[1])*(accel[1]) +
+	                          (accel[2])*(accel[2]) + (accel[3])*(accel[3]);
+	float div_accel_norm;
+	arm_sqrt_f32(accel_sum_squared, &div_accel_norm);
+	div_accel_norm = 1.0f / div_accel_norm;
+
+	float gx = -accel[0] * div_accel_norm;
+	float gy = -accel[1] * div_accel_norm;
+	float gz = -accel[2] * div_accel_norm;
 
 	float q0 = mat_data(nominal_state)[6];
 	float q1 = mat_data(nominal_state)[7];
@@ -664,9 +669,9 @@ void eskf_ins_accelerometer_correct(float *accel)
 	/* error state injection */
 	float q_error[4];
 	q_error[0] = 1.0f;
-	q_error[1] = 0.5 * mat_data(error_state)[0];
-	q_error[2] = 0.5 * mat_data(error_state)[1];
-	q_error[3] = 0.5 * mat_data(error_state)[2];
+	q_error[1] = 0.5 * mat_data(error_state)[6];
+	q_error[2] = 0.5 * mat_data(error_state)[7];
+	q_error[3] = 0.5 * mat_data(error_state)[8];
 
 	//nominal_state (a posteriori) = q_error * nominal_state (a priori)
 	float q_last[4];
@@ -679,16 +684,22 @@ void eskf_ins_accelerometer_correct(float *accel)
 
 void eskf_ins_magnetometer_correct(float *mag)
 {
-	float mx = mag[0];
-	float my = mag[1];
-	float mz = mag[2];
+	float mag_sum_squared = (mag[0])*(mag[0]) + (mag[1])*(mag[1]) +
+	                        (mag[2])*(mag[2]) + (mag[3])*(mag[3]);
+	float div_mag_norm;
+	arm_sqrt_f32(mag_sum_squared, &div_mag_norm);
+	div_mag_norm = 1.0f / div_mag_norm;
+
+	float mx = mag[0] * div_mag_norm;
+	float my = mag[1] * div_mag_norm;
+	float mz = mag[2] * div_mag_norm;
 
 	float q0 = mat_data(nominal_state)[0];
 	float q1 = mat_data(nominal_state)[1];
 	float q2 = mat_data(nominal_state)[2];
 	float q3 = mat_data(nominal_state)[3];
 
-	float gamma = sqrt(mag[0]*mag[0] + mag[1]*mag[1]);
+	float gamma = sqrt(mx*mx + my*my);
 
 	/* codeblock for preventing nameing conflict */
 	{
@@ -970,9 +981,9 @@ void eskf_ins_magnetometer_correct(float *mag)
 	/* error state injection */
 	float q_error[4];
 	q_error[0] = 1.0f;
-	q_error[1] = 0.0f; //0.5 * mat_data(error_state)[0];
-	q_error[2] = 0.0f; //0.5 * mat_data(error_state)[1];
-	q_error[3] = 0.5 * mat_data(error_state)[2];
+	q_error[1] = 0.0f; //0.5 * mat_data(error_state)[6];
+	q_error[2] = 0.0f; //0.5 * mat_data(error_state)[7];
+	q_error[3] = 0.5 * mat_data(error_state)[8];
 
 	//nominal_state (a posteriori) = q_error * nominal_state (a priori)
 	float q_last[4];

@@ -48,8 +48,8 @@ int main(void)
 
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 
-        /* initialize sensor synchronization buffer */
-        ins_sync_buffer_init();
+	/* initialize sensor synchronization buffer */
+	ins_sync_buffer_init();
 
 	/* driver initialization */
 	flash_init();
