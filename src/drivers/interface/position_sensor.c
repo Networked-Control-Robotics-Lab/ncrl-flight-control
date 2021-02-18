@@ -1,4 +1,5 @@
 #include "optitrack.h"
+#include "vins_mono.h"
 #include "position_sensor.h"
 #include "altitude_est.h"
 #include "proj_config.h"
@@ -9,6 +10,8 @@ bool is_xy_position_info_available(void)
 {
 #if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)
 	return optitrack_available();
+#elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_VINS_MONO)
+	return vins_mono_available();
 #elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_GPS)
 	//XXX
 #else
@@ -20,6 +23,8 @@ bool is_height_info_available(void)
 {
 #if (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_OPTITRACK)
 	return optitrack_available();
+#elif (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_VINS_MONO)
+	return vins_mono_available();
 #elif (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_BAROMETER)
 	return ms5611_available();
 #else
@@ -34,6 +39,9 @@ void get_enu_position(float *pos)
 	optitrack_read_pos_x(&pos[0]);
 	optitrack_read_pos_y(&pos[1]);
 #elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_GPS)
+	vins_mono_read_pos_x(&pos[0]);
+	vins_mono_read_pos_y(&pos[1]);
+#elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_GPS)
 	//XXX
 #else
 	pos[0] = 0.0f;
@@ -43,6 +51,8 @@ void get_enu_position(float *pos)
 	/* z position */
 #if (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_OPTITRACK)
 	optitrack_read_pos_z(&pos[2]);
+#elif (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_VINS_MONO)
+	vins_mono_read_pos_z(&pos[2]);
 #elif (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_BAROMETER)
 	pos[2] = get_fused_barometer_relative_altitude();
 #else
@@ -55,6 +65,10 @@ float get_enu_height(void)
 #if (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_OPTITRACK)
 	float height;
 	optitrack_read_pos_z(&height);
+	return height;
+#elif (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_VINS_MONO)
+	float height;
+	vins_mono_read_pos_z(&height);
 	return height;
 #elif (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_BAROMETER)
 	return get_fused_barometer_relative_altitude();
@@ -69,6 +83,9 @@ void get_enu_velocity(float *vel)
 #if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)
 	optitrack_read_vel_x(&vel[0]);
 	optitrack_read_vel_y(&vel[1]);
+#elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_VINS_MONO)
+	vins_mono_read_vel_x(&vel[0]);
+	vins_mono_read_vel_y(&vel[1]);
 #elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_GPS)
 	//XXX
 #else
@@ -79,6 +96,8 @@ void get_enu_velocity(float *vel)
 	/* z velocity */
 #if (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_OPTITRACK)
 	optitrack_read_vel_z(&vel[2]);
+#elif (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_VINS_MONO)
+	vins_mono_read_vel_z(&vel[2]);
 #elif (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_BAROMETER)
 	vel[2] = get_fused_barometer_relative_altitude_rate();
 #else

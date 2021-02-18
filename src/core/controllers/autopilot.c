@@ -29,9 +29,9 @@ void autopilot_init(autopilot_t *_autopilot)
 	autopilot_ptr->mode = AUTOPILOT_MANUAL_FLIGHT_MODE;
 	autopilot_ptr->armed = false;
 	autopilot_ptr->motor_locked = false;
-	autopilot_ptr->landing_speed = 0.0013;        //[m/s]
-	autopilot_ptr->takeoff_speed = 0.0008;        //[m/s]
-	autopilot_ptr->takeoff_height = 1.0f;         //[m]
+	autopilot_ptr->landing_speed = 0.0008;        //[m/s]
+	autopilot_ptr->takeoff_speed = 0.0004;        //[m/s]
+	autopilot_ptr->takeoff_height = 0.8f;         //[m]
 	autopilot_ptr->landing_accept_height = 0.15f; //[m]
 }
 

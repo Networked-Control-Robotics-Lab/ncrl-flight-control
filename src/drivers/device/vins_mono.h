@@ -1,7 +1,7 @@
 #ifndef __VINS_MONO_H__
 #define __VINS_MONO_H__
 
-#define VINS_MONO_SERIAL_MSG_SIZE 32
+#define VINS_MONO_SERIAL_MSG_SIZE 44
 
 typedef struct {
 	uint8_t id;
@@ -35,12 +35,12 @@ void vins_mono_isr_handler(uint8_t c);	//vins_mono rx interrupt
 void vins_mono_update(void);
 bool vins_mono_available(void);		//vins_mono rx get info stablely
 
-void optitrack_read_pos_x(float *x);
-void optitrack_read_pos_y(float *y);
-void optitrack_read_pos_z(float *z);
-void optitrack_read_vel_x(float *vx);
-void optitrack_read_vel_y(float *vy);
-void optitrack_read_vel_z(float *vz);
+void vins_mono_read_pos_x(float *x);
+void vins_mono_read_pos_y(float *y);
+void vins_mono_read_pos_z(float *z);
+void vins_mono_read_vel_x(float *vx);
+void vins_mono_read_vel_y(float *vy);
+void vins_mono_read_vel_z(float *vz);
 
 //for sending IMU message			
 void send_vins_mono_imu_msg(void);
@@ -50,6 +50,8 @@ void vins_mono_send_imu_50hz(void);
 void vins_mono_camera_trigger_20hz(void);
 
 //for Debug message 					
-
+void send_vins_mono_position_debug_message(debug_msg_t *payload);
+void send_vins_mono_quaternion_debug_message(debug_msg_t *payload);
+void send_vins_mono_velocity_debug_message(debug_msg_t *payload);
 
 #endif

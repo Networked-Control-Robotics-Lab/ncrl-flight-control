@@ -4,6 +4,7 @@
 #include "multirotor_pid_ctrl.h"
 #include "motor_thrust_fitting.h"
 #include "optitrack.h"
+#include "vins_mono.h"
 #include "multirotor_geometry_ctrl.h"
 #include "free_fall.h"
 #include "flight_ctrl_task.h"
@@ -28,8 +29,8 @@ void task_debug_link(void *param)
 	 * choose the one by uncomment it */
 	while(1) {
 		while(xSemaphoreTake(debug_link_task_semphr, portMAX_DELAY) != pdTRUE);
-		//send_imu_debug_message(&payload);
-		send_attitude_euler_debug_message(&payload);
+		send_imu_debug_message(&payload);
+		//send_attitude_euler_debug_message(&payload);
 		//send_attitude_quaternion_debug_message(&payload);
 		//send_attitude_imu_debug_message(&payload);
 		//send_pid_debug_message(&payload);
@@ -45,6 +46,11 @@ void task_debug_link(void *param)
 		//send_barometer_debug_message(&payload);
 		//send_alt_est_debug_message(&payload);
 		//send_ins_sensor_debug_message(&payload);
+		
+		/*	for vins_mono		*/
+		//send_vins_mono_position_debug_message(&payload);
+		//send_vins_mono_quaternion_debug_message(&payload);
+		//send_vins_mono_velocity_debug_message(&payload);
 
 		send_onboard_data(payload.s, payload.len);
 		//freertos_task_delay(delay_time_ms);

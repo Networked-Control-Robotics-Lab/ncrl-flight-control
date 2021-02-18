@@ -1,16 +1,20 @@
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
+#include <string.h>
 #include "FreeRTOS.h"
 #include "stm32f4xx_conf.h"
+#include "task.h"
 #include "uart.h"
 #include "imu.h"
 #include "gpio.h"
 #include "vins_mono.h"
 #include "sys_time.h"
+#include "debug_link.h"
 
 #define VINS_MONO_IMU_MSG_SIZE 27
 #define VINS_MONO_CHECKSUM_INIT_VAL 19
-#define VINS_MONO_QUEUE_SIZE (32 * 400) //~400 packets
+#define VINS_MONO_QUEUE_SIZE (44 * 400) //~400 packets
 
 typedef struct {
 	char c;
@@ -31,7 +35,9 @@ bool vins_mono_available(void)
 	//timeout if no data available more than 300ms
 	float current_time = get_sys_time_ms();
 	if((current_time - vins_mono.time_now) > 300) {
+#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_VINS_MONO)
 		led_off(LED_G);
+#endif
 		return false;
 	}
 	return true;
@@ -105,12 +111,15 @@ void vins_mono_update(void)
 
 		vins_mono_buf_push(c);
 		if(c == '+' && vins_mono.buf[0] == '@') {
-			/* decode optitrack message */
+			/* decode vins_mono message */
 			if(vins_mono_serial_decoder(vins_mono.buf) == 0) {
+#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_VINS_MONO)		
 				led_on(LED_G);
+#endif
 				vins_mono.buf_pos = 0; //reset position pointer
 			}
 		}
+
 	}
 }
 
@@ -194,9 +203,9 @@ void vins_mono_read_vel_z(float *vz)
 
 void send_vins_mono_imu_msg(void)
 {
-	/*+------------+----------+---------+---------+---------+--------+--------+--------+----------+
-	 *| start byte | checksum | accel_x | accel_y | accel_z | gyro_x | gyro_y | gyro_z | end byte |
-	 *+------------+----------+---------+---------+---------+--------+--------+--------+----------+*/
+	/*+------------+----------+---------+---------+---------+--------+--------+--------+--------+--------+--------+----------+
+	 *| start byte | checksum | accel_x | accel_y | accel_z | gyro_x | gyro_y | gyro_z |  vel_x |  vel_y  | vel_z | end byte |
+	 *+------------+----------+---------+---------+---------+--------+--------+--------+--------+--------+--------+----------+*/
 
 	float accel[3] = {0.0f};
 	float gyro[3] = {0.0f};
@@ -273,7 +282,7 @@ void send_vins_mono_position_debug_message(debug_msg_t *payload)
 	float py = vins_mono.pos[1] * 100.0f; //[cm]
 	float pz = vins_mono.pos[2] * 100.0f; //[cm]
 
-	pack_debug_debug_message_header(payload, MESSAGE_ID_OPTITRACK_POSITION);
+	pack_debug_debug_message_header(payload, MESSAGE_ID_VINS_MONO_POSITION);
 	pack_debug_debug_message_float(&px, payload);
 	pack_debug_debug_message_float(&py, payload);
 	pack_debug_debug_message_float(&pz, payload);
@@ -281,7 +290,7 @@ void send_vins_mono_position_debug_message(debug_msg_t *payload)
 
 void send_vins_mono_quaternion_debug_message(debug_msg_t *payload)
 {
-	pack_debug_debug_message_header(payload, MESSAGE_ID_OPTITRACK_QUATERNION);
+	pack_debug_debug_message_header(payload, MESSAGE_ID_VINS_MONO_QUATERNION);
 	pack_debug_debug_message_float(&vins_mono.q[0], payload);
 	pack_debug_debug_message_float(&vins_mono.q[1], payload);
 	pack_debug_debug_message_float(&vins_mono.q[2], payload);
@@ -297,7 +306,7 @@ void send_vins_mono_velocity_debug_message(debug_msg_t *payload)
 	float vy_filtered = vins_mono.vel_filtered[1] * 100.0f; //[cm/s]
 	float vz_filtered = vins_mono.vel_filtered[2] * 100.0f; //[cm/s]
 
-	pack_debug_debug_message_header(payload, MESSAGE_ID_OPTITRACK_VELOCITY);
+	pack_debug_debug_message_header(payload, MESSAGE_ID_VINS_MONO_VELOCITY);
 	pack_debug_debug_message_float(&vx_raw, payload);
 	pack_debug_debug_message_float(&vy_raw, payload);
 	pack_debug_debug_message_float(&vz_raw, payload);
