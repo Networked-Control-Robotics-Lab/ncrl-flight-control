@@ -78,9 +78,9 @@ float dt;
 float neg_half_dt;
 float half_dt_squared;
 
-void eskf_ins_init(float dt)
+void eskf_ins_init(float _dt)
 {
-	dt = dt;
+	dt = _dt;
 	neg_half_dt = -0.5f * dt;
 	half_dt_squared = 0.5f * dt * dt;
 
