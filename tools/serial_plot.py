@@ -415,6 +415,14 @@ class serial_plotter_class:
         	self.create_curve('velocity', 'red')
         	self.show_subplot()
 
+        elif (message_id == 19):
+         	plt.subplot(111)
+        	plt.ylabel('position [cm]')
+        	plt.ylim([-200, 200])
+        	self.create_curve('x', 'red')
+                self.create_curve('y', 'orange')
+        	self.create_curve('z', 'yellow')
+        	self.show_subplot()
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \
 		interval=0, blit=True)
