@@ -158,9 +158,9 @@ void eskf_ins_init(float _dt)
 
 	/* initialize V_mag matrix */
 	matrix_reset(mat_data(_V_mag), 3, 3);
-	V_mag(0, 0) = ESKF_RESCALE(3); //Var(mx)
-	V_mag(1, 1) = ESKF_RESCALE(3); //Var(my)
-	V_mag(2, 2) = ESKF_RESCALE(3); //Var(mz)
+	V_mag(0, 0) = ESKF_RESCALE(5e-1); //Var(mx)
+	V_mag(1, 1) = ESKF_RESCALE(5e-1); //Var(my)
+	V_mag(2, 2) = ESKF_RESCALE(5e-1); //Var(mz)
 
 	/* initial V_gps matrix */
 	matrix_reset(mat_data(_V_gps), 4, 4);
@@ -694,10 +694,10 @@ void eskf_ins_magnetometer_correct(float *mag)
 	float my = mag[1] * div_mag_norm;
 	float mz = mag[2] * div_mag_norm;
 
-	float q0 = mat_data(nominal_state)[0];
-	float q1 = mat_data(nominal_state)[1];
-	float q2 = mat_data(nominal_state)[2];
-	float q3 = mat_data(nominal_state)[3];
+	float q0 = mat_data(nominal_state)[6];
+	float q1 = mat_data(nominal_state)[7];
+	float q2 = mat_data(nominal_state)[8];
+	float q3 = mat_data(nominal_state)[9];
 
 	float gamma = sqrt(mx*mx + my*my);
 
