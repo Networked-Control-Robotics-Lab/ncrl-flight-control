@@ -171,8 +171,8 @@ void eskf_ins_init(float _dt)
 
 	/* initialize V_baro matrix */
 	matrix_reset(mat_data(_V_baro), 2, 2);
-	V_baro(0, 0) = ESKF_RESCALE(1e-1); //Var(pz)
-	V_baro(1, 1) = ESKF_RESCALE(1e-3); //Var(vz)
+	V_baro(0, 0) = ESKF_RESCALE(1e-4); //Var(pz)
+	V_baro(1, 1) = ESKF_RESCALE(5e-4); //Var(vz)
 
 	matrix_reset(mat_data(_PHt_accel), 9, 3);
 	matrix_reset(mat_data(_PHt_mag), 9, 3);
@@ -199,7 +199,7 @@ void eskf_ins_predict(float *accel, float *gyro)
 	float accel_i_ned[3] = {0};
 	accel_i_ned[0] = Rt(0, 0) * accel_b_x + Rt(0, 1) * accel_b_y + Rt(0, 2) * accel_b_z;
 	accel_i_ned[1] = Rt(1, 0) * accel_b_x + Rt(1, 1) * accel_b_y + Rt(1, 2) * accel_b_z;
-	accel_i_ned[2] = Rt(2, 0) * accel_b_x + Rt(2, 1) * accel_b_y + Rt(1, 2) * accel_b_z;
+	accel_i_ned[2] = Rt(2, 0) * accel_b_x + Rt(2, 1) * accel_b_y + Rt(2, 2) * accel_b_z;
 
 	//ned to enu conversion
 	float accel_i[3];
