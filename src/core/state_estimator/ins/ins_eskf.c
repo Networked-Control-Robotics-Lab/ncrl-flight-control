@@ -1391,10 +1391,17 @@ void ins_eskf_estimate(attitude_t *attitude,
 	eskf_ins_accelerometer_correct(accel);
 
 	/* compass correction (50Hz)*/
+	static bool compass_init = false;
 	if(recvd_compass == true) {
 		ins_compass_sync_buffer_pop(mag);
 
-		eskf_ins_magnetometer_correct(mag);
+		if(compass_init == false) {
+			compass_init = true;
+		} else {
+			if(ahrs_compass_quality_test(mag) == true) {
+				eskf_ins_magnetometer_correct(mag);
+			}
+		}
 	}
 
 	/* barometer correction (50Hz) */
