@@ -12,7 +12,7 @@
 #define TELEM_MAVLINK    0
 #define TELEM_DEBUG_LINK 1
 #define TELEM_SHELL      2
-#define SELECT_TELEM DEBUG_LINK
+#define SELECT_TELEM TELEM_MAVLINK
 
 /* debug link message publish rate */
 #define DEBUG_LINK_PUBLISH_20Hz  0 //recommanded for wireless communication

@@ -14,7 +14,7 @@
 
 #define VINS_MONO_IMU_MSG_SIZE 27
 #define VINS_MONO_CHECKSUM_INIT_VAL 19
-#define VINS_MONO_QUEUE_SIZE (44 * 400) //~400 packets
+#define VINS_MONO_QUEUE_SIZE (44 * 100) //~400 packets
 
 typedef struct {
 	char c;
