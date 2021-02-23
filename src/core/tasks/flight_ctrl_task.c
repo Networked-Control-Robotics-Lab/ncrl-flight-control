@@ -51,37 +51,6 @@ void flight_ctrl_semaphore_handler(void)
 	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }
 
-void rc_wait_unlock_position(void)
-{
-	radio_t rc;
-
-	float time_last = 0.0f;
-	float time_current = 0.0f;
-
-	while(1) {
-		sbus_rc_read(&rc);
-
-		time_current = get_sys_time_ms();
-		if(time_current - time_last > 100.0f) {
-			led_toggle(LED_R);
-			time_last = time_current;
-		}
-
-		//force to leave the loop if user triggered the motor esc range calibration
-		if(is_esc_range_calibration_triggered() == true) return;
-
-		//force to leave the loop if user triggered the motor thrust testing
-		if(is_motor_force_testing_triggered() == true) return;
-
-		if(rc.throttle < 5.0f && rc.pitch < -30.0f &&
-		    rc.yaw > +30.0f && rc.roll < -30.0f) {
-			break;
-		}
-
-		vTaskDelay(1);
-	}
-}
-
 void rc_safety_protection(void)
 {
 	radio_t rc;
