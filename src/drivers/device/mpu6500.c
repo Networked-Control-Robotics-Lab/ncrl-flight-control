@@ -344,7 +344,7 @@ void debug_print_mpu6500_accel(void)
 	sprintf(s, "[accel] x:%4d, y:%4d, z:%4d\n\r", mpu6500.accel_unscaled[0],
 	        mpu6500.accel_unscaled[1], mpu6500.accel_unscaled[2]);
 
-	uart3_puts(s, strlen(s));
+	uart1_puts(s, strlen(s));
 	blocked_delay_ms(100);
 }
 
@@ -355,6 +355,6 @@ void debug_print_mpu6500_unscaled_lpf_accel(void)
 	sprintf(s, "[accel] x:%4.0f, y:%4.0f, z:%4.0f\n\r", mpu6500.accel_unscaled_lpf[0],
 	        mpu6500.accel_unscaled_lpf[1], mpu6500.accel_unscaled_lpf[2]);
 
-	uart3_puts(s, strlen(s));
+	uart1_puts(s, strlen(s));
 	blocked_delay_ms(100);
 }
