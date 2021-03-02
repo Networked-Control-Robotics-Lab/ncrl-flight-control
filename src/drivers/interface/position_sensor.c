@@ -38,7 +38,7 @@ void get_enu_position(float *pos)
 #if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)
 	optitrack_read_pos_x(&pos[0]);
 	optitrack_read_pos_y(&pos[1]);
-#elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_GPS)
+#elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_VINS_MONO)
 	vins_mono_read_pos_x(&pos[0]);
 	vins_mono_read_pos_y(&pos[1]);
 #elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_GPS)

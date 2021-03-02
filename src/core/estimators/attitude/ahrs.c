@@ -3,6 +3,7 @@
 #include "arm_math.h"
 #include "mpu6500.h"
 #include "optitrack.h"
+#include "vins_mono.h"
 #include "ahrs.h"
 #include "comp_ahrs.h"
 #include "madgwick_ahrs.h"
@@ -18,6 +19,7 @@
 #include "compass.h"
 
 extern optitrack_t optitrack;
+extern vins_mono_t vins_mono;
 
 attitude_t attitude;
 
@@ -39,6 +41,7 @@ void ahrs_init(void)
 		use_compass = true;
 		break;
 	case HEADING_SENSOR_USE_OPTITRACK:
+	case HEADING_SENSOR_USE_VINS_MONO:
 	default:
 		use_compass = false;
 	}
@@ -110,6 +113,31 @@ void align_ahrs_with_optitrack_yaw(float *q_ahrs)
 		quaternion_mult(q_yaw, q_original, q_ahrs);
 	}
 }
+
+#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_VINS_MONO) 
+void align_ahrs_with_vins_mono_yaw(float *q_ahrs)
+{
+	if(vins_mono_available() == true) {
+		euler_t vins_mono_euler;
+		quat_to_euler(vins_mono.q, &vins_mono_euler);
+
+		float half_psi = vins_mono_euler.yaw * 0.5f;
+
+		float q_yaw[4];
+		q_yaw[0] = arm_cos_f32(half_psi);
+		q_yaw[1] = 0.0f;
+		q_yaw[2] = 0.0f;
+		q_yaw[3] = arm_sin_f32(half_psi);
+
+		float q_original[4];
+		q_original[0] = q_ahrs[0];
+		q_original[1] = q_ahrs[1];
+		q_original[2] = q_ahrs[2];
+		q_original[3] = q_ahrs[3];
+		quaternion_mult(q_yaw, q_original, q_ahrs);
+	}
+}
+#endif
 
 void reset_quaternion_yaw_angle(float *q)
 {
@@ -197,6 +225,9 @@ void ahrs_estimate(void)
 #if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK)
 	reset_quaternion_yaw_angle(attitude.q);
 	align_ahrs_with_optitrack_yaw(attitude.q);
+#elif (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_VINS_MONO)
+	reset_quaternion_yaw_angle(attitude.q);
+	align_ahrs_with_vins_mono_yaw(attitude.q);
 #endif
 
 	euler_t euler;

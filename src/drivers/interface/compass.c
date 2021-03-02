@@ -12,7 +12,8 @@ void get_compass_raw(float *mag)
 bool is_compass_present(void)
 {
 #if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_COMPASS) || \
-    (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK)
+    (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK) || \
+	(SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_VINS_MONO)
 	return true;
 #else
 	return false;
