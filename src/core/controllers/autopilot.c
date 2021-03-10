@@ -620,7 +620,6 @@ void autopilot_guidance_handler(void)
 		autopilot_ptr->wp_now.pos[2] += autopilot_ptr->takeoff_speed;
 		if(autopilot_ptr->uav_state.pos[2] > autopilot_ptr->takeoff_height) {
 			autopilot_ptr->mode = AUTOPILOT_HOVERING_MODE;
-			autopilot_ptr->uav_state.pos[2] = autopilot_ptr->takeoff_height;
 			autopilot_assign_zero_vel_target();
 			autopilot_assign_zero_acc_feedforward();
 		}
