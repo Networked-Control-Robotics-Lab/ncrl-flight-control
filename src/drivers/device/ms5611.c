@@ -136,7 +136,7 @@ void ms5611_convert_pressure_temperature(int32_t d1, int32_t d2)
 	ms5611.temp_raw = (float)temp / 100.0f;      //[deg c]
 	ms5611.press_raw = (float)pressure / 100.0f; //[mbar]
 
-	lpf_first_order(ms5611.press_raw, &ms5611.press_lpf, 0.18f);
+	lpf_first_order(ms5611.press_raw, &ms5611.press_lpf, 0.1f); //0.18f
 }
 
 static void ms5611_calc_relative_altitude_and_velocity(BaseType_t *higher_priority_task_woken)
