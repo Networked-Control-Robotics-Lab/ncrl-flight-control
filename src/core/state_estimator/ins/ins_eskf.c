@@ -11,12 +11,10 @@
 #include "optitrack.h"
 #include "imu.h"
 #include "proj_config.h"
-
-/*==================================================================*
- * error-state kalman filter for multirotor full state estimation   *
- * derived by Sheng-Wen, Cheng (shengwen1997.tw@gmail.com)          *
- * estimate state = [position(3x1); velocity(3x1); quaternion(4x1)] *
- *==================================================================*/
+#include "compass.h"
+#include "gps.h"
+#include "barometer.h"
+#include "position_state.h"
 
 #define ESKF_RESCALE(number) (number * 1e7) //to improve the numerical stability
 
@@ -1362,7 +1360,7 @@ void get_eskf_ins_attitude_quaternion(float *q_out)
 	quaternion_conj(mat_data(nominal_state), q_out);
 }
 
-void ins_eskf_estimate(attitude_t *attitude,
+bool ins_eskf_estimate(attitude_t *attitude,
                        float *pos_enu_raw, float *vel_enu_raw,
                        float *pos_enu_fused, float *vel_enu_fused)
 {
@@ -1372,11 +1370,15 @@ void ins_eskf_estimate(attitude_t *attitude,
 #endif
 
 	/* check sensor status */
-	bool gps_ready = true;//is_gps_available();
-	bool compass_ready = true;//is_compass_available();
-	bool barometer_ready = true;//is_barometer_available();
+	bool gps_ready = is_gps_available();
+	bool compass_ready = is_compass_available();
+	bool barometer_ready = is_barometer_available();
 
 	bool sensor_all_ready = gps_ready && compass_ready && barometer_ready;
+
+	if(sensor_all_ready == false) {
+		return false;
+	}
 
 	/* change led state to indicate the sensor status */
 	set_rgb_led_service_navigation_on_flag(sensor_all_ready);
@@ -1474,6 +1476,8 @@ void ins_eskf_estimate(attitude_t *attitude,
 	attitude->yaw = rad_to_deg(euler.yaw);
 
 	quat_to_rotation_matrix(attitude->q, attitude->R_b2i, attitude->R_i2b);
+
+	return true;
 }
 
 void send_ins_eskf1_covariance_matrix_debug_message(debug_msg_t *payload)

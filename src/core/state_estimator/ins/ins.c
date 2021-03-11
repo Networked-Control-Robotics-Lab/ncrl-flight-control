@@ -47,27 +47,27 @@ void ins_init(void)
 	lpf_first_order_init(&gps_vx_lpf_gain, 0.2, 1);
 	lpf_first_order_init(&gps_vy_lpf_gain, 0.2, 1);
 
-#if (SELECT_INS == INS_COMPLEMENTARY_FILTER)
 	ins_comp_filter_init(INS_LOOP_PERIOD);
-#elif (SELECT_INS == INS_ESKF)
 	eskf_ins_init(INS_LOOP_PERIOD);
-#endif
 }
 
 void ins_state_estimate(void)
 {
 #if (SELECT_INS == INS_COMPLEMENTARY_FILTER)
-	/* rotational state estimator */
 	ahrs_estimate(&attitude);
-
-	/* translational state estimator */
 	ins_complementary_filter_estimate(pos_enu_raw, vel_enu_raw,
 	                                  pos_enu_fused, vel_enu_fused);
 #elif (SELECT_INS == INS_ESKF)
 	/* full state estimator */
-	ins_eskf_estimate(&attitude,
-	                  pos_enu_raw, vel_enu_raw,
-	                  pos_enu_fused, vel_enu_fused);
+	bool eskf_ready = ins_eskf_estimate(&attitude, pos_enu_raw, vel_enu_raw,
+	                                    pos_enu_fused, vel_enu_fused);
+
+	/* switch to complementary filter */
+	if(eskf_ready == false) {
+		ahrs_estimate(&attitude);
+		ins_complementary_filter_estimate(pos_enu_raw, vel_enu_raw,
+		                                  pos_enu_fused, vel_enu_fused);
+	}
 #endif
 }
 
