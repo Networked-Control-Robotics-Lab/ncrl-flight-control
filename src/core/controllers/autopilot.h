@@ -96,7 +96,9 @@ typedef struct {
 	} geo_fence; /* rectangular geo-fence in enu frame */
 
 	float landing_speed;
-	float landing_accept_height;
+	float landing_accept_height_upper;
+	float landing_accept_height_lower;
+	bool land_avaliable;
 	float takeoff_speed;
 	float takeoff_height;
 	
@@ -166,7 +168,6 @@ int autopilot_waypoint_mission_start(bool loop_mission);
 int autopilot_trigger_auto_landing(void);
 int autopilot_trigger_auto_takeoff(void);
 
-bool autopilot_motor_ls_lock(void);
 void autopilot_lock_motor(void);
 void autopilot_unlock_motor(void);
 

@@ -29,10 +29,12 @@ void autopilot_init(autopilot_t *_autopilot)
 	autopilot_ptr->mode = AUTOPILOT_MANUAL_FLIGHT_MODE;
 	autopilot_ptr->armed = false;
 	autopilot_ptr->motor_locked = false;
-	autopilot_ptr->landing_speed = 0.0013;        //[m/s]
-	autopilot_ptr->takeoff_speed = 0.0008;        //[m/s]
-	autopilot_ptr->takeoff_height = 1.0f;         //[m]
-	autopilot_ptr->landing_accept_height = 0.15f; //[m]
+	autopilot_ptr->landing_speed = 0.0013; //[m/s]
+	autopilot_ptr->takeoff_speed = 0.0008; //[m/s]
+	autopilot_ptr->takeoff_height = 1.0f;  //[m]
+	autopilot_ptr->landing_accept_height_lower = 0.10f; //[m]
+	autopilot_ptr->landing_accept_height_upper = 0.12f; //[m]
+	autopilot_ptr->land_avaliable = false;
 }
 
 void autopilot_update_uav_state(float pos_enu[3], float vel_enu[3])
@@ -606,23 +608,34 @@ void autopilot_guidance_handler(void)
 		break;
 	}
 	case AUTOPILOT_LANDING_MODE: {
-		/* slowly change the height setpoint for takeoff */
-		autopilot_ptr->wp_now.pos[2] -= autopilot_ptr->landing_speed;
 		autopilot_assign_zero_vel_target();
 		autopilot_assign_zero_acc_feedforward();
-		if(autopilot_ptr->uav_state.pos[2] < autopilot_ptr->landing_accept_height) {
+
+		/* check if the height setpoint is lower than the height accepted to land */
+		if(autopilot_ptr->wp_now.pos[2] < autopilot_ptr->landing_accept_height_lower) {
+			autopilot_ptr->wp_now.pos[2] = autopilot_ptr->landing_accept_height_lower;
+			autopilot_ptr->land_avaliable = true;
+		} else {
+			/* slowly change the height setpoint for landing */
+			autopilot_ptr->wp_now.pos[2] -= autopilot_ptr->landing_speed;
+		}
+
+		/* check if the height of the uav is lower than the height accepted to land */
+		if(autopilot_ptr->land_avaliable == true &&
+		    autopilot_ptr->uav_state.pos[2] < autopilot_ptr->landing_accept_height_upper) {
 			autopilot_ptr->mode = AUTOPILOT_MOTOR_LOCKED_MODE;
+			autopilot_ptr->land_avaliable = false;
 		}
 		break;
 	}
 	case AUTOPILOT_TAKEOFF_MODE: {
-		/* slowly change the height setpoint for landing */
+		/* slowly change the height setpoint for takeoff */
 		autopilot_ptr->wp_now.pos[2] += autopilot_ptr->takeoff_speed;
-		if(autopilot_ptr->uav_state.pos[2] > autopilot_ptr->takeoff_height) {
+		autopilot_assign_zero_vel_target();
+		autopilot_assign_zero_acc_feedforward();
+		if(autopilot_ptr->wp_now.pos[2] > autopilot_ptr->takeoff_height) {
 			autopilot_ptr->mode = AUTOPILOT_HOVERING_MODE;
-			autopilot_ptr->uav_state.pos[2] = autopilot_ptr->takeoff_height;
-			autopilot_assign_zero_vel_target();
-			autopilot_assign_zero_acc_feedforward();
+			autopilot_ptr->wp_now.pos[2] = autopilot_ptr->takeoff_height;
 		}
 		break;
 	}
