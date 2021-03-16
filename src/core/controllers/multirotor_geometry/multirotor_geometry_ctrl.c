@@ -617,14 +617,15 @@ void multirotor_geometry_control(radio_t *rc, float *desired_heading)
 	lock_motor |= check_motor_lock_condition(rc->throttle < 10.0f &&
 	                autopilot_is_manual_flight_mode());
 	//lock motor if current height is lower than auto-landing threshold value
-	lock_motor |= check_motor_lock_condition(autopilot.wp_now.pos[2] < 0.15f &&
-	                autopilot_is_auto_flight_mode());
+	lock_motor |= check_motor_lock_condition(autopilot.wp_now.pos[2] < 0.10f &&
+	                autopilot_get_mode() == AUTOPILOT_TAKEOFF_MODE);
+	//lock motor if desired hovering height is very close to ground
+	lock_motor |= check_motor_lock_condition(curr_pos_enu[2] < 0.10f &&
+	                autopilot_get_mode() == AUTOPILOT_HOVERING_MODE);
 	//lock motor if motors are locked by autopilot
 	lock_motor |= check_motor_lock_condition(autopilot_is_motor_locked_mode());
 	//lock motor if radio safety botton is on
 	lock_motor |= check_motor_lock_condition(rc->safety == true);
-	//lock motor if autopilot locked it
-	lock_motor |= check_motor_lock_condition(autopilot_motor_ls_lock() == true);
 
 	if(lock_motor == false) {
 		mr_geometry_ctrl_thrust_allocation(control_moments, control_force);

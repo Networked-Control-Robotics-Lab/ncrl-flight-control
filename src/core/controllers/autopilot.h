@@ -168,7 +168,6 @@ int autopilot_waypoint_mission_start(bool loop_mission);
 int autopilot_trigger_auto_landing(void);
 int autopilot_trigger_auto_takeoff(void);
 
-bool autopilot_motor_ls_lock(void);
 void autopilot_lock_motor(void);
 void autopilot_unlock_motor(void);
 
