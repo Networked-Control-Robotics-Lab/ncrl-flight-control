@@ -413,7 +413,7 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 	lock_motor |= check_motor_lock_condition(autopilot.wp_now.pos[2] < 0.10f &&
 	                autopilot_get_mode() == AUTOPILOT_TAKEOFF_MODE);
 	//lock motor if current position is very close to ground in the hovering mode
-	lock_motor |= check_motor_lock_condition(curr_pos_enu[2] < 0.10f &&
+	lock_motor |= check_motor_lock_condition(pos_enu[2] < 0.10f &&
 	                autopilot_get_mode() == AUTOPILOT_HOVERING_MODE);
 	//lock motor if motors are locked by autopilot
 	lock_motor |= check_motor_lock_condition(autopilot_is_motor_locked_mode());
