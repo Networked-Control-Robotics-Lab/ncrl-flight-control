@@ -529,10 +529,6 @@ int autopilot_trigger_auto_landing(void)
 	}
 }
 
-bool autopilot_motor_ls_lock(void)
-{
-	return autopilot_ptr->motor_locked;
-}
 void autopilot_lock_motor(void)
 {
 	/* caution:dangerous function, carefully use! */
