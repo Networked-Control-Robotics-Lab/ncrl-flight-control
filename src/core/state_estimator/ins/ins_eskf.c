@@ -165,8 +165,8 @@ void eskf_ins_init(float _dt)
 
 	/* initial V_gps matrix */
 	matrix_reset(mat_data(_V_gps), 4, 4);
-	V_gps(0, 0) = ESKF_RESCALE(5e-5); //Var(px)
-	V_gps(1, 1) = ESKF_RESCALE(5e-5); //Var(py)
+	V_gps(0, 0) = ESKF_RESCALE(2e-2); //Var(px)
+	V_gps(1, 1) = ESKF_RESCALE(2e-2); //Var(py)
 	V_gps(2, 2) = ESKF_RESCALE(1e-4); //Var(vx)
 	V_gps(3, 3) = ESKF_RESCALE(1e-4); //Var(vy)
 
@@ -1402,9 +1402,9 @@ bool ins_eskf_estimate(attitude_t *attitude,
 	vel_enu_fused[1] = mat_data(nominal_state)[4];  //vy
 	vel_enu_fused[2] = mat_data(nominal_state)[5];  //vz
 	attitude->q[0] = mat_data(nominal_state)[6];    //q0
-	attitude->q[1] = mat_data(nominal_state)[7];   //q1
-	attitude->q[2] = mat_data(nominal_state)[8];   //q2
-	attitude->q[3] = mat_data(nominal_state)[9];   //q3
+	attitude->q[1] = mat_data(nominal_state)[7];    //q1
+	attitude->q[2] = mat_data(nominal_state)[8];    //q2
+	attitude->q[3] = mat_data(nominal_state)[9];    //q3
 
 	euler_t euler;
 	quat_to_euler(attitude->q, &euler);
