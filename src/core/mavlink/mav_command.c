@@ -9,6 +9,7 @@
 #include "calibration_task.h"
 #include "sys_param.h"
 #include "esc_calibration.h"
+#include "common_list.h"
 
 static void mavlink_send_capability(void)
 {
@@ -27,7 +28,10 @@ static void mavlink_send_capability(void)
 	uint16_t product_id = 10001;
 	uint64_t uid = 100;
 
-	mavlink_msg_autopilot_version_pack_chan(1, 1, MAVLINK_COMM_1, &msg, cap, flight_sw_version, middleware_sw_ver,
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
+	mavlink_msg_autopilot_version_pack_chan((uint8_t)sys_id, 1, MAVLINK_COMM_1, &msg, cap, flight_sw_version, middleware_sw_ver,
 	                                        os_sw_version, board_version, flight_custom_ver, middleware_custom_ver,
 	                                        os_custom_ver, vendor_id, product_id, uid, NULL);
 	send_mavlink_msg_to_uart(&msg);
@@ -55,8 +59,11 @@ static void mav_cmd_preflight_calibration(mavlink_message_t *received_msg,
 	uint8_t param1 = 0;
 	int32_t param2 = 0;
 
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
 	mavlink_message_t msg;
-	mavlink_msg_command_ack_pack_chan(1, 0, MAVLINK_COMM_1, &msg,
+	mavlink_msg_command_ack_pack_chan((uint8_t)sys_id, 0, MAVLINK_COMM_1, &msg,
 	                                  command, result, param1, param2,
 	                                  255, MAV_COMP_ID_MISSIONPLANNER);
 	send_mavlink_msg_to_uart(&msg);

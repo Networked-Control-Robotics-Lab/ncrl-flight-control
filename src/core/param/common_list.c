@@ -11,7 +11,7 @@ void init_common_params(void)
 	INIT_SYS_PARAM_FLOAT(PITCH_ANG_OFFSET, 0);
 
 	/* airframe */
-	INIT_SYS_PARAM_FLOAT(MAV_TYPE, 2);
+	INIT_SYS_PARAM_FLOAT(VEHICLE_TYPE, 2);
 	/* mavlink */
 	INIT_SYS_PARAM_FLOAT(MAV_SYS_ID, 1);
 	/* sensor calibration */

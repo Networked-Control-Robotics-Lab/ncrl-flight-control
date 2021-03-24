@@ -13,7 +13,7 @@ enum {
 	 * px4 compatible parameters *
 	 *****************************/
 	/* airframe */
-	MAV_TYPE,
+	VEHICLE_TYPE,
 	/* sensor calibration */
 	CAL_ACC0_EN,
 	CAL_ACC0_ID,

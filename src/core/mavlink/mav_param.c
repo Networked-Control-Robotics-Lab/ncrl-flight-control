@@ -7,6 +7,8 @@
 #include "sys_param.h"
 #include "delay.h"
 #include "hash.h"
+#include "sys_param.h"
+#include "common_list.h"
 
 bool send_param = true;
 int send_index = 0;
@@ -71,7 +73,10 @@ void mav_param_resend_missing_item(int index)
 		return;
 	}
 
-	mavlink_msg_param_value_pack_chan(1, 1, MAVLINK_COMM_1, &msg, param_name,
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
+	mavlink_msg_param_value_pack_chan((uint8_t)sys_id, 1, MAVLINK_COMM_1, &msg, param_name,
 	                                  param_val, param_type, send_count, index);
 	send_mavlink_msg_to_uart(&msg);
 }
@@ -158,7 +163,10 @@ void mav_param_request_read(mavlink_message_t *received_msg)
 			return;
 		}
 
-		mavlink_msg_param_value_pack_chan(1, 1, MAVLINK_COMM_1, &msg, param_name,
+		float sys_id;
+		get_sys_param_float(MAV_SYS_ID, &sys_id);
+
+		mavlink_msg_param_value_pack_chan((uint8_t)sys_id, 1, MAVLINK_COMM_1, &msg, param_name,
 		                                  param_val, param_type, param_list_size, i);
 		send_mavlink_msg_to_uart(&msg);
 	}
@@ -249,7 +257,10 @@ void mav_param_set(mavlink_message_t *received_msg)
 		/* update parameter list to flash */
 		save_param_list_to_flash();
 
-		mavlink_msg_param_value_pack_chan(1, 1, MAVLINK_COMM_1, &msg, param_name,
+		float sys_id;
+		get_sys_param_float(MAV_SYS_ID, &sys_id);
+
+		mavlink_msg_param_value_pack_chan((uint8_t)sys_id, 1, MAVLINK_COMM_1, &msg, param_name,
 		                                  param_val, param_type, param_list_size, i);
 		send_mavlink_msg_to_uart(&msg);
 	}
@@ -309,7 +320,10 @@ void paramater_microservice_handler(void)
 		return;
 	}
 
-	mavlink_msg_param_value_pack_chan(1, 1, MAVLINK_COMM_1, &msg, param_name,
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
+	mavlink_msg_param_value_pack_chan((uint8_t)sys_id, 1, MAVLINK_COMM_1, &msg, param_name,
 	                                  param_val, param_type, send_count, send_index);
 	send_mavlink_msg_to_uart(&msg);
 
