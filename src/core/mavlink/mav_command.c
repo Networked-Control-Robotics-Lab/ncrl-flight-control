@@ -111,8 +111,17 @@ static void mav_cmd_preflight_storage(mavlink_message_t *received_msg,
 
 void mav_command_long(mavlink_message_t *received_msg)
 {
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
+	/* decode command_long message */
 	mavlink_command_long_t mav_command_long;
 	mavlink_msg_command_long_decode(received_msg, &mav_command_long);
+
+	/* ignore the message if the target id not matched to the system id */
+	if((uint8_t)sys_id != mav_command_long.target_system) {
+		return;
+	}
 
 	switch(mav_command_long.command) {
 	case MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES:

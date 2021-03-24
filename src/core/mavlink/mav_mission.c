@@ -21,12 +21,21 @@ mavlink_mission_manager mission_manager;
  ****************************/
 void mav_mission_request_list(mavlink_message_t *received_msg)
 {
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
+	/* decode mission_request_list message */
+	mavlink_mission_request_list_t mission_request_list;
+	mavlink_msg_mission_request_list_decode(received_msg, &mission_request_list);
+
+	/* ignore the message if the target id not matched to the system id */
+	if((uint8_t)sys_id != mission_request_list.target_system) {
+		return;
+	}
+
 	mavlink_message_t msg;
 
 	int waypoint_cnt = autopilot_get_waypoint_count();
-
-	float sys_id;
-	get_sys_param_float(MAV_SYS_ID, &sys_id);
 
 	mavlink_msg_mission_count_pack_chan((uint8_t)sys_id, 1, MAVLINK_COMM_1, &msg,
 	                                    received_msg->sysid, received_msg->compid,
@@ -44,22 +53,27 @@ void mav_mission_request_list(mavlink_message_t *received_msg)
 
 void mav_mission_count(mavlink_message_t *received_msg)
 {
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
+	/* decode mission_count message */
+	mavlink_mission_count_t mission_count;
+	mavlink_msg_mission_count_decode(received_msg, &mission_count);
+
+	/* ignore the message if the target id not matched to the system id */
+	if((uint8_t)sys_id != mission_count.target_system) {
+		return;
+	}
+
 	mission_manager.recept_cnt = mavlink_msg_mission_count_get_count(received_msg);
 
 	if(mission_manager.recept_cnt <= 0) {
 		return;
 	}
 
-	mavlink_message_t msg;
-
-	/* decode mission count message */
-	mavlink_mission_count_t mission_count;
-	mavlink_msg_mission_count_decode(received_msg, &mission_count);
-
 	mission_manager.recvd_mission_type = mission_count.mission_type;
 
-	float sys_id;
-	get_sys_param_float(MAV_SYS_ID, &sys_id);
+	mavlink_message_t msg;
 
 	/* reject mission if waypoint number exceeded maximum acceptable size */
 	if(mission_manager.recept_cnt > TRAJ_WP_MAX_NUM) {
@@ -90,17 +104,22 @@ void mav_mission_count(mavlink_message_t *received_msg)
 
 void mav_mission_item_int(mavlink_message_t *received_msg)
 {
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
+	/* decode mission_item_int message */
+	mavlink_mission_item_int_t mission_item;
+	mavlink_msg_mission_item_int_decode(received_msg, &mission_item);
+
+	/* ignore the message if the target id not matched to the system id */
+	if((uint8_t)sys_id != mission_item.target_system) {
+		return;
+	}
+
 	if(mission_manager.receive_mission == false) return;
 
 	int autopilot_retval;
 	mavlink_message_t msg;
-
-	/* decode received message */
-	mavlink_mission_item_int_t mission_item;
-	mavlink_msg_mission_item_int_decode(received_msg, &mission_item);
-
-	float sys_id;
-	get_sys_param_float(MAV_SYS_ID, &sys_id);
 
 	if(mission_item.seq == mission_manager.recept_index) {
 		/* sequence number is correct, save received mission to the list */
@@ -159,13 +178,21 @@ void mav_mission_item_int(mavlink_message_t *received_msg)
 
 void mav_mission_request_int(mavlink_message_t *received_msg)
 {
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
+	/* decode mission_request_int message */
+	mavlink_mission_request_int_t mission_request_int;
+	mavlink_msg_mission_request_int_decode(received_msg, &mission_request_int);
+
+	/* ignore the message if the target id not matched to the system id */
+	if((uint8_t)sys_id != mission_request_int.target_system) {
+		return;
+	}
+
 	if(mission_manager.send_mission == false) return;
 
 	mavlink_message_t msg;
-
-	/* decode request int message */
-	mavlink_mission_request_int_t mission_request_int;
-	mavlink_msg_mission_request_int_decode(received_msg, &mission_request_int);
 
 	/* read latitude, longitude, height and command from autopilot waypoint list */
 	int32_t latitude, longitude;
@@ -174,9 +201,6 @@ void mav_mission_request_int(mavlink_message_t *received_msg)
 
 	bool retval = autopilot_get_waypoint_gps_mavlink(mission_request_int.seq,
 	                &latitude, &longitude, &height, &command);
-
-	float sys_id;
-	get_sys_param_float(MAV_SYS_ID, &sys_id);
 
 	/* if ground station inquired an invalid mission sequence number */
 	if(retval == false) {
@@ -215,6 +239,18 @@ void mav_mission_request_int(mavlink_message_t *received_msg)
 
 void mav_mission_ack(mavlink_message_t *received_msg)
 {
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
+	/* decode mission_ack message */
+	mavlink_mission_ack_t mission_ack;
+	mavlink_msg_mission_ack_decode(received_msg, &mission_ack);
+
+	/* ignore the message if the target id not matched to the system id */
+	if((uint8_t)sys_id != mission_ack.target_system) {
+		return;
+	}
+
 	if(mission_manager.send_mission == false) return;
 
 	/* ground station received all missions, ready to close the protocol */
@@ -226,10 +262,19 @@ void mav_mission_clear_all(mavlink_message_t *received_msg)
 	//XXX: not supported by old version qgroundcontrol, need to test on new version
 	//     later
 
-	mavlink_message_t msg;
-
 	float sys_id;
 	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
+	/* decode mission_clear_all message */
+	mavlink_mission_clear_all_t mission_clear_all;
+	mavlink_msg_mission_clear_all_decode(received_msg, &mission_clear_all);
+
+	/* ignore the message if the target id not matched to the system id */
+	if((uint8_t)sys_id != mission_clear_all.target_system) {
+		return;
+	}
+
+	mavlink_message_t msg;
 
 	/* not supposed to receive this message while receiving or sending waypoing list */
 	if(mission_manager.send_mission == true || mission_manager.receive_mission == true) {

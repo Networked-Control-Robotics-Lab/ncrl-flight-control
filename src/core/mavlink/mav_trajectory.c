@@ -61,10 +61,19 @@ void trigger_polynomial_trajectory_ack_sending(uint8_t ack_val)
 
 void mav_polynomial_trajectory_write(mavlink_message_t *received_msg)
 {
-	traj_msg_manager.recept_start_time = get_sys_time_s();
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
 
+	/* decode polynomial_trajectory_write message */
 	mavlink_polynomial_trajectory_write_t poly_traj_write;
 	mavlink_msg_polynomial_trajectory_write_decode(received_msg, &poly_traj_write);
+
+	/* ignore the message if the target id not matched to the system id */
+	if((uint8_t)sys_id != poly_traj_write.target_system) {
+		return;
+	}
+
+	traj_msg_manager.recept_start_time = get_sys_time_s();
 
 	/* setup trajectory configuration of autopilot*/
 	traj_msg_manager.z_planned = (poly_traj_write.z_enabled == 0 ? false : true);
@@ -98,8 +107,18 @@ void mav_polynomial_trajectory_write(mavlink_message_t *received_msg)
 
 void mav_polynomial_trajectory_cmd(mavlink_message_t *received_msg)
 {
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
+	/* decode polynomial_trajectory_cmd message */
 	mavlink_polynomial_trajectory_cmd_t poly_traj_cmd;
 	mavlink_msg_polynomial_trajectory_cmd_decode(received_msg, &poly_traj_cmd);
+
+	/* ignore the message if the target id not matched to the system id */
+	if((uint8_t)sys_id != poly_traj_cmd.target_system) {
+		return;
+	}
+
 	uint8_t option = poly_traj_cmd.option;
 
 	int ret_val = AUTOPILOT_SET_SUCCEED;
@@ -131,13 +150,22 @@ void mav_polynomial_trajectory_cmd(mavlink_message_t *received_msg)
 
 void mav_polynomial_trajectory_item(mavlink_message_t *received_msg)
 {
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
+	/* decode polynomial_trajectory_item message */
+	mavlink_polynomial_trajectory_item_t poly_traj_item;
+	mavlink_msg_polynomial_trajectory_item_decode(received_msg, &poly_traj_item);
+
+	/* ignore the message if the target id not matched to the system id */
+	if((uint8_t)sys_id != poly_traj_item.target_system) {
+		return;
+	}
+
 	/* should not receive any trajectory if handshaking not happened */
 	if(traj_msg_manager.do_recept == false) return;
 
 	traj_msg_manager.recept_start_time = get_sys_time_s();
-
-	mavlink_polynomial_trajectory_item_t poly_traj_item;
-	mavlink_msg_polynomial_trajectory_item_decode(received_msg, &poly_traj_item);
 
 	int ret_val = 0;
 
