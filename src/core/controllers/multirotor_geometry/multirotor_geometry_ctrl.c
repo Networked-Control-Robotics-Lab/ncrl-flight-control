@@ -506,9 +506,9 @@ void moment_ff_ctrl_use_geometry(float *mom_ff)
 	//W x JW
 	MAT_MULT(&J, &W, &JW);
 	cross_product_3x1(mat_data(W), mat_data(JW), mat_data(WJW));
-	mom_ff[0] = mat_data(WJW)[0];
-	mom_ff[1] = mat_data(WJW)[1];
-	mom_ff[2] = mat_data(WJW)[2];
+	mom_ff[0] = -mat_data(WJW)[0];
+	mom_ff[1] = -mat_data(WJW)[1];
+	mom_ff[2] = -mat_data(WJW)[2];
 }
 
 void moment_ff_ctrl_use_adaptive_ICL(float *mom_ff)
@@ -889,14 +889,14 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 #endif
 
 	/* save current moment for ICL */
-	mat_data(curr_moment)[0] = -krx*mat_data(eR)[0] -kwx*mat_data(eW)[0] + moment_ff[0];
-	mat_data(curr_moment)[1] = -krx*mat_data(eR)[1] -kwx*mat_data(eW)[1] + moment_ff[1];
-	mat_data(curr_moment)[2] = -krx*mat_data(eR)[2] -kwx*mat_data(eW)[2] + moment_ff[2];
+	mat_data(curr_moment)[0] = -krx*mat_data(eR)[0] -kwx*mat_data(eW)[0] - moment_ff[0];
+	mat_data(curr_moment)[1] = -krx*mat_data(eR)[1] -kwx*mat_data(eW)[1] - moment_ff[1];
+	mat_data(curr_moment)[2] = -krx*mat_data(eR)[2] -kwx*mat_data(eW)[2] - moment_ff[2];
 
 	/* control input M1, M2, M3 */
-	output_moments[0] = -krx*mat_data(eR)[0] -kwx*mat_data(eW)[0] + moment_ff[0];
-	output_moments[1] = -kry*mat_data(eR)[1] -kwy*mat_data(eW)[1] + moment_ff[1];
-	output_moments[2] = -krz*mat_data(eR)[2] -kwz*mat_data(eW)[2] + moment_ff[2];
+	output_moments[0] = -krx*mat_data(eR)[0] -kwx*mat_data(eW)[0] - moment_ff[0];
+	output_moments[1] = -kry*mat_data(eR)[1] -kwy*mat_data(eW)[1] - moment_ff[1];
+	output_moments[2] = -krz*mat_data(eR)[2] -kwz*mat_data(eW)[2] - moment_ff[2];
 }
 
 #define l_div_4 (0.25f * (1.0f / MOTOR_TO_CG_LENGTH_M))
