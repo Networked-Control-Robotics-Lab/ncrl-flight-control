@@ -7,6 +7,8 @@
 #include "sys_param.h"
 #include "delay.h"
 #include "hash.h"
+#include "sys_param.h"
+#include "common_list.h"
 
 bool send_param = true;
 int send_index = 0;
@@ -14,6 +16,18 @@ int send_count = 0;
 
 void mav_param_request_list(mavlink_message_t *received_msg)
 {
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
+	/* decode param_request_list message */
+	mavlink_param_request_list_t param_request_list;
+	mavlink_msg_param_request_list_decode(received_msg, &param_request_list);
+
+	/* ignore the message if the target id not matched to the system id */
+	if((uint8_t)sys_id != param_request_list.target_system) {
+		return;
+	}
+
 	send_count = get_sys_param_list_size();
 	send_index = 0;
 	send_param = true;
@@ -71,7 +85,10 @@ void mav_param_resend_missing_item(int index)
 		return;
 	}
 
-	mavlink_msg_param_value_pack_chan(1, 1, MAVLINK_COMM_1, &msg, param_name,
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
+	mavlink_msg_param_value_pack_chan((uint8_t)sys_id, 1, MAVLINK_COMM_1, &msg, param_name,
 	                                  param_val, param_type, send_count, index);
 	send_mavlink_msg_to_uart(&msg);
 }
@@ -79,8 +96,17 @@ void mav_param_resend_missing_item(int index)
 
 void mav_param_request_read(mavlink_message_t *received_msg)
 {
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
+	/* decode param_request_read message */
 	mavlink_param_request_read_t mav_param_rq;
 	mavlink_msg_param_request_read_decode(received_msg, &mav_param_rq);
+
+	/* ignore the message if the target id not matched to the system id */
+	if((uint8_t)sys_id != mav_param_rq.target_system) {
+		return;
+	}
 
 	/* empty param_id means qgs requests parameter resending */
 	if(mav_param_rq.param_id[0] == '\0') {
@@ -158,7 +184,7 @@ void mav_param_request_read(mavlink_message_t *received_msg)
 			return;
 		}
 
-		mavlink_msg_param_value_pack_chan(1, 1, MAVLINK_COMM_1, &msg, param_name,
+		mavlink_msg_param_value_pack_chan((uint8_t)sys_id, 1, MAVLINK_COMM_1, &msg, param_name,
 		                                  param_val, param_type, param_list_size, i);
 		send_mavlink_msg_to_uart(&msg);
 	}
@@ -166,8 +192,17 @@ void mav_param_request_read(mavlink_message_t *received_msg)
 
 void mav_param_set(mavlink_message_t *received_msg)
 {
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
+	/* decode param_request_set message */
 	mavlink_param_set_t mav_param_set;
 	mavlink_msg_param_set_decode(received_msg, &mav_param_set);
+
+	/* ignore the message if the target id not matched to the system id */
+	if((uint8_t)sys_id != mav_param_set.target_system) {
+		return;
+	}
 
 	mavlink_message_t msg;
 
@@ -249,7 +284,7 @@ void mav_param_set(mavlink_message_t *received_msg)
 		/* update parameter list to flash */
 		save_param_list_to_flash();
 
-		mavlink_msg_param_value_pack_chan(1, 1, MAVLINK_COMM_1, &msg, param_name,
+		mavlink_msg_param_value_pack_chan((uint8_t)sys_id, 1, MAVLINK_COMM_1, &msg, param_name,
 		                                  param_val, param_type, param_list_size, i);
 		send_mavlink_msg_to_uart(&msg);
 	}
@@ -309,7 +344,10 @@ void paramater_microservice_handler(void)
 		return;
 	}
 
-	mavlink_msg_param_value_pack_chan(1, 1, MAVLINK_COMM_1, &msg, param_name,
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
+	mavlink_msg_param_value_pack_chan((uint8_t)sys_id, 1, MAVLINK_COMM_1, &msg, param_name,
 	                                  param_val, param_type, send_count, send_index);
 	send_mavlink_msg_to_uart(&msg);
 

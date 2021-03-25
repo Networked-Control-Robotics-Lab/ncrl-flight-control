@@ -6,15 +6,20 @@
 #include "position_state.h"
 #include "../mavlink/mav_publisher.h"
 #include "../mavlink/mav_trajectory.h"
+#include "sys_param.h"
+#include "common_list.h"
 
 traj_msg_manager_t traj_msg_manager;
 
 void polynomial_trajectory_microservice_handler(void)
 {
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
 	if(traj_msg_manager.do_ack == true) {
 		mavlink_message_t msg;
 		mavlink_msg_polynomial_trajectory_ack_pack_chan(
-		        1, 1, MAVLINK_COMM_1, &msg, 255, 0, traj_msg_manager.ack_val);
+		        (uint8_t)sys_id, 1, MAVLINK_COMM_1, &msg, 255, 0, traj_msg_manager.ack_val);
 		send_mavlink_msg_to_uart(&msg);
 		traj_msg_manager.do_ack = false;
 	}
@@ -56,10 +61,19 @@ void trigger_polynomial_trajectory_ack_sending(uint8_t ack_val)
 
 void mav_polynomial_trajectory_write(mavlink_message_t *received_msg)
 {
-	traj_msg_manager.recept_start_time = get_sys_time_s();
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
 
+	/* decode polynomial_trajectory_write message */
 	mavlink_polynomial_trajectory_write_t poly_traj_write;
 	mavlink_msg_polynomial_trajectory_write_decode(received_msg, &poly_traj_write);
+
+	/* ignore the message if the target id not matched to the system id */
+	if((uint8_t)sys_id != poly_traj_write.target_system) {
+		return;
+	}
+
+	traj_msg_manager.recept_start_time = get_sys_time_s();
 
 	/* setup trajectory configuration of autopilot*/
 	traj_msg_manager.z_planned = (poly_traj_write.z_enabled == 0 ? false : true);
@@ -93,8 +107,18 @@ void mav_polynomial_trajectory_write(mavlink_message_t *received_msg)
 
 void mav_polynomial_trajectory_cmd(mavlink_message_t *received_msg)
 {
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
+	/* decode polynomial_trajectory_cmd message */
 	mavlink_polynomial_trajectory_cmd_t poly_traj_cmd;
 	mavlink_msg_polynomial_trajectory_cmd_decode(received_msg, &poly_traj_cmd);
+
+	/* ignore the message if the target id not matched to the system id */
+	if((uint8_t)sys_id != poly_traj_cmd.target_system) {
+		return;
+	}
+
 	uint8_t option = poly_traj_cmd.option;
 
 	int ret_val = AUTOPILOT_SET_SUCCEED;
@@ -126,13 +150,22 @@ void mav_polynomial_trajectory_cmd(mavlink_message_t *received_msg)
 
 void mav_polynomial_trajectory_item(mavlink_message_t *received_msg)
 {
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
+	/* decode polynomial_trajectory_item message */
+	mavlink_polynomial_trajectory_item_t poly_traj_item;
+	mavlink_msg_polynomial_trajectory_item_decode(received_msg, &poly_traj_item);
+
+	/* ignore the message if the target id not matched to the system id */
+	if((uint8_t)sys_id != poly_traj_item.target_system) {
+		return;
+	}
+
 	/* should not receive any trajectory if handshaking not happened */
 	if(traj_msg_manager.do_recept == false) return;
 
 	traj_msg_manager.recept_start_time = get_sys_time_s();
-
-	mavlink_polynomial_trajectory_item_t poly_traj_item;
-	mavlink_msg_polynomial_trajectory_item_decode(received_msg, &poly_traj_item);
 
 	int ret_val = 0;
 
@@ -208,9 +241,12 @@ void send_mavlink_trajectory_position_debug(void)
 	get_enu_position(curr_pos);
 	autopilot_get_pos_setpoint(des_pos);
 
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
 	mavlink_message_t msg;
 	mavlink_msg_polynomial_trajectory_position_debug_pack(
-	        1, 1, &msg, target_system, target_component,
+	        (uint8_t)sys_id, 1, &msg, target_system, target_component,
 	        curr_pos[0], curr_pos[1], curr_pos[2],
 	        des_pos[0], des_pos[1], des_pos[2]);
 	send_mavlink_msg_to_uart(&msg);
@@ -227,9 +263,12 @@ void send_mavlink_trajectory_velocity_debug(void)
 	get_enu_velocity(curr_vel);
 	autopilot_get_vel_setpoint(des_vel);
 
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
 	mavlink_message_t msg;
 	mavlink_msg_polynomial_trajectory_velocity_debug_pack(
-	        1, 1, &msg, target_system, target_component,
+	        (uint8_t)sys_id, 1, &msg, target_system, target_component,
 	        curr_vel[0], curr_vel[1], curr_vel[2],
 	        des_vel[0], des_vel[1], des_vel[2]);
 	send_mavlink_msg_to_uart(&msg);
@@ -244,9 +283,12 @@ void send_mavlink_trajectory_acceleration_debug(void)
 
 	autopilot_get_accel_feedforward(des_accel_ff);
 
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
 	mavlink_message_t msg;
 	mavlink_msg_polynomial_trajectory_acceleration_debug_pack(
-	        1, 1, &msg, target_system, target_component,
+	        (uint8_t)sys_id, 1, &msg, target_system, target_component,
 	        des_accel_ff[0], des_accel_ff[1], des_accel_ff[2]);
 	send_mavlink_msg_to_uart(&msg);
 }

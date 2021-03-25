@@ -2,7 +2,7 @@
 #define __PROJ_CONFIG_H__
 
 /* uav info */
-#define UAV_ID 0
+#define UAV_DEFAULT_ID 1 //vaild from 1~250 according to qgroundcontrol
 
 /* uav type */
 #define UAV_TYPE_QUADROTOR 0
