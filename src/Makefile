@@ -81,6 +81,7 @@ SRC+=./core/main.c \
 	./core/controllers/multirotor_pid/multirotor_pid_param.c \
 	./core/controllers/multirotor_geometry/multirotor_geometry_ctrl.c \
 	./core/controllers/multirotor_geometry/multirotor_geometry_param.c \
+	./core/controllers/multirotor_geometry/send_debug_adaptive_ICL.c \
 	./core/controllers/actuator/motor_thrust_fitting.c \
 	./core/controllers/autopilot.c \
 	./core/tasks/flight_ctrl_task.c \
