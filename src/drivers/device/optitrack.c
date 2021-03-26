@@ -12,6 +12,7 @@
 #include "lpf.h"
 #include "debug_link.h"
 #include "led.h"
+#include "proj_config.h"
 
 #define OPTITRACK_QUEUE_SIZE (32 * 400) //~400 packets
 
@@ -34,6 +35,12 @@ bool optitrack_available(void)
 	//timeout if no data available more than 300ms
 	float current_time = get_sys_time_ms();
 	if((current_time - optitrack.time_now) > 300) {
+<<<<<<< HEAD
+=======
+#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)
+		led_off(LED_G);
+#endif
+>>>>>>> vins_mono_develope
 		return false;
 	}
 	return true;
@@ -79,6 +86,12 @@ void optitrack_update(void)
 		if(c == '+' && optitrack.buf[0] == '@') {
 			/* decode optitrack message */
 			if(optitrack_serial_decoder(optitrack.buf) == 0) {
+<<<<<<< HEAD
+=======
+#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)
+				led_on(LED_G);
+#endif
+>>>>>>> vins_mono_develope
 				optitrack.buf_pos = 0; //reset position pointer
 			}
 		}

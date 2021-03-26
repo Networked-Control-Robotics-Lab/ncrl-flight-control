@@ -9,11 +9,13 @@
 #include "isr.h"
 #include "sbus_radio.h"
 #include "optitrack.h"
+#include "vins_mono.h"
 #include "ublox_m8n.h"
 #include "proj_config.h"
 
 #define UART1_QUEUE_SIZE 100
 #define UART3_QUEUE_SIZE 500
+#define UART6_QUEUE_SIZE 500
 
 typedef struct {
 	char c;
@@ -182,6 +184,7 @@ void uart4_init(int baudrate)
  */
 void uart6_init(int baudrate)
 {
+	
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART6, ENABLE);
@@ -190,7 +193,7 @@ void uart6_init(int baudrate)
 	GPIO_PinAFConfig(GPIOC, GPIO_PinSource7, GPIO_AF_USART6);
 
 	GPIO_InitTypeDef GPIO_InitStruct = {
-		.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_6,
+		.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7,
 		.GPIO_Mode = GPIO_Mode_AF,
 		.GPIO_Speed = GPIO_Speed_50MHz,
 		.GPIO_OType = GPIO_OType_PP,
@@ -208,6 +211,16 @@ void uart6_init(int baudrate)
 	USART_Init(USART6, &USART_InitStruct);
 	USART_Cmd(USART6, ENABLE);
 	USART_ClearFlag(USART6, USART_FLAG_TC);
+	
+	NVIC_InitTypeDef NVIC_InitStruct = {
+		.NVIC_IRQChannel = USART6_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = UART6_RX_ISR_PRIORITY,
+		.NVIC_IRQChannelSubPriority = 0,
+		.NVIC_IRQChannelCmd = ENABLE
+	};
+
+	NVIC_Init(&NVIC_InitStruct);
+	USART_ITConfig(USART6, USART_IT_RXNE, ENABLE);
 }
 
 /*
@@ -516,6 +529,16 @@ void UART4_IRQHandler(void)
 	}
 }
 
+void USART6_IRQHandler(void)
+{
+	uint8_t c;
+	if(USART_GetITStatus(USART6, USART_IT_RXNE) == SET) {
+		c = USART_ReceiveData(USART6);
+		USART6->SR;
+		vins_mono_isr_handler(c);
+	}
+}
+
 void UART7_IRQHandler(void)
 {
 	uint8_t c;
@@ -525,7 +548,7 @@ void UART7_IRQHandler(void)
 
 #if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_GPS)
 		ublox_m8n_isr_handler(c);
-#elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)
+#elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)||(SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK)||(SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_OPTITRACK)
 		optitrack_isr_handler(c);
 #else
 		(void)c; //prevent from unused variable warning

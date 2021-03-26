@@ -15,6 +15,7 @@
 #include "mpu6500.h"
 #include "sbus_radio.h"
 #include "optitrack.h"
+#include "vins_mono.h"
 #include "sys_time.h"
 #include "motor.h"
 #include "debug_link.h"
@@ -55,12 +56,15 @@ int main(void)
 	uart1_init(115200);
 	uart3_init(115200); //telem
 	uart4_init(100000); //s-bus
-	uart6_init(115200);
 
 #if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_GPS)
 	uart7_init(38400); //gps
 	ublox_m8n_init();
-#elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)
+#elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_VINS_MONO)
+	uart6_init(115200);
+	vins_mono_init(UAV_ID); //setup tracker id for this MAV
+#endif
+#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)||(SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK)||(SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_OPTITRACK)
 	uart7_init(115200); //optitrack
 	optitrack_init(UAV_DEFAULT_ID); //setup tracker id for this MAV
 #endif

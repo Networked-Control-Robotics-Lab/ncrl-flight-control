@@ -4,6 +4,7 @@
 #include "multirotor_pid_ctrl.h"
 #include "motor_thrust_fitting.h"
 #include "optitrack.h"
+#include "vins_mono.h"
 #include "multirotor_geometry_ctrl.h"
 #include "free_fall.h"
 #include "flight_ctrl_task.h"
@@ -47,6 +48,11 @@ void task_debug_link(void *param)
 		//send_ins_raw_position_debug_message(&payload);
 		//send_ins_fusion_debug_message(&payload);
 		send_ahrs_compass_quality_check_debug_message(&payload);
+		
+		/*	for vins_mono		*/
+		//send_vins_mono_position_debug_message(&payload);
+		//send_vins_mono_quaternion_debug_message(&payload);
+		//send_vins_mono_velocity_debug_message(&payload);
 
 		send_onboard_data(payload.s, payload.len);
 		freertos_task_delay(50); //XXX: 20Hz

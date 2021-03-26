@@ -24,6 +24,10 @@ bool is_compass_available(void)
 	return ist8310_available();
 #elif (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK)
 	return optitrack_available();
+#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_COMPASS) || \
+    (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK) || \
+	(SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_VINS_MONO)
+	return true;
 #else
 	return false;
 #endif
