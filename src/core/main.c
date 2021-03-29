@@ -62,7 +62,7 @@ int main(void)
 	ublox_m8n_init();
 #elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)
 	uart7_init(115200); //optitrack
-	optitrack_init(UAV_ID); //setup tracker id for this MAV
+	optitrack_init(UAV_DEFAULT_ID); //setup tracker id for this MAV
 #endif
 
 	timer12_init();    //system timer and flight controller timer
