@@ -739,7 +739,7 @@ void autopilot_guidance_handler(void)
 void debug_print_waypoint_list(void)
 {
 	char *prompt = "waypoint list:\n\r";
-	uart3_puts(prompt, strlen(prompt));
+	uart1_puts(prompt, strlen(prompt));
 
 	char s[200] = {0};
 	int i;
@@ -748,7 +748,7 @@ void debug_print_waypoint_list(void)
 		        i, autopilot_ptr->wp_list[i].pos[0], autopilot_ptr->wp_list[i].pos[1],
 		        autopilot_ptr->wp_list[i].pos[2], autopilot_ptr->wp_list[i].heading,
 		        autopilot_ptr->wp_list[i].halt_time_sec, autopilot_ptr->wp_list[i].touch_radius);
-		uart3_puts(s, strlen(s));
+		uart1_puts(s, strlen(s));
 	}
 }
 
@@ -756,7 +756,7 @@ void debug_print_waypoint_status(void)
 {
 	if(autopilot_ptr->mode != AUTOPILOT_WAIT_NEXT_WAYPOINT_MODE && autopilot_ptr->mode != AUTOPILOT_FOLLOW_WAYPOINT_MODE) {
 		char *no_executing_s = "autopilot off, no executing waypoint mission.\n\r";
-		uart3_puts(no_executing_s, strlen(no_executing_s));
+		uart1_puts(no_executing_s, strlen(no_executing_s));
 		return;
 	}
 
@@ -771,6 +771,6 @@ void debug_print_waypoint_status(void)
 	        autopilot_ptr->wp_list[curr_wp_num].heading,
 	        autopilot_ptr->wp_list[curr_wp_num].halt_time_sec,
 	        autopilot_ptr->wp_list[curr_wp_num].touch_radius * 0.01);
-	uart3_puts(s, strlen(s));
+	uart1_puts(s, strlen(s));
 	freertos_task_delay(1);
 }

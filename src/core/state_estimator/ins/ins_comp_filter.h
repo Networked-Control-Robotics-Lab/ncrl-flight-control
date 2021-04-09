@@ -2,6 +2,8 @@
 #define __INS_COMP_FILTER_H__
 
 void ins_comp_filter_init(float _dt);
+void ins_complementary_filter_estimate(float *pos_enu_raw, float *vel_enu_raw,
+                                       float *pos_enu_fused, float *vel_enu_fused);
 
 void ins_comp_filter_predict(float *pos_enu_out, float *vel_enu_out,
                              bool gps_available, bool height_available);

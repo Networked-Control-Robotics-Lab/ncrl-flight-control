@@ -37,5 +37,5 @@ void debug_print_sys_tim(void)
 	char s[100] = {0};
 	sprintf(s, "sys_tim_sec: %f, sys_time_ms: %f\n\r",
 	        get_sys_time_s(), get_sys_time_ms());
-	uart3_puts(s, strlen(s));
+	uart1_puts(s, strlen(s));
 }

@@ -3,7 +3,7 @@
 
 /* enumerate performace counter id for executuin time profiling */
 enum {
-	PERF_AHRS,
+	PERF_AHRS_INS,
 	PERF_CONTROLLER,
 	PERF_FLIGHT_CONTROL_LOOP,
 	PERF_FLIGHT_CONTROL_TRIGGER_TIME

@@ -23,6 +23,7 @@
 #include "sys_param.h"
 #include "proj_config.h"
 #include "led.h"
+#include "attitude_state.h"
 
 #define dt 0.0025 //[s]
 #define MOTOR_TO_CG_LENGTH 16.25f //[cm]

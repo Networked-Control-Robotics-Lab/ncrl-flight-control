@@ -11,6 +11,7 @@
 #include "ist8310.h"
 #include "proj_config.h"
 #include "debug_link_task.h"
+#include "dummy_sensors.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD      1000  //400Hz
 #define LED_CTRL_PRESCALER_RELOAD        16000 //25Hz
@@ -123,6 +124,10 @@ void TIM3_IRQHandler(void)
 			ist8310_semaphore_handler(&higher_priority_task_woken);
 		}
 #endif
+
+		/* disable the sensors in proj_config.h and uncomment the following
+		 * line */
+		//dummy_sensors_update_isr_handler(&higher_priority_task_woken);
 
 		TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
 		portEND_SWITCHING_ISR(higher_priority_task_woken);

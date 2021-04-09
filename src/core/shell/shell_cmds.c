@@ -425,7 +425,7 @@ void shell_cmd_radio(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int pa
 	shell_puts("press [q] to stop.\n\r");
 	char c = '\0';
 	while(1) {
-		if(uart3_getc(&c, 0) == true) {
+		if(uart1_getc(&c, 0) == true) {
 			if(c == 'q') break;
 		}
 		debug_print_rc_info();
@@ -437,7 +437,7 @@ void shell_cmd_radio_raw(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], in
 	shell_puts("press [q] to stop.\n\r");
 	char c = '\0';
 	while(1) {
-		if(uart3_getc(&c, 0) == true) {
+		if(uart1_getc(&c, 0) == true) {
 			if(c == 'q') break;
 		}
 		debug_print_rc_val();
@@ -454,7 +454,7 @@ void shell_cmd_accel(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int pa
 	shell_puts("press [q] to stop.\n\r");
 	char c = '\0';
 	while(1) {
-		if(uart3_getc(&c, 0) == true) {
+		if(uart1_getc(&c, 0) == true) {
 			if(c == 'q') break;
 		}
 		debug_print_mpu6500_unscaled_lpf_accel();
@@ -468,7 +468,7 @@ void shell_cmd_perf(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 
 	float flight_control_trigger_time = perf_get_time_s(PERF_FLIGHT_CONTROL_TRIGGER_TIME);
 	float flight_loop_time = perf_get_time_s(PERF_FLIGHT_CONTROL_LOOP);
-	float ahrs_time = perf_get_time_s(PERF_AHRS);
+	float ahrs_time = perf_get_time_s(PERF_AHRS_INS);
 	float controller_time = perf_get_time_s(PERF_CONTROLLER);
 	float ahrs_cpu_percentage = ahrs_time / flight_control_trigger_time * 100;
 	float controller_cpu_percentage = controller_time / flight_control_trigger_time * 100;
@@ -639,7 +639,7 @@ void shell_cmd_compass(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int 
 
 	shell_puts("press [q] to stop.\n\r");
 	while(1) {
-		if(uart3_getc(&c, 0) == true) {
+		if(uart1_getc(&c, 0) == true) {
 			if(c == 'q') break;
 		}
 

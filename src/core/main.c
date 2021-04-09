@@ -33,9 +33,10 @@
 #include "flash.h"
 #include "ms5611.h"
 #include "ist8310.h"
+#include "ins_sensor_sync.h"
 
 perf_t perf_list[] = {
-	DEF_PERF(PERF_AHRS, "ahrs")
+	DEF_PERF(PERF_AHRS_INS, "ahrs and ins")
 	DEF_PERF(PERF_CONTROLLER, "controller")
 	DEF_PERF(PERF_FLIGHT_CONTROL_LOOP, "flight control loop")
 	DEF_PERF(PERF_FLIGHT_CONTROL_TRIGGER_TIME, "flight control trigger time")
@@ -46,6 +47,9 @@ int main(void)
 	perf_init(perf_list, SIZE_OF_PERF_LIST(perf_list));
 
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
+
+	/* initialize sensor synchronization buffer */
+	ins_sync_buffer_init();
 
 	/* driver initialization */
 	flash_init();

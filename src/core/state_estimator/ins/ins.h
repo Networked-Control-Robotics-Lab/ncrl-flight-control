@@ -1,6 +1,8 @@
 #ifndef __INS_H__
 #define __INS_H__
 
+#include <stdbool.h>
+
 void ins_init(void);
 bool ins_check_sensor_status(void);
 void ins_state_estimate(void);
@@ -24,5 +26,11 @@ float ins_get_fused_position_z(void);
 float ins_get_fused_velocity_x(void);
 float ins_get_fused_velocity_y(void);
 float ins_get_fused_velocity_z(void);
+
+/* ins ahrs attitude getters */
+void ins_ahrs_get_attitude_euler_angles(float *roll, float *pitch, float *yaw);
+void ins_ahrs_get_attitude_quaternion(float *q);
+void ins_ahrs_get_rotation_matrix_b2i(float **R_b2i);
+void ins_ahrs_get_rotation_matrix_i2b(float **R_i2b);
 
 #endif
