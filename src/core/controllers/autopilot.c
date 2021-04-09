@@ -6,6 +6,8 @@
 #include "autopilot.h"
 #include "uart.h"
 #include "delay.h"
+#include "sbus_radio.h"
+#include "ahrs.h"
 
 #define EARTH_RADIUS 6371 //[km]
 
@@ -551,8 +553,52 @@ int autopilot_trigger_auto_takeoff(void)
 	}
 }
 
+void autopilot_hovering_position_trimming_handler(void)
+{
+	const float dt = 0.0001;
+
+	/* position setpoint increment in ned body-fixed frame  */
+	float x_increment_b = 0.0f;
+	float y_increment_b = 0.0f;
+
+	/* position setpoint increment in ned inertial frame */
+	float x_increment_i = 0.0f;
+	float y_increment_i = 0.0f;
+
+	radio_t rc;
+	sbus_rc_read(&rc);
+
+	/* pitch */
+	if(rc.pitch > 5.0f || rc.pitch < -5.0f) {
+		x_increment_b = rc.pitch * dt;
+	}
+
+	/* roll */
+	if(rc.roll > 5.0f || rc.roll < -5.0f) {
+		y_increment_b = -rc.roll * dt; //TODO: unifying rc sign
+	}
+
+	float *R_b2i;
+	get_rotation_matrix_b2i(&R_b2i);
+
+	/* position increment in ned inertial frame */
+	x_increment_i = R_b2i[0*3 + 0] * x_increment_b + (R_b2i[0*3 + 1] * y_increment_b);
+	y_increment_i = R_b2i[1*3 + 0] * x_increment_b + (R_b2i[1*3 + 1] * y_increment_b);
+
+	/* apply increment to autopilot position target variables (enu frame) */
+	autopilot_ptr->wp_now.pos[0] += y_increment_i;
+	autopilot_ptr->wp_now.pos[1] += x_increment_i;
+}
+
 void autopilot_guidance_handler(void)
 {
+	/* receive and handle remote controller commands */
+	switch(autopilot_ptr->mode) {
+	case AUTOPILOT_HOVERING_MODE:
+		autopilot_hovering_position_trimming_handler();
+		break;
+	}
+
 	static float start_time = 0.0f;
 	float curr_time = 0.0f;
 
@@ -570,6 +616,7 @@ void autopilot_guidance_handler(void)
 		autopilot_assign_zero_acc_feedforward();
 	}
 
+	/* autopilot */
 	switch(autopilot_ptr->mode) {
 	case AUTOPILOT_MANUAL_FLIGHT_MODE:
 	case AUTOPILOT_HOVERING_MODE:
