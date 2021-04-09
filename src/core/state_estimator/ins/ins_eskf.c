@@ -773,25 +773,26 @@ void eskf_ins_magnetometer_correct(float *mag)
 	/* codeblock for preventing nameing conflict */
 	{
 		/* calculate error state residual */
-		float c0_ = q0*q2-q1*q3;
-		float c1_ = q2*q2;
-		float c2_ = -q0*q0;
-		float c3_ = q3*q3;
-		float c4_ = q1*q1;
+		float c0_ = -q2*q2;
+		float c1_ = q3*q3;
+		float c2_ = q1*q1;
+		float c3_ = q0*q0;
+		float c4_ = q0*q2;
+		float c5_ = q1*q3;
 
-		float c0 = mz+mz*(c1_+c2_-c3_+c4_)+c0_*gamma*2.0;
-		float c1 = mx+gamma*(c1_+c2_+c3_-c4_)+c0_*mz*2.0;
+		float c0 = mx-gamma*(c0_-c1_+c2_+c3_)+mz*(c4_-c5_)*2.0;
+		float c1 = -mz+mz*(c0_+c1_-c2_+c3_)+gamma*(c4_+c5_)*2.0;
 		float c2 = my+gamma*(q0*q3-q1*q2)*2.0-mz*(q0*q1+q2*q3)*2.0;
 
-		mat_data(error_state)[0] = K_mag(0,0)*c1+K_mag(0,2)*c0+K_mag(0,1)*c2;
-		mat_data(error_state)[1] = K_mag(1,0)*c1+K_mag(1,2)*c0+K_mag(1,1)*c2;
-		mat_data(error_state)[2] = K_mag(2,0)*c1+K_mag(2,2)*c0+K_mag(2,1)*c2;
-		mat_data(error_state)[3] = K_mag(3,0)*c1+K_mag(3,2)*c0+K_mag(3,1)*c2;
-		mat_data(error_state)[4] = K_mag(4,0)*c1+K_mag(4,2)*c0+K_mag(4,1)*c2;
-		mat_data(error_state)[5] = K_mag(5,0)*c1+K_mag(5,2)*c0+K_mag(5,1)*c2;
-		mat_data(error_state)[6] = K_mag(6,0)*c1+K_mag(6,2)*c0+K_mag(6,1)*c2;
-		mat_data(error_state)[7] = K_mag(7,0)*c1+K_mag(7,2)*c0+K_mag(7,1)*c2;
-		mat_data(error_state)[8] = K_mag(8,0)*c1+K_mag(8,2)*c0+K_mag(8,1)*c2;
+		mat_data(error_state)[0] = K_mag(0,0)*c0+K_mag(0,1)*c2-K_mag(0,2)*c1;
+		mat_data(error_state)[1] = K_mag(1,0)*c0+K_mag(1,1)*c2-K_mag(1,2)*c1;
+		mat_data(error_state)[2] = K_mag(2,0)*c0+K_mag(2,1)*c2-K_mag(2,2)*c1;
+		mat_data(error_state)[3] = K_mag(3,0)*c0+K_mag(3,1)*c2-K_mag(3,2)*c1;
+		mat_data(error_state)[4] = K_mag(4,0)*c0+K_mag(4,1)*c2-K_mag(4,2)*c1;
+		mat_data(error_state)[5] = K_mag(5,0)*c0+K_mag(5,1)*c2-K_mag(5,2)*c1;
+		mat_data(error_state)[6] = K_mag(6,0)*c0+K_mag(6,1)*c2-K_mag(6,2)*c1;
+		mat_data(error_state)[7] = K_mag(7,0)*c0+K_mag(7,1)*c2-K_mag(7,2)*c1;
+		mat_data(error_state)[8] = K_mag(8,0)*c0+K_mag(8,1)*c2-K_mag(8,2)*c1;
 	}
 
 	/* codeblock for preventing nameing conflict */
