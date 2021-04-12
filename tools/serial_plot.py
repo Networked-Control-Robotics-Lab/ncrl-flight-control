@@ -422,32 +422,44 @@ class serial_plotter_class:
         	self.show_subplot()
 
         elif (message_id == 31):
-		plt.subplot(411)
+		plt.subplot(511)
+		plt.ylabel('Time [s]')
+		plt.ylim([0.0, 100.0])
+		self.create_curve('Time', 'red')
+		self.show_subplot()
+
+		plt.subplot(512)
 		plt.ylabel('m_hat [kg]')
 		plt.ylim([-4, 4])
 		self.create_curve('m_hat', 'red')
 		self.show_subplot()
 
-		plt.subplot(412)
+		plt.subplot(513)
 		plt.ylabel('m_hat_dot [kg/s]')
 		plt.ylim([-1, 1])
 		self.create_curve('m_hat_dot', 'red')
 		self.show_subplot()
 
-		plt.subplot(413)
+		plt.subplot(514)
 		plt.ylabel('adaptive [kg/s]')
 		plt.ylim([-1, 1])
 		self.create_curve('adaptive', 'red')
 		self.show_subplot()
 
-		plt.subplot(414)
+		plt.subplot(515)
 		plt.ylabel('ICL [kg/s]')
 		plt.ylim([-1, 1])
 		self.create_curve('ICL', 'red')
 		self.show_subplot()
 
         elif (message_id == 32):
-		plt.subplot(411)
+		plt.subplot(511)
+		plt.ylabel('Time [s]')
+		plt.ylim([0.0, 100.0])
+		self.create_curve('Time', 'red')
+		self.show_subplot()
+
+		plt.subplot(512)
 		plt.ylabel('J_hat [kg*m^2]')
 		plt.ylim([-0.1, 0.1])
 		self.create_curve('J_xx_hat', 'red')
@@ -455,7 +467,7 @@ class serial_plotter_class:
 		self.create_curve('J_zz_hat', 'green')
 		self.show_subplot()
 
-		plt.subplot(412)
+		plt.subplot(513)
 		plt.ylabel('hat_dot [kg*m^2/s]')
 		plt.ylim([-0.1, 0.1])
 		self.create_curve('J_xx_hat_dot', 'red')
@@ -463,7 +475,7 @@ class serial_plotter_class:
 		self.create_curve('J_zz_hat_dot', 'green')
 		self.show_subplot()
 
-		plt.subplot(413)
+		plt.subplot(514)
 		plt.ylabel('adaptive')
 		plt.ylim([-0.1, 0.1])
 		self.create_curve('x', 'red')
@@ -471,7 +483,7 @@ class serial_plotter_class:
 		self.create_curve('z', 'green')
 		self.show_subplot()
 
-		plt.subplot(414)
+		plt.subplot(515)
 		plt.ylabel('ICL')
 		plt.ylim([-0.1, 0.1])
 		self.create_curve('x', 'red')
@@ -480,25 +492,31 @@ class serial_plotter_class:
 		self.show_subplot()
 
 	elif (message_id == 33):
-		plt.subplot(411)
+		plt.subplot(511)
+		plt.ylabel('Time [s]')
+		plt.ylim([0.0, 100.0])
+		self.create_curve('Time', 'red')
+		self.show_subplot()
+
+		plt.subplot(512)
 		plt.ylabel('mass [kg]')
 		plt.ylim([-2, 2])
 		self.create_curve('mass', 'red')
 		self.show_subplot()
 
-		plt.subplot(412)
+		plt.subplot(513)
 		plt.ylabel('Jxx [kg*m^2/s]')
 		plt.ylim([-0.1, 0.1])
 		self.create_curve('J_xx', 'red')
 		self.show_subplot()
 
-		plt.subplot(413)
+		plt.subplot(514)
 		plt.ylabel('Jyy [kg*m^2/s]')
 		plt.ylim([-0.1, 0.1])
 		self.create_curve('Jyy', 'red')
 		self.show_subplot()
 
-		plt.subplot(414)
+		plt.subplot(515)
 		plt.ylabel('Jzz [kg*m^2/s]')
 		plt.ylim([-0.1, 0.1])
 		self.create_curve('Jzz', 'red')

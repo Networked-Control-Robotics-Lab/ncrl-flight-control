@@ -13,6 +13,7 @@ void send_adaptive_ICL_mass_estimation_debug(debug_msg_t *payload)
 	theta_m_dot_esti_ICL = mat_data(theta_m_hat_dot_ICL)[0];
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_ICL_MASS_ESTIMATION);
+	pack_debug_debug_message_float(&t_plot, payload);
 	pack_debug_debug_message_float(&theta_m_esti, payload);
 	pack_debug_debug_message_float(&theta_m_dot_esti, payload);
 	pack_debug_debug_message_float(&theta_m_dot_esti_adaptive, payload);
@@ -40,6 +41,7 @@ void send_adaptive_ICL_inertia_estimation_debug(debug_msg_t *payload)
 	theta_diag_dot_esti_ICL[2] = mat_data(theta_diag_hat_dot_ICL)[2];
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_ICL_INERTIA_ESTIMATION);
+	pack_debug_debug_message_float(&t_plot, payload);
 	pack_debug_debug_message_float(&theta_diag_esti[0], payload);
 	pack_debug_debug_message_float(&theta_diag_esti[1], payload);
 	pack_debug_debug_message_float(&theta_diag_esti[2], payload);
@@ -65,6 +67,7 @@ void send_adaptive_ICL_mass_inertia_estimation_debug(debug_msg_t *payload)
 	theta_diag_esti[2] = mat_data(theta_diag_hat)[2];
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_ICL_MASS_INERTIA_ESTIMATION);
+	pack_debug_debug_message_float(&t_plot, payload);
 	pack_debug_debug_message_float(&theta_m_esti, payload);
 	pack_debug_debug_message_float(&theta_diag_esti[0], payload);
 	pack_debug_debug_message_float(&theta_diag_esti[1], payload);

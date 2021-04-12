@@ -124,6 +124,7 @@ float C1_gain;
 float C2_gain;
 float k_cl_m_gain;
 float k_cl_diag_gain[3];
+float t_plot = 0.0f;
 
 float uav_mass;
 
@@ -1067,6 +1068,7 @@ void multirotor_geometry_control(radio_t *rc, float *desired_heading)
 	} else {
 		motor_halt();
 	}
+	t_plot += dt;
 }
 
 void send_geometry_moment_ctrl_debug(debug_msg_t *payload)
