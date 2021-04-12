@@ -8,6 +8,7 @@
 #include "delay.h"
 #include "sbus_radio.h"
 #include "ahrs.h"
+#include "attitude_state.h"
 
 #define EARTH_RADIUS 6371 //[km]
 
