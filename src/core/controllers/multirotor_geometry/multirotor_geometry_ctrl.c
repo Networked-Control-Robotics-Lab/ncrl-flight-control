@@ -325,15 +325,15 @@ void geometry_ctrl_init(void)
 
 	/* initialize gains used in adaptive ICL control */
 	Gamma_m_gain = 0.1f;
-	Gamma_diag_gain[0] = 1.0f;
-	Gamma_diag_gain[1] = 1.0f;
-	Gamma_diag_gain[2] = 1.0f;
+	Gamma_diag_gain[0] = 8.0f;
+	Gamma_diag_gain[1] = 8.0f;
+	Gamma_diag_gain[2] = 8.0f;
 	C1_gain = 0.1f;
 	C2_gain = 0.1f;
 	k_cl_m_gain = 0.1f;
-	k_cl_diag_gain[0] = 2.0f;
-	k_cl_diag_gain[1] = 2.0f;
-	k_cl_diag_gain[2] = 2.0f;
+	k_cl_diag_gain[0] = 5.0f;
+	k_cl_diag_gain[1] = 5.0f;
+	k_cl_diag_gain[2] = 5.0f;
 
 	/* initialize value of mass estimation */
 	mat_data(theta_m_hat)[0] = 1.3f;
