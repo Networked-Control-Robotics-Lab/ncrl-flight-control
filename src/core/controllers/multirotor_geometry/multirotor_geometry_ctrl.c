@@ -467,8 +467,8 @@ void force_ff_ctrl_use_adaptive_ICL(float *accel_ff, float *force_ff, float *pos
 	mat_data(last_vel)[2] = curr_vel[2];
 
 	/* prepare components of theta_m_hat_dot */
-	mat_data(theta_m_hat_dot_adaptive)[0] = Gamma_m_gain*mat_data(Ymt_evC1ex)[0];
-	mat_data(theta_m_hat_dot_ICL)[0] = k_cl_m_gain*Gamma_m_gain*mat_m_sum;
+	mat_data(theta_m_hat_dot_adaptive)[0] = -Gamma_m_gain*mat_data(Ymt_evC1ex)[0];
+	mat_data(theta_m_hat_dot_ICL)[0] = -k_cl_m_gain*Gamma_m_gain*mat_m_sum;
 
 	/* theta_m_dot = adaptive law + ICL update law */
 	mat_data(theta_m_hat_dot)[0] = mat_data(theta_m_hat_dot_adaptive)[0]
