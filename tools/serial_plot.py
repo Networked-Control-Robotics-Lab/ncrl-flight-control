@@ -422,31 +422,43 @@ class serial_plotter_class:
         	self.show_subplot()
 
         elif (message_id == 31):
-		plt.subplot(511)
+		plt.subplot(711)
 		plt.ylabel('Time [s]')
 		plt.ylim([0.0, 100.0])
 		self.create_curve('Time', 'red')
 		self.show_subplot()
 
-		plt.subplot(512)
+		plt.subplot(712)
+		plt.ylabel('mass [kg]')
+		plt.ylim([-2, 2])
+		self.create_curve('mass', 'red')
+		self.show_subplot()
+
+		plt.subplot(713)
+		plt.ylabel('z enu [m]')
+		plt.ylim([-2, 2])
+		self.create_curve('z enu', 'red')
+		self.show_subplot()
+
+		plt.subplot(714)
 		plt.ylabel('m_hat [kg]')
 		plt.ylim([-4, 4])
 		self.create_curve('m_hat', 'red')
 		self.show_subplot()
 
-		plt.subplot(513)
+		plt.subplot(715)
 		plt.ylabel('m_hat_dot [kg/s]')
 		plt.ylim([-1, 1])
 		self.create_curve('m_hat_dot', 'red')
 		self.show_subplot()
 
-		plt.subplot(514)
+		plt.subplot(716)
 		plt.ylabel('adaptive [kg/s]')
 		plt.ylim([-1, 1])
 		self.create_curve('adaptive', 'red')
 		self.show_subplot()
 
-		plt.subplot(515)
+		plt.subplot(717)
 		plt.ylabel('ICL [kg/s]')
 		plt.ylim([-1, 1])
 		self.create_curve('ICL', 'red')

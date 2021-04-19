@@ -1,5 +1,4 @@
 #include "send_debug_adaptive_ICL.h"
-#include <sys_time.h>
 
 void send_adaptive_ICL_mass_estimation_debug(debug_msg_t *payload)
 {
@@ -8,8 +7,10 @@ void send_adaptive_ICL_mass_estimation_debug(debug_msg_t *payload)
 	float theta_m_dot_esti_adaptive;
 	float theta_m_dot_esti_ICL;
 	float current_time = get_sys_time_ms();
-	current_time = current_time*0.001;
+	float curr_pos[3] = {0.0f};
 
+	get_enu_position(curr_pos);
+	current_time = current_time*0.001;
 	theta_m_esti = mat_data(theta_m_hat)[0];
 	theta_m_dot_esti = mat_data(theta_m_hat_dot)[0];
 	theta_m_dot_esti_adaptive = mat_data(theta_m_hat_dot_adaptive)[0];
@@ -17,6 +18,8 @@ void send_adaptive_ICL_mass_estimation_debug(debug_msg_t *payload)
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_ICL_MASS_ESTIMATION);
 	pack_debug_debug_message_float(&current_time, payload);
+	pack_debug_debug_message_float(&curr_pos[2], payload);
+	pack_debug_debug_message_float(&autopilot.wp_now.pos[2], payload);
 	pack_debug_debug_message_float(&theta_m_esti, payload);
 	pack_debug_debug_message_float(&theta_m_dot_esti, payload);
 	pack_debug_debug_message_float(&theta_m_dot_esti_adaptive, payload);
