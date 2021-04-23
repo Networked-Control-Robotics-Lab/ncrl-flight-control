@@ -21,13 +21,8 @@ typedef struct {
 
 void ahrs_init(void);
 void init_ahrs_quaternion_with_accel_and_compass(float *q_ahrs);
-void ahrs_estimate(void);
+void ahrs_estimate(attitude_t *attitude);
 bool ahrs_compass_quality_test(float *mag_new);
-
-void get_attitude_euler_angles(float *roll, float *pitch, float *yaw);
-void get_attitude_quaternion(float *q);
-void get_rotation_matrix_b2i(float **R_b2i);
-void get_rotation_matrix_i2b(float **R_i2b);
 
 void send_ahrs_compass_quality_check_debug_message(debug_msg_t *payload);
 

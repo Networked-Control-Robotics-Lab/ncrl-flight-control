@@ -389,7 +389,7 @@ void shell_accel_calibration_handler(void)
 
 	/* acceleromter scale calibration */
 	while(1) {
-		if(uart3_getc(&c, 0) == true) {
+		if(uart1_getc(&c, 0) == true) {
 			if(c == 'q') return;
 		}
 
@@ -514,7 +514,7 @@ void shell_accel_calibration_handler(void)
 	shell_puts("press enter to start level horizon calibration\n\r");
 
 	while(1) {
-		if(uart3_getc(&c, 0) == true) {
+		if(uart1_getc(&c, 0) == true) {
 			if(c == 13) break;
 		}
 	}

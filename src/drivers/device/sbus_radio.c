@@ -131,11 +131,11 @@ void debug_print_raw_sbus(void)
 	for(i = 0; i < 25; i++) {
 		char s[10] = {0};
 		sprintf(s, "%d,", sbus.buf[i]);
-		uart3_puts(s, strlen(s));
+		uart1_puts(s, strlen(s));
 	}
 
 	char *s = "\n\r";
-	uart3_puts(s, strlen(s));
+	uart1_puts(s, strlen(s));
 }
 
 void sbus_get_unscaled(uint16_t *rc_val)
@@ -167,7 +167,7 @@ void debug_print_rc_val(void)
 	char s[100] = {0};
 	sprintf(s, "ch1:%d, ch2:%d ch3:%d, ch4:%d, ch5:%d, ch6:%d, ch7:%d\n\r",
 	        sbus.rc_val[0], sbus.rc_val[1], sbus.rc_val[2], sbus.rc_val[3], sbus.rc_val[4], sbus.rc_val[5], sbus.rc_val[6]);
-	uart3_puts(s, strlen(s));
+	uart1_puts(s, strlen(s));
 	blocked_delay_ms(100);
 }
 
@@ -212,6 +212,6 @@ void debug_print_rc_info(void)
 	sprintf(s, "%s%s%s roll:%lf,pitch:%lf,yaw:%lf,throttle:%lf\n\r",
 	        safety_s, auto_flight_s, aux1_mode_s, rc.roll, rc.pitch, rc.yaw, rc.throttle);
 
-	uart3_puts(s, strlen(s));
+	uart1_puts(s, strlen(s));
 	blocked_delay_ms(100);
 }

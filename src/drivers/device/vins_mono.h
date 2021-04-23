@@ -35,12 +35,12 @@ void vins_mono_isr_handler(uint8_t c);	//vins_mono rx interrupt
 void vins_mono_update(void);
 bool vins_mono_available(void);		//vins_mono rx get info stablely
 
-void vins_mono_read_pos_x(float *x);
-void vins_mono_read_pos_y(float *y);
-void vins_mono_read_pos_z(float *z);
-void vins_mono_read_vel_x(float *vx);
-void vins_mono_read_vel_y(float *vy);
-void vins_mono_read_vel_z(float *vz);
+float vins_mono_read_pos_x();
+float vins_mono_read_pos_y();
+float vins_mono_read_pos_z();
+float vins_mono_read_vel_x();
+float vins_mono_read_vel_y();
+float vins_mono_read_vel_z();
 
 //for sending IMU message			
 void send_vins_mono_imu_msg(void);

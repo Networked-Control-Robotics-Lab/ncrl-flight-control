@@ -176,34 +176,34 @@ int vins_mono_serial_decoder(uint8_t *buf)
 	return 0;
 }
 
-void vins_mono_read_pos_x(float *x)
+float vins_mono_read_pos_x()
 {
-	*x = vins_mono.pos[0];
+	return(vins_mono.pos[0]);
 }
 
-void vins_mono_read_pos_y(float *y)
+float vins_mono_read_pos_y()
 {
-	*y = vins_mono.pos[1];
+	return(vins_mono.pos[1]);
 }
 
-void vins_mono_read_pos_z(float *z)
+float vins_mono_read_pos_z()
 {
-	*z = vins_mono.pos[2];
+	return(vins_mono.pos[2]);
 }
 
-void vins_mono_read_vel_x(float *vx)
+float vins_mono_read_vel_x()
 {
-	*vx = vins_mono.vel_raw[0];
+	return(vins_mono.vel_raw[0]);
 }
 
-void vins_mono_read_vel_y(float *vy)
+float vins_mono_read_vel_y()
 {
-	*vy = vins_mono.vel_raw[1];
+	return(vins_mono.vel_raw[1]);
 }
 
-void vins_mono_read_vel_z(float *vz)
+float vins_mono_read_vel_z()
 {
-	*vz = vins_mono.vel_raw[2];
+	return(vins_mono.vel_raw[2]);
 }
 
 

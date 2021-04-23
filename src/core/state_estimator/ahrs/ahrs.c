@@ -20,11 +20,10 @@
 #include "debug_link.h"
 #include "sys_time.h"
 #include "led.h"
+#include "attitude_state.h"
 
 extern optitrack_t optitrack;
 extern SemaphoreHandle_t flight_ctrl_semphr;
-
-attitude_t attitude;
 
 madgwick_t madgwick_ahrs;
 
@@ -287,7 +286,7 @@ bool ahrs_compass_quality_test(float *mag_new)
 	return compass_is_stable;
 }
 
-void ahrs_estimate(void)
+void ahrs_estimate(attitude_t *attitude)
 {
 	static bool compass_init = false;
 
@@ -320,7 +319,7 @@ void ahrs_estimate(void)
 		if(compass_init == false) {
 			float mag_raw[3];
 			get_compass_raw(mag_raw);
-			//convert_magnetic_field_to_quat(mag_raw, attitude.q);
+			//convert_magnetic_field_to_quat(mag_raw, attitude->q);
 			compass_init = true;
 		}
 
@@ -336,9 +335,9 @@ void ahrs_estimate(void)
 
 #if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
 	if(mag_error == false && recvd_compass == true) {
-		ahrs_marg_complementary_filter_estimate(attitude.q, gravity, gyro_rad, mag);
+		ahrs_marg_complementary_filter_estimate(attitude->q, gravity, gyro_rad, mag);
 	} else {
-		ahrs_imu_complementary_filter_estimate(attitude.q, gravity, gyro_rad);
+		ahrs_imu_complementary_filter_estimate(attitude->q, gravity, gyro_rad);
 	}
 #elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
 	if(mag_error == false && recvd_compass == true) {
@@ -346,7 +345,7 @@ void ahrs_estimate(void)
 	} else {
 		madgwick_imu_ahrs(&madgwick_ahrs, gravity, gyro_rad);
 	}
-	quaternion_copy(attitude.q, madgwick_ahrs.q);
+	quaternion_copy(attitude->q, madgwick_ahrs.q);
 #elif (SELECT_AHRS == AHRS_ESKF)
 	eskf_ahrs_predict(gyro_rad);
 	eskf_ahrs_accelerometer_correct(gravity);
@@ -355,46 +354,21 @@ void ahrs_estimate(void)
 		eskf_ahrs_magnetometer_correct(mag);
 	}
 
-	get_eskf_attitude_quaternion(attitude.q);
+	get_eskf_attitude_quaternion(attitude->q);
 #endif
 
 #if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK)
-	reset_quaternion_yaw_angle(attitude.q);
-	align_ahrs_with_optitrack_yaw(attitude.q);
+	reset_quaternion_yaw_angle(attitude->q);
+	align_ahrs_with_optitrack_yaw(attitude->q);
 #endif
 
 	euler_t euler;
-	quat_to_euler(attitude.q, &euler);
-	attitude.roll = rad_to_deg(euler.roll);
-	attitude.pitch = rad_to_deg(euler.pitch);
-	attitude.yaw = rad_to_deg(euler.yaw);
+	quat_to_euler(attitude->q, &euler);
+	attitude->roll = rad_to_deg(euler.roll);
+	attitude->pitch = rad_to_deg(euler.pitch);
+	attitude->yaw = rad_to_deg(euler.yaw);
 
-	quat_to_rotation_matrix(attitude.q, attitude.R_b2i, attitude.R_i2b);
-}
-
-void get_attitude_euler_angles(float *roll, float *pitch, float *yaw)
-{
-	*roll = attitude.roll;
-	*pitch = attitude.pitch;
-	*yaw = attitude.yaw;
-}
-
-void get_attitude_quaternion(float *q)
-{
-	q[0] = attitude.q[0];
-	q[1] = attitude.q[1];
-	q[2] = attitude.q[2];
-	q[3] = attitude.q[3];
-}
-
-void get_rotation_matrix_b2i(float **R_b2i)
-{
-	*R_b2i = attitude.R_b2i;
-}
-
-void get_rotation_matrix_i2b(float **R_i2b)
-{
-	*R_i2b = attitude.R_i2b;
+	quat_to_rotation_matrix(attitude->q, attitude->R_b2i, attitude->R_i2b);
 }
 
 void send_ahrs_compass_quality_check_debug_message(debug_msg_t *payload)

@@ -4,6 +4,7 @@
 #include "proj_config.h"
 #include "ist8310.h"
 #include "optitrack.h"
+#include "vins_mono.h"
 #include "debug_link.h"
 #include "ahrs.h"
 #include "imu.h"
@@ -24,10 +25,8 @@ bool is_compass_available(void)
 	return ist8310_available();
 #elif (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK)
 	return optitrack_available();
-#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_COMPASS) || \
-    (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK) || \
-	(SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_VINS_MONO)
-	return true;
+#elif (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_VINS_MONO)
+	return vins_mono_available();
 #else
 	return false;
 #endif

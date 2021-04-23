@@ -6,6 +6,9 @@
 #include "autopilot.h"
 #include "uart.h"
 #include "delay.h"
+#include "sbus_radio.h"
+#include "ahrs.h"
+#include "attitude_state.h"
 
 #define EARTH_RADIUS 6371 //[km]
 
@@ -551,8 +554,52 @@ int autopilot_trigger_auto_takeoff(void)
 	}
 }
 
+void autopilot_hovering_position_trimming_handler(void)
+{
+	const float dt = 0.0001;
+
+	/* position setpoint increment in ned body-fixed frame  */
+	float x_increment_b = 0.0f;
+	float y_increment_b = 0.0f;
+
+	/* position setpoint increment in ned inertial frame */
+	float x_increment_i = 0.0f;
+	float y_increment_i = 0.0f;
+
+	radio_t rc;
+	sbus_rc_read(&rc);
+
+	/* pitch */
+	if(rc.pitch > 5.0f || rc.pitch < -5.0f) {
+		x_increment_b = rc.pitch * dt;
+	}
+
+	/* roll */
+	if(rc.roll > 5.0f || rc.roll < -5.0f) {
+		y_increment_b = -rc.roll * dt; //TODO: unifying rc sign
+	}
+
+	float *R_b2i;
+	get_rotation_matrix_b2i(&R_b2i);
+
+	/* position increment in ned inertial frame */
+	x_increment_i = R_b2i[0*3 + 0] * x_increment_b + (R_b2i[0*3 + 1] * y_increment_b);
+	y_increment_i = R_b2i[1*3 + 0] * x_increment_b + (R_b2i[1*3 + 1] * y_increment_b);
+
+	/* apply increment to autopilot position target variables (enu frame) */
+	autopilot_ptr->wp_now.pos[0] += y_increment_i;
+	autopilot_ptr->wp_now.pos[1] += x_increment_i;
+}
+
 void autopilot_guidance_handler(void)
 {
+	/* receive and handle remote controller commands */
+	switch(autopilot_ptr->mode) {
+	case AUTOPILOT_HOVERING_MODE:
+		autopilot_hovering_position_trimming_handler();
+		break;
+	}
+
 	static float start_time = 0.0f;
 	float curr_time = 0.0f;
 
@@ -570,6 +617,7 @@ void autopilot_guidance_handler(void)
 		autopilot_assign_zero_acc_feedforward();
 	}
 
+	/* autopilot */
 	switch(autopilot_ptr->mode) {
 	case AUTOPILOT_MANUAL_FLIGHT_MODE:
 	case AUTOPILOT_HOVERING_MODE:
@@ -692,7 +740,7 @@ void autopilot_guidance_handler(void)
 void debug_print_waypoint_list(void)
 {
 	char *prompt = "waypoint list:\n\r";
-	uart3_puts(prompt, strlen(prompt));
+	uart1_puts(prompt, strlen(prompt));
 
 	char s[200] = {0};
 	int i;
@@ -701,7 +749,7 @@ void debug_print_waypoint_list(void)
 		        i, autopilot_ptr->wp_list[i].pos[0], autopilot_ptr->wp_list[i].pos[1],
 		        autopilot_ptr->wp_list[i].pos[2], autopilot_ptr->wp_list[i].heading,
 		        autopilot_ptr->wp_list[i].halt_time_sec, autopilot_ptr->wp_list[i].touch_radius);
-		uart3_puts(s, strlen(s));
+		uart1_puts(s, strlen(s));
 	}
 }
 
@@ -709,7 +757,7 @@ void debug_print_waypoint_status(void)
 {
 	if(autopilot_ptr->mode != AUTOPILOT_WAIT_NEXT_WAYPOINT_MODE && autopilot_ptr->mode != AUTOPILOT_FOLLOW_WAYPOINT_MODE) {
 		char *no_executing_s = "autopilot off, no executing waypoint mission.\n\r";
-		uart3_puts(no_executing_s, strlen(no_executing_s));
+		uart1_puts(no_executing_s, strlen(no_executing_s));
 		return;
 	}
 
@@ -724,6 +772,6 @@ void debug_print_waypoint_status(void)
 	        autopilot_ptr->wp_list[curr_wp_num].heading,
 	        autopilot_ptr->wp_list[curr_wp_num].halt_time_sec,
 	        autopilot_ptr->wp_list[curr_wp_num].touch_radius * 0.01);
-	uart3_puts(s, strlen(s));
+	uart1_puts(s, strlen(s));
 	freertos_task_delay(1);
 }

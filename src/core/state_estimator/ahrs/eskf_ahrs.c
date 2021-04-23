@@ -58,7 +58,7 @@ float eskf_half_dt;
 void eskf_ahrs_init(float dt)
 {
 	eskf_dt = dt;
-	eskf_half_dt = -0.5 * dt;
+	eskf_half_dt = 0.5 * dt;
 
 	MAT_INIT(x_nominal, 4, 1);
 	MAT_INIT(x_error_state, 3, 1);
@@ -179,7 +179,7 @@ void eskf_ahrs_predict(float *gyro)
 	w[3] = gyro[2];
 
 	float q_dot[4];
-	quaternion_mult(w, mat_data(x_nominal), q_dot);
+	quaternion_mult(mat_data(x_nominal), w, q_dot);
 
 	mat_data(x_nominal)[0] = mat_data(x_nominal)[0] + (q_dot[0] * eskf_half_dt);
 	mat_data(x_nominal)[1] = mat_data(x_nominal)[1] + (q_dot[1] * eskf_half_dt);
@@ -219,13 +219,13 @@ void eskf_ahrs_accelerometer_correct(float *accel)
 	float q3 = mat_data(x_nominal)[3];
 
 	/* construct error state observation matrix */
-	mat_data(H_x_accel)[0*4 + 0] = +2*q2;
+	mat_data(H_x_accel)[0*4 + 0] = -2*q2;
 	mat_data(H_x_accel)[0*4 + 1] = +2*q3;
-	mat_data(H_x_accel)[0*4 + 2] = +2*q0;
+	mat_data(H_x_accel)[0*4 + 2] = -2*q0;
 	mat_data(H_x_accel)[0*4 + 3] = +2*q1;
 
-	mat_data(H_x_accel)[1*4 + 0] = -2*q1;
-	mat_data(H_x_accel)[1*4 + 1] = -2*q0;
+	mat_data(H_x_accel)[1*4 + 0] = +2*q1;
+	mat_data(H_x_accel)[1*4 + 1] = +2*q0;
 	mat_data(H_x_accel)[1*4 + 2] = +2*q3;
 	mat_data(H_x_accel)[1*4 + 3] = +2*q2;
 
@@ -255,8 +255,8 @@ void eskf_ahrs_accelerometer_correct(float *accel)
 
 	/* use the state from prediction step (gyroscope) to predict the
 	 * gravity vector */
-	mat_data(h_accel)[0] = 2 * (q0*q2 + q1*q3);
-	mat_data(h_accel)[1] = 2 * (q2*q3 - q0*q1);
+	mat_data(h_accel)[0] = 2 * (-q0*q2 + q1*q3);
+	mat_data(h_accel)[1] = 2 * (q2*q3 + q0*q1);
 	mat_data(h_accel)[2] = q0*q0 - q1*q1 - q2*q2 + q3*q3;
 
 	/* calculate kalman gain */
@@ -322,19 +322,19 @@ void eskf_ahrs_magnetometer_correct(float *mag)
 	float gamma = sqrt(mag[0]*mag[0] + mag[1]*mag[1]);
 
 	/* construct error state observation matrix */
-	mat_data(H_x_mag)[0*4 + 0] = 2*(+gamma*q0 + mag[2]*q2);
+	mat_data(H_x_mag)[0*4 + 0] = 2*(+gamma*q0 - mag[2]*q2);
 	mat_data(H_x_mag)[0*4 + 1] = 2*(+gamma*q1 + mag[2]*q3);
-	mat_data(H_x_mag)[0*4 + 2] = 2*(-gamma*q2 + mag[2]*q0);
+	mat_data(H_x_mag)[0*4 + 2] = 2*(-gamma*q2 - mag[2]*q0);
 	mat_data(H_x_mag)[0*4 + 3] = 2*(-gamma*q3 + mag[2]*q1);
 
-	mat_data(H_x_mag)[1*4 + 0] = 2*(+gamma*q3 - mag[2]*q1);
-	mat_data(H_x_mag)[1*4 + 1] = 2*(+gamma*q2 - mag[2]*q0);
+	mat_data(H_x_mag)[1*4 + 0] = 2*(-gamma*q3 + mag[2]*q1);
+	mat_data(H_x_mag)[1*4 + 1] = 2*(+gamma*q2 + mag[2]*q0);
 	mat_data(H_x_mag)[1*4 + 2] = 2*(+gamma*q1 + mag[2]*q3);
-	mat_data(H_x_mag)[1*4 + 3] = 2*(+gamma*q0 + mag[2]*q2);
+	mat_data(H_x_mag)[1*4 + 3] = 2*(-gamma*q0 + mag[2]*q2);
 
-	mat_data(H_x_mag)[2*4 + 0] = 2*(-gamma*q2 + mag[2]*q0);
+	mat_data(H_x_mag)[2*4 + 0] = 2*(+gamma*q2 + mag[2]*q0);
 	mat_data(H_x_mag)[2*4 + 1] = 2*(+gamma*q3 - mag[2]*q1);
-	mat_data(H_x_mag)[2*4 + 2] = 2*(-gamma*q0 - mag[2]*q2);
+	mat_data(H_x_mag)[2*4 + 2] = 2*(+gamma*q0 - mag[2]*q2);
 	mat_data(H_x_mag)[2*4 + 3] = 2*(+gamma*q1 + mag[2]*q3);
 
 	mat_data(Q_delta_theta)[0*3 + 0] = -q1;
@@ -358,9 +358,9 @@ void eskf_ahrs_magnetometer_correct(float *mag)
 
 	/* use the state from prediction step (gyroscope) and stage1 correction (accelerometer)
 	 * to predict the magnetic field vector */
-	mat_data(h_mag)[0] = gamma*(q0*q0 + q1*q1 - q2*q2 - q3*q3) + 2*mag[2]*(q0*q2 + q1*q3);
-	mat_data(h_mag)[1] = 2*gamma*(q1*q2 + q0*q3) + 2*mag[2]*(q2*q3 - q0*q1);
-	mat_data(h_mag)[2] = 2*gamma*(q1*q3 - q0*q2) + mag[2]*(q0*q0 - q1*q1 - q2*q2 + q3*q3);
+	mat_data(h_mag)[0] = gamma*(q0*q0 + q1*q1 - q2*q2 - q3*q3) + 2*mag[2]*(q1*q3 - q0*q2);
+	mat_data(h_mag)[1] = 2*gamma*(q1*q2 - q0*q3) + 2*mag[2]*(q2*q3 + q0*q1);
+	mat_data(h_mag)[2] = 2*gamma*(q1*q3 + q0*q2) + mag[2]*(q0*q0 - q1*q1 - q2*q2 + q3*q3);
 
 	/* calculate kalman gain */
 	//K = P * Ht * inv(H*P*Ht + V)
@@ -410,8 +410,8 @@ void eskf_ahrs_magnetometer_correct(float *mag)
 
 void get_eskf_attitude_quaternion(float *q_out)
 {
-	/* return the conjugated quaternion since we use opposite convention compared to the paper.
-	 * paper: quaternion of earth frame to body-fixed frame
-	 * us: quaternion of body-fixed frame to earth frame */
-	quaternion_conj(mat_data(x_nominal), q_out);
+	q_out[0] = mat_data(x_nominal)[0];
+	q_out[1] = mat_data(x_nominal)[1];
+	q_out[2] = mat_data(x_nominal)[2];
+	q_out[3] = mat_data(x_nominal)[3];
 }

@@ -28,6 +28,7 @@
 #include "position_state.h"
 #include "compass.h"
 #include "led.h"
+#include "attitude_state.h"
 
 pid_control_t pid_roll;
 pid_control_t pid_pitch;
