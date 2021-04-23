@@ -438,9 +438,9 @@ void force_ff_ctrl_use_adaptive_ICL(float *accel_ff, float *force_ff, float *pos
 	mat_data(mat_m_now)[0] = mat_data(y_m_clt_integral)[0]
 	                         *(mat_data(F_cl)[0]-mat_data(y_m_cl_integral)[0]*mat_data(theta_m_hat)[0]);
 	mat_data(mat_m_now)[0] += mat_data(y_m_clt_integral)[1]
-	                          *(mat_data(F_cl)[1]-mat_data(y_m_cl_integral)[1]*mat_data(theta_m_hat)[1]);
+	                          *(mat_data(F_cl)[1]-mat_data(y_m_cl_integral)[1]*mat_data(theta_m_hat)[0]);
 	mat_data(mat_m_now)[0] += mat_data(y_m_clt_integral)[2]
-	                          *(mat_data(F_cl)[2]-mat_data(y_m_cl_integral)[2]*mat_data(theta_m_hat)[2]);
+	                          *(mat_data(F_cl)[2]-mat_data(y_m_cl_integral)[2]*mat_data(theta_m_hat)[0]);
 
 	/* summation of past data */
 	if (force_ICL.index >= force_ICL.N) {
@@ -468,7 +468,7 @@ void force_ff_ctrl_use_adaptive_ICL(float *accel_ff, float *force_ff, float *pos
 
 	/* prepare components of theta_m_hat_dot */
 	mat_data(theta_m_hat_dot_adaptive)[0] = -Gamma_m_gain*mat_data(Ymt_evC1ex)[0];
-	mat_data(theta_m_hat_dot_ICL)[0] = -k_cl_m_gain*Gamma_m_gain*mat_m_sum;
+	mat_data(theta_m_hat_dot_ICL)[0] = k_cl_m_gain*Gamma_m_gain*mat_m_sum;
 
 	/* theta_m_dot = adaptive law + ICL update law */
 	mat_data(theta_m_hat_dot)[0] = mat_data(theta_m_hat_dot_adaptive)[0]
