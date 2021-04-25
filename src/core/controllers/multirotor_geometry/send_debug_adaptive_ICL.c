@@ -83,3 +83,41 @@ void send_adaptive_ICL_mass_inertia_estimation_debug(debug_msg_t *payload)
 	pack_debug_debug_message_float(&theta_diag_esti[1], payload);
 	pack_debug_debug_message_float(&theta_diag_esti[2], payload);
 }
+
+void send_adaptive_ICL_moment_ctrl_input_debug(debug_msg_t *payload)
+{
+	float moment_ctrl[3];
+	float moment_ctrl_feedback[3];
+	float moment_ctrl_feedforward[3];
+	float theta_diag_esti[3];
+	float current_time = get_sys_time_ms();
+	current_time = current_time*0.001;
+
+	moment_ctrl[0] = mat_data(curr_moment)[0];
+	moment_ctrl[1] = mat_data(curr_moment)[1];
+	moment_ctrl[2] = mat_data(curr_moment)[2];
+	moment_ctrl_feedback[0] = mat_data(M_fb)[0];
+	moment_ctrl_feedback[1] = mat_data(M_fb)[1];
+	moment_ctrl_feedback[2] = mat_data(M_fb)[2];
+	moment_ctrl_feedforward[0] = mat_data(M_ff)[0];
+	moment_ctrl_feedforward[1] = mat_data(M_ff)[1];
+	moment_ctrl_feedforward[2] = mat_data(M_ff)[2];
+	theta_diag_esti[0] = mat_data(theta_diag_hat)[0];
+	theta_diag_esti[1] = mat_data(theta_diag_hat)[1];
+	theta_diag_esti[2] = mat_data(theta_diag_hat)[2];
+
+	pack_debug_debug_message_header(payload, MESSAGE_ID_ICL_MOMENT_CTRL);
+	pack_debug_debug_message_float(&current_time, payload);
+	pack_debug_debug_message_float(&moment_ctrl[0], payload);
+	pack_debug_debug_message_float(&moment_ctrl[1], payload);
+	pack_debug_debug_message_float(&moment_ctrl[2], payload);
+	pack_debug_debug_message_float(&moment_ctrl_feedback[0], payload);
+	pack_debug_debug_message_float(&moment_ctrl_feedback[1], payload);
+	pack_debug_debug_message_float(&moment_ctrl_feedback[2], payload);
+	pack_debug_debug_message_float(&moment_ctrl_feedforward[0], payload);
+	pack_debug_debug_message_float(&moment_ctrl_feedforward[1], payload);
+	pack_debug_debug_message_float(&moment_ctrl_feedforward[2], payload);
+	pack_debug_debug_message_float(&theta_diag_esti[0], payload);
+	pack_debug_debug_message_float(&theta_diag_esti[1], payload);
+	pack_debug_debug_message_float(&theta_diag_esti[2], payload);
+}

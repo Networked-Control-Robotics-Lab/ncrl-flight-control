@@ -534,6 +534,45 @@ class serial_plotter_class:
 		self.create_curve('Jzz', 'red')
 		self.show_subplot()
 
+        elif (message_id == 34):
+		plt.subplot(511)
+		plt.ylabel('Time [s]')
+		plt.ylim([0.0, 500.0])
+		self.create_curve('Time', 'red')
+		self.show_subplot()
+
+		plt.subplot(512)
+		plt.ylabel('M [N*m]')
+		plt.ylim([-4.0, 4.0])
+		self.create_curve('Mx', 'red')
+		self.create_curve('My', 'blue')
+		self.create_curve('Mz', 'green')
+		self.show_subplot()
+
+		plt.subplot(513)
+		plt.ylabel('M_fb [N*m]')
+		plt.ylim([-4.0, 4.0])
+		self.create_curve('M_fb_x', 'red')
+		self.create_curve('M_fb_y', 'blue')
+		self.create_curve('M_fb_z', 'green')
+		self.show_subplot()
+
+		plt.subplot(514)
+		plt.ylabel('M_ff [N*m]')
+		plt.ylim([-0.06, 0.06])
+		self.create_curve('M_ff_x', 'red')
+		self.create_curve('M_ff_y', 'blue')
+		self.create_curve('M_ff_z', 'green')
+		self.show_subplot()
+
+		plt.subplot(515)
+		plt.ylabel('J_hat [kg*m^2/s]')
+		plt.ylim([-0.1, 0.1])
+		self.create_curve('Jxx', 'red')
+		self.create_curve('Jyy', 'blue')
+		self.create_curve('Jzz', 'green')
+		self.show_subplot()
+
         elif (message_id == 19):
                 plt.subplot(111)
                 plt.ylabel('gps raw position [m/s]')

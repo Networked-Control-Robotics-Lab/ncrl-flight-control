@@ -78,6 +78,7 @@ MAT_ALLOC(Y_diag, 3, 3);
 MAT_ALLOC(Y_diagt, 3, 3);
 MAT_ALLOC(y_diag_cl_integral, 3, 3);
 MAT_ALLOC(y_diag_clt_integral, 3, 3);
+MAT_ALLOC(M_fb, 3, 1);
 MAT_ALLOC(M_ff, 3, 1);
 MAT_ALLOC(theta_m_hat, 1, 1);
 MAT_ALLOC(theta_m_hat_dot, 1, 1);
@@ -205,6 +206,7 @@ void geometry_ctrl_init(void)
 	MAT_INIT(Y_diagt, 3, 3);
 	MAT_INIT(y_diag_cl_integral, 3, 3);
 	MAT_INIT(y_diag_clt_integral, 3, 3);
+	MAT_INIT(M_fb, 3, 1);
 	MAT_INIT(M_ff, 3, 1);
 	MAT_INIT(theta_m_hat, 1, 1);
 	MAT_INIT(theta_m_hat_dot, 1, 1);
@@ -888,6 +890,10 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 #elif (SELECT_FEEDFORWARD_TRACKING_MOMENT == FEEDFORWARD_TRACKING_MOMENT_USE_ADAPTIVE_ICL)
 	moment_ff_ctrl_use_adaptive_ICL(moment_ff);
 #endif
+
+	mat_data(M_fb)[0] = -krx*mat_data(eR)[0] -kwx*mat_data(eW)[0];
+	mat_data(M_fb)[1] = -kry*mat_data(eR)[1] -kwy*mat_data(eW)[1];
+	mat_data(M_fb)[2] = -krz*mat_data(eR)[2] -kwz*mat_data(eW)[2];
 
 	/* save current moment for ICL */
 	mat_data(curr_moment)[0] = -krx*mat_data(eR)[0] -kwx*mat_data(eW)[0] - moment_ff[0];
