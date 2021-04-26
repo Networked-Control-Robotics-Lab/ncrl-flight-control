@@ -680,8 +680,6 @@ void autopilot_guidance_handler(void)
 		if(autopilot_ptr->wp_now.pos[2] > autopilot_ptr->takeoff_height) {
 			autopilot_ptr->mode = AUTOPILOT_HOVERING_MODE;
 			autopilot_ptr->wp_now.pos[2] = autopilot_ptr->takeoff_height;
-			autopilot_assign_zero_vel_target();
-			autopilot_assign_zero_acc_feedforward();
 		}
 		break;
 	}
