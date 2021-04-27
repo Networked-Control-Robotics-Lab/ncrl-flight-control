@@ -91,7 +91,7 @@ void ahrs_gyro_integration(float *q, float *gyro, float time)
 #endif
 }
 
-#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_VINS_MONO) 
+#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_VINS_MONO)
 void align_ahrs_with_optitrack_yaw(float *q_ahrs)
 {
 	if(optitrack_available() == true) {
@@ -116,7 +116,7 @@ void align_ahrs_with_optitrack_yaw(float *q_ahrs)
 }
 #endif
 
-#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_VINS_MONO) 
+#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_VINS_MONO)
 void align_ahrs_with_vins_mono_yaw(float *q_ahrs)
 {
 	if(vins_mono_available() == true) {
