@@ -208,9 +208,9 @@ void mpu6500_reset_bias(void)
 static void mpu6500_accel_apply_calibration(float *accel_scaled)
 {
 
-	accel_scaled[0] = ((float)accel_scaled[0] * mpu6500.accel_rescale_x) - mpu6500.accel_bias[0];
-	accel_scaled[1] = ((float)accel_scaled[1] * mpu6500.accel_rescale_y) - mpu6500.accel_bias[1];
-	accel_scaled[2] = ((float)accel_scaled[2] * mpu6500.accel_rescale_z) - mpu6500.accel_bias[2];
+	accel_scaled[0] = ((float)accel_scaled[0]  - mpu6500.accel_bias[0])/ mpu6500.accel_rescale_x;
+	accel_scaled[1] = ((float)accel_scaled[1]  - mpu6500.accel_bias[1])/ mpu6500.accel_rescale_y;
+	accel_scaled[2] = ((float)accel_scaled[2]  - mpu6500.accel_bias[2])/ mpu6500.accel_rescale_z;
 
 }
 
@@ -291,7 +291,7 @@ void mpu6500_int_handler(void)
 	mpu6500_accel_apply_calibration(mpu6500.accel_raw);
 
 	/* low pass filtering for accelerometer, gyroscope do not require this process */
-/*	
+/*
 	lpf_first_order(mpu6500.accel_raw[0], &(mpu6500.accel_lpf[0]), mpu6500_lpf_gain);
 	lpf_first_order(mpu6500.accel_raw[1], &(mpu6500.accel_lpf[1]), mpu6500_lpf_gain);
 	lpf_first_order(mpu6500.accel_raw[2], &(mpu6500.accel_lpf[2]), mpu6500_lpf_gain);
@@ -367,7 +367,7 @@ void debug_print_mpu6500_accel(void)
 	sprintf(s, "[accel] x:%4d, y:%4d, z:%4d\n\r", mpu6500.accel_unscaled[0],
 	        mpu6500.accel_unscaled[1], mpu6500.accel_unscaled[2]);
 
-	uart1_puts(s, strlen(s));
+	uart3_puts(s, strlen(s));
 	blocked_delay_ms(100);
 }
 
@@ -378,6 +378,6 @@ void debug_print_mpu6500_unscaled_lpf_accel(void)
 	sprintf(s, "[accel] x:%4.0f, y:%4.0f, z:%4.0f\n\r", mpu6500.accel_unscaled_lpf[0],
 	        mpu6500.accel_unscaled_lpf[1], mpu6500.accel_unscaled_lpf[2]);
 
-	uart1_puts(s, strlen(s));
+	uart3_puts(s, strlen(s));
 	blocked_delay_ms(100);
 }

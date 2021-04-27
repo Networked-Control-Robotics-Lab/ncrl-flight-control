@@ -39,6 +39,7 @@
 #define FLIGHT_CTL_PRESCALER_RELOAD 10
 
 extern optitrack_t optitrack;
+extern vins_mono_t vins_mono;
 
 SemaphoreHandle_t flight_ctrl_semphr;
 
@@ -161,11 +162,15 @@ void task_flight_ctrl(void *param)
 		/* sensor driver calls */
 #if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_GPS)
 		ublox_m8n_gps_update();
-#elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)
+#elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)||(SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK)||(SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_OPTITRACK)
 		optitrack_update();
-#elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_VINS_MONO)
+#endif
+
+#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_VINS_MONO)
 		vins_mono_camera_trigger_20hz();
 		vins_mono_send_imu_50hz();
+		vins_mono_update();
+
 #endif
 
 		sbus_rc_read(&rc);
