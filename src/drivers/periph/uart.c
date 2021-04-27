@@ -184,7 +184,6 @@ void uart4_init(int baudrate)
  */
 void uart6_init(int baudrate)
 {
-	
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART6, ENABLE);
@@ -211,7 +210,7 @@ void uart6_init(int baudrate)
 	USART_Init(USART6, &USART_InitStruct);
 	USART_Cmd(USART6, ENABLE);
 	USART_ClearFlag(USART6, USART_FLAG_TC);
-	
+
 	NVIC_InitTypeDef NVIC_InitStruct = {
 		.NVIC_IRQChannel = USART6_IRQn,
 		.NVIC_IRQChannelPreemptionPriority = UART6_RX_ISR_PRIORITY,
