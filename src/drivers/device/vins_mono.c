@@ -116,43 +116,37 @@ int vins_mono_serial_decoder(uint8_t *buf)
 
 	vins_mono.time_now = get_sys_time_ms();
 
-//position "use neu"
-	float enu_pos_x, enu_pos_y, enu_pos_z;
-	memcpy(&enu_pos_x, &buf[3], sizeof(float)); //in enu coordinate system
-	memcpy(&enu_pos_y, &buf[7], sizeof(float));
-	memcpy(&enu_pos_z, &buf[11], sizeof(float));
-	vins_mono.pos[0] = enu_pos_x; //east
-	vins_mono.pos[1] = enu_pos_y; //north
-	vins_mono.pos[2] = enu_pos_z; //up
+	float q_enu[4];
 
-//velocity "use enu"
-	float enu_vel_x, enu_vel_y, enu_vel_z;
-	memcpy(&enu_vel_x, &buf[15], sizeof(float)); //in enu coordinate system
-	memcpy(&enu_vel_y, &buf[19], sizeof(float));
-	memcpy(&enu_vel_z, &buf[23], sizeof(float));
-	vins_mono.vel_raw[0] = enu_vel_x; //east
-	vins_mono.vel_raw[1] = enu_vel_y; //north
-	vins_mono.vel_raw[2] = enu_vel_z; //up
+	/* decode position (enu frame) */
+	memcpy(&vins_mono.pos[0], &buf[3], sizeof(float));
+	memcpy(&vins_mono.pos[1], &buf[7], sizeof(float));
+	memcpy(&vins_mono.pos[2], &buf[11], sizeof(float));
+
+	/* decode velocity (enu frame) */
+	memcpy(&vins_mono.vel_raw[0], &buf[15], sizeof(float));
+	memcpy(&vins_mono.vel_raw[1], &buf[19], sizeof(float));
+	memcpy(&vins_mono.vel_raw[2], &buf[23], sizeof(float));
+
+	/* decode quaternion (ned frame) */
+	memcpy(&q_enu[0], &buf[27], sizeof(float));
+	memcpy(&q_enu[1], &buf[31], sizeof(float));
+	memcpy(&q_enu[2], &buf[35], sizeof(float));
+	memcpy(&q_enu[3], &buf[39], sizeof(float));
+	vins_mono.q[0] = q_enu[0];
+	vins_mono.q[1] = q_enu[2];
+	vins_mono.q[2] = q_enu[1];
+	vins_mono.q[3] = -q_enu[3];
+
 	vins_mono.vel_filtered[0] = vins_mono.vel_raw[0];
 	vins_mono.vel_filtered[1] = vins_mono.vel_raw[1];
 	vins_mono.vel_filtered[2] = vins_mono.vel_raw[2];
 
-//rotation-quat "use ned"
-	float enu_q_0, enu_q_1, enu_q_2, enu_q_3 ;
-	memcpy(&enu_q_0, &buf[27], sizeof(float)); //in enu coordinate system
-	memcpy(&enu_q_1, &buf[31], sizeof(float));
-	memcpy(&enu_q_2, &buf[35], sizeof(float));
-	memcpy(&enu_q_3, &buf[39], sizeof(float));
-//transfer to ned coordinate system
-	vins_mono.q[0] = enu_q_0;
-	vins_mono.q[1] = enu_q_2;
-	vins_mono.q[2] = -enu_q_1;
-	vins_mono.q[3] = -enu_q_3;
+	/* calculate update rate */
+	float received_period = (vins_mono.time_now - vins_mono.time_last) * 0.001;
+	vins_mono.update_rate = 1.0f / received_period;
 
-	vins_mono.pos_last[0] = vins_mono.pos[0]; //save for next iteration
-	vins_mono.pos_last[1] = vins_mono.pos[1];
-	vins_mono.pos_last[2] = vins_mono.pos[2];
-
+	/* save time for next iteration */
 	vins_mono.time_last = vins_mono.time_now;
 
 	return 0;

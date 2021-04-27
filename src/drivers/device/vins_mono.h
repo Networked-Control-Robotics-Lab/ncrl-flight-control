@@ -22,7 +22,6 @@ typedef struct {
 
 	volatile int buf_pos;
 	uint8_t buf[VINS_MONO_SERIAL_MSG_SIZE];
-	float pos_last[3];
 	bool vel_ready;
 } vins_mono_t ;
 
