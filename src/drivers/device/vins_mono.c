@@ -43,24 +43,6 @@ bool vins_mono_available(void)
 	return true;
 }
 
-void vins_mono_numerical_vel_calc(void)
-{
-	const float dt = 1.0f / 120.0f; //fixed dt (120Hz)
-	vins_mono.vel_raw[0] = (vins_mono.pos[0] - vins_mono.pos_last[0]) / dt;
-	vins_mono.vel_raw[1] = (vins_mono.pos[1] - vins_mono.pos_last[1]) / dt;
-	vins_mono.vel_raw[2] = (vins_mono.pos[2] - vins_mono.pos_last[2]) / dt;
-
-	float received_period = (vins_mono.time_now - vins_mono.time_last) * 0.001;
-	vins_mono.update_rate = 1.0f / received_period;
-
-	vins_mono.vel_filtered[0] = vins_mono.vel_raw[0];
-	vins_mono.vel_filtered[1] = vins_mono.vel_raw[1];
-	vins_mono.vel_filtered[2] = vins_mono.vel_raw[2];
-	//lpf(vins_mono.vel_raw[0], &(vins_mono.vel_filtered[0]), 0.8);
-	//lpf(vins_mono.vel_raw[1], &(vins_mono.vel_filtered[1]), 0.8);
-	//lpf(vins_mono.vel_raw[2], &(vins_mono.vel_filtered[2]), 0.8);
-}
-
 #define VINS_MONO_CHECKSUM_INIT_VAL 19
 static uint8_t generate_vins_mono_checksum_byte(uint8_t *payload, int payload_cnt)
 {
@@ -113,7 +95,7 @@ void vins_mono_update(void)
 		if(c == '+' && vins_mono.buf[0] == '@') {
 			/* decode vins_mono message */
 			if(vins_mono_serial_decoder(vins_mono.buf) == 0) {
-#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_VINS_MONO)		
+#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_VINS_MONO)
 				led_on(LED_G);
 #endif
 				vins_mono.buf_pos = 0; //reset position pointer
@@ -142,7 +124,7 @@ int vins_mono_serial_decoder(uint8_t *buf)
 	vins_mono.pos[0] = enu_pos_x; //east
 	vins_mono.pos[1] = enu_pos_y; //north
 	vins_mono.pos[2] = enu_pos_z; //up
-	
+
 //velocity "use enu"
 	float enu_vel_x, enu_vel_y, enu_vel_z;
 	memcpy(&enu_vel_x, &buf[15], sizeof(float)); //in enu coordinate system
@@ -154,19 +136,19 @@ int vins_mono_serial_decoder(uint8_t *buf)
 	vins_mono.vel_filtered[0] = vins_mono.vel_raw[0];
 	vins_mono.vel_filtered[1] = vins_mono.vel_raw[1];
 	vins_mono.vel_filtered[2] = vins_mono.vel_raw[2];
-	
+
 //rotation-quat "use ned"
 	float enu_q_0, enu_q_1, enu_q_2, enu_q_3 ;
 	memcpy(&enu_q_0, &buf[27], sizeof(float)); //in enu coordinate system
 	memcpy(&enu_q_1, &buf[31], sizeof(float));
 	memcpy(&enu_q_2, &buf[35], sizeof(float));
 	memcpy(&enu_q_3, &buf[39], sizeof(float));
-//transfer to ned coordinate system	
+//transfer to ned coordinate system
 	vins_mono.q[0] = enu_q_0;
 	vins_mono.q[1] = enu_q_2;
 	vins_mono.q[2] = -enu_q_1;
 	vins_mono.q[3] = -enu_q_3;
-	
+
 	vins_mono.pos_last[0] = vins_mono.pos[0]; //save for next iteration
 	vins_mono.pos_last[1] = vins_mono.pos[1];
 	vins_mono.pos_last[2] = vins_mono.pos[2];
