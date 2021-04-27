@@ -192,6 +192,14 @@ float optitrack_read_vel_z(void)
 	return optitrack.vel_raw[2];
 }
 
+void optitrack_get_quaternion(float *q)
+{
+	q[0] = optitrack.q[0];
+	q[1] = optitrack.q[1];
+	q[2] = optitrack.q[2];
+	q[3] = optitrack.q[3];
+}
+
 void send_optitrack_position_debug_message(debug_msg_t *payload)
 {
 	float px = optitrack.pos[0] * 100.0f; //[cm]
