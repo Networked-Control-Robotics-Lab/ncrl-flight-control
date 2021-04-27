@@ -331,21 +331,21 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 {
 	/* ex = x - xd */
 	float pos_des_ned[3];
-	assign_vector_3x1_eun_to_ned(pos_des_ned, autopilot.wp_now.pos);
+	assign_vector_3x1_enu_to_ned(pos_des_ned, autopilot.wp_now.pos);
 	pos_error[0] = curr_pos_ned[0] - pos_des_ned[0];
 	pos_error[1] = curr_pos_ned[1] - pos_des_ned[1];
 	pos_error[2] = curr_pos_ned[2] - pos_des_ned[2];
 
 	/* ev = v - vd */
 	float vel_des_ned[3];
-	assign_vector_3x1_eun_to_ned(vel_des_ned, autopilot.wp_now.vel);
+	assign_vector_3x1_enu_to_ned(vel_des_ned, autopilot.wp_now.vel);
 	vel_error[0] = curr_vel_ned[0] - vel_des_ned[0];
 	vel_error[1] = curr_vel_ned[1] - vel_des_ned[1];
 	vel_error[2] = curr_vel_ned[2] - vel_des_ned[2];
 
 	float force_ff_ned[3] = {0.0f};
 	float accel_ff_ned[3] = {0.0f};
-	assign_vector_3x1_eun_to_ned(accel_ff_ned, autopilot.wp_now.acc_feedforward);
+	assign_vector_3x1_enu_to_ned(accel_ff_ned, autopilot.wp_now.acc_feedforward);
 	force_ff_ned[0] = uav_mass * accel_ff_ned[0];
 	force_ff_ned[1] = uav_mass * accel_ff_ned[1];
 	force_ff_ned[2] = uav_mass * accel_ff_ned[2];
@@ -559,8 +559,8 @@ void multirotor_geometry_control(radio_t *rc, float *desired_heading)
 	float curr_vel_enu[3] = {0.0f}, curr_vel_ned[3] = {0.0f};
 	get_enu_position(curr_pos_enu);
 	get_enu_velocity(curr_vel_enu);
-	assign_vector_3x1_eun_to_ned(curr_pos_ned, curr_pos_enu);
-	assign_vector_3x1_eun_to_ned(curr_vel_ned, curr_vel_enu);
+	assign_vector_3x1_enu_to_ned(curr_pos_ned, curr_pos_enu);
+	assign_vector_3x1_enu_to_ned(curr_vel_ned, curr_vel_enu);
 
 	/* prepare gyroscope data */
 	float gyro[3] = {0.0};
