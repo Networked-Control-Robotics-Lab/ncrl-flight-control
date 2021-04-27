@@ -650,8 +650,8 @@ void send_geometry_moment_ctrl_debug(debug_msg_t *payload)
 
 	/* calculate the feedback moment and convert the unit from [gram force * m] to [newton * m] */
 	geometry_ctrl_feedback_moments[0] = (-krx*mat_data(eR)[0] -kwx*mat_data(eW)[0]);
-	geometry_ctrl_feedback_moments[1] = (-krx*mat_data(eR)[1] -kwx*mat_data(eW)[1]);
-	geometry_ctrl_feedback_moments[2] = (-krx*mat_data(eR)[2] -kwx*mat_data(eW)[2]);
+	geometry_ctrl_feedback_moments[1] = (-kry*mat_data(eR)[1] -kwy*mat_data(eW)[1]);
+	geometry_ctrl_feedback_moments[2] = (-krz*mat_data(eR)[2] -kwz*mat_data(eW)[2]);
 
 	geometry_ctrl_feedfoward_moments[0] = mat_data(inertia_effect)[0];
 	geometry_ctrl_feedfoward_moments[1] = mat_data(inertia_effect)[1];
