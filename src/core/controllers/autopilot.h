@@ -173,7 +173,7 @@ void autopilot_unlock_motor(void);
 
 void autopilot_guidance_handler(void);
 
-void assign_vector_3x1_eun_to_ned(float *ned, float *enu);
+void assign_vector_3x1_enu_to_ned(float *ned, float *enu);
 
 void debug_print_waypoint_list(void);
 void debug_print_waypoint_status(void);

@@ -757,14 +757,14 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 {
 	/* ex = x - xd */
 	float pos_des_ned[3];
-	assign_vector_3x1_eun_to_ned(pos_des_ned, autopilot.wp_now.pos);
+	assign_vector_3x1_enu_to_ned(pos_des_ned, autopilot.wp_now.pos);
 	pos_error[0] = curr_pos_ned[0] - pos_des_ned[0];
 	pos_error[1] = curr_pos_ned[1] - pos_des_ned[1];
 	pos_error[2] = curr_pos_ned[2] - pos_des_ned[2];
 
 	/* ev = v - vd */
 	float vel_des_ned[3];
-	assign_vector_3x1_eun_to_ned(vel_des_ned, autopilot.wp_now.vel);
+	assign_vector_3x1_enu_to_ned(vel_des_ned, autopilot.wp_now.vel);
 	vel_error[0] = curr_vel_ned[0] - vel_des_ned[0];
 	vel_error[1] = curr_vel_ned[1] - vel_des_ned[1];
 	vel_error[2] = curr_vel_ned[2] - vel_des_ned[2];
@@ -780,7 +780,7 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	/* force feedforward control */
 	float accel_ff_ned[3] = {0.0f};
 	float force_ff_ned[3] = {0.0f};
-	assign_vector_3x1_eun_to_ned(accel_ff_ned, autopilot.wp_now.acc_feedforward);
+	assign_vector_3x1_enu_to_ned(accel_ff_ned, autopilot.wp_now.acc_feedforward);
 
 #if (SELECT_FEEDFORWARD_TRACKING_FORCE == FEEDFORWARD_TRACKING_FORCE_USE_GEOMETRY)
 	force_ff_ctrl_use_geometry(accel_ff_ned, force_ff_ned);
@@ -1009,8 +1009,8 @@ void multirotor_geometry_control(radio_t *rc, float *desired_heading)
 	float curr_vel_enu[3] = {0.0f}, curr_vel_ned[3] = {0.0f};
 	get_enu_position(curr_pos_enu);
 	get_enu_velocity(curr_vel_enu);
-	assign_vector_3x1_eun_to_ned(curr_pos_ned, curr_pos_enu);
-	assign_vector_3x1_eun_to_ned(curr_vel_ned, curr_vel_enu);
+	assign_vector_3x1_enu_to_ned(curr_pos_ned, curr_pos_enu);
+	assign_vector_3x1_enu_to_ned(curr_vel_ned, curr_vel_enu);
 
 	/* prepare gyroscope data */
 	float gyro[3] = {0.0};
@@ -1100,8 +1100,8 @@ void send_geometry_moment_ctrl_debug(debug_msg_t *payload)
 
 	/* calculate the feedback moment and convert the unit from [gram force * m] to [newton * m] */
 	geometry_ctrl_feedback_moments[0] = (-krx*mat_data(eR)[0] -kwx*mat_data(eW)[0]);
-	geometry_ctrl_feedback_moments[1] = (-krx*mat_data(eR)[1] -kwx*mat_data(eW)[1]);
-	geometry_ctrl_feedback_moments[2] = (-krx*mat_data(eR)[2] -kwx*mat_data(eW)[2]);
+	geometry_ctrl_feedback_moments[1] = (-kry*mat_data(eR)[1] -kwy*mat_data(eW)[1]);
+	geometry_ctrl_feedback_moments[2] = (-krz*mat_data(eR)[2] -kwz*mat_data(eW)[2]);
 
 	geometry_ctrl_feedfoward_moments[0] = mat_data(inertia_effect)[0];
 	geometry_ctrl_feedfoward_moments[1] = mat_data(inertia_effect)[1];

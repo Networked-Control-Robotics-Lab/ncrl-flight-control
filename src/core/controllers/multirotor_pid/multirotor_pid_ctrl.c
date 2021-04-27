@@ -315,12 +315,12 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 	/* get ned position */
 	float pos_enu[3], pos_ned[3];
 	get_enu_position(pos_enu);
-	assign_vector_3x1_eun_to_ned(pos_ned, pos_enu);
+	assign_vector_3x1_enu_to_ned(pos_ned, pos_enu);
 
 	/* get ned velocity */
 	float vel_enu[3], vel_ned[3];
 	get_enu_velocity(vel_enu);
-	assign_vector_3x1_eun_to_ned(vel_ned, vel_enu);
+	assign_vector_3x1_enu_to_ned(vel_ned, vel_enu);
 
 	/* get current roll, pitch, yaw angle */
 	float attitude_roll, attitude_pitch, attitude_yaw;
@@ -340,7 +340,7 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 		autopilot.wp_now.pos[2]
 	};
 	float pos_des_ned[3];
-	assign_vector_3x1_eun_to_ned(pos_des_ned, pos_des_enu);
+	assign_vector_3x1_enu_to_ned(pos_des_ned, pos_des_enu);
 
 	pid_pos_x.setpoint = pos_des_ned[0];
 	pid_pos_y.setpoint = pos_des_ned[1];

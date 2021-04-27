@@ -11,7 +11,7 @@ void init_multirotor_geometry_param_list(void)
 	init_common_params();
 
 	init_sys_param_float(MR_GEO_GAIN_ROLL_P, "ROLL_KP", 2.95f);
-	init_sys_param_float(MR_GEO_GAIN_ROLL_D, "ROKK_KD", 0.36f);
+	init_sys_param_float(MR_GEO_GAIN_ROLL_D, "ROLL_KD", 0.36f);
 	init_sys_param_float(MR_GEO_GAIN_PITCH_P, "PITCH_KP", 2.95f);
 	init_sys_param_float(MR_GEO_GAIN_PITCH_D, "PITCH_KD", 0.36f);
 	init_sys_param_float(MR_GEO_GAIN_YAW_P, "YAW_KP", 28.4f);

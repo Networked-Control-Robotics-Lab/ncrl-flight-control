@@ -19,7 +19,7 @@ bool check_motor_lock_condition(bool condition)
 	return condition; //true: lock, false: unlock
 }
 
-void assign_vector_3x1_eun_to_ned(float *ned, float *enu)
+void assign_vector_3x1_enu_to_ned(float *ned, float *enu)
 {
 	ned[0] = enu[1];
 	ned[1] = enu[0];

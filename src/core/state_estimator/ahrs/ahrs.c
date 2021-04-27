@@ -7,6 +7,7 @@
 #include "comp_ahrs.h"
 #include "madgwick_ahrs.h"
 #include "eskf_ahrs.h"
+#include "optitrack_ahrs.h"
 #include "lpf.h"
 #include "uart.h"
 #include "matrix.h"
@@ -44,6 +45,8 @@ void ahrs_init(void)
 	madgwick_init(&madgwick_ahrs, 400, 0.13);
 
 	eskf_ahrs_init(0.0025);
+
+	optitrack_ahrs_init(0.0025);
 
 	switch(SELECT_HEADING_SENSOR) {
 	case HEADING_SENSOR_USE_COMPASS:
@@ -355,6 +358,9 @@ void ahrs_estimate(attitude_t *attitude)
 	}
 
 	get_eskf_attitude_quaternion(attitude->q);
+#elif (SELECT_AHRS == AHRS_OPTITRACK)
+	ahrs_optitrack_imu_fuse_estimate(attitude->q, gyro_rad);
+	(void)gravity; //suppress the unused variable warning
 #endif
 
 #if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK)

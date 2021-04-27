@@ -42,6 +42,7 @@ float optitrack_read_pos_z(void);
 float optitrack_read_vel_x(void);
 float optitrack_read_vel_y(void);
 float optitrack_read_vel_z(void);
+void optitrack_get_quaternion(float *q);
 
 void send_optitrack_position_debug_message(debug_msg_t *payload);
 void send_optitrack_quaternion_debug_message(debug_msg_t *payload);
