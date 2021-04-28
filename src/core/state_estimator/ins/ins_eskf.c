@@ -15,6 +15,7 @@
 #include "gps.h"
 #include "barometer.h"
 #include "position_state.h"
+#include "vins_mono.h"
 
 #define ESKF_RESCALE(number) (number * 1e7) //to improve the numerical stability
 
@@ -1304,6 +1305,9 @@ bool ins_eskf_estimate(attitude_t *attitude,
 {
 #if (SELECT_POSITION_SENSOR == POSITION_FUSION_USE_OPTITRACK)
 	set_rgb_led_service_navigation_on_flag(optitrack_available());
+	return false;
+#elif (SELECT_POSITION_SENSOR == POSITION_FUSION_USE_VINS_MONO)
+	set_rgb_led_service_navigation_on_flag(vins_mono_available());
 	return false;
 #endif
 
