@@ -216,8 +216,8 @@ void uart6_init(int baudrate)
 		.NVIC_IRQChannelSubPriority = 0,
 		.NVIC_IRQChannelCmd = ENABLE
 	};
-
 	NVIC_Init(&NVIC_InitStruct);
+
 	USART_ITConfig(USART6, USART_IT_RXNE, ENABLE);
 }
 
