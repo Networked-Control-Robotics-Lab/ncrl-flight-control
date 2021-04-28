@@ -35,7 +35,7 @@ bool vins_mono_available(void)
 	//timeout if no data available more than 300ms
 	float current_time = get_sys_time_ms();
 	if((current_time - vins_mono.time_now) > 300) {
-#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_VINS_MONO)
+#if (SELECT_POSITION_SENSOR == POSITION_FUSION_USE_VINS_MONO)
 		led_off(LED_G);
 #endif
 		return false;
@@ -95,7 +95,7 @@ void vins_mono_update(void)
 		if(c == '+' && vins_mono.buf[0] == '@') {
 			/* decode vins_mono message */
 			if(vins_mono_serial_decoder(vins_mono.buf) == 0) {
-#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_VINS_MONO)
+#if (SELECT_POSITION_SENSOR == POSITION_FUSION_USE_VINS_MONO)
 				led_on(LED_G);
 #endif
 				vins_mono.buf_pos = 0; //reset position pointer

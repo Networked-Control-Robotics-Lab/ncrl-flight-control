@@ -37,11 +37,11 @@ void ahrs_init(void)
 	eskf_ahrs_init(0.0025);
 
 	switch(SELECT_HEADING_SENSOR) {
-	case HEADING_SENSOR_USE_COMPASS:
+	case HEADING_FUSION_USE_COMPASS:
 		use_compass = true;
 		break;
-	case HEADING_SENSOR_USE_OPTITRACK:
-	case HEADING_SENSOR_USE_VINS_MONO:
+	case HEADING_FUSION_USE_OPTITRACK:
+	case HEADING_FUSION_USE_VINS_MONO:
 	default:
 		use_compass = false;
 	}
@@ -201,9 +201,9 @@ void ahrs_estimate(void)
 	get_eskf_attitude_quaternion(attitude.q);
 #endif
 
-#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK)
+#if (SELECT_HEADING_SENSOR == HEADING_FUSION_USE_OPTITRACK)
 	realign_ahrs_yaw_direction(attitude.q, optitrack.q);
-#elif (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_VINS_MONO)
+#elif (SELECT_HEADING_SENSOR == HEADING_FUSION_USE_VINS_MONO)
 	realign_ahrs_yaw_direction(attitude.q, vins_mono.q);
 #endif
 

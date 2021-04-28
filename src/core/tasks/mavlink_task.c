@@ -71,7 +71,7 @@ void mavlink_tx_task(void *param)
 
 		/* send the following mavlink message @ 5Hz */
 		if(prescaler_div_10 == 10) {
-#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_GPS)
+#if (SELECT_POSITION_SENSOR == POSITION_FUSION_USE_GPS)
 			send_mavlink_gps();
 #endif
 			prescaler_div_10 = 0;

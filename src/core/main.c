@@ -61,16 +61,17 @@ int main(void)
 	uart3_init(115200); //telem
 	uart4_init(100000); //s-bus
 
-#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_GPS)
+#if (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_GPS)
 	uart7_init(38400); //gps
 	ublox_m8n_init();
-#elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_VINS_MONO)
-	uart6_init(115200);
-	vins_mono_init(UAV_DEFAULT_ID); //setup tracker id for this MAV
-#endif
-#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)||(SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK)||(SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_OPTITRACK)
-	uart7_init(115200); //optitrack
+#elif (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_OPTITRACK)
+	uart7_init(115200);
 	optitrack_init(UAV_DEFAULT_ID); //setup tracker id for this MAV
+#endif
+
+#if (SELECT_NAVIGATION_DEVICE2 == NAV_DEV2_USE_VINS_MONO)
+	uart6_init(115200);
+	vins_mono_init(UAV_DEFAULT_ID); //TODO: tracker id is not needed
 #endif
 
 	timer12_init();    //system timer and flight controller timer
@@ -81,13 +82,13 @@ int main(void)
 
 	blocked_delay_ms(50);
 
-#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_COMPASS)
+#if (ENABLE_MAGNETOMETER == 1)
 	/* compass (ist8310) */
 	sw_i2c_init();
 	ist8310_register_task("compass driver", 512, tskIDLE_PRIORITY + 5);
 #endif
 
-#if (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_BAROMETER)
+#if (ENABLE_BAROMETER == 1)
 	/* barometer (ms5611) */
 	spi3_init();
 	ms5611_init();

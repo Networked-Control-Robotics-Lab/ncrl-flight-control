@@ -160,17 +160,16 @@ void task_flight_ctrl(void *param)
 		perf_start(PERF_FLIGHT_CONTROL_LOOP);
 
 		/* sensor driver calls */
-#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_GPS)
+#if (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_GPS)
 		ublox_m8n_gps_update();
-#elif (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)||(SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK)||(SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_OPTITRACK)
+#elif (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_OPTITRACK)
 		optitrack_update();
 #endif
 
-#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_VINS_MONO)
+#if (SELECT_NAVIGATION_DEVICE2 == NAV_DEV2_USE_VINS_MONO)
 		vins_mono_camera_trigger_20hz();
 		vins_mono_send_imu_50hz();
 		vins_mono_update();
-
 #endif
 
 		sbus_rc_read(&rc);

@@ -49,10 +49,10 @@ void ahrs_init(void)
 	optitrack_ahrs_init(0.0025);
 
 	switch(SELECT_HEADING_SENSOR) {
-	case HEADING_SENSOR_USE_COMPASS:
+	case HEADING_FUSION_USE_COMPASS:
 		use_compass = true;
 		break;
-	case HEADING_SENSOR_USE_OPTITRACK:
+	case HEADING_FUSION_USE_OPTITRACK:
 	default:
 		use_compass = false;
 	}
@@ -363,7 +363,7 @@ void ahrs_estimate(attitude_t *attitude)
 	(void)gravity; //suppress the unused variable warning
 #endif
 
-#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK)
+#if (SELECT_HEADING_SENSOR == HEADING_FUSION_USE_OPTITRACK)
 	reset_quaternion_yaw_angle(attitude->q);
 	align_ahrs_with_optitrack_yaw(attitude->q);
 #endif
