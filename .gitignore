@@ -6,3 +6,4 @@ screenlog.0
 log_hex.txt
 *.csv
 *.d
+*~
