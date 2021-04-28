@@ -167,6 +167,9 @@ void eskf_ahrs_init(float dt)
 	}
 
 	init_ahrs_quaternion_with_accel_and_compass(mat_data(x_nominal));
+	mat_data(x_nominal)[1] *= -1;
+	mat_data(x_nominal)[2] *= -1;
+	mat_data(x_nominal)[3] *= -1;
 }
 
 void eskf_ahrs_predict(float *gyro)
