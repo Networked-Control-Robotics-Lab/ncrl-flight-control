@@ -15,7 +15,6 @@
 
 #define UART1_QUEUE_SIZE 100
 #define UART3_QUEUE_SIZE 500
-#define UART6_QUEUE_SIZE 500
 
 typedef struct {
 	char c;
