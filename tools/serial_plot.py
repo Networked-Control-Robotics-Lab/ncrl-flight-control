@@ -109,6 +109,7 @@ class serial_plotter_class:
         	plt.ylim([-25, 100])
         	self.create_curve('temperature', 'red')		
         	self.show_subplot()
+
         elif (message_id == 1):
                 plt.subplot(111)
         	plt.ylabel('euler angles[deg]')
@@ -117,6 +118,7 @@ class serial_plotter_class:
         	self.create_curve('pitch', 'blue')		
         	self.create_curve('yaw', 'green')		
         	self.show_subplot()
+
         elif (message_id == 2):
                 plt.subplot(311)
         	plt.ylabel('attitude [deg]')
@@ -141,6 +143,7 @@ class serial_plotter_class:
         	self.create_curve('y (lpf)', 'blue')
         	self.create_curve('z (lpf)', 'green')
         	self.show_subplot()
+
         elif (message_id == 3):
          	plt.subplot(211)
         	plt.ylabel('Var(P)')
@@ -159,7 +162,8 @@ class serial_plotter_class:
         	self.create_curve('K[2][2]', 'green')
         	self.create_curve('K[3][3]', 'orange')
         	self.show_subplot()
-        elif (message_id == 4 or message_id == 8):
+
+        elif (message_id == 4 or message_id == 8 or message_id == 20):
          	plt.subplot(111)
         	plt.ylabel('Attitude (quaternion)')
         	plt.ylim([-5, 5])
@@ -168,6 +172,7 @@ class serial_plotter_class:
         	self.create_curve('q2', 'green')
         	self.create_curve('q3', 'orange')
         	self.show_subplot()
+
         elif (message_id == 5):
          	plt.subplot(111)
         	plt.ylabel('pid controller debug')
@@ -179,6 +184,7 @@ class serial_plotter_class:
                 self.create_curve('d term', 'blue')
         	self.create_curve('pid final', 'purple')
         	self.show_subplot()
+
         elif (message_id == 6):
          	plt.subplot(111)
         	plt.ylabel('motor [thrust %]')
@@ -188,7 +194,8 @@ class serial_plotter_class:
         	self.create_curve('m3', 'yellow')
         	self.create_curve('m4', 'purple')
         	self.show_subplot()
-        elif (message_id == 7):
+
+        elif (message_id == 7 or message_id == 30):
          	plt.subplot(111)
         	plt.ylabel('position [cm]')
         	plt.ylim([-200, 200])
@@ -196,7 +203,8 @@ class serial_plotter_class:
                 self.create_curve('y', 'orange')
         	self.create_curve('z', 'yellow')
         	self.show_subplot()
-        elif (message_id == 9):
+
+        elif (message_id == 9 or message_id == 32):
          	plt.subplot(311)
         	plt.ylabel('velocity (raw) [cm/s]')
         	plt.ylim([-200, 200])
@@ -218,12 +226,14 @@ class serial_plotter_class:
                 plt.ylim([0, 200])
                 self.create_curve('update freq', 'red')
                 self.show_subplot()
+
         elif (message_id == 10):
          	plt.subplot(111)
         	plt.ylabel('value')
         	plt.ylim([-200, 200])
         	self.create_curve('float variable', 'red')
         	self.show_subplot()
+
         elif (message_id == 11):
           	plt.subplot(411)
         	plt.ylabel('attitude error [deg]')
@@ -528,6 +538,38 @@ class serial_plotter_class:
                 self.create_curve('P66', 'pink')
                 self.create_curve('P77', 'gray')
                 self.create_curve('P88', 'cyan')
+                self.show_subplot()
+
+        elif (message_id == 30):
+         	plt.subplot(111)
+        	plt.ylabel('position [cm]')
+        	plt.ylim([-200, 200])
+        	self.create_curve('x', 'red')
+                self.create_curve('y', 'orange')
+        	self.create_curve('z', 'yellow')
+        	self.show_subplot()
+
+        elif (message_id == 31):
+         	plt.subplot(311)
+        	plt.ylabel('velocity (raw) [cm/s]')
+        	plt.ylim([-20, 20])
+        	self.create_curve('vx', 'red')
+                self.create_curve('vy', 'orange')
+        	self.create_curve('vz', 'yellow')
+        	self.show_subplot()
+
+         	plt.subplot(312)
+        	plt.ylabel('velocity (lpf) [cm/s]')
+        	plt.ylim([-20, 20])
+        	self.create_curve('vx', 'red')
+                self.create_curve('vy', 'orange')
+        	self.create_curve('vz', 'yellow')
+        	self.show_subplot()
+
+                plt.subplot(313)
+                plt.ylabel('update frequency')
+                plt.ylim([0, 200])
+                self.create_curve('update freq', 'red')
                 self.show_subplot()
 
     def show_graph(self):

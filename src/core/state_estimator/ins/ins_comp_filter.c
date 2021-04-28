@@ -12,6 +12,7 @@
 #include "led.h"
 #include "attitude_state.h"
 #include "proj_config.h"
+#include "vins_mono.h"
 
 /* position (enu) */
 float pos_last[3] = {0.0f};
@@ -134,8 +135,11 @@ void ins_comp_filter_barometer_correct(float pz_correct, float vz_correct,
 void ins_complementary_filter_estimate(float *pos_enu_raw, float *vel_enu_raw,
                                        float *pos_enu_fused, float *vel_enu_fused)
 {
-#if (SELECT_POSITION_SENSOR == POSITION_SENSOR_USE_OPTITRACK)
+#if (SELECT_POSITION_SENSOR == POSITION_FUSION_USE_OPTITRACK)
 	set_rgb_led_service_navigation_on_flag(optitrack_available());
+	return;
+#elif (SELECT_POSITION_SENSOR == POSITION_FUSION_USE_VINS_MONO)
+	set_rgb_led_service_navigation_on_flag(vins_mono_available());
 	return;
 #endif
 

@@ -95,11 +95,11 @@ void TIM8_BRK_TIM12_IRQHandler(void)
 
 void TIM3_IRQHandler(void)
 {
-#if (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_BAROMETER)
+#if (ENABLE_BAROMETER == 1)
 	static int barometer_cnt = BAROMETER_PRESCALER_RELOAD;
 #endif
 
-#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_COMPASS)
+#if (ENABLE_MAGNETOMETER == 1)
 	static int compass_cnt = COMPASS_PRESCALER_RELOAD;
 #endif
 
@@ -107,7 +107,7 @@ void TIM3_IRQHandler(void)
 	if(TIM_GetITStatus(TIM3, TIM_IT_Update) == SET) {
 		BaseType_t higher_priority_task_woken = pdFALSE;
 
-#if (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_BAROMETER)
+#if (ENABLE_BAROMETER == 1)
 		/* barometer */
 		barometer_cnt--;
 		if(barometer_cnt == 0) {
@@ -116,7 +116,7 @@ void TIM3_IRQHandler(void)
 		}
 #endif
 
-#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_COMPASS)
+#if (ENABLE_MAGNETOMETER == 1)
 		/* compass */
 		compass_cnt--;
 		if(compass_cnt == 0) {

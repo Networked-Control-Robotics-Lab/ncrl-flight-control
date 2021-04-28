@@ -12,6 +12,7 @@
 #include "lpf.h"
 #include "debug_link.h"
 #include "led.h"
+#include "proj_config.h"
 
 #define OPTITRACK_QUEUE_SIZE (32 * 400) //~400 packets
 

@@ -20,6 +20,6 @@ void lpf_first_order_init(float *ret_gain, float sampling_time, float cutoff_fre
 void lpf_first_order(float new, float *filtered, float alpha);
 
 void lpf_second_order_init(lpf2_t *lpf, float sampling_freq, float cuttoff_freq);
-float lpf_second_order(lpf2_t *lpf, float new_input);
+void lpf_second_order(float new_input, float *filtered_data, lpf2_t *lpf);
 
 #endif
