@@ -26,29 +26,30 @@ typedef struct {
 } vins_mono_t ;
 
 
-//for receiving pose & vel message
 void vins_mono_init(int id);
+
+/* reception of vins-mon pose and velocity information */
 int vins_mono_serial_decoder(uint8_t *buf);
-void vins_mono_isr_handler(uint8_t c);	//vins_mono rx interrupt
+void vins_mono_isr_handler(uint8_t c);
 
-void vins_mono_update(void);
-bool vins_mono_available(void);		//vins_mono rx get info stablely
-
-float vins_mono_read_pos_x();
-float vins_mono_read_pos_y();
-float vins_mono_read_pos_z();
-float vins_mono_read_vel_x();
-float vins_mono_read_vel_y();
-float vins_mono_read_vel_z();
-
-//for sending IMU message			
+/* transmission of imu information for vins-mono */
 void send_vins_mono_imu_msg(void);
 void vins_mono_send_imu_50hz(void);
 
-//for vins_mono camera triggering		
+/* vins-mono camera triggering */
 void vins_mono_camera_trigger_20hz(void);
 
-//for Debug message 					
+void vins_mono_update(void);
+bool vins_mono_available(void);
+
+float vins_mono_read_pos_x(void);
+float vins_mono_read_pos_y(void);
+float vins_mono_read_pos_z(void);
+float vins_mono_read_vel_x(void);
+float vins_mono_read_vel_y(void);
+float vins_mono_read_vel_z(void);
+
+/* vins-mono debug messages */
 void send_vins_mono_position_debug_message(debug_msg_t *payload);
 void send_vins_mono_quaternion_debug_message(debug_msg_t *payload);
 void send_vins_mono_velocity_debug_message(debug_msg_t *payload);
