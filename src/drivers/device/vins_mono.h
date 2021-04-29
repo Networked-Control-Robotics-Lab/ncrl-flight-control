@@ -34,7 +34,7 @@ void vins_mono_isr_handler(uint8_t c);
 
 /* transmission of imu information for vins-mono */
 void send_vins_mono_imu_msg(void);
-void vins_mono_send_imu_50hz(void);
+void vins_mono_send_imu_200hz(void);
 
 /* vins-mono camera triggering */
 void vins_mono_camera_trigger_20hz(void);
