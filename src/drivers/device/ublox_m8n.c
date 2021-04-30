@@ -19,6 +19,9 @@
 uint8_t ubx_nav_pvt_set[] = {0xB5, 0x62, 0x6, 0x01, 0x08, 0x00, 0x01, 0x7,
                              0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x18, 0xE1
                             };
+uint8_t ubx_nav_sat_set[] = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0x01, 0x35,
+                             0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x46, 0x23
+                            };
 uint8_t ubx_nmea_gxgga_set[] = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x00,
                                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x23
                                };
@@ -81,8 +84,11 @@ void ublox_m8n_init(void)
 
 	blocked_delay_ms(500); //wait until uart finished initialization
 
-	/* enable nav_pvt message output */
+	/* enable nav-pvt message output */
 	ublox_command_send(ubx_nav_pvt_set, UBX_NAV_PVT_SET_LEN);
+
+	/* enable nav-sat message output  */
+	ublox_command_send(ubx_nav_sat_set, UBX_NAV_SAT_SET_LEN);
 
 	/* diable nmea messages output */
 	ublox_command_send(ubx_nmea_gxgga_set, UBX_NMEA_GXGGA_SET_LEN);
@@ -203,18 +209,18 @@ void ublox_m8n_isr_handler(uint8_t c)
 
 void ublox_decode_nav_pvt_msg(void)
 {
-	if((ublox.recept_class != 0x01) || (ublox.recept_id != 0x07) ||
-	    (ublox.recept_len != 92)) {
+	/* check class value and payload length */
+	if((ublox.recept_class != 0x01) || (ublox.recept_len != 92)) {
 		return;
 	}
 
-	/* length of nav_pvt_msg's payload is 92, reserve 4 for header */
+	/* data length for calculating nav-pvt is 4 <header> + 92 <payload> */
 	ublox_checksum_calc(ublox.calc_ck, ublox.recept_buf, 92 + 4);
 	if(*(uint16_t *)ublox.calc_ck != *(uint16_t *)ublox.recept_ck) {
 		return;
 	}
 
-	uint8_t *ublox_payload_addr = ublox.recept_buf + 4;
+	uint8_t *ublox_payload_addr = ublox.recept_buf + 4; //skip header 4 bytes
 	//memcpy(&ublox.year, (ublox_payload_addr + 4), sizeof(uint16_t));
 	//memcpy(&ublox.month, (ublox_payload_addr + 6), sizeof(uint8_t));
 	//memcpy(&ublox.day, (ublox_payload_addr + 7), sizeof(uint8_t));
@@ -255,6 +261,46 @@ void ublox_decode_nav_pvt_msg(void)
 	}
 }
 
+void ublox_decode_nav_sat_msg(void)
+{
+	/* check class value */
+	if(ublox.recept_class != 0x01) {
+		return;
+	}
+
+	uint8_t *ublox_payload_addr = ublox.recept_buf + 4; //skip header 4 bytes
+	uint8_t offset = 0;
+
+	//uint32_t itow;
+	//uint8_t version;
+	uint8_t num_svs;
+	//uint16_t reserved1;
+
+	//memcpy(&itow, (ublox_payload_addr + 0), sizeof(uint32_t));
+	//memcpy(&version, (ublox_payload_addr + 4), sizeof(uint8_t));
+	memcpy(&num_svs, (ublox_payload_addr + 5), sizeof(uint8_t));
+	//memcpy(&reserved1, (ublox_payload_addr + 6), sizeof(uint16_t));
+
+	/* data length for calculating nav-sat is 4 <header> + (8 + 12*num_svs) <payload> */
+	uint8_t crc_data_len = 12 + (num_svs * 12);
+	ublox_checksum_calc(ublox.calc_ck, ublox.recept_buf, crc_data_len);
+	if(*(uint16_t *)ublox.calc_ck != *(uint16_t *)ublox.recept_ck) {
+		return;
+	}
+
+	int i;
+	for(i = 0; i < num_svs; i++) {
+		offset = 12 * i;
+		memcpy(&ublox.sat_payload_list[i].gnss_id, (ublox_payload_addr + offset + 8), sizeof(uint8_t));
+		memcpy(&ublox.sat_payload_list[i].sv_id, (ublox_payload_addr + offset + 9), sizeof(uint8_t));
+		memcpy(&ublox.sat_payload_list[i].cno, (ublox_payload_addr + offset + 10), sizeof(uint8_t));
+		//memcpy(&ublox.sat_payload_list[i].elev, (ublox_payload_addr + offset + 11), sizeof(int8_t));
+		//memcpy(&ublox.sat_payload_list[i].azim, (ublox_payload_addr + offset + 12), sizeof(int16_t));
+		memcpy(&ublox.sat_payload_list[i].pr_res, (ublox_payload_addr + offset + 14), sizeof(int16_t));
+		memcpy(&ublox.sat_payload_list[i].flags, (ublox_payload_addr + offset + 16), sizeof(uint32_t));
+	}
+}
+
 void ublox_m8n_gps_update(void)
 {
 	ublox_m8n_buf_c_t recept_c;
@@ -271,9 +317,12 @@ void ublox_m8n_gps_update(void)
 	   | sync c1 | sync c2 | class | id | len | payloads | checksum1 | checksum 2 |
 	   +---------+---------+-------+----+-----+----------+-----------+------------+*/
 
+	bool ready_to_decode = false;
+
 	while(xQueueReceive(ublox_m8n_queue, &recept_c, 0) == pdTRUE) {
 		uint8_t c = recept_c.c;
 
+		/* reception */
 		switch(ublox.parse_state) {
 		case UBX_STATE_WAIT_SYNC_C1:
 			if(c == UBX_SYNC_C1) {
@@ -344,8 +393,22 @@ void ublox_m8n_gps_update(void)
 		case UBX_STATE_RECEIVE_CK2:
 			/* decode phase */
 			ublox.recept_ck[1] = c;
-			ublox_decode_nav_pvt_msg();
 			ublox.parse_state = UBX_STATE_WAIT_SYNC_C1;
+			ready_to_decode = true;
+		}
+
+		/* decode */
+		if(ready_to_decode == true) {
+			switch(ublox.recept_id) {
+			case 0x07: /* ubx-nav-pvt */
+				ublox_decode_nav_pvt_msg();
+				break;
+			case 0x35: /* ubx-nav-sat */
+				ublox_decode_nav_sat_msg();
+				break;
+			}
+
+			ready_to_decode = false;
 		}
 	}
 }
