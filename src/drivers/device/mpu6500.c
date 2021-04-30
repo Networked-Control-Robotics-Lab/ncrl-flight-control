@@ -177,7 +177,7 @@ void mpu6500_init(void)
 	mpu6500_write_byte(MPU6500_INT_ENABLE, 0x01);
 	blocked_delay_ms(100);
 
-	//sampling time = 0.001s (1KHz), cutoff frequency = 30Hz
+	//sampling time = 0.001s (1KHz), cutoff frequency = 25Hz
 	lpf_first_order_init(&mpu6500_lpf_gain, 0.001, 25);
 
 	lpf_second_order_init(&mpu6500_lpf2, 1000.0f, 40.0f);
