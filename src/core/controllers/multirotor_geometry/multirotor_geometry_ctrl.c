@@ -740,6 +740,10 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 
 #endif
 
+	mat_data(M_fb)[0] = -krx*mat_data(eR)[0] -kwx*mat_data(eW)[0];
+	mat_data(M_fb)[1] = -kry*mat_data(eR)[1] -kwy*mat_data(eW)[1];
+	mat_data(M_fb)[2] = -krz*mat_data(eR)[2] -kwz*mat_data(eW)[2];
+
 	/* for debug messages */
 	mat_data(inertia_effect)[0] = -moment_ff[0];
 	mat_data(inertia_effect)[1] = -moment_ff[1];
