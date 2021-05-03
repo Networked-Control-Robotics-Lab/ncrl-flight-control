@@ -746,9 +746,9 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 	mat_data(inertia_effect)[2] = -moment_ff[2];
 
 	/* control input M1, M2, M3 */
-	output_moments[0] = -krx*mat_data(eR)[0] -kwx*mat_data(eW)[0] - moment_ff[0];
-	output_moments[1] = -kry*mat_data(eR)[1] -kwy*mat_data(eW)[1] - moment_ff[1];
-	output_moments[2] = -_krz*mat_data(eR)[2] -_kwz*mat_data(eW)[2] - moment_ff[2];
+	output_moments[0] = -krx*mat_data(eR)[0] -kwx*mat_data(eW)[0] + mat_data(inertia_effect)[0];
+	output_moments[1] = -kry*mat_data(eR)[1] -kwy*mat_data(eW)[1] + mat_data(inertia_effect)[1];
+	output_moments[2] = -_krz*mat_data(eR)[2] -_kwz*mat_data(eW)[2] + mat_data(inertia_effect)[2];
 }
 
 void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *curr_pos_ned,
@@ -911,9 +911,9 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *
 	mat_data(inertia_effect)[2] = -moment_ff[2];
 
 	/* control input M1, M2, M3 */
-	output_moments[0] = -krx*mat_data(eR)[0] -kwx*mat_data(eW)[0] - moment_ff[0];
-	output_moments[1] = -kry*mat_data(eR)[1] -kwy*mat_data(eW)[1] - moment_ff[1];
-	output_moments[2] = -krz*mat_data(eR)[2] -kwz*mat_data(eW)[2] - moment_ff[2];
+	output_moments[0] = -krx*mat_data(eR)[0] -kwx*mat_data(eW)[0] + mat_data(inertia_effect)[0];
+	output_moments[1] = -kry*mat_data(eR)[1] -kwy*mat_data(eW)[1] + mat_data(inertia_effect)[1];
+	output_moments[2] = -krz*mat_data(eR)[2] -kwz*mat_data(eW)[2] + mat_data(inertia_effect)[2];
 }
 
 #define l_div_4 (0.25f * (1.0f / MOTOR_TO_CG_LENGTH_M))

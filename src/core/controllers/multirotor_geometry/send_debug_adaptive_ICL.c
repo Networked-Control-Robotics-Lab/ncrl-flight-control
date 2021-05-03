@@ -99,9 +99,9 @@ void send_adaptive_ICL_moment_ctrl_input_debug(debug_msg_t *payload)
 	moment_ctrl_feedback[0] = mat_data(M_fb)[0];
 	moment_ctrl_feedback[1] = mat_data(M_fb)[1];
 	moment_ctrl_feedback[2] = mat_data(M_fb)[2];
-	moment_ctrl_feedforward[0] = mat_data(M_ff)[0];
-	moment_ctrl_feedforward[1] = mat_data(M_ff)[1];
-	moment_ctrl_feedforward[2] = mat_data(M_ff)[2];
+	moment_ctrl_feedforward[0] = mat_data(inertia_effect)[0];
+	moment_ctrl_feedforward[1] = mat_data(inertia_effect)[1];
+	moment_ctrl_feedforward[2] = mat_data(inertia_effect)[2];
 	theta_diag_esti[0] = mat_data(theta_diag_hat)[0];
 	theta_diag_esti[1] = mat_data(theta_diag_hat)[1];
 	theta_diag_esti[2] = mat_data(theta_diag_hat)[2];

@@ -19,6 +19,7 @@ extern arm_matrix_instance_f32 theta_diag_hat_dot_ICL;
 extern arm_matrix_instance_f32 curr_moment;
 extern arm_matrix_instance_f32 M_fb;
 extern arm_matrix_instance_f32 M_ff;
+extern arm_matrix_instance_f32 inertia_effect;
 extern autopilot_t autopilot;
 
 void send_adaptive_ICL_mass_estimation_debug(debug_msg_t *payload);
