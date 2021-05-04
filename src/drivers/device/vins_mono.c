@@ -179,9 +179,9 @@ float vins_mono_read_vel_z()
 
 void send_vins_mono_imu_msg(void)
 {
-	/*+------------+----------+---------+---------+---------+--------+--------+--------+--------+--------+--------+----------+
-	 *| start byte | checksum | accel_x | accel_y | accel_z | gyro_x | gyro_y | gyro_z |  vel_x |  vel_y  | vel_z | end byte |
-	 *+------------+----------+---------+---------+---------+--------+--------+--------+--------+--------+--------+----------+*/
+	/*+------------+----------+---------+---------+---------+--------+--------+--------+----------+
+	 *| start byte | checksum | accel_x | accel_y | accel_z | gyro_x | gyro_y | gyro_z | end byte |
+	 *+------------+----------+---------+---------+---------+--------+--------+--------+----------+*/
 
 	float accel[3] = {0.0f};
 	float gyro[3] = {0.0f};
@@ -221,9 +221,9 @@ void send_vins_mono_imu_msg(void)
 	uart6_puts(msg_buf, VINS_MONO_IMU_MSG_SIZE);
 }
 
-void vins_mono_send_imu_50hz(void)
+void vins_mono_send_imu_200hz(void)
 {
-	/* triggered every 8 times since the function is designed to be called by
+	/* triggered every 2 times since the function is designed to be called by
 	 * flight control main loop (400Hz) */
 	static int prescaler = 2;
 	prescaler--;
