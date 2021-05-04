@@ -184,6 +184,11 @@ float ublox_m8n_get_update_freq(void)
 	return ublox.update_freq;
 }
 
+float ublox_m8n_get_last_update_time_ms(void)
+{
+	return ublox.last_read_time * 1000.0f;
+}
+
 void ublox_checksum_calc(uint8_t *result, uint8_t *payload, uint16_t len)
 {
 	result[0] = 0;

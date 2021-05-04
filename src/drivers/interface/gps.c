@@ -55,3 +55,9 @@ float get_gps_update_freq(void)
 {
 	return ublox_m8n_get_update_freq();
 }
+
+float get_gps_last_update_time_ms(void)
+{
+	return ublox_m8n_get_last_update_time_ms();
+}
+

@@ -12,5 +12,6 @@ void get_gps_position_uncertainty(float *h_acc, float *v_acc);
 float get_gps_ground_speed(void);
 float get_gps_heading(void);
 float get_gps_update_freq(void);
+float get_gps_last_update_time_ms(void);
 
 #endif

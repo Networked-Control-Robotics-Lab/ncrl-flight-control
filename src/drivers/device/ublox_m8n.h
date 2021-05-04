@@ -94,5 +94,6 @@ void ublox_m8n_get_position_uncertainty(float *h_acc, float *v_acc);
 float ublox_m8n_get_ground_speed(void);
 float ublox_m8n_get_heading(void);
 float ublox_m8n_get_update_freq(void);
+float ublox_m8n_get_last_update_time_ms(void);
 
 #endif
