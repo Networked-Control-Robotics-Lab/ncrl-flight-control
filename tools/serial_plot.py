@@ -373,13 +373,19 @@ class serial_plotter_class:
         	self.show_subplot()
 
         elif (message_id == 18):
-           	plt.subplot(421)
+           	plt.subplot(521)
         	plt.ylabel('time [ms]')
         	plt.ylim([0.0, 600000.0])
         	self.create_curve('time', 'red')
         	self.show_subplot()
-               
-           	plt.subplot(422)
+
+           	plt.subplot(522)
+        	plt.ylabel('gps update time [ms]')
+        	plt.ylim([0.0, 600000.0])
+        	self.create_curve('time', 'red')
+        	self.show_subplot()
+
+           	plt.subplot(523)
         	plt.ylabel('accel (lpf) [m/s^2]')
         	plt.ylim([-30.0, 30.0])
         	self.create_curve('ax', 'red')
@@ -387,7 +393,7 @@ class serial_plotter_class:
                 self.create_curve('az', 'green')
         	self.show_subplot()
 
-           	plt.subplot(423)
+           	plt.subplot(524)
         	plt.ylabel('gyro (raw) [rad/s]')
         	plt.ylim([-10.0, 10.0])
         	self.create_curve('wx', 'red')
@@ -395,7 +401,7 @@ class serial_plotter_class:
                 self.create_curve('wz', 'green')
         	self.show_subplot()
 
-           	plt.subplot(424)
+           	plt.subplot(525)
         	plt.ylabel('mag (raw) [uT]')
         	plt.ylim([-100, 100])
         	self.create_curve('mx', 'red')
@@ -403,7 +409,7 @@ class serial_plotter_class:
                 self.create_curve('mz', 'green')
         	self.show_subplot()
 
-           	plt.subplot(425)
+           	plt.subplot(526)
         	plt.ylabel('gps [deg]')
         	plt.ylim([-180, 180])
         	self.create_curve('longitude', 'red')
@@ -411,7 +417,7 @@ class serial_plotter_class:
                 self.create_curve('height', 'green')
         	self.show_subplot()
 
-           	plt.subplot(426)
+           	plt.subplot(527)
         	plt.ylabel('gps velocity [m/s]')
         	plt.ylim([-5.0, 5.0])
         	self.create_curve('vx', 'red')
@@ -419,13 +425,13 @@ class serial_plotter_class:
                 self.create_curve('vz', 'green')
         	self.show_subplot()
 
-                plt.subplot(427)
+                plt.subplot(528)
         	plt.ylabel('barometer height [m]')
         	plt.ylim([-1.0, 5.0])
         	self.create_curve('height', 'red')
         	self.show_subplot()
 
-                plt.subplot(428)
+                plt.subplot(529)
         	plt.ylabel('barometer velocity [m]')
         	plt.ylim([-10.0, 10.0])
         	self.create_curve('velocity', 'red')
