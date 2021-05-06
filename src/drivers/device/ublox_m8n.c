@@ -11,8 +11,6 @@
 #include "ncrl_mavlink.h"
 #include "ins_sensor_sync.h"
 
-#define UBLOX_M8N_QUEUE_SIZE 2000
-
 #define UBX_SYNC_C1 0xb5
 #define UBX_SYNC_C2 0x62
 
@@ -80,7 +78,7 @@ void ublox_command_send(uint8_t *cmd, int size)
 
 void ublox_m8n_init(void)
 {
-	ublox_m8n_queue = xQueueCreate(UBLOX_M8N_QUEUE_SIZE, sizeof(ublox_m8n_buf_c_t));
+	ublox_m8n_queue = xQueueCreate(UBX_BUFFER_SIZE, sizeof(ublox_m8n_buf_c_t));
 
 	blocked_delay_ms(500); //wait until uart finished initialization
 
@@ -325,6 +323,11 @@ void ublox_m8n_gps_update(void)
 	bool ready_to_decode = false;
 
 	while(xQueueReceive(ublox_m8n_queue, &recept_c, 0) == pdTRUE) {
+		/* buffer is full, need to be cleared or it may cause buffer overflow */
+		if(ublox.recept_buf_ptr >= (UBX_BUFFER_SIZE - 1)) {
+			ublox.recept_buf_ptr = 0;
+		}
+
 		uint8_t c = recept_c.c;
 
 		/* reception */
@@ -412,7 +415,6 @@ void ublox_m8n_gps_update(void)
 				ublox_decode_nav_sat_msg();
 				break;
 			}
-
 			ready_to_decode = false;
 		}
 	}

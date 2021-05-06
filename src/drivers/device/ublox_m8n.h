@@ -5,7 +5,7 @@
 
 #define UBLOX_SV_NUM_MAX 255
 
-#define UBX_BUFFER_SIZE 200
+#define UBX_BUFFER_SIZE 2000
 
 #define UBX_NAV_PVT_SET_LEN 16
 #define UBX_NAV_SAT_SET_LEN 16
