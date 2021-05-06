@@ -128,3 +128,17 @@ void send_ins_fusion_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_float(&vel_fused_y, payload);
 	pack_debug_debug_message_float(&vel_fused_z, payload);
 }
+
+void send_gps_accuracy_debug_message(debug_msg_t *payload)
+{
+	float h_acc, v_acc;
+	get_gps_position_uncertainty(&h_acc, &v_acc);
+
+	/* convert unit from [mm] to [m] */
+	h_acc *= 0.001;
+	v_acc *= 0.001;
+
+	pack_debug_debug_message_header(payload, MESSAGE_ID_GPS_ACCURACY);
+	pack_debug_debug_message_float(&h_acc, payload);
+	pack_debug_debug_message_float(&v_acc, payload);
+}

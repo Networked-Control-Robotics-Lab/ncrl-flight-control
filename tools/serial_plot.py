@@ -546,6 +546,13 @@ class serial_plotter_class:
                 self.create_curve('P88', 'cyan')
                 self.show_subplot()
 
+        elif (message_id == 33):
+          	plt.subplot(111)
+        	plt.ylabel('eskf1 P matrix')
+        	plt.ylim([-1, 30])
+        	self.create_curve('h_acc', 'blue')
+                self.create_curve('v_acc', 'red')
+                self.show_subplot()
 
 
     def show_graph(self):
