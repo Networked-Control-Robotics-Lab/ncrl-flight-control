@@ -38,7 +38,7 @@ void lpf_second_order_init(lpf2_t *lpf, float sampling_freq, float cutoff_freq)
 	lpf->b2 = 1.0f;
 }
 
-float lpf_second_order(lpf2_t *lpf, float new_input)
+void lpf_second_order(float new_input, float *filtered_data, lpf2_t *lpf)
 {
 	//reference: How does a low-pass filter programmatically work? (stackexchange)
 	float result = (lpf->k * new_input) +
@@ -52,5 +52,5 @@ float lpf_second_order(lpf2_t *lpf, float new_input)
 	lpf->input_last_last = lpf->input_last;
 	lpf->input_last = new_input;
 
-	return result;
+	*filtered_data = result;
 }

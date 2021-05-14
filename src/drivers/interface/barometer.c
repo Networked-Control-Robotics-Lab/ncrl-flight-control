@@ -8,7 +8,7 @@ bool is_barometer_available(void)
 
 void barometer_wait_until_stable(void)
 {
-#if (SELECT_HEIGHT_SENSOR == HEIGHT_SENSOR_USE_BAROMETER)
+#if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
 	ms5611_wait_until_stable();
 #endif
 }

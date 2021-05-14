@@ -3,6 +3,7 @@
 #include "arm_math.h"
 #include "mpu6500.h"
 #include "optitrack.h"
+#include "vins_mono.h"
 #include "ahrs.h"
 #include "comp_ahrs.h"
 #include "madgwick_ahrs.h"
@@ -24,6 +25,8 @@
 #include "attitude_state.h"
 
 extern optitrack_t optitrack;
+extern vins_mono_t vins_mono;
+
 extern SemaphoreHandle_t flight_ctrl_semphr;
 
 madgwick_t madgwick_ahrs;
@@ -49,10 +52,11 @@ void ahrs_init(void)
 	optitrack_ahrs_init(0.0025);
 
 	switch(SELECT_HEADING_SENSOR) {
-	case HEADING_SENSOR_USE_COMPASS:
+	case HEADING_FUSION_USE_COMPASS:
 		use_compass = true;
 		break;
-	case HEADING_SENSOR_USE_OPTITRACK:
+	case HEADING_FUSION_USE_OPTITRACK:
+	case HEADING_FUSION_USE_VINS_MONO:
 	default:
 		use_compass = false;
 	}
@@ -134,29 +138,6 @@ void ahrs_gyro_integration(float *q, float *gyro, float time)
 #endif
 }
 
-void align_ahrs_with_optitrack_yaw(float *q_ahrs)
-{
-	if(optitrack_available() == true) {
-		euler_t optitrack_euler;
-		quat_to_euler(optitrack.q, &optitrack_euler);
-
-		float half_psi = optitrack_euler.yaw * 0.5f;
-
-		float q_yaw[4];
-		q_yaw[0] = arm_cos_f32(half_psi);
-		q_yaw[1] = 0.0f;
-		q_yaw[2] = 0.0f;
-		q_yaw[3] = arm_sin_f32(half_psi);
-
-		float q_original[4];
-		q_original[0] = q_ahrs[0];
-		q_original[1] = q_ahrs[1];
-		q_original[2] = q_ahrs[2];
-		q_original[3] = q_ahrs[3];
-		quaternion_mult(q_yaw, q_original, q_ahrs);
-	}
-}
-
 void reset_quaternion_yaw_angle(float *q)
 {
 	float q_original[4];
@@ -176,6 +157,31 @@ void reset_quaternion_yaw_angle(float *q)
 	q_negative_yaw[3] = arm_sin_f32(-half_psi);
 
 	quaternion_mult(q_negative_yaw, q_original, q);
+}
+
+void realign_ahrs_yaw_direction(float *q_ahrs, float *q_align_reference)
+{
+	/* reset yaw angle of the ahrs quaternion */
+	reset_quaternion_yaw_angle(q_ahrs);
+
+	/* realign ahrs quaternion with a accurate reference angle */
+	euler_t reference_euler;
+	quat_to_euler(q_align_reference, &reference_euler);
+
+	float half_psi = reference_euler.yaw * 0.5f;
+
+	float q_yaw[4];
+	q_yaw[0] = arm_cos_f32(half_psi);
+	q_yaw[1] = 0.0f;
+	q_yaw[2] = 0.0f;
+	q_yaw[3] = arm_sin_f32(half_psi);
+
+	float q_original[4];
+	q_original[0] = q_ahrs[0];
+	q_original[1] = q_ahrs[1];
+	q_original[2] = q_ahrs[2];
+	q_original[3] = q_ahrs[3];
+	quaternion_mult(q_yaw, q_original, q_ahrs);
 }
 
 bool ahrs_compass_quality_test(float *mag_new)
@@ -363,9 +369,14 @@ void ahrs_estimate(attitude_t *attitude)
 	(void)gravity; //suppress the unused variable warning
 #endif
 
-#if (SELECT_HEADING_SENSOR == HEADING_SENSOR_USE_OPTITRACK)
-	reset_quaternion_yaw_angle(attitude->q);
-	align_ahrs_with_optitrack_yaw(attitude->q);
+#if (SELECT_HEADING_SENSOR == HEADING_FUSION_USE_OPTITRACK)
+	if(optitrack_available() == true) {
+		realign_ahrs_yaw_direction(attitude->q, optitrack.q);
+	}
+#elif (SELECT_HEADING_SENSOR == HEADING_FUSION_USE_VINS_MONO)
+	if(vins_mono_available() == true) {
+		realign_ahrs_yaw_direction(attitude->q, vins_mono.q);
+	}
 #endif
 
 	euler_t euler;

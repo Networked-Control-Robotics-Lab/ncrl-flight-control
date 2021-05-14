@@ -109,6 +109,7 @@ class serial_plotter_class:
         	plt.ylim([-25, 100])
         	self.create_curve('temperature', 'red')		
         	self.show_subplot()
+
         elif (message_id == 1):
                 plt.subplot(111)
         	plt.ylabel('euler angles[deg]')
@@ -117,6 +118,7 @@ class serial_plotter_class:
         	self.create_curve('pitch', 'blue')		
         	self.create_curve('yaw', 'green')		
         	self.show_subplot()
+
         elif (message_id == 2):
                 plt.subplot(311)
         	plt.ylabel('attitude [deg]')
@@ -141,6 +143,7 @@ class serial_plotter_class:
         	self.create_curve('y (lpf)', 'blue')
         	self.create_curve('z (lpf)', 'green')
         	self.show_subplot()
+
         elif (message_id == 3):
          	plt.subplot(211)
         	plt.ylabel('Var(P)')
@@ -159,7 +162,8 @@ class serial_plotter_class:
         	self.create_curve('K[2][2]', 'green')
         	self.create_curve('K[3][3]', 'orange')
         	self.show_subplot()
-        elif (message_id == 4 or message_id == 8):
+
+        elif (message_id == 4 or message_id == 8 or message_id == 31):
          	plt.subplot(111)
         	plt.ylabel('Attitude (quaternion)')
         	plt.ylim([-5, 5])
@@ -168,6 +172,7 @@ class serial_plotter_class:
         	self.create_curve('q2', 'green')
         	self.create_curve('q3', 'orange')
         	self.show_subplot()
+
         elif (message_id == 5):
          	plt.subplot(111)
         	plt.ylabel('pid controller debug')
@@ -179,6 +184,7 @@ class serial_plotter_class:
                 self.create_curve('d term', 'blue')
         	self.create_curve('pid final', 'purple')
         	self.show_subplot()
+
         elif (message_id == 6):
          	plt.subplot(111)
         	plt.ylabel('motor [thrust %]')
@@ -188,7 +194,8 @@ class serial_plotter_class:
         	self.create_curve('m3', 'yellow')
         	self.create_curve('m4', 'purple')
         	self.show_subplot()
-        elif (message_id == 7):
+
+        elif (message_id == 7 or message_id == 30):
          	plt.subplot(111)
         	plt.ylabel('position [cm]')
         	plt.ylim([-200, 200])
@@ -196,7 +203,8 @@ class serial_plotter_class:
                 self.create_curve('y', 'orange')
         	self.create_curve('z', 'yellow')
         	self.show_subplot()
-        elif (message_id == 9):
+
+        elif (message_id == 9 or message_id == 32):
          	plt.subplot(311)
         	plt.ylabel('velocity (raw) [cm/s]')
         	plt.ylim([-200, 200])
@@ -218,12 +226,14 @@ class serial_plotter_class:
                 plt.ylim([0, 200])
                 self.create_curve('update freq', 'red')
                 self.show_subplot()
+
         elif (message_id == 10):
          	plt.subplot(111)
         	plt.ylabel('value')
         	plt.ylim([-200, 200])
         	self.create_curve('float variable', 'red')
         	self.show_subplot()
+
         elif (message_id == 11):
           	plt.subplot(411)
         	plt.ylabel('attitude error [deg]')
@@ -421,7 +431,116 @@ class serial_plotter_class:
         	self.create_curve('velocity', 'red')
         	self.show_subplot()
 
-        elif (message_id == 31):
+        elif (message_id == 19):
+                plt.subplot(111)
+                plt.ylabel('gps raw position [m/s]')
+                plt.ylim([-25.0, 25.0])
+                self.create_curve('px', 'red')
+                self.create_curve('py', 'blue')
+                self.create_curve('pz', 'green')
+                self.show_subplot()
+
+        elif (message_id == 20):
+                plt.subplot(421)
+                plt.ylabel('time [ms]')
+                plt.ylim([0.0, 600000.0])
+                self.create_curve('time', 'red')
+                self.show_subplot()
+
+                plt.subplot(422)
+                plt.ylabel('sv num')
+                plt.ylim([0.0, 50.0])
+                self.create_curve('sv num', 'red')
+                self.show_subplot()
+
+                plt.subplot(423)
+                plt.ylabel('gps freq')
+                plt.ylim([0.0, 50.0])
+                self.create_curve('gps freq', 'red')
+                self.show_subplot()
+
+                plt.subplot(424)
+                plt.ylabel('gps position [m]')
+                plt.ylim([-50.0, 50.0])
+                self.create_curve('px', 'red')
+                self.create_curve('py', 'blue')
+                self.create_curve('pz', 'green')
+                self.show_subplot()
+
+                plt.subplot(425)
+                plt.ylabel('ins position [m]')
+                plt.ylim([-50.0, 50.0])
+                self.create_curve('px', 'red')
+                self.create_curve('py', 'blue')
+                self.create_curve('pz', 'green')
+                self.show_subplot()
+
+                plt.subplot(426)
+                plt.ylabel('gps velocity [m/s]')
+                plt.ylim([-5.0, 5.0])
+                self.create_curve('vx', 'red')
+                self.create_curve('vy', 'blue')
+                self.create_curve('vz', 'green')
+                self.show_subplot()
+
+                plt.subplot(427)
+                plt.ylabel('ins velocity [m/s]')
+                plt.ylim([-5.0, 5.0])
+                self.create_curve('vx', 'red')
+                self.create_curve('vy', 'blue')
+                self.create_curve('vz', 'green')
+                self.show_subplot()
+
+        elif (message_id == 21):
+		plt.subplot(511)
+		plt.ylabel('mag [uT]')
+		plt.ylim([-100, 100])
+		self.create_curve('mx', 'red')
+		self.create_curve('my', 'blue')
+		self.create_curve('mz', 'green')
+		self.show_subplot()
+
+		plt.subplot(512)
+		plt.ylabel('mag strength [uT]')
+		plt.ylim([0, 100])
+		self.create_curve('mx', 'red')
+		self.show_subplot()
+
+		plt.subplot(513)
+		plt.ylabel('update freq')
+		plt.ylim([0, 100])
+		self.create_curve('mx', 'red')
+		self.show_subplot()
+
+		plt.subplot(514)
+		plt.ylabel('quality')
+		plt.ylim([-1.2, 1.2])
+		self.create_curve('1: good 0: bad', 'red')
+		self.show_subplot()
+
+		plt.subplot(515)
+		plt.ylabel('deg')
+		plt.ylim([-200, 200])
+		self.create_curve('compass yaw', 'red')
+		self.create_curve('ahrs yaw', 'blue')
+		self.show_subplot()
+
+        elif (message_id == 22):
+		plt.subplot(111)
+		plt.ylabel('eskf1 P matrix')
+		plt.ylim([-100, 100])
+		self.create_curve('P00', 'blue')
+		self.create_curve('P11', 'orange')
+		self.create_curve('P22', 'green')
+		self.create_curve('P33', 'red')
+		self.create_curve('P44', 'purple')
+		self.create_curve('P55', 'brown')
+		self.create_curve('P66', 'pink')
+		self.create_curve('P77', 'gray')
+		self.create_curve('P88', 'cyan')
+		self.show_subplot()
+
+        elif (message_id == 41):
 		plt.subplot(711)
 		plt.ylabel('Time [s]')
 		plt.ylim([0.0, 100.0])
@@ -464,7 +583,7 @@ class serial_plotter_class:
 		self.create_curve('ICL', 'red')
 		self.show_subplot()
 
-        elif (message_id == 32):
+        elif (message_id == 42):
 		plt.subplot(511)
 		plt.ylabel('Time [s]')
 		plt.ylim([0.0, 100.0])
@@ -503,7 +622,7 @@ class serial_plotter_class:
 		self.create_curve('z', 'green')
 		self.show_subplot()
 
-	elif (message_id == 33):
+	elif (message_id == 43):
 		plt.subplot(511)
 		plt.ylabel('Time [s]')
 		plt.ylim([0.0, 100.0])
@@ -534,7 +653,7 @@ class serial_plotter_class:
 		self.create_curve('Jzz', 'red')
 		self.show_subplot()
 
-        elif (message_id == 34):
+        elif (message_id == 44):
 		plt.subplot(511)
 		plt.ylabel('Time [s]')
 		plt.ylim([0.0, 500.0])
@@ -572,115 +691,6 @@ class serial_plotter_class:
 		self.create_curve('Jyy', 'blue')
 		self.create_curve('Jzz', 'green')
 		self.show_subplot()
-
-        elif (message_id == 19):
-                plt.subplot(111)
-                plt.ylabel('gps raw position [m/s]')
-                plt.ylim([-25.0, 25.0])
-                self.create_curve('px', 'red')
-                self.create_curve('py', 'blue')
-                self.create_curve('pz', 'green')
-                self.show_subplot()
-             
-        elif (message_id == 20):
-                plt.subplot(421)
-                plt.ylabel('time [ms]')
-                plt.ylim([0.0, 600000.0])
-                self.create_curve('time', 'red')
-                self.show_subplot()
-
-                plt.subplot(422)
-                plt.ylabel('sv num')
-                plt.ylim([0.0, 50.0])
-                self.create_curve('sv num', 'red')
-                self.show_subplot()
-
-                plt.subplot(423)
-                plt.ylabel('gps freq')
-                plt.ylim([0.0, 50.0])
-                self.create_curve('gps freq', 'red')
-                self.show_subplot()
-
-                plt.subplot(424)
-                plt.ylabel('gps position [m]')
-                plt.ylim([-50.0, 50.0])
-                self.create_curve('px', 'red')
-                self.create_curve('py', 'blue')
-                self.create_curve('pz', 'green')
-                self.show_subplot()
-
-                plt.subplot(425)
-                plt.ylabel('ins position [m]')
-                plt.ylim([-50.0, 50.0])
-                self.create_curve('px', 'red')
-                self.create_curve('py', 'blue')
-                self.create_curve('pz', 'green')
-                self.show_subplot()
-           
-                plt.subplot(426)
-                plt.ylabel('gps velocity [m/s]')
-                plt.ylim([-5.0, 5.0])
-                self.create_curve('vx', 'red')
-                self.create_curve('vy', 'blue')
-                self.create_curve('vz', 'green')
-                self.show_subplot()
-
-                plt.subplot(427)
-                plt.ylabel('ins velocity [m/s]')
-                plt.ylim([-5.0, 5.0])
-                self.create_curve('vx', 'red')
-                self.create_curve('vy', 'blue')
-                self.create_curve('vz', 'green')
-                self.show_subplot()
-
-        elif (message_id == 21):
-          	plt.subplot(511)
-        	plt.ylabel('mag [uT]')
-        	plt.ylim([-100, 100])
-        	self.create_curve('mx', 'red')
-                self.create_curve('my', 'blue')
-        	self.create_curve('mz', 'green')
-        	self.show_subplot()
-
-          	plt.subplot(512)
-        	plt.ylabel('mag strength [uT]')
-        	plt.ylim([0, 100])
-        	self.create_curve('mx', 'red')
-        	self.show_subplot()
-
-          	plt.subplot(513)
-        	plt.ylabel('update freq')
-        	plt.ylim([0, 100])
-        	self.create_curve('mx', 'red')
-        	self.show_subplot()
-
-                plt.subplot(514)
-        	plt.ylabel('quality')
-        	plt.ylim([-1.2, 1.2])
-        	self.create_curve('1: good 0: bad', 'red')
-        	self.show_subplot()
-
-                plt.subplot(515)
-        	plt.ylabel('deg')
-        	plt.ylim([-200, 200])
-        	self.create_curve('compass yaw', 'red')
-        	self.create_curve('ahrs yaw', 'blue')
-        	self.show_subplot()
-
-        elif (message_id == 22):
-          	plt.subplot(111)
-        	plt.ylabel('eskf1 P matrix')
-        	plt.ylim([-100, 100])
-        	self.create_curve('P00', 'blue')
-                self.create_curve('P11', 'orange')
-        	self.create_curve('P22', 'green')
-                self.create_curve('P33', 'red')
-                self.create_curve('P44', 'purple')
-                self.create_curve('P55', 'brown')
-                self.create_curve('P66', 'pink')
-                self.create_curve('P77', 'gray')
-                self.create_curve('P88', 'cyan')
-                self.show_subplot()
 
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \
