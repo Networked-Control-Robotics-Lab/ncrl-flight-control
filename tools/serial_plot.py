@@ -17,7 +17,7 @@ ser = serial.Serial(
     bytesize=serial.EIGHTBITS,\
     timeout=100)
 
-save_csv = False
+save_csv = True
 csv_file = 'serial_log.csv'
 
 if save_csv == True:
