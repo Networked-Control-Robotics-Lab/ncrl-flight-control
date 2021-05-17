@@ -70,52 +70,52 @@ void autopilot_unlock_motor(void)
 
 void autopilot_assign_pos_target_x(float x)
 {
-	autopilot.wp_now.pos[0] = x;
+	autopilot.ctrl_target.pos[0] = x;
 }
 
 void autopilot_assign_pos_target_y(float y)
 {
-	autopilot.wp_now.pos[1] = y;
+	autopilot.ctrl_target.pos[1] = y;
 }
 
 void autopilot_assign_pos_target_z(float z)
 {
-	autopilot.wp_now.pos[2] = z;
+	autopilot.ctrl_target.pos[2] = z;
 }
 
 void autopilot_assign_pos_target(float x, float y, float z)
 {
-	autopilot.wp_now.pos[0] = x;
-	autopilot.wp_now.pos[1] = y;
-	autopilot.wp_now.pos[2] = z;
+	autopilot.ctrl_target.pos[0] = x;
+	autopilot.ctrl_target.pos[1] = y;
+	autopilot.ctrl_target.pos[2] = z;
 }
 
 void autopilot_assign_vel_target(float vx, float vy, float vz)
 {
-	autopilot.wp_now.vel[0] = vx;
-	autopilot.wp_now.vel[1] = vy;
-	autopilot.wp_now.vel[2] = vz;
+	autopilot.ctrl_target.vel[0] = vx;
+	autopilot.ctrl_target.vel[1] = vy;
+	autopilot.ctrl_target.vel[2] = vz;
 }
 
 void autopilot_assign_zero_vel_target(void)
 {
-	autopilot.wp_now.vel[0] = 0.0f;
-	autopilot.wp_now.vel[1] = 0.0f;
-	autopilot.wp_now.vel[2] = 0.0f;
+	autopilot.ctrl_target.vel[0] = 0.0f;
+	autopilot.ctrl_target.vel[1] = 0.0f;
+	autopilot.ctrl_target.vel[2] = 0.0f;
 }
 
 void autopilot_assign_acc_feedforward(float ax, float ay, float az)
 {
-	autopilot.wp_now.acc_feedforward[0] = ax;
-	autopilot.wp_now.acc_feedforward[1] = ay;
-	autopilot.wp_now.acc_feedforward[2] = az;
+	autopilot.ctrl_target.acc_feedforward[0] = ax;
+	autopilot.ctrl_target.acc_feedforward[1] = ay;
+	autopilot.ctrl_target.acc_feedforward[2] = az;
 }
 
 void autopilot_assign_zero_acc_feedforward(void)
 {
-	autopilot.wp_now.acc_feedforward[0] = 0.0f;
-	autopilot.wp_now.acc_feedforward[1] = 0.0f;
-	autopilot.wp_now.acc_feedforward[2] = 0.0f;
+	autopilot.ctrl_target.acc_feedforward[0] = 0.0f;
+	autopilot.ctrl_target.acc_feedforward[1] = 0.0f;
+	autopilot.ctrl_target.acc_feedforward[2] = 0.0f;
 }
 
 void autopilot_set_mode(int new_mode)
@@ -140,23 +140,23 @@ int autopilot_get_mode(void)
 
 void autopilot_get_pos_setpoint(float *pos_set)
 {
-	pos_set[0] = autopilot.wp_now.pos[0];
-	pos_set[1] = autopilot.wp_now.pos[1];
-	pos_set[2] = autopilot.wp_now.pos[2];
+	pos_set[0] = autopilot.ctrl_target.pos[0];
+	pos_set[1] = autopilot.ctrl_target.pos[1];
+	pos_set[2] = autopilot.ctrl_target.pos[2];
 }
 
 void autopilot_get_vel_setpoint(float *vel_set)
 {
-	vel_set[0] = autopilot.wp_now.vel[0];
-	vel_set[1] = autopilot.wp_now.vel[1];
-	vel_set[2] = autopilot.wp_now.vel[2];
+	vel_set[0] = autopilot.ctrl_target.vel[0];
+	vel_set[1] = autopilot.ctrl_target.vel[1];
+	vel_set[2] = autopilot.ctrl_target.vel[2];
 }
 
 void autopilot_get_accel_feedforward(float *accel_ff)
 {
-	accel_ff[0] = autopilot.wp_now.acc_feedforward[0];
-	accel_ff[1] = autopilot.wp_now.acc_feedforward[1];
-	accel_ff[2] = autopilot.wp_now.acc_feedforward[2];
+	accel_ff[0] = autopilot.ctrl_target.acc_feedforward[0];
+	accel_ff[1] = autopilot.ctrl_target.acc_feedforward[1];
+	accel_ff[2] = autopilot.ctrl_target.acc_feedforward[2];
 }
 
 void autopilot_hovering_position_trimming_handler(void)
@@ -192,8 +192,8 @@ void autopilot_hovering_position_trimming_handler(void)
 	y_increment_i = R_b2i[1*3 + 0] * x_increment_b + (R_b2i[1*3 + 1] * y_increment_b);
 
 	/* apply increment to autopilot position target variables (enu frame) */
-	autopilot.wp_now.pos[0] += y_increment_i;
-	autopilot.wp_now.pos[1] += x_increment_i;
+	autopilot.ctrl_target.pos[0] += y_increment_i;
+	autopilot.ctrl_target.pos[1] += x_increment_i;
 }
 
 void autopilot_guidance_handler(float *curr_pos_enu, float *curr_vel_enu)
@@ -246,11 +246,11 @@ void debug_print_waypoint_list(void)
 
 	char s[200] = {0};
 	int i;
-	for(i = 0; i < autopilot.wp_num; i++) {
+	for(i = 0; i < autopilot.waypoint_num; i++) {
 		sprintf(s, "wp #%d: x=%.1f, y=%.1f, z=%.1f, heading=%.1f,  stay_time=%.1f, radius=%.1f\n\r",
-		        i, autopilot.wp_list[i].pos[0], autopilot.wp_list[i].pos[1],
-		        autopilot.wp_list[i].pos[2], autopilot.wp_list[i].heading,
-		        autopilot.wp_list[i].halt_time_sec, autopilot.wp_list[i].touch_radius);
+		        i, autopilot.waypoints[i].pos[0], autopilot.waypoints[i].pos[1],
+		        autopilot.waypoints[i].pos[2], autopilot.waypoints[i].heading,
+		        autopilot.waypoints[i].halt_time_sec, autopilot.waypoints[i].touch_radius);
 		uart1_puts(s, strlen(s));
 	}
 }
@@ -264,16 +264,16 @@ void debug_print_waypoint_status(void)
 	}
 
 	char s[200] = {'\0'};
-	int curr_wp_num = autopilot.curr_wp;
+	int curr_waypoint_num = autopilot.curr_waypoint;
 	sprintf(s, "current waypoint = #%d, x=%.1fm, y=%.1fm, z=%.1fm,"
 	        " heading=%.1f, stay_time=%.1f, radius=%.1fm\n\r",
-	        curr_wp_num,
-	        autopilot.wp_list[curr_wp_num].pos[0] * 0.01,
-	        autopilot.wp_list[curr_wp_num].pos[1] * 0.01,
-	        autopilot.wp_list[curr_wp_num].pos[2] * 0.01,
-	        autopilot.wp_list[curr_wp_num].heading,
-	        autopilot.wp_list[curr_wp_num].halt_time_sec,
-	        autopilot.wp_list[curr_wp_num].touch_radius * 0.01);
+	        curr_waypoint_num,
+	        autopilot.waypoints[curr_waypoint_num].pos[0] * 0.01,
+	        autopilot.waypoints[curr_waypoint_num].pos[1] * 0.01,
+	        autopilot.waypoints[curr_waypoint_num].pos[2] * 0.01,
+	        autopilot.waypoints[curr_waypoint_num].heading,
+	        autopilot.waypoints[curr_waypoint_num].halt_time_sec,
+	        autopilot.waypoints[curr_waypoint_num].touch_radius * 0.01);
 	uart1_puts(s, strlen(s));
 	freertos_task_delay(1);
 }

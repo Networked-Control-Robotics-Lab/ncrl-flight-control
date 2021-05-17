@@ -28,12 +28,12 @@ int autopilot_trigger_auto_takeoff(void)
 void autopilot_takeoff_handler(void)
 {
 	/* slowly change the height setpoint for takeoff */
-	autopilot.wp_now.pos[2] += autopilot.takeoff_speed;
+	autopilot.ctrl_target.pos[2] += autopilot.takeoff_speed;
 	autopilot_assign_zero_vel_target();
 	autopilot_assign_zero_acc_feedforward();
-	if(autopilot.wp_now.pos[2] > autopilot.takeoff_height) {
+	if(autopilot.ctrl_target.pos[2] > autopilot.takeoff_height) {
 		autopilot.mode = AUTOPILOT_HOVERING_MODE;
-		autopilot.wp_now.pos[2] = autopilot.takeoff_height;
+		autopilot.ctrl_target.pos[2] = autopilot.takeoff_height;
 	}
 }
 
@@ -43,12 +43,12 @@ void autopilot_landing_handler(float *curr_pos)
 	autopilot_assign_zero_acc_feedforward();
 
 	/* check if the height setpoint is lower than the height accepted to land */
-	if(autopilot.wp_now.pos[2] < autopilot.landing_accept_height_lower) {
-		autopilot.wp_now.pos[2] = autopilot.landing_accept_height_lower;
+	if(autopilot.ctrl_target.pos[2] < autopilot.landing_accept_height_lower) {
+		autopilot.ctrl_target.pos[2] = autopilot.landing_accept_height_lower;
 		autopilot.land_avaliable = true;
 	} else {
 		/* slowly change the height setpoint for landing */
-		autopilot.wp_now.pos[2] -= autopilot.landing_speed;
+		autopilot.ctrl_target.pos[2] -= autopilot.landing_speed;
 	}
 
 	/* check if the height of the uav is lower than the height accepted to land */

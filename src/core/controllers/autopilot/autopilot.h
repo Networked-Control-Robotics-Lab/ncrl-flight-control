@@ -82,7 +82,7 @@ typedef struct {
 		float vel[3];             //[m/s]
 		float acc_feedforward[3]; //[m/s^2]
 		float heading;            //[deg]
-	} wp_now;
+	} ctrl_target;
 
 	/* rectangular geo-fence (enu frame) */
 	struct {
@@ -107,14 +107,14 @@ typedef struct {
 	bool armed;
 	bool motor_locked;
 
-	/* for waypoint following (representing setpoint with waypoints) */
-	struct waypoint_t wp_list[TRAJ_WP_MAX_NUM]; //enu frame
-	int curr_wp; //waypoint index, indicates which waypoint to track
-	int wp_num;  //total waypoint number
+	/* waypoint mission datas */
+	struct waypoint_t waypoints[TRAJ_WP_MAX_NUM]; //waypoint list (enu frame)
+	int curr_waypoint;       //index of current waypoint to track
+	int waypoint_num;        //total waypoint numbers
 	int waypoint_wait_timer; //used for delay between waypoints
 
-	/* for trajectory following (representing setpoint with 7th ordered polynomials) */
-	struct trajectory_segment_t trajectory_segments[TRAJ_WP_MAX_NUM];
+	/* trajectory following datas */
+	struct trajectory_segment_t trajectory_segments[TRAJ_WP_MAX_NUM]; //trajectory list
 	float trajectory_update_time;
 	float traj_start_time;
 	int curr_traj;  //trajectory segment index, indicates which trajectory to track
