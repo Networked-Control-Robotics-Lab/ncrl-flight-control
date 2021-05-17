@@ -176,15 +176,15 @@ void autopilot_wait_next_waypoint_handler(void)
 	}
 }
 
-void autopilot_follow_waypoint_handler(void)
+void autopilot_follow_waypoint_handler(float *curr_pos)
 {
 	/* calculate 2-norm to check if enter the waypoint touch zone or not */
 	float curr_dist[3];
-	curr_dist[0] = autopilot.uav_state.pos[0] - autopilot.wp_list[autopilot.curr_wp].pos[0];
+	curr_dist[0] = curr_pos[0] - autopilot.wp_list[autopilot.curr_wp].pos[0];
 	curr_dist[0] *= curr_dist[0];
-	curr_dist[1] = autopilot.uav_state.pos[1] - autopilot.wp_list[autopilot.curr_wp].pos[1];
+	curr_dist[1] = curr_pos[1] - autopilot.wp_list[autopilot.curr_wp].pos[1];
 	curr_dist[1] *= curr_dist[1];
-	curr_dist[2] = autopilot.uav_state.pos[2] - autopilot.wp_list[autopilot.curr_wp].pos[2];
+	curr_dist[2] = curr_pos[2] - autopilot.wp_list[autopilot.curr_wp].pos[2];
 	curr_dist[2] *= curr_dist[2];
 
 	float accept_dist = autopilot.wp_list[autopilot.curr_wp].touch_radius;

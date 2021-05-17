@@ -585,9 +585,8 @@ void multirotor_geometry_control(radio_t *rc, float *desired_heading)
 		attitude_cmd.yaw = deg_to_rad(-rc->yaw);
 	}
 
-	/* guidance system (autopilot) */
-	autopilot_update_uav_state(curr_pos_enu, curr_vel_enu);
-	autopilot_guidance_handler();
+	/* guidance loop (autopilot) */
+	autopilot_guidance_handler(curr_pos_enu, curr_vel_enu);
 
 	/* prepare desired position, velocity and acceleration feedforward */
 	float pos_des_enu[3], vel_des_enu[3], accel_ff_enu[3];

@@ -332,9 +332,8 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 	/* altitude control */
 	altitude_control(pos_enu[2], vel_enu[2], &pid_alt_vel, &pid_alt);
 
-	/* autopilot guidance loop */
-	autopilot_update_uav_state(pos_enu, vel_enu);
-	autopilot_guidance_handler();
+	/* guidance loop (autopilot) */
+	autopilot_guidance_handler(pos_enu, vel_enu);
 
 	/* feed position controller setpoint from autopilot (ned) */
 	float position_setpoint[3];

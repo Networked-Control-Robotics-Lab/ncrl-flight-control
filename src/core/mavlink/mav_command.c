@@ -10,6 +10,7 @@
 #include "sys_param.h"
 #include "esc_calibration.h"
 #include "common_list.h"
+#include "takeoff_landing.h"
 
 static void mavlink_send_capability(void)
 {

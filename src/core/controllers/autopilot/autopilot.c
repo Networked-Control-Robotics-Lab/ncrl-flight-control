@@ -12,6 +12,7 @@
 #include "trajectory_following.h"
 #include "takeoff_landing.h"
 #include "waypoint_following.h"
+#include "position_state.h"
 
 autopilot_t autopilot;
 
@@ -38,13 +39,6 @@ void autopilot_init(void)
 	autopilot.landing_accept_height_lower = 0.10f; //[m]
 	autopilot.landing_accept_height_upper = 0.12f; //[m]
 	autopilot.land_avaliable = false;
-}
-
-void autopilot_update_uav_state(float pos_enu[3], float vel_enu[3])
-{
-	autopilot.uav_state.pos[0] = pos_enu[0];
-	autopilot.uav_state.pos[1] = pos_enu[1];
-	autopilot.uav_state.pos[2] = pos_enu[2];
 }
 
 bool autopilot_is_auto_flight_mode(void)
@@ -165,26 +159,6 @@ void autopilot_get_accel_feedforward(float *accel_ff)
 	accel_ff[2] = autopilot.wp_now.acc_feedforward[2];
 }
 
-int autopilot_trigger_auto_landing(void)
-{
-	if(autopilot.mode == AUTOPILOT_HOVERING_MODE) {
-		autopilot.mode = AUTOPILOT_LANDING_MODE;
-		return AUTOPILOT_SET_SUCCEED;
-	} else {
-		return AUTOPILOT_NOT_IN_HOVERING_MODE;
-	}
-}
-
-int autopilot_trigger_auto_takeoff(void)
-{
-	if(autopilot.uav_state.pos[2] < 0.2) {
-		autopilot.mode = AUTOPILOT_TAKEOFF_MODE;
-		return AUTOPILOT_SET_SUCCEED;
-	} else {
-		return AUTOPILOT_ALREADY_TAKEOFF;
-	}
-}
-
 void autopilot_hovering_position_trimming_handler(void)
 {
 	const float dt = 0.0001;
@@ -222,7 +196,7 @@ void autopilot_hovering_position_trimming_handler(void)
 	autopilot.wp_now.pos[1] += x_increment_i;
 }
 
-void autopilot_guidance_handler(void)
+void autopilot_guidance_handler(float *curr_pos_enu, float *curr_vel_enu)
 {
 	/* receive and handle remote controller commands */
 	switch(autopilot.mode) {
@@ -237,10 +211,7 @@ void autopilot_guidance_handler(void)
 		autopilot.mode = AUTOPILOT_HOVERING_MODE;
 
 		/* hovering at current position */
-		autopilot_assign_pos_target(
-		        autopilot.uav_state.pos[0],
-		        autopilot.uav_state.pos[1],
-		        autopilot.uav_state.pos[2]);
+		autopilot_assign_pos_target(curr_pos_enu[0], curr_pos_enu[1], curr_pos_enu[2]);
 		autopilot_assign_zero_vel_target();
 		autopilot_assign_zero_acc_feedforward();
 	}
@@ -254,7 +225,7 @@ void autopilot_guidance_handler(void)
 		autopilot_trajectory_following_handler();
 		break;
 	case AUTOPILOT_LANDING_MODE:
-		autopilot_landing_handler();
+		autopilot_landing_handler(curr_pos_enu);
 		break;
 	case AUTOPILOT_TAKEOFF_MODE:
 		autopilot_takeoff_handler();
@@ -263,7 +234,7 @@ void autopilot_guidance_handler(void)
 		autopilot_wait_next_waypoint_handler();
 		break;
 	case AUTOPILOT_FOLLOW_WAYPOINT_MODE:
-		autopilot_follow_waypoint_handler();
+		autopilot_follow_waypoint_handler(curr_pos_enu);
 		break;
 	}
 }
