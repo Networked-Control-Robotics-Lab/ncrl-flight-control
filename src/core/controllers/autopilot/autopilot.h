@@ -99,8 +99,10 @@ typedef struct {
 	float landing_accept_height_lower;
 	float takeoff_speed;
 	float takeoff_height;
+	float tracking_speed;
 
-	/* autopilot mode and flags */
+	/* autopilot datas and flags */
+	float period; //executing period
 	int mode;
 	bool halt_flag;
 	bool loop_mission;

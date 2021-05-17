@@ -2,6 +2,9 @@
 #include "autopilot.h"
 #include "fence.h"
 #include "sys_time.h"
+#include "se3_math.h"
+
+#define WAYPOINT_SMOOTH_VARYING 0
 
 extern autopilot_t autopilot;
 
@@ -129,11 +132,14 @@ int autopilot_waypoint_mission_start(bool loop_mission)
 		autopilot.mode = AUTOPILOT_FOLLOW_WAYPOINT_MODE;
 		autopilot.loop_mission = loop_mission;
 		/* update position/velocity setpoint to the controller */
+#if (WAYPOINT_SMOOTH_VARYING == 0)
+		/* non-smooth waypoint varying: direct change the setpoint to the next waypoint */
 		int curr_waypoint_num = autopilot.curr_waypoint;
 		float x_target = autopilot.waypoints[curr_waypoint_num].pos[0];
 		float y_target = autopilot.waypoints[curr_waypoint_num].pos[1];
 		float z_target = autopilot.waypoints[curr_waypoint_num].pos[2];
 		autopilot_assign_pos_target(x_target, y_target, z_target);
+#endif
 		autopilot_assign_zero_vel_target();
 		autopilot_assign_zero_acc_feedforward();
 		return AUTOPILOT_SET_SUCCEED;
@@ -171,6 +177,9 @@ void autopilot_wait_next_waypoint_handler(void)
 			}
 		}
 
+#if (WAYPOINT_SMOOTH_VARYING == 0)
+		/* non-smooth waypoint varying: direct change the setpoint to the next waypoint */
+
 		/* update position/velocity setpoint to the controller */
 		float x_target = autopilot.waypoints[curr_waypoint_num].pos[0];
 		float y_target = autopilot.waypoints[curr_waypoint_num].pos[1];
@@ -178,14 +187,33 @@ void autopilot_wait_next_waypoint_handler(void)
 		autopilot_assign_pos_target(x_target, y_target, z_target);
 		autopilot_assign_zero_vel_target();
 		autopilot_assign_zero_acc_feedforward();
+#endif
 	}
 }
 
 void autopilot_follow_waypoint_handler(float *curr_pos)
 {
+	int curr_waypoint_num = autopilot.curr_waypoint;
+
+#if (WAYPOINT_SMOOTH_VARYING != 0)
+	/* smooth waypoint varying: linearly move the setpoint to the target waypoint */
+
+	/* calculate direction vector from current position to the desired position */
+	float dir_vec[3];
+	dir_vec[0] = autopilot.waypoints[curr_waypoint_num].pos[0] - curr_pos[0];
+	dir_vec[1] = autopilot.waypoints[curr_waypoint_num].pos[1] - curr_pos[1];
+	dir_vec[2] = autopilot.waypoints[curr_waypoint_num].pos[2] - curr_pos[2];
+	normalize_3x1(dir_vec);
+
+	/* move the desired position from original position to the target */
+	float pos_inc = autopilot.tracking_speed * autopilot.period;
+	autopilot.ctrl_target.pos[0] += dir_vec[0] * pos_inc;
+	autopilot.ctrl_target.pos[1] += dir_vec[1] * pos_inc;
+	autopilot.ctrl_target.pos[2] += dir_vec[2] * pos_inc;
+#endif
+
 	/* calculate 2-norm to check if enter the waypoint touch zone or not */
 	float curr_dist[3];
-	int curr_waypoint_num = autopilot.curr_waypoint;
 	curr_dist[0] = curr_pos[0] - autopilot.waypoints[curr_waypoint_num].pos[0];
 	curr_dist[1] = curr_pos[1] - autopilot.waypoints[curr_waypoint_num].pos[1];
 	curr_dist[2] = curr_pos[2] - autopilot.waypoints[curr_waypoint_num].pos[2];
