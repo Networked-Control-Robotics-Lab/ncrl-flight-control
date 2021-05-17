@@ -124,6 +124,7 @@ typedef struct {
 } autopilot_t;
 
 bool check_motor_lock_condition(bool condition);
+void assign_vector_3x1_enu_to_ned(float *ned, float *enu);
 
 void autopilot_init(autopilot_t *_autopilot);
 void autopilot_update_uav_state(float pos_enu[3], float vel_enu[3]);
@@ -131,24 +132,41 @@ void autopilot_update_uav_state(float pos_enu[3], float vel_enu[3]);
 bool autopilot_is_manual_flight_mode(void);
 bool autopilot_is_motor_locked_mode(void);
 bool autopilot_is_auto_flight_mode(void);
+bool autopilot_is_armed(void);
+
+void autopilot_lock_motor(void);
+void autopilot_unlock_motor(void);
+
+void autopilot_assign_pos_target_x(float x);
+void autopilot_assign_pos_target_y(float y);
+void autopilot_assign_pos_target_z(float z);
+void autopilot_assign_pos_target(float x, float y, float z);
+void autopilot_assign_vel_target(float vx, float vy, float vz);
+void autopilot_assign_zero_vel_target(void);
+void autopilot_assign_acc_feedforward(float ax, float ay, float az);
+void autopilot_assign_zero_acc_feedforward(void);
+void autopilot_assign_trajactory_waypoint(float time);
 
 void autopilot_set_enu_rectangular_fence(float origin[3], float lx, float ly, float height);
 void autopilot_set_mode(int new_mode);
 void autopilot_set_armed(void);
 void autopilot_set_disarmed(void);
-void autopilot_mission_reset(void);
 
-bool autopilot_is_armed(void);
 int autopilot_get_mode(void);
+int autopilot_get_waypoint_count(void);
 void autopilot_get_pos_setpoint(float *pos_set);
 void autopilot_get_vel_setpoint(float *vel_set);
 void autopilot_get_accel_feedforward(float *accel_ff);
+bool autopilot_get_waypoint_gps_mavlink(int index, int32_t *latitude, int32_t *longitude, float *height, uint16_t *cmd);
 
-int autopilot_get_waypoint_count(void);
-bool autopilot_get_waypoint_gps_mavlink(int index, int32_t *latitude, int32_t *longitude,
-                                float *height, uint16_t *cmd);
-int autopilot_add_new_waypoint_gps_mavlink(int32_t latitude, int32_t longitude,
-                                     float height, uint16_t cmd);
+int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec, float radius);
+int autopilot_add_new_waypoint_gps_mavlink(int32_t latitude, int32_t longitude, float height, uint16_t cmd);
+int autopilot_clear_waypoint_list(void);
+int autopilot_goto_waypoint_now(float pos[3], bool change_height);
+int autopilot_halt_waypoint_mission(void);
+int autopilot_resume_waypoint_mission(void);
+int autopilot_waypoint_mission_start(bool loop_mission);
+void autopilot_mission_reset(void);
 
 int autopilot_set_x_trajectory(int index, float *x_traj_coeff, float fligt_time);
 int autopilot_set_y_trajectory(int index, float *y_traj_coeff, float fligt_time);
@@ -158,22 +176,10 @@ int autopilot_config_trajectory_following(int traj_num, bool z_traj, bool yaw_tr
 int autopilot_trajectory_following_start(bool loop_trajectory);
 int autopilot_trajectory_following_stop(void);
 
-int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec, float radius);
-
-int autopilot_clear_waypoint_list(void);
-int autopilot_goto_waypoint_now(float pos[3], bool change_height);
-int autopilot_halt_waypoint_mission(void);
-int autopilot_resume_waypoint_mission(void);
-int autopilot_waypoint_mission_start(bool loop_mission);
 int autopilot_trigger_auto_landing(void);
 int autopilot_trigger_auto_takeoff(void);
 
-void autopilot_lock_motor(void);
-void autopilot_unlock_motor(void);
-
 void autopilot_guidance_handler(void);
-
-void assign_vector_3x1_enu_to_ned(float *ned, float *enu);
 
 void debug_print_waypoint_list(void);
 void debug_print_waypoint_status(void);

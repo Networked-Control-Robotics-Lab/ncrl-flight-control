@@ -75,6 +75,23 @@ bool autopilot_is_auto_flight_mode(void)
 	}
 }
 
+bool autopilot_is_armed(void)
+{
+	return autopilot_ptr->armed;
+}
+
+void autopilot_lock_motor(void)
+{
+	/* caution:dangerous function, carefully use! */
+	autopilot_ptr->motor_locked = true;
+}
+
+void autopilot_unlock_motor(void)
+{
+	/* caution:dangerous function, carefully use! */
+	autopilot_ptr->motor_locked = false;
+}
+
 void autopilot_assign_pos_target_x(float x)
 {
 	autopilot_ptr->wp_now.pos[0] = x;
@@ -197,11 +214,6 @@ void autopilot_set_mode(int new_mode)
 	autopilot_ptr->mode = new_mode;
 }
 
-int autopilot_get_mode(void)
-{
-	return autopilot_ptr->mode;
-}
-
 void autopilot_set_armed(void)
 {
 	autopilot_ptr->armed = true;
@@ -212,14 +224,14 @@ void autopilot_set_disarmed(void)
 	autopilot_ptr->armed = false;
 }
 
-bool autopilot_is_armed(void)
+int autopilot_get_mode(void)
 {
-	return autopilot_ptr->armed;
+	return autopilot_ptr->mode;
 }
 
-void autopilot_mission_reset(void)
+int autopilot_get_waypoint_count(void)
 {
-	autopilot_ptr->curr_wp = 0;
+	return autopilot_ptr->wp_num;
 }
 
 void autopilot_get_pos_setpoint(float *pos_set)
@@ -243,13 +255,7 @@ void autopilot_get_accel_feedforward(float *accel_ff)
 	accel_ff[2] = autopilot_ptr->wp_now.acc_feedforward[2];
 }
 
-int autopilot_get_waypoint_count(void)
-{
-	return autopilot_ptr->wp_num;
-}
-
-bool autopilot_get_waypoint_gps_mavlink(int index, int32_t *latitude, int32_t *longitude,
-                                        float *height, uint16_t *cmd)
+bool autopilot_get_waypoint_gps_mavlink(int index, int32_t *latitude, int32_t *longitude, float *height, uint16_t *cmd)
 {
 	if(index >= autopilot_ptr->wp_num) {
 		return false; //invalid waypoint index
@@ -280,8 +286,7 @@ int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec,
 	}
 }
 
-int autopilot_add_new_waypoint_gps_mavlink(int32_t latitude, int32_t longitude,
-                float height, uint16_t cmd)
+int autopilot_add_new_waypoint_gps_mavlink(int32_t latitude, int32_t longitude, float height, uint16_t cmd)
 {
 	//TODO: add geo-fence protection
 
@@ -302,6 +307,86 @@ int autopilot_add_new_waypoint_gps_mavlink(int32_t latitude, int32_t longitude,
 	} else {
 		return AUTOPILOT_WAYPOINT_LIST_FULL;
 	}
+}
+
+int autopilot_clear_waypoint_list(void)
+{
+	if(autopilot_ptr->mode != AUTOPILOT_FOLLOW_WAYPOINT_MODE &&
+	    autopilot_ptr->mode != AUTOPILOT_WAIT_NEXT_WAYPOINT_MODE) {
+		autopilot_ptr->wp_num = 0;
+		autopilot_ptr->curr_wp = 0;
+		return AUTOPILOT_SET_SUCCEED;
+	} else {
+		return AUTOPILOT_WAYPOINT_FOLLOWING_BUSY;
+	}
+}
+
+int autopilot_goto_waypoint_now(float pos[3], bool change_height)
+{
+	bool in_fence = autopilot_test_point_in_rectangular_fence(pos);
+
+	if(in_fence == true) {
+		autopilot_ptr->mode = AUTOPILOT_HOVERING_MODE;
+		(autopilot_ptr->wp_now).pos[0] = pos[0];
+		(autopilot_ptr->wp_now).pos[1] = pos[1];
+		if(change_height == true) {
+			(autopilot_ptr->wp_now).pos[2] = pos[2];
+		}
+		autopilot_ptr->curr_wp = 0; //reset waypoint list pointer
+		return AUTOPILOT_SET_SUCCEED;
+	} else {
+		return AUTOPILOT_WAYPOINT_OUT_OF_FENCE;
+	}
+}
+
+int autopilot_halt_waypoint_mission(void)
+{
+	if(autopilot_ptr->mode == AUTOPILOT_FOLLOW_WAYPOINT_MODE ||
+	    autopilot_ptr->mode == AUTOPILOT_WAIT_NEXT_WAYPOINT_MODE) {
+		autopilot_ptr->halt_flag = true;
+		return AUTOPILOT_SET_SUCCEED;
+	} else {
+		return AUTOPILOT_NOT_IN_WAYPOINT_MODE;
+	}
+}
+
+int autopilot_resume_waypoint_mission(void)
+{
+	if(autopilot_ptr->curr_wp != 0 && autopilot_ptr->curr_wp != (autopilot_ptr->wp_num - 1)) {
+		autopilot_ptr->mode = AUTOPILOT_FOLLOW_WAYPOINT_MODE;
+		return AUTOPILOT_SET_SUCCEED;
+	} else {
+		return AUTOPILOT_NO_HALTED_WAYPOINT_MISSION;
+	}
+}
+
+int autopilot_waypoint_mission_start(bool loop_mission)
+{
+	if(autopilot_ptr->mode != AUTOPILOT_HOVERING_MODE) {
+		return AUTOPILOT_NOT_IN_HOVERING_MODE;
+	}
+
+	if(autopilot_ptr->wp_num >= 1) {
+		autopilot_ptr->curr_wp = 0;
+		/* change to waypoint following mode */
+		autopilot_ptr->mode = AUTOPILOT_FOLLOW_WAYPOINT_MODE;
+		autopilot_ptr->loop_mission = loop_mission;
+		/* update position/velocity setpoint to controller */
+		float x_target = autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[0];
+		float y_target = autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[1];
+		float z_target = autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[2];
+		autopilot_assign_pos_target(x_target, y_target, z_target);
+		autopilot_assign_zero_vel_target();
+		autopilot_assign_zero_acc_feedforward();
+		return AUTOPILOT_SET_SUCCEED;
+	} else {
+		return AUTOPILOT_WAYPOINT_LIST_EMPYT;
+	}
+}
+
+void autopilot_mission_reset(void)
+{
+	autopilot_ptr->curr_wp = 0;
 }
 
 int autopilot_set_x_trajectory(int index, float *x_traj_coeff, float fligt_time)
@@ -417,80 +502,6 @@ int autopilot_config_trajectory_following(int traj_num, bool z_traj, bool yaw_tr
 	return AUTOPILOT_SET_SUCCEED;
 }
 
-int autopilot_clear_waypoint_list(void)
-{
-	if(autopilot_ptr->mode != AUTOPILOT_FOLLOW_WAYPOINT_MODE &&
-	    autopilot_ptr->mode != AUTOPILOT_WAIT_NEXT_WAYPOINT_MODE) {
-		autopilot_ptr->wp_num = 0;
-		autopilot_ptr->curr_wp = 0;
-		return AUTOPILOT_SET_SUCCEED;
-	} else {
-		return AUTOPILOT_WAYPOINT_FOLLOWING_BUSY;
-	}
-}
-
-int autopilot_goto_waypoint_now(float pos[3], bool change_height)
-{
-	bool in_fence = autopilot_test_point_in_rectangular_fence(pos);
-
-	if(in_fence == true) {
-		autopilot_ptr->mode = AUTOPILOT_HOVERING_MODE;
-		(autopilot_ptr->wp_now).pos[0] = pos[0];
-		(autopilot_ptr->wp_now).pos[1] = pos[1];
-		if(change_height == true) {
-			(autopilot_ptr->wp_now).pos[2] = pos[2];
-		}
-		autopilot_ptr->curr_wp = 0; //reset waypoint list pointer
-		return AUTOPILOT_SET_SUCCEED;
-	} else {
-		return AUTOPILOT_WAYPOINT_OUT_OF_FENCE;
-	}
-}
-
-int autopilot_halt_waypoint_mission(void)
-{
-	if(autopilot_ptr->mode == AUTOPILOT_FOLLOW_WAYPOINT_MODE ||
-	    autopilot_ptr->mode == AUTOPILOT_WAIT_NEXT_WAYPOINT_MODE) {
-		autopilot_ptr->halt_flag = true;
-		return AUTOPILOT_SET_SUCCEED;
-	} else {
-		return AUTOPILOT_NOT_IN_WAYPOINT_MODE;
-	}
-}
-
-int autopilot_resume_waypoint_mission(void)
-{
-	if(autopilot_ptr->curr_wp != 0 && autopilot_ptr->curr_wp != (autopilot_ptr->wp_num - 1)) {
-		autopilot_ptr->mode = AUTOPILOT_FOLLOW_WAYPOINT_MODE;
-		return AUTOPILOT_SET_SUCCEED;
-	} else {
-		return AUTOPILOT_NO_HALTED_WAYPOINT_MISSION;
-	}
-}
-
-int autopilot_waypoint_mission_start(bool loop_mission)
-{
-	if(autopilot_ptr->mode != AUTOPILOT_HOVERING_MODE) {
-		return AUTOPILOT_NOT_IN_HOVERING_MODE;
-	}
-
-	if(autopilot_ptr->wp_num >= 1) {
-		autopilot_ptr->curr_wp = 0;
-		/* change to waypoint following mode */
-		autopilot_ptr->mode = AUTOPILOT_FOLLOW_WAYPOINT_MODE;
-		autopilot_ptr->loop_mission = loop_mission;
-		/* update position/velocity setpoint to controller */
-		float x_target = autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[0];
-		float y_target = autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[1];
-		float z_target = autopilot_ptr->wp_list[autopilot_ptr->curr_wp].pos[2];
-		autopilot_assign_pos_target(x_target, y_target, z_target);
-		autopilot_assign_zero_vel_target();
-		autopilot_assign_zero_acc_feedforward();
-		return AUTOPILOT_SET_SUCCEED;
-	} else {
-		return AUTOPILOT_WAYPOINT_LIST_EMPYT;
-	}
-}
 
 int autopilot_trajectory_following_start(bool loop_trajectory)
 {
@@ -530,18 +541,6 @@ int autopilot_trigger_auto_landing(void)
 	} else {
 		return AUTOPILOT_NOT_IN_HOVERING_MODE;
 	}
-}
-
-void autopilot_lock_motor(void)
-{
-	/* caution:dangerous function, carefully use! */
-	autopilot_ptr->motor_locked = true;
-}
-
-void autopilot_unlock_motor(void)
-{
-	/* caution:dangerous function, carefully use! */
-	autopilot_ptr->motor_locked = false;
 }
 
 int autopilot_trigger_auto_takeoff(void)
