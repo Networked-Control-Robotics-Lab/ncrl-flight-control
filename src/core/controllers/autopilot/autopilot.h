@@ -112,6 +112,7 @@ typedef struct {
 	struct waypoint_t wp_list[TRAJ_WP_MAX_NUM]; //enu frame
 	int curr_wp; //waypoint index, indicates which waypoint to track
 	int wp_num;  //total waypoint number
+	int waypoint_wait_timer; //used for delay between waypoints
 
 	/* for trajectory following (representing setpoint with 7th ordered polynomials) */
 	struct trajectory_segment_t trajectory_segments[TRAJ_WP_MAX_NUM];

@@ -10,4 +10,6 @@ int autopilot_config_trajectory_following(int traj_num, bool z_traj, bool yaw_tr
 int autopilot_trajectory_following_start(bool loop_trajectory);
 int autopilot_trajectory_following_stop(void);
 
+void autopilot_trajectory_following_handler(void);
+
 #endif

@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "autopilot.h"
 #include "fence.h"
+#include "sys_time.h"
 
 extern autopilot_t autopilot;
 
@@ -141,4 +142,57 @@ int autopilot_waypoint_mission_start(bool loop_mission)
 void autopilot_mission_reset(void)
 {
 	autopilot.curr_wp = 0;
+}
+
+void autopilot_wait_next_waypoint_handler(void)
+{
+	float curr_time = get_sys_time_s();
+	/* check if the time is up */
+	if((curr_time - autopilot.waypoint_wait_timer) >
+	    autopilot.wp_list[autopilot.curr_wp].halt_time_sec) {
+		/* continue next waypoint if exist */
+		if(autopilot.curr_wp < (autopilot.wp_num - 1)) {
+			autopilot.mode = AUTOPILOT_FOLLOW_WAYPOINT_MODE;
+			autopilot.curr_wp++;
+		} else {
+			/* check if user ask to loop the mission */
+			if(autopilot.loop_mission == true) {
+				/* start waypointmission again */
+				autopilot.mode = AUTOPILOT_FOLLOW_WAYPOINT_MODE;
+				autopilot.curr_wp = 0;
+			} else {
+				/* end of the mission, do hovering */
+				autopilot.mode = AUTOPILOT_HOVERING_MODE;
+			}
+		}
+
+		/* update position/velocity setpoint to controller */
+		float x_target = autopilot.wp_list[autopilot.curr_wp].pos[0];
+		float y_target = autopilot.wp_list[autopilot.curr_wp].pos[1];
+		float z_target = autopilot.wp_list[autopilot.curr_wp].pos[2];
+		autopilot_assign_pos_target(x_target, y_target, z_target);
+		autopilot_assign_zero_vel_target();
+		autopilot_assign_zero_acc_feedforward();
+	}
+}
+
+void autopilot_follow_waypoint_handler(void)
+{
+	/* calculate 2-norm to check if enter the waypoint touch zone or not */
+	float curr_dist[3];
+	curr_dist[0] = autopilot.uav_state.pos[0] - autopilot.wp_list[autopilot.curr_wp].pos[0];
+	curr_dist[0] *= curr_dist[0];
+	curr_dist[1] = autopilot.uav_state.pos[1] - autopilot.wp_list[autopilot.curr_wp].pos[1];
+	curr_dist[1] *= curr_dist[1];
+	curr_dist[2] = autopilot.uav_state.pos[2] - autopilot.wp_list[autopilot.curr_wp].pos[2];
+	curr_dist[2] *= curr_dist[2];
+
+	float accept_dist = autopilot.wp_list[autopilot.curr_wp].touch_radius;
+	accept_dist *= accept_dist;
+
+	if((curr_dist[0] + curr_dist[1] + curr_dist[2]) < accept_dist) {
+		/* start the timer */
+		autopilot.waypoint_wait_timer = get_sys_time_s();
+		autopilot.mode = AUTOPILOT_WAIT_NEXT_WAYPOINT_MODE;
+	}
 }

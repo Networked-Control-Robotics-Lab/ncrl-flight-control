@@ -12,4 +12,7 @@ int autopilot_resume_waypoint_mission(void);
 int autopilot_waypoint_mission_start(bool loop_mission);
 void autopilot_mission_reset(void);
 
+void autopilot_wait_next_waypoint_handler(void);
+void autopilot_follow_waypoint_handler(void);
+
 #endif

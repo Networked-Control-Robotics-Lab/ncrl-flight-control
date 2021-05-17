@@ -193,3 +193,32 @@ int autopilot_trajectory_following_stop(void)
 		return AUTOPILOT_NOT_IN_TRAJECTORY_MODE;
 	}
 }
+
+void autopilot_trajectory_following_handler(void)
+{
+	/* converte trajectory polynomial to waypoint according to the update frequency */
+	float current_time = get_sys_time_s();
+	float elapsed_time = current_time - autopilot.traj_start_time;
+	if(elapsed_time >=
+	    autopilot.trajectory_segments[autopilot.curr_traj].flight_time) {
+		elapsed_time = 0.0f; //reset trajectory time variable
+
+		/* continue next trajectory if exist */
+		if(autopilot.curr_traj < (autopilot.traj_num - 1)) {
+			autopilot.curr_traj++;
+			autopilot.traj_start_time = current_time;
+		} else {
+			/* check if user ask to loop the mission */
+			if(autopilot.loop_mission == true) {
+				/* start trajectory mission again */
+				autopilot.curr_traj = 0;
+				autopilot.traj_start_time = get_sys_time_s();
+			} else {
+				/* end of the mission, do hovering */
+				autopilot.mode = AUTOPILOT_HOVERING_MODE;
+			}
+		}
+	}
+
+	autopilot_assign_trajactory_waypoint(elapsed_time); //update setpoint
+}

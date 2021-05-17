@@ -10,6 +10,8 @@
 #include "ahrs.h"
 #include "attitude_state.h"
 #include "trajectory_following.h"
+#include "takeoff_landing.h"
+#include "waypoint_following.h"
 
 autopilot_t autopilot;
 
@@ -229,9 +231,6 @@ void autopilot_guidance_handler(void)
 		break;
 	}
 
-	static float start_time = 0.0f;
-	float curr_time = 0.0f;
-
 	/* if receive halt command */
 	if(autopilot.halt_flag == true) {
 		autopilot.halt_flag = false;
@@ -246,123 +245,26 @@ void autopilot_guidance_handler(void)
 		autopilot_assign_zero_acc_feedforward();
 	}
 
-	/* autopilot */
+	/* autopilot finite state machine */
 	switch(autopilot.mode) {
 	case AUTOPILOT_MANUAL_FLIGHT_MODE:
 	case AUTOPILOT_HOVERING_MODE:
-		return;
-	case AUTOPILOT_TRAJECTORY_FOLLOWING_MODE: {
-		/* converte trajectory polynomial to waypoint according to the update frequency */
-		float current_time = get_sys_time_s();
-		float elapsed_time = current_time - autopilot.traj_start_time;
-		if(elapsed_time >=
-		    autopilot.trajectory_segments[autopilot.curr_traj].flight_time) {
-			elapsed_time = 0.0f; //reset trajectory time variable
-
-			/* continue next trajectory if exist */
-			if(autopilot.curr_traj < (autopilot.traj_num - 1)) {
-				autopilot.curr_traj++;
-				autopilot.traj_start_time = current_time;
-			} else {
-				/* check if user ask to loop the mission */
-				if(autopilot.loop_mission == true) {
-					/* start trajectory mission again */
-					autopilot.curr_traj = 0;
-					autopilot.traj_start_time = get_sys_time_s();
-				} else {
-					/* end of the mission, do hovering */
-					autopilot.mode = AUTOPILOT_HOVERING_MODE;
-				}
-			}
-		}
-
-		autopilot_assign_trajactory_waypoint(elapsed_time); //update setpoint
-
 		break;
-	}
-	case AUTOPILOT_LANDING_MODE: {
-		autopilot_assign_zero_vel_target();
-		autopilot_assign_zero_acc_feedforward();
-
-		/* check if the height setpoint is lower than the height accepted to land */
-		if(autopilot.wp_now.pos[2] < autopilot.landing_accept_height_lower) {
-			autopilot.wp_now.pos[2] = autopilot.landing_accept_height_lower;
-			autopilot.land_avaliable = true;
-		} else {
-			/* slowly change the height setpoint for landing */
-			autopilot.wp_now.pos[2] -= autopilot.landing_speed;
-		}
-
-		/* check if the height of the uav is lower than the height accepted to land */
-		if(autopilot.land_avaliable == true &&
-		    autopilot.uav_state.pos[2] < autopilot.landing_accept_height_upper) {
-			autopilot.mode = AUTOPILOT_MOTOR_LOCKED_MODE;
-			autopilot.land_avaliable = false;
-		}
+	case AUTOPILOT_TRAJECTORY_FOLLOWING_MODE:
+		autopilot_trajectory_following_handler();
 		break;
-	}
-	case AUTOPILOT_TAKEOFF_MODE: {
-		/* slowly change the height setpoint for takeoff */
-		autopilot.wp_now.pos[2] += autopilot.takeoff_speed;
-		autopilot_assign_zero_vel_target();
-		autopilot_assign_zero_acc_feedforward();
-		if(autopilot.wp_now.pos[2] > autopilot.takeoff_height) {
-			autopilot.mode = AUTOPILOT_HOVERING_MODE;
-			autopilot.wp_now.pos[2] = autopilot.takeoff_height;
-		}
+	case AUTOPILOT_LANDING_MODE:
+		autopilot_landing_handler();
 		break;
-	}
-	case AUTOPILOT_WAIT_NEXT_WAYPOINT_MODE: {
-		curr_time = get_sys_time_s();
-		/* check if the time is up */
-		if((curr_time - start_time) >
-		    autopilot.wp_list[autopilot.curr_wp].halt_time_sec) {
-			/* continue next waypoint if exist */
-			if(autopilot.curr_wp < (autopilot.wp_num - 1)) {
-				autopilot.mode = AUTOPILOT_FOLLOW_WAYPOINT_MODE;
-				autopilot.curr_wp++;
-			} else {
-				/* check if user ask to loop the mission */
-				if(autopilot.loop_mission == true) {
-					/* start waypointmission again */
-					autopilot.mode = AUTOPILOT_FOLLOW_WAYPOINT_MODE;
-					autopilot.curr_wp = 0;
-				} else {
-					/* end of the mission, do hovering */
-					autopilot.mode = AUTOPILOT_HOVERING_MODE;
-				}
-			}
-
-			/* update position/velocity setpoint to controller */
-			float x_target = autopilot.wp_list[autopilot.curr_wp].pos[0];
-			float y_target = autopilot.wp_list[autopilot.curr_wp].pos[1];
-			float z_target = autopilot.wp_list[autopilot.curr_wp].pos[2];
-			autopilot_assign_pos_target(x_target, y_target, z_target);
-			autopilot_assign_zero_vel_target();
-			autopilot_assign_zero_acc_feedforward();
-		}
+	case AUTOPILOT_TAKEOFF_MODE:
+		autopilot_takeoff_handler();
 		break;
-	}
-	case AUTOPILOT_FOLLOW_WAYPOINT_MODE: {
-		/* calculate 2-norm to check if enter the waypoint touch zone or not */
-		float curr_dist[3];
-		curr_dist[0] = autopilot.uav_state.pos[0] - autopilot.wp_list[autopilot.curr_wp].pos[0];
-		curr_dist[0] *= curr_dist[0];
-		curr_dist[1] = autopilot.uav_state.pos[1] - autopilot.wp_list[autopilot.curr_wp].pos[1];
-		curr_dist[1] *= curr_dist[1];
-		curr_dist[2] = autopilot.uav_state.pos[2] - autopilot.wp_list[autopilot.curr_wp].pos[2];
-		curr_dist[2] *= curr_dist[2];
-
-		float accept_dist = autopilot.wp_list[autopilot.curr_wp].touch_radius;
-		accept_dist *= accept_dist;
-
-		if((curr_dist[0] + curr_dist[1] + curr_dist[2]) < accept_dist) {
-			/* start the timer */
-			start_time = get_sys_time_s();
-			autopilot.mode = AUTOPILOT_WAIT_NEXT_WAYPOINT_MODE;
-		}
+	case AUTOPILOT_WAIT_NEXT_WAYPOINT_MODE:
+		autopilot_wait_next_waypoint_handler();
 		break;
-	}
+	case AUTOPILOT_FOLLOW_WAYPOINT_MODE:
+		autopilot_follow_waypoint_handler();
+		break;
 	}
 }
 
