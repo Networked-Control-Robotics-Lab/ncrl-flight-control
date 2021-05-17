@@ -86,7 +86,7 @@ void ublox_m8n_init(void)
 	ublox_command_send(ubx_nav_pvt_set, UBX_NAV_PVT_SET_LEN);
 
 	/* enable nav-sat message output  */
-	ublox_command_send(ubx_nav_sat_set, UBX_NAV_SAT_SET_LEN);
+	//ublox_command_send(ubx_nav_sat_set, UBX_NAV_SAT_SET_LEN);
 
 	/* diable nmea messages output */
 	ublox_command_send(ubx_nmea_gxgga_set, UBX_NMEA_GXGGA_SET_LEN);
