@@ -129,8 +129,6 @@ void assign_vector_3x1_enu_to_ned(float *ned, float *enu);
 void autopilot_init(void);
 void autopilot_update_uav_state(float pos_enu[3], float vel_enu[3]);
 
-bool autopilot_is_manual_flight_mode(void);
-bool autopilot_is_motor_locked_mode(void);
 bool autopilot_is_auto_flight_mode(void);
 bool autopilot_is_armed(void);
 

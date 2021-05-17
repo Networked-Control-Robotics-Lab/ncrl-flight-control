@@ -628,7 +628,7 @@ void multirotor_geometry_control(radio_t *rc, float *desired_heading)
 
 	//lock motor if throttle values is lower than 10% during manual flight
 	lock_motor |= check_motor_lock_condition(rc->throttle < 10.0f &&
-	                autopilot_is_manual_flight_mode());
+	                autopilot_get_mode() == AUTOPILOT_MANUAL_FLIGHT_MODE);
 	//lock motor if desired height is lower than threshold value in the takeoff mode
 	lock_motor |= check_motor_lock_condition(pos_des_enu[2] < 0.10f &&
 	                autopilot_get_mode() == AUTOPILOT_TAKEOFF_MODE);
@@ -636,7 +636,7 @@ void multirotor_geometry_control(radio_t *rc, float *desired_heading)
 	lock_motor |= check_motor_lock_condition(curr_pos_enu[2] < 0.10f &&
 	                autopilot_get_mode() == AUTOPILOT_HOVERING_MODE);
 	//lock motor if motors are locked by autopilot
-	lock_motor |= check_motor_lock_condition(autopilot_is_motor_locked_mode());
+	lock_motor |= check_motor_lock_condition(autopilot_get_mode() == AUTOPILOT_MOTOR_LOCKED_MODE);
 	//lock motor if radio safety botton is on
 	lock_motor |= check_motor_lock_condition(rc->safety == true);
 
