@@ -30,6 +30,8 @@
 #include "led.h"
 #include "attitude_state.h"
 #include "autopilot.h"
+#include "waypoint_following.h"
+#include "fence.h"
 
 pid_control_t pid_roll;
 pid_control_t pid_pitch;

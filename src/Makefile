@@ -87,6 +87,7 @@ SRC+=./core/main.c \
 	./core/controllers/autopilot/autopilot.c \
 	./core/controllers/autopilot/waypoint_following.c \
 	./core/controllers/autopilot/trajectory_following.c \
+	./core/controllers/autopilot/fence.c \
 	./core/tasks/flight_ctrl_task.c \
 	./core/tasks/mavlink_task.c \
 	./core/tasks/debug_link_task.c \

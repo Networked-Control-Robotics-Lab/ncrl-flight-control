@@ -23,6 +23,8 @@
 #include "sys_param.h"
 #include "led.h"
 #include "attitude_state.h"
+#include "waypoint_following.h"
+#include "fence.h"
 
 #define dt 0.0025 //[s]
 #define MOTOR_TO_CG_LENGTH 16.25f //[cm]
