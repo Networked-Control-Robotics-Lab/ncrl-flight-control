@@ -84,15 +84,13 @@ float coeff_cmd_to_thrust[6] = {0.0f};
 float coeff_thrust_to_cmd[6] = {0.0f};
 float motor_thrust_max = 0.0f;
 
-autopilot_t autopilot;
-
 bool height_ctrl_only = false;
 
 void geometry_ctrl_init(void)
 {
 	init_multirotor_geometry_param_list();
 
-	autopilot_init(&autopilot);
+	autopilot_init();
 
 	float geo_fence_origin[3] = {0.0f, 0.0f, 0.0f};
 	autopilot_set_enu_rectangular_fence(geo_fence_origin, 2.5f, 1.3f, 3.0f);
@@ -325,27 +323,28 @@ void geometry_manual_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *ou
 	output_moments[2] = -_krz*mat_data(eR)[2] -_kwz*mat_data(eW)[2] + mat_data(inertia_effect)[2];
 }
 
-void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro, float *curr_pos_ned,
-                            float *curr_vel_ned, float *output_moments, float *output_force,
-                            bool manual_flight)
+void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro,
+                            float *pos_des_enu, float *vel_des_enu, float *accel_ff_enu,
+                            float *curr_pos_ned, float *curr_vel_ned, float *output_moments,
+                            float *output_force, bool manual_flight)
 {
 	/* ex = x - xd */
 	float pos_des_ned[3];
-	assign_vector_3x1_enu_to_ned(pos_des_ned, autopilot.wp_now.pos);
+	assign_vector_3x1_enu_to_ned(pos_des_ned, pos_des_enu);
 	pos_error[0] = curr_pos_ned[0] - pos_des_ned[0];
 	pos_error[1] = curr_pos_ned[1] - pos_des_ned[1];
 	pos_error[2] = curr_pos_ned[2] - pos_des_ned[2];
 
 	/* ev = v - vd */
 	float vel_des_ned[3];
-	assign_vector_3x1_enu_to_ned(vel_des_ned, autopilot.wp_now.vel);
+	assign_vector_3x1_enu_to_ned(vel_des_ned, pos_des_enu);
 	vel_error[0] = curr_vel_ned[0] - vel_des_ned[0];
 	vel_error[1] = curr_vel_ned[1] - vel_des_ned[1];
 	vel_error[2] = curr_vel_ned[2] - vel_des_ned[2];
 
-	float force_ff_ned[3] = {0.0f};
-	float accel_ff_ned[3] = {0.0f};
-	assign_vector_3x1_enu_to_ned(accel_ff_ned, autopilot.wp_now.acc_feedforward);
+	float force_ff_ned[3];
+	float accel_ff_ned[3];
+	assign_vector_3x1_enu_to_ned(accel_ff_ned, accel_ff_enu);
 	force_ff_ned[0] = uav_mass * accel_ff_ned[0];
 	force_ff_ned[1] = uav_mass * accel_ff_ned[1];
 	force_ff_ned[2] = uav_mass * accel_ff_ned[2];
@@ -588,6 +587,12 @@ void multirotor_geometry_control(radio_t *rc, float *desired_heading)
 	autopilot_update_uav_state(curr_pos_enu, curr_vel_enu);
 	autopilot_guidance_handler();
 
+	/* prepare desired position, velocity and acceleration feedforward */
+	float pos_des_enu[3], vel_des_enu[3], accel_ff_enu[3];
+	autopilot_get_pos_setpoint(pos_des_enu);
+	autopilot_get_vel_setpoint(pos_des_enu);
+	autopilot_get_accel_feedforward(accel_ff_enu);
+
 	float control_moments[3] = {0.0f}, control_force = 0.0f;
 
 	if(rc->auto_flight == true && height_availabe && heading_available) {
@@ -596,9 +601,10 @@ void multirotor_geometry_control(radio_t *rc, float *desired_heading)
 		}
 
 		/* auto-flight mode (position, velocity and attitude control) */
-		geometry_tracking_ctrl(&attitude_cmd, attitude_q, gyro, curr_pos_ned,
-		                       curr_vel_ned, control_moments, &control_force,
-		                       height_ctrl_only);
+		geometry_tracking_ctrl(&attitude_cmd, attitude_q, gyro,
+		                       pos_des_enu, vel_des_enu, accel_ff_enu,
+		                       curr_pos_ned, curr_vel_ned, control_moments,
+		                       &control_force, height_ctrl_only);
 	} else {
 		/* manual flight mode (attitude control only) */
 		geometry_manual_ctrl(&attitude_cmd, attitude_q, gyro, control_moments,
@@ -622,7 +628,7 @@ void multirotor_geometry_control(radio_t *rc, float *desired_heading)
 	lock_motor |= check_motor_lock_condition(rc->throttle < 10.0f &&
 	                autopilot_is_manual_flight_mode());
 	//lock motor if desired height is lower than threshold value in the takeoff mode
-	lock_motor |= check_motor_lock_condition(autopilot.wp_now.pos[2] < 0.10f &&
+	lock_motor |= check_motor_lock_condition(pos_des_enu[2] < 0.10f &&
 	                autopilot_get_mode() == AUTOPILOT_TAKEOFF_MODE);
 	//lock motor if current position is very close to ground in the hovering mode
 	lock_motor |= check_motor_lock_condition(curr_pos_enu[2] < 0.10f &&

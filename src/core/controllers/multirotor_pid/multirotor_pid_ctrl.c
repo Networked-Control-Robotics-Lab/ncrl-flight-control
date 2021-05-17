@@ -40,8 +40,6 @@ pid_control_t pid_pos_y;
 pid_control_t pid_alt;
 pid_control_t pid_alt_vel;
 
-autopilot_t autopilot;
-
 //the output command from position_2d_control() have to be converted to body frame
 float nav_ctl_roll_command; //body frame x direction control
 float nav_ctl_pitch_command; //body frame y direction control
@@ -52,7 +50,7 @@ void multirotor_pid_controller_init(void)
 {
 	init_multirotor_pid_param_list();
 
-	autopilot_init(&autopilot);
+	autopilot_init();
 
 	float geo_fence_origin[3] = {0.0f, 0.0f, 0.0f};
 	autopilot_set_enu_rectangular_fence(geo_fence_origin, 2.5f, 1.3f, 3.0f);
@@ -337,10 +335,12 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 	autopilot_guidance_handler();
 
 	/* feed position controller setpoint from autopilot (ned) */
+	float position_setpoint[3];
+	autopilot_get_pos_setpoint(position_setpoint);
 	float pos_des_enu[3] = {
-		autopilot.wp_now.pos[0],
-		autopilot.wp_now.pos[1],
-		autopilot.wp_now.pos[2]
+		position_setpoint[0],
+		position_setpoint[1],
+		position_setpoint[2]
 	};
 	float pos_des_ned[3];
 	assign_vector_3x1_enu_to_ned(pos_des_ned, pos_des_enu);
@@ -413,7 +413,7 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 	lock_motor |= check_motor_lock_condition(rc->throttle < 10.0f &&
 	                autopilot_is_manual_flight_mode());
 	//lock motor if desired height is lower than threshold value in the takeoff mode
-	lock_motor |= check_motor_lock_condition(autopilot.wp_now.pos[2] < 0.10f &&
+	lock_motor |= check_motor_lock_condition(position_setpoint[2] < 0.10f &&
 	                autopilot_get_mode() == AUTOPILOT_TAKEOFF_MODE);
 	//lock motor if current position is very close to ground in the hovering mode
 	lock_motor |= check_motor_lock_condition(pos_enu[2] < 0.10f &&

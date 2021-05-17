@@ -1,0 +1,4 @@
+#ifndef __TRAJECTORY_FOLLOWING_H__
+#define __TRAJECTORY_FOLLOWING_H__
+
+#endif
