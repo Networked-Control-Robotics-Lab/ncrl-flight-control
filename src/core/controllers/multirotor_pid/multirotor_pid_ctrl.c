@@ -29,6 +29,7 @@
 #include "compass.h"
 #include "led.h"
 #include "attitude_state.h"
+#include "autopilot.h"
 
 pid_control_t pid_roll;
 pid_control_t pid_pitch;
@@ -268,12 +269,13 @@ void rc_mode_change_handler_pid(radio_t *rc)
 	//if mode switched to auto-flight
 	if(rc->auto_flight == true && auto_flight_mode_last != true) {
 		autopilot_set_mode(AUTOPILOT_HOVERING_MODE);
-		/* set position setpoint to current position (enu) */
-		float pos_enu[3];
-		get_enu_position(pos_enu);
-		autopilot.wp_now.pos[0] = pos_enu[0];
-		autopilot.wp_now.pos[1] = pos_enu[1];
-		autopilot.wp_now.pos[2] = pos_enu[2];
+
+		//set desired position to current position
+		float curr_pos[3] = {0.0f};
+		get_enu_position(curr_pos);
+		autopilot_assign_pos_target(curr_pos[0], curr_pos[1], curr_pos[2]);
+		autopilot_assign_zero_vel_target();      //set desired velocity to zero
+		autopilot_assign_zero_acc_feedforward(); //set acceleration feedforward to zero
 
 		pid_pos_x.enable = true;
 		pid_pos_y.enable = true;
@@ -286,9 +288,10 @@ void rc_mode_change_handler_pid(radio_t *rc)
 	if(rc->auto_flight == false) {
 		autopilot_set_mode(AUTOPILOT_MANUAL_FLIGHT_MODE);
 		autopilot_mission_reset();
-		autopilot.wp_now.pos[0] = 0.0f;
-		autopilot.wp_now.pos[1] = 0.0f;
-		autopilot.wp_now.pos[2] = 0.0f;
+
+		autopilot_assign_pos_target(0.0f, 0.0f, 0.0f);
+		autopilot_assign_zero_vel_target();
+		autopilot_assign_zero_acc_feedforward();
 
 		pid_pos_x.enable = false;
 		pid_pos_y.enable = false;

@@ -505,21 +505,25 @@ void rc_mode_handler_geometry_ctrl(radio_t *rc)
 	//if mode switched to auto-flight
 	if(rc->auto_flight == true && auto_flight_mode_last != true) {
 		autopilot_set_mode(AUTOPILOT_HOVERING_MODE);
-		/* set position setpoint to current position (enu) */
+
+		//set desired position to current position
 		float curr_pos[3] = {0.0f};
 		get_enu_position(curr_pos);
-		autopilot.wp_now.pos[0] = curr_pos[0];
-		autopilot.wp_now.pos[1] = curr_pos[1];
-		autopilot.wp_now.pos[2] = curr_pos[2];
+		autopilot_assign_pos_target(curr_pos[0], curr_pos[1], curr_pos[2]);
+		autopilot_assign_zero_vel_target();      //set desired velocity to zero
+		autopilot_assign_zero_acc_feedforward(); //set acceleration feedforward to zero
+
 		reset_geometry_tracking_error_integral();
 	}
 
 	if(rc->auto_flight == false) {
 		autopilot_set_mode(AUTOPILOT_MANUAL_FLIGHT_MODE);
 		autopilot_mission_reset();
-		autopilot.wp_now.pos[0] = 0.0f;
-		autopilot.wp_now.pos[1] = 0.0f;
-		autopilot.wp_now.pos[2] = 0.0f;
+
+		autopilot_assign_pos_target(0.0f, 0.0f, 0.0f);
+		autopilot_assign_zero_vel_target();
+		autopilot_assign_zero_acc_feedforward();
+
 		reset_geometry_tracking_error_integral();
 	}
 
