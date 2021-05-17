@@ -139,9 +139,9 @@ int autopilot_waypoint_mission_start(bool loop_mission)
 		float y_target = autopilot.waypoints[curr_waypoint_num].pos[1];
 		float z_target = autopilot.waypoints[curr_waypoint_num].pos[2];
 		autopilot_assign_pos_target(x_target, y_target, z_target);
-#endif
 		autopilot_assign_zero_vel_target();
 		autopilot_assign_zero_acc_feedforward();
+#endif
 		return AUTOPILOT_SET_SUCCEED;
 	} else {
 		return AUTOPILOT_WAYPOINT_LIST_EMPYT;
