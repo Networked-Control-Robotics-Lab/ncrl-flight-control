@@ -155,14 +155,13 @@ void autopilot_mission_reset(void)
 
 void autopilot_wait_next_waypoint_handler(void)
 {
-	int curr_waypoint_num = autopilot.curr_waypoint;
 	float curr_time = get_sys_time_s();
 
 	/* check if the time is up */
 	if((curr_time - autopilot.waypoint_wait_timer) >
-	    autopilot.waypoints[curr_waypoint_num].halt_time_sec) {
+	    autopilot.waypoints[autopilot.curr_waypoint].halt_time_sec) {
 		/* continue next waypoint if exist */
-		if(curr_waypoint_num < (autopilot.waypoint_num - 1)) {
+		if(autopilot.curr_waypoint < (autopilot.waypoint_num - 1)) {
 			autopilot.mode = AUTOPILOT_FOLLOW_WAYPOINT_MODE;
 			autopilot.curr_waypoint++;
 		} else {
@@ -181,9 +180,9 @@ void autopilot_wait_next_waypoint_handler(void)
 		/* non-smooth waypoint varying: direct change the setpoint to the next waypoint */
 
 		/* update position/velocity setpoint to the controller */
-		float x_target = autopilot.waypoints[curr_waypoint_num].pos[0];
-		float y_target = autopilot.waypoints[curr_waypoint_num].pos[1];
-		float z_target = autopilot.waypoints[curr_waypoint_num].pos[2];
+		float x_target = autopilot.waypoints[autopilot.curr_waypoint].pos[0];
+		float y_target = autopilot.waypoints[autopilot.curr_waypoint].pos[1];
+		float z_target = autopilot.waypoints[autopilot.curr_waypoint].pos[2];
 		autopilot_assign_pos_target(x_target, y_target, z_target);
 		autopilot_assign_zero_vel_target();
 		autopilot_assign_zero_acc_feedforward();
