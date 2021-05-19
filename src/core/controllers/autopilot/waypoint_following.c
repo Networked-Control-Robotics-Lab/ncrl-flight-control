@@ -4,7 +4,7 @@
 #include "sys_time.h"
 #include "se3_math.h"
 
-#define WAYPOINT_SMOOTH_VARYING 0
+#define WAYPOINT_SMOOTH_VARYING 1
 
 extern autopilot_t autopilot;
 

@@ -39,7 +39,7 @@ void autopilot_init(void)
 	autopilot.takeoff_height = 1.0f;  //[m]
 	autopilot.landing_accept_height_lower = 0.10f; //[m]
 	autopilot.landing_accept_height_upper = 0.12f; //[m]
-	autopilot.tracking_speed = 0.00125; //[m/s]
+	autopilot.tracking_speed = 1.0; //[m/s]
 	autopilot.land_avaliable = false;
 }
 
