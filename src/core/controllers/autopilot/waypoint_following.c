@@ -31,13 +31,13 @@ int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec,
 	if(autopilot_test_point_in_rectangular_fence(pos) == false) {
 		return AUTOPILOT_WAYPOINT_OUT_OF_FENCE;
 	} else if(autopilot.waypoint_num <= TRAJ_WP_MAX_NUM) {
-		int curr_waypoint_num = autopilot.curr_waypoint;
-		autopilot.waypoints[curr_waypoint_num].pos[0] = pos[0];
-		autopilot.waypoints[curr_waypoint_num].pos[1] = pos[1];
-		autopilot.waypoints[curr_waypoint_num].pos[2] = pos[2];
-		autopilot.waypoints[curr_waypoint_num].heading = heading;
-		autopilot.waypoints[curr_waypoint_num].halt_time_sec = halt_time_sec;
-		autopilot.waypoints[curr_waypoint_num].touch_radius = radius;
+		int waypoint_num = autopilot.waypoint_num;
+		autopilot.waypoints[waypoint_num].pos[0] = pos[0];
+		autopilot.waypoints[waypoint_num].pos[1] = pos[1];
+		autopilot.waypoints[waypoint_num].pos[2] = pos[2];
+		autopilot.waypoints[waypoint_num].heading = heading;
+		autopilot.waypoints[waypoint_num].halt_time_sec = halt_time_sec;
+		autopilot.waypoints[waypoint_num].touch_radius = radius;
 		autopilot.waypoint_num++;
 		return AUTOPILOT_SET_SUCCEED;
 	} else {
@@ -50,17 +50,17 @@ int autopilot_add_new_waypoint_gps_mavlink(int32_t latitude, int32_t longitude, 
 	//TODO: add geo-fence protection
 
 	if(autopilot.waypoint_num <= TRAJ_WP_MAX_NUM) {
-		int curr_waypoint_num = autopilot.curr_waypoint;
-		autopilot.waypoints[curr_waypoint_num].latitude = latitude;
-		autopilot.waypoints[curr_waypoint_num].longitude = longitude;
-		autopilot.waypoints[curr_waypoint_num].height = height;
-		autopilot.waypoints[curr_waypoint_num].command = cmd;
+		int waypoint_num = autopilot.waypoint_num;
+		autopilot.waypoints[waypoint_num].latitude = latitude;
+		autopilot.waypoints[waypoint_num].longitude = longitude;
+		autopilot.waypoints[waypoint_num].height = height;
+		autopilot.waypoints[waypoint_num].command = cmd;
 
 		//TODO: no idea why mavlink doesn't support these parameters,
 		//      set default for now
-		autopilot.waypoints[curr_waypoint_num].heading = 0.0;
-		autopilot.waypoints[curr_waypoint_num].halt_time_sec = 3.0;
-		autopilot.waypoints[curr_waypoint_num].touch_radius = 50.0;
+		autopilot.waypoints[waypoint_num].heading = 0.0;
+		autopilot.waypoints[waypoint_num].halt_time_sec = 3.0;
+		autopilot.waypoints[waypoint_num].touch_radius = 50.0;
 
 		autopilot.waypoint_num++;
 		return AUTOPILOT_SET_SUCCEED;
