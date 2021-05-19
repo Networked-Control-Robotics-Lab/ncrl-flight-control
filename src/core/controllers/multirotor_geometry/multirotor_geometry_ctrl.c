@@ -339,7 +339,7 @@ void geometry_tracking_ctrl(euler_t *rc, float *attitude_q, float *gyro,
 
 	/* ev = v - vd */
 	float vel_des_ned[3];
-	assign_vector_3x1_enu_to_ned(vel_des_ned, pos_des_enu);
+	assign_vector_3x1_enu_to_ned(vel_des_ned, vel_des_enu);
 	vel_error[0] = curr_vel_ned[0] - vel_des_ned[0];
 	vel_error[1] = curr_vel_ned[1] - vel_des_ned[1];
 	vel_error[2] = curr_vel_ned[2] - vel_des_ned[2];
@@ -591,7 +591,7 @@ void multirotor_geometry_control(radio_t *rc, float *desired_heading)
 	/* prepare desired position, velocity and acceleration feedforward */
 	float pos_des_enu[3], vel_des_enu[3], accel_ff_enu[3];
 	autopilot_get_pos_setpoint(pos_des_enu);
-	autopilot_get_vel_setpoint(pos_des_enu);
+	autopilot_get_vel_setpoint(vel_des_enu);
 	autopilot_get_accel_feedforward(accel_ff_enu);
 
 	float control_moments[3] = {0.0f}, control_force = 0.0f;
