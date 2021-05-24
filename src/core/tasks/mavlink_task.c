@@ -38,13 +38,16 @@ void mavlink_rx_debug_disable(void)
 	rx_debug = false;
 }
 
-void get_mavlink_reception_record(int *msg_id, float *recvd_time)
+bool get_mavlink_reception_record(int *msg_id, float *recvd_time)
 {
 	mavlink_recpt_record_item_t mavlink_recpt_record_item;
 
-	while(xQueueReceive(mavlink_recpt_record_queue, &mavlink_recpt_record_item, portMAX_DELAY) == pdFALSE);
-	*msg_id = mavlink_recpt_record_item.recvd_msg_id;
-	*recvd_time = mavlink_recpt_record_item.recvd_time;
+	if(xQueueReceive(mavlink_recpt_record_queue, &mavlink_recpt_record_item, 0) == pdTRUE) {
+		*msg_id = mavlink_recpt_record_item.recvd_msg_id;
+		*recvd_time = mavlink_recpt_record_item.recvd_time;
+		return true;
+	}
+	return false;
 }
 
 void send_mavlink_calibration_status_text(char *status_text)

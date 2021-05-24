@@ -25,7 +25,7 @@ void send_mavlink_calibration_status_text(char *status_text);
 
 void mavlink_rx_debug_enable(void);
 void mavlink_rx_debug_disable(void);
-void get_mavlink_reception_record(int *msg_id, float *recvd_time);
+bool get_mavlink_reception_record(int *msg_id, float *recvd_time);
 
 #endif
 

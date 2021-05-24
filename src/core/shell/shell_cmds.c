@@ -732,9 +732,10 @@ void shell_cmd_mavlink_debug(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX]
 		int msg_id;
 		float recvd_time;
 
-		get_mavlink_reception_record(&msg_id, &recvd_time);
-		sprintf(s, "[%f] received message #%d.\n\r", recvd_time, msg_id);
-		shell_puts(s);
+		if(get_mavlink_reception_record(&msg_id, &recvd_time) == true) {
+			sprintf(s, "[%f] received message #%d.\n\r", recvd_time, msg_id);
+			shell_puts(s);
+		}
 	}
 
 	mavlink_rx_debug_disable();
