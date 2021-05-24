@@ -115,7 +115,7 @@ void task_flight_ctrl(void *param)
 	}
 
 	/* blocked until user reset remote controller to safe position */
-	//rc_safety_protection();
+	rc_safety_protection();
 
 	/* electronic speed controller calibration (triggered by qgroundcontrol or shell) */
 	if(is_esc_range_calibration_triggered() == true) {
