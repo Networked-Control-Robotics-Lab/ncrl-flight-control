@@ -54,7 +54,7 @@ int main(void)
 
 	/* driver initialization */
 	flash_init();
-	crc_init();
+	_crc_init();
 	led_init();
 	ext_switch_init();
 	uart1_init(115200);

@@ -2,7 +2,7 @@
 #include "stm32f4xx.h"
 #include "stm32f4xx_crc.h"
 
-void crc_init(void)
+void _crc_init(void)
 {
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_CRC, ENABLE);
 }

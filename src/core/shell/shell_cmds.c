@@ -17,6 +17,7 @@
 #include "compass.h"
 #include "waypoint_following.h"
 #include "takeoff_landing.h"
+#include "mavlink_task.h"
 
 static bool parse_float_from_str(char *str, float *value)
 {
@@ -42,7 +43,8 @@ void shell_cmd_help(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 	          "motor_calib\n\r"
 	          "motor_test\n\r"
 	          "perf\n\r"
-	          "params\n\r";
+	          "params\n\r"
+	          "mavlink_debug\n\r";
 	shell_puts(s);
 }
 
@@ -712,4 +714,28 @@ void shell_cmd_motor_test(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], i
 			}
 		}
 	}
+}
+
+void shell_cmd_mavlink_debug(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
+	char s[150];
+
+	mavlink_rx_debug_enable();
+
+	shell_puts("press [q] to stop.\n\r");
+	char c = '\0';
+	while(1) {
+		if(uart1_getc(&c, 0) == true) {
+			if(c == 'q') break;
+		}
+
+		int msg_id;
+		float recvd_time;
+
+		get_mavlink_reception_record(&msg_id, &recvd_time);
+		sprintf(s, "[%f] received message #%d.\n\r", recvd_time, msg_id);
+		shell_puts(s);
+	}
+
+	mavlink_rx_debug_disable();
 }

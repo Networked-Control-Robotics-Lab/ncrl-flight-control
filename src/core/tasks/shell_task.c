@@ -25,6 +25,7 @@ struct cmd_list_entry shell_cmd_list[] = {
 	DEF_SHELL_CMD(compass)
 	DEF_SHELL_CMD(motor_calib)
 	DEF_SHELL_CMD(motor_test)
+	DEF_SHELL_CMD(mavlink_debug)
 };
 
 void shell_greeting(void)
