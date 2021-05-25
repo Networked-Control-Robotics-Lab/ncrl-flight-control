@@ -124,8 +124,8 @@ void mav_mission_item_int(mavlink_message_t *received_msg)
 
 	if(mission_item.seq == mission_manager.recept_index) {
 		/* sequence number is correct, save received mission to the list */
-		autopilot_retval =  autopilot_add_new_waypoint_gps_mavlink(
-		                            mission_item.x, mission_item.y, mission_item.z, mission_item.command);
+		autopilot_retval =  autopilot_add_new_waypoint_gps_mavlink(mission_item.frame, mission_item.x, mission_item.y,
+		                    mission_item.z, mission_item.command);
 
 		/* autopilot rejected incomed mission, closed the protocol */
 		if(autopilot_retval != AUTOPILOT_SET_SUCCEED) {

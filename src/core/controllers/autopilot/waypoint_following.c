@@ -1,4 +1,6 @@
 #include <stdint.h>
+#include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"
+#include "ncrl_mavlink.h"
 #include "autopilot.h"
 #include "fence.h"
 #include "sys_time.h"
@@ -45,15 +47,23 @@ int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec,
 	}
 }
 
-int autopilot_add_new_waypoint_gps_mavlink(int32_t latitude, int32_t longitude, float height, uint16_t cmd)
+int autopilot_add_new_waypoint_gps_mavlink(int frame, int32_t x, int32_t y, float z, uint16_t cmd)
 {
 	//TODO: add geo-fence protection
 
 	if(autopilot.waypoint_num <= TRAJ_WP_MAX_NUM) {
 		int waypoint_num = autopilot.waypoint_num;
-		autopilot.waypoints[waypoint_num].latitude = latitude;
-		autopilot.waypoints[waypoint_num].longitude = longitude;
-		autopilot.waypoints[waypoint_num].height = height;
+
+		if(frame == MAV_FRAME_GLOBAL) {
+			autopilot.waypoints[waypoint_num].latitude = x;
+			autopilot.waypoints[waypoint_num].longitude = y;
+			autopilot.waypoints[waypoint_num].height = z;
+		} else if(frame == MAV_FRAME_LOCAL_ENU) {
+			autopilot.waypoints[waypoint_num].pos[0] = x;
+			autopilot.waypoints[waypoint_num].pos[1] = y;
+			autopilot.waypoints[waypoint_num].pos[2] = z;
+		}
+
 		autopilot.waypoints[waypoint_num].command = cmd;
 
 		//TODO: no idea why mavlink doesn't support these parameters,
