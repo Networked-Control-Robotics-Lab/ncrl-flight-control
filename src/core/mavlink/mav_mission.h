@@ -19,6 +19,8 @@ typedef struct {
 	int recept_retry;
 } mavlink_mission_manager;
 
+void mav_set_mode(mavlink_message_t *received_msg);
+
 void mav_mission_request_list(mavlink_message_t *received_msg);
 void mav_mission_count(mavlink_message_t *received_msg);
 void mav_mission_item_int(mavlink_message_t *received_msg);

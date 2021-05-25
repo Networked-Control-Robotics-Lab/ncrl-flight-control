@@ -17,6 +17,29 @@
 
 mavlink_mission_manager mission_manager;
 
+void mav_set_mode(mavlink_message_t *received_msg)
+{
+	/* XXX: currently for handling mission start command */
+
+	float sys_id;
+	get_sys_param_float(MAV_SYS_ID, &sys_id);
+
+	/* decode command_long message */
+	mavlink_set_mode_t mav_set_mode;
+	mavlink_msg_set_mode_decode(received_msg, &mav_set_mode);
+
+	/* ignore the message if the target id not matched to the system id */
+	if((uint8_t)sys_id != mav_set_mode.target_system) {
+		return;
+	}
+
+	/* XXX: qgroundcontrol actually send this undocumented value to the uav */
+	if(mav_set_mode.base_mode == 81) {
+		//TODO: auto-takeoff before launching the mission?
+		autopilot_waypoint_mission_start(false);
+	}
+}
+
 /****************************
  * mavlink message handlers *
  ****************************/
