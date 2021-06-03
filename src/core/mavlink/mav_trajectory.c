@@ -8,6 +8,7 @@
 #include "../mavlink/mav_trajectory.h"
 #include "sys_param.h"
 #include "common_list.h"
+#include "trajectory_following.h"
 
 traj_msg_manager_t traj_msg_manager;
 

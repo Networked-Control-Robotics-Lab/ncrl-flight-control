@@ -29,6 +29,9 @@
 #include "compass.h"
 #include "led.h"
 #include "attitude_state.h"
+#include "autopilot.h"
+#include "waypoint_following.h"
+#include "fence.h"
 
 pid_control_t pid_roll;
 pid_control_t pid_pitch;
@@ -38,8 +41,6 @@ pid_control_t pid_pos_x;
 pid_control_t pid_pos_y;
 pid_control_t pid_alt;
 pid_control_t pid_alt_vel;
-
-autopilot_t autopilot;
 
 //the output command from position_2d_control() have to be converted to body frame
 float nav_ctl_roll_command; //body frame x direction control
@@ -51,7 +52,7 @@ void multirotor_pid_controller_init(void)
 {
 	init_multirotor_pid_param_list();
 
-	autopilot_init(&autopilot);
+	autopilot_init();
 
 	float geo_fence_origin[3] = {0.0f, 0.0f, 0.0f};
 	autopilot_set_enu_rectangular_fence(geo_fence_origin, 2.5f, 1.3f, 3.0f);
@@ -268,12 +269,13 @@ void rc_mode_change_handler_pid(radio_t *rc)
 	//if mode switched to auto-flight
 	if(rc->auto_flight == true && auto_flight_mode_last != true) {
 		autopilot_set_mode(AUTOPILOT_HOVERING_MODE);
-		/* set position setpoint to current position (enu) */
-		float pos_enu[3];
-		get_enu_position(pos_enu);
-		autopilot.wp_now.pos[0] = pos_enu[0];
-		autopilot.wp_now.pos[1] = pos_enu[1];
-		autopilot.wp_now.pos[2] = pos_enu[2];
+
+		//set desired position to current position
+		float curr_pos[3] = {0.0f};
+		get_enu_position(curr_pos);
+		autopilot_assign_pos_target(curr_pos[0], curr_pos[1], curr_pos[2]);
+		autopilot_assign_zero_vel_target();      //set desired velocity to zero
+		autopilot_assign_zero_acc_feedforward(); //set acceleration feedforward to zero
 
 		pid_pos_x.enable = true;
 		pid_pos_y.enable = true;
@@ -286,9 +288,10 @@ void rc_mode_change_handler_pid(radio_t *rc)
 	if(rc->auto_flight == false) {
 		autopilot_set_mode(AUTOPILOT_MANUAL_FLIGHT_MODE);
 		autopilot_mission_reset();
-		autopilot.wp_now.pos[0] = 0.0f;
-		autopilot.wp_now.pos[1] = 0.0f;
-		autopilot.wp_now.pos[2] = 0.0f;
+
+		autopilot_assign_pos_target(0.0f, 0.0f, 0.0f);
+		autopilot_assign_zero_vel_target();
+		autopilot_assign_zero_acc_feedforward();
 
 		pid_pos_x.enable = false;
 		pid_pos_y.enable = false;
@@ -329,15 +332,16 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 	/* altitude control */
 	altitude_control(pos_enu[2], vel_enu[2], &pid_alt_vel, &pid_alt);
 
-	/* autopilot guidance loop */
-	autopilot_update_uav_state(pos_enu, vel_enu);
-	autopilot_guidance_handler();
+	/* guidance loop (autopilot) */
+	autopilot_guidance_handler(pos_enu, vel_enu);
 
 	/* feed position controller setpoint from autopilot (ned) */
+	float position_setpoint[3];
+	autopilot_get_pos_setpoint(position_setpoint);
 	float pos_des_enu[3] = {
-		autopilot.wp_now.pos[0],
-		autopilot.wp_now.pos[1],
-		autopilot.wp_now.pos[2]
+		position_setpoint[0],
+		position_setpoint[1],
+		position_setpoint[2]
 	};
 	float pos_des_ned[3];
 	assign_vector_3x1_enu_to_ned(pos_des_ned, pos_des_enu);
@@ -408,15 +412,15 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 
 	//lock motor if throttle values is lower than 10% during manual flight
 	lock_motor |= check_motor_lock_condition(rc->throttle < 10.0f &&
-	                autopilot_is_manual_flight_mode());
+	                autopilot_get_mode() == AUTOPILOT_MANUAL_FLIGHT_MODE);
 	//lock motor if desired height is lower than threshold value in the takeoff mode
-	lock_motor |= check_motor_lock_condition(autopilot.wp_now.pos[2] < 0.10f &&
+	lock_motor |= check_motor_lock_condition(position_setpoint[2] < 0.10f &&
 	                autopilot_get_mode() == AUTOPILOT_TAKEOFF_MODE);
 	//lock motor if current position is very close to ground in the hovering mode
 	lock_motor |= check_motor_lock_condition(pos_enu[2] < 0.10f &&
 	                autopilot_get_mode() == AUTOPILOT_HOVERING_MODE);
 	//lock motor if motors are locked by autopilot
-	lock_motor |= check_motor_lock_condition(autopilot_is_motor_locked_mode());
+	lock_motor |= check_motor_lock_condition(autopilot_get_mode() == AUTOPILOT_MOTOR_LOCKED_MODE);
 	//lock motor if radio safety botton is on
 	lock_motor |= check_motor_lock_condition(rc->safety == true);
 

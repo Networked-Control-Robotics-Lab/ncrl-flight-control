@@ -3,9 +3,12 @@
 
 #include <stdbool.h>
 
-#define UBX_BUFFER_SIZE 200
+#define UBLOX_SV_NUM_MAX 255
+
+#define UBX_BUFFER_SIZE 2000
 
 #define UBX_NAV_PVT_SET_LEN 16
+#define UBX_NAV_SAT_SET_LEN 16
 #define UBX_NMEA_GXGGA_SET_LEN 16
 #define UBX_NMEA_GXGGL_SET_LEN 16
 #define UBX_NMEA_GXGSA_SET_LEN 16
@@ -27,6 +30,16 @@ enum {
 	UBX_STATE_RECEIVE_CK1 = 7,
 	UBX_STATE_RECEIVE_CK2 = 8
 } UBX_PARSE_STATE;
+
+struct sat_payload_item {
+	uint8_t gnss_id;
+	uint8_t sv_id;
+	uint8_t cno;
+	//int8_t elev;
+	//int16_t azim;
+	int16_t pr_res;
+	uint32_t flags;
+};
 
 typedef struct {
 	int parse_state;
@@ -60,6 +73,8 @@ typedef struct {
 	uint8_t num_sv;
 	uint16_t pdop;
 
+	struct sat_payload_item sat_payload_list[UBLOX_SV_NUM_MAX];
+
 	float last_read_time;
 	float update_freq;
 } ublox_t;
@@ -79,5 +94,6 @@ void ublox_m8n_get_position_uncertainty(float *h_acc, float *v_acc);
 float ublox_m8n_get_ground_speed(void);
 float ublox_m8n_get_heading(void);
 float ublox_m8n_get_update_freq(void);
+float ublox_m8n_get_last_update_time_ms(void);
 
 #endif

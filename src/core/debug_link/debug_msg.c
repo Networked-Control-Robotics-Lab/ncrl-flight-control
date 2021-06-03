@@ -30,6 +30,7 @@ void send_ins_sensor_debug_message(debug_msg_t *payload)
 	 * magnetometer, gps and barometer */
 
 	float current_time_ms;
+	float gps_last_update_time_ms;
 	float accel_lpf[3];
 	float gyro_raw[3];
 	float mag_raw[3];
@@ -38,6 +39,7 @@ void send_ins_sensor_debug_message(debug_msg_t *payload)
 	float barometer_height, barometer_velocity;
 
 	current_time_ms = get_sys_time_ms();
+	gps_last_update_time_ms =  get_gps_last_update_time_ms();
 	get_accel_lpf(accel_lpf);
 	get_gyro_raw(gyro_raw);
 	get_compass_raw(mag_raw);
@@ -53,6 +55,7 @@ void send_ins_sensor_debug_message(debug_msg_t *payload)
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_INS_SENSOR);
 	pack_debug_debug_message_float(&current_time_ms, payload);
+	pack_debug_debug_message_float(&gps_last_update_time_ms, payload);
 	pack_debug_debug_message_float(&accel_lpf[0], payload);
 	pack_debug_debug_message_float(&accel_lpf[1], payload);
 	pack_debug_debug_message_float(&accel_lpf[2], payload);
@@ -124,4 +127,18 @@ void send_ins_fusion_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_float(&vel_fused_x, payload);
 	pack_debug_debug_message_float(&vel_fused_y, payload);
 	pack_debug_debug_message_float(&vel_fused_z, payload);
+}
+
+void send_gps_accuracy_debug_message(debug_msg_t *payload)
+{
+	float h_acc, v_acc;
+	get_gps_position_uncertainty(&h_acc, &v_acc);
+
+	/* convert unit from [mm] to [m] */
+	h_acc *= 0.001;
+	v_acc *= 0.001;
+
+	pack_debug_debug_message_header(payload, MESSAGE_ID_GPS_ACCURACY);
+	pack_debug_debug_message_float(&h_acc, payload);
+	pack_debug_debug_message_float(&v_acc, payload);
 }

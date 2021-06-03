@@ -84,7 +84,11 @@ SRC+=./core/main.c \
 	./core/controllers/multirotor_geometry/multirotor_geometry_ctrl.c \
 	./core/controllers/multirotor_geometry/multirotor_geometry_param.c \
 	./core/controllers/actuator/motor_thrust_fitting.c \
-	./core/controllers/autopilot.c \
+	./core/controllers/autopilot/autopilot.c \
+	./core/controllers/autopilot/waypoint_following.c \
+	./core/controllers/autopilot/trajectory_following.c \
+	./core/controllers/autopilot/takeoff_landing.c \
+	./core/controllers/autopilot/fence.c \
 	./core/tasks/flight_ctrl_task.c \
 	./core/tasks/mavlink_task.c \
 	./core/tasks/debug_link_task.c \
@@ -155,6 +159,7 @@ CFLAGS+=-I./core/controllers
 CFLAGS+=-I./core/controllers/multirotor_pid
 CFLAGS+=-I./core/controllers/multirotor_geometry
 CFLAGS+=-I./core/controllers/actuator
+CFLAGS+=-I./core/controllers/autopilot
 CFLAGS+=-I./core/debug_link
 CFLAGS+=-I./core/tasks
 CFLAGS+=-I./core/mavlink

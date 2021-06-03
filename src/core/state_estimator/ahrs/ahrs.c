@@ -165,25 +165,23 @@ void realign_ahrs_yaw_direction(float *q_ahrs, float *q_align_reference)
 	reset_quaternion_yaw_angle(q_ahrs);
 
 	/* realign ahrs quaternion with a accurate reference angle */
-	if(optitrack_available() == true) {
-		euler_t reference_euler;
-		quat_to_euler(q_align_reference, &reference_euler);
+	euler_t reference_euler;
+	quat_to_euler(q_align_reference, &reference_euler);
 
-		float half_psi = reference_euler.yaw * 0.5f;
+	float half_psi = reference_euler.yaw * 0.5f;
 
-		float q_yaw[4];
-		q_yaw[0] = arm_cos_f32(half_psi);
-		q_yaw[1] = 0.0f;
-		q_yaw[2] = 0.0f;
-		q_yaw[3] = arm_sin_f32(half_psi);
+	float q_yaw[4];
+	q_yaw[0] = arm_cos_f32(half_psi);
+	q_yaw[1] = 0.0f;
+	q_yaw[2] = 0.0f;
+	q_yaw[3] = arm_sin_f32(half_psi);
 
-		float q_original[4];
-		q_original[0] = q_ahrs[0];
-		q_original[1] = q_ahrs[1];
-		q_original[2] = q_ahrs[2];
-		q_original[3] = q_ahrs[3];
-		quaternion_mult(q_yaw, q_original, q_ahrs);
-	}
+	float q_original[4];
+	q_original[0] = q_ahrs[0];
+	q_original[1] = q_ahrs[1];
+	q_original[2] = q_ahrs[2];
+	q_original[3] = q_ahrs[3];
+	quaternion_mult(q_yaw, q_original, q_ahrs);
 }
 
 bool ahrs_compass_quality_test(float *mag_new)
@@ -372,9 +370,13 @@ void ahrs_estimate(attitude_t *attitude)
 #endif
 
 #if (SELECT_HEADING_SENSOR == HEADING_FUSION_USE_OPTITRACK)
-	realign_ahrs_yaw_direction(attitude->q, optitrack.q);
+	if(optitrack_available() == true) {
+		realign_ahrs_yaw_direction(attitude->q, optitrack.q);
+	}
 #elif (SELECT_HEADING_SENSOR == HEADING_FUSION_USE_VINS_MONO)
-	realign_ahrs_yaw_direction(attitude->q, vins_mono.q);
+	if(vins_mono_available() == true) {
+		realign_ahrs_yaw_direction(attitude->q, vins_mono.q);
+	}
 #endif
 
 	euler_t euler;

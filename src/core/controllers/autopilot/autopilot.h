@@ -51,9 +51,9 @@ struct trajectory_segment_t
 	float vy_poly_coeff[7];
 	float vz_poly_coeff[7];
 
-	float ax_poly_coeff[7];
-	float ay_poly_coeff[7];
-	float az_poly_coeff[7];
+	float ax_poly_coeff[6];
+	float ay_poly_coeff[6];
+	float az_poly_coeff[6];
 
 	float yaw_poly_coeff[4];
 	float yaw_rate_poly_coeff[3];
@@ -76,104 +76,85 @@ struct waypoint_t {
 
 /* every entities in autopilot_t is defined in enu frame */
 typedef struct {
-	struct {
-		float pos[3];
-		float vel[3];
-	} uav_state; /* current position and velocity of the uav */
-
+	/* control target (enu frame) */
 	struct {
 		float pos[3];             //[m]
 		float vel[3];             //[m/s]
 		float acc_feedforward[3]; //[m/s^2]
 		float heading;            //[deg]
-	} wp_now; /* autopilot provides these to controller as desired setpoint */
+	} ctrl_target;
 
+	/* rectangular geo-fence (enu frame) */
 	struct {
 		float origin[3];
 		float lx;
 		float ly;
 		float height;
-	} geo_fence; /* rectangular geo-fence in enu frame */
+	} geo_fence;
 
+	/* auto-takeoff and landing */
+	bool land_avaliable;
 	float landing_speed;
 	float landing_accept_height_upper;
 	float landing_accept_height_lower;
-	bool land_avaliable;
 	float takeoff_speed;
 	float takeoff_height;
-	
+	float tracking_speed;
+
+	/* autopilot datas and flags */
+	float period; //executing period
 	int mode;
 	bool halt_flag;
 	bool loop_mission;
 	bool armed;
 	bool motor_locked;
 
-	/* for waypoint following (representing setpoint with waypoints) */
-	struct waypoint_t wp_list[TRAJ_WP_MAX_NUM]; //enu frame
-	int curr_wp; //waypoint index, indicates which waypoint to track
-	int wp_num;  //total waypoint number
+	/* waypoint mission datas */
+	struct waypoint_t waypoints[TRAJ_WP_MAX_NUM]; //waypoint list (enu frame)
+	int curr_waypoint;       //index of current waypoint to track
+	int waypoint_num;        //total waypoint numbers
+	int waypoint_wait_timer; //used for delay between waypoints
 
-	/* for trajectory following (representing setpoint with 7th ordered polynomials) */
-	struct trajectory_segment_t trajectory_segments[TRAJ_WP_MAX_NUM];
+	/* trajectory following datas */
+	struct trajectory_segment_t trajectory_segments[TRAJ_WP_MAX_NUM]; //trajectory list
 	float trajectory_update_time;
+	float traj_start_time;
 	int curr_traj;  //trajectory segment index, indicates which trajectory to track
 	int traj_num;   //total trajectory number
-	float traj_start_time;
 	bool z_traj;
 	bool yaw_traj;
 } autopilot_t;
 
 bool check_motor_lock_condition(bool condition);
+void assign_vector_3x1_enu_to_ned(float *ned, float *enu);
 
-void autopilot_init(autopilot_t *_autopilot);
-void autopilot_update_uav_state(float pos_enu[3], float vel_enu[3]);
+void autopilot_init(void);
 
-bool autopilot_is_manual_flight_mode(void);
-bool autopilot_is_motor_locked_mode(void);
 bool autopilot_is_auto_flight_mode(void);
+bool autopilot_is_armed(void);
 
-void autopilot_set_enu_rectangular_fence(float origin[3], float lx, float ly, float height);
+void autopilot_lock_motor(void);
+void autopilot_unlock_motor(void);
+
+void autopilot_assign_pos_target_x(float x);
+void autopilot_assign_pos_target_y(float y);
+void autopilot_assign_pos_target_z(float z);
+void autopilot_assign_pos_target(float x, float y, float z);
+void autopilot_assign_vel_target(float vx, float vy, float vz);
+void autopilot_assign_zero_vel_target(void);
+void autopilot_assign_acc_feedforward(float ax, float ay, float az);
+void autopilot_assign_zero_acc_feedforward(void);
+
 void autopilot_set_mode(int new_mode);
 void autopilot_set_armed(void);
 void autopilot_set_disarmed(void);
-void autopilot_mission_reset(void);
 
-bool autopilot_is_armed(void);
 int autopilot_get_mode(void);
 void autopilot_get_pos_setpoint(float *pos_set);
 void autopilot_get_vel_setpoint(float *vel_set);
 void autopilot_get_accel_feedforward(float *accel_ff);
 
-int autopilot_get_waypoint_count(void);
-bool autopilot_get_waypoint_gps_mavlink(int index, int32_t *latitude, int32_t *longitude,
-                                float *height, uint16_t *cmd);
-int autopilot_add_new_waypoint_gps_mavlink(int32_t latitude, int32_t longitude,
-                                     float height, uint16_t cmd);
-
-int autopilot_set_x_trajectory(int index, float *x_traj_coeff, float fligt_time);
-int autopilot_set_y_trajectory(int index, float *y_traj_coeff, float fligt_time);
-int autopilot_set_z_trajectory(int index, float *z_traj_coeff, float fligt_time);
-int autopilot_set_yaw_trajectory(int index, float *yaw_traj_coeff, float fligt_time);
-int autopilot_config_trajectory_following(int traj_num, bool z_traj, bool yaw_traj);
-int autopilot_trajectory_following_start(bool loop_trajectory);
-int autopilot_trajectory_following_stop(void);
-
-int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec, float radius);
-
-int autopilot_clear_waypoint_list(void);
-int autopilot_goto_waypoint_now(float pos[3], bool change_height);
-int autopilot_halt_waypoint_mission(void);
-int autopilot_resume_waypoint_mission(void);
-int autopilot_waypoint_mission_start(bool loop_mission);
-int autopilot_trigger_auto_landing(void);
-int autopilot_trigger_auto_takeoff(void);
-
-void autopilot_lock_motor(void);
-void autopilot_unlock_motor(void);
-
-void autopilot_guidance_handler(void);
-
-void assign_vector_3x1_enu_to_ned(float *ned, float *enu);
+void autopilot_guidance_handler(float *curr_pos_enu, float *curr_vel_enu);
 
 void debug_print_waypoint_list(void);
 void debug_print_waypoint_status(void);

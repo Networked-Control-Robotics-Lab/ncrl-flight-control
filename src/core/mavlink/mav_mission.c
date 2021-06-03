@@ -10,6 +10,7 @@
 #include "../mavlink/mav_publisher.h"
 #include "common_list.h"
 #include "sys_param.h"
+#include "waypoint_following.h"
 
 #define MISSION_TIMEOUT_TIME 2.0f //[s]
 #define MISSION_RETRY_TIMES 5
