@@ -17,7 +17,7 @@ int autopilot_trigger_auto_landing(void)
 int autopilot_trigger_auto_takeoff(void)
 {
 	//TODO: replace the hard coded threshold value
-	if(get_enu_height() < 0.2) {
+	if(get_enu_position_z() < 0.2) {
 		autopilot.mode = AUTOPILOT_TAKEOFF_MODE;
 		return AUTOPILOT_SET_SUCCEED;
 	} else {

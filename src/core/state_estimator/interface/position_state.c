@@ -79,7 +79,7 @@ void get_enu_position(float *pos)
 	}
 }
 
-float get_enu_height(void)
+float get_enu_position_z(void)
 {
 	switch(sensor_manager.height_src) {
 	case HEIGHT_FUSION_USE_OPTITRACK:

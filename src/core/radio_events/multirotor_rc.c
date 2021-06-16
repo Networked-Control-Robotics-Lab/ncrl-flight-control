@@ -39,7 +39,7 @@ void multirotor_free_fall_rc(radio_t *rc)
 		autopilot_unlock_motor();
 	}
 
-	float height = get_enu_height();
+	float height = get_enu_position_z();
 	if((height <= recovery_height) && (autopilot_get_mode() == AUTOPILOT_MOTOR_LOCKED_MODE)) {
 		autopilot_unlock_motor();
 	}
