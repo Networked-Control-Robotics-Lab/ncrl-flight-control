@@ -79,6 +79,34 @@ void get_enu_position(float *pos)
 	}
 }
 
+float get_enu_position_x(void)
+{
+	switch(sensor_manager.position_src) {
+	case POSITION_FUSION_USE_OPTITRACK:
+		return optitrack_read_pos_x();
+	case POSITION_FUSION_USE_VINS_MONO:
+		return vins_mono_read_pos_x();
+	case POSITION_FUSION_USE_GPS:
+		return ins_get_fused_position_x();
+	default:
+		return 0.0f;
+	}
+}
+
+float get_enu_position_y(void)
+{
+	switch(sensor_manager.position_src) {
+	case POSITION_FUSION_USE_OPTITRACK:
+		return optitrack_read_pos_y();
+	case POSITION_FUSION_USE_VINS_MONO:
+		return vins_mono_read_pos_y();
+	case POSITION_FUSION_USE_GPS:
+		return ins_get_fused_position_y();
+	default:
+		return 0.0f;
+	}
+}
+
 float get_enu_position_z(void)
 {
 	switch(sensor_manager.height_src) {
@@ -129,5 +157,47 @@ void get_enu_velocity(float *vel)
 	default:
 		vel[2] = 0.0f;
 		break;
+	}
+}
+
+float get_enu_velocity_x(void)
+{
+	switch(sensor_manager.position_src) {
+	case POSITION_FUSION_USE_OPTITRACK:
+		return optitrack_read_vel_x();
+	case POSITION_FUSION_USE_VINS_MONO:
+		return vins_mono_read_vel_x();
+	case POSITION_FUSION_USE_GPS:
+		return ins_get_fused_velocity_x();
+	default:
+		return 0.0f;
+	}
+}
+
+float get_enu_velocity_y(void)
+{
+	switch(sensor_manager.position_src) {
+	case POSITION_FUSION_USE_OPTITRACK:
+		return optitrack_read_vel_y();
+	case POSITION_FUSION_USE_VINS_MONO:
+		return vins_mono_read_vel_y();
+	case POSITION_FUSION_USE_GPS:
+		return ins_get_fused_velocity_y();
+	default:
+		return 0.0f;
+	}
+}
+
+float get_enu_velocity_z(void)
+{
+	switch(sensor_manager.height_src) {
+	case HEIGHT_FUSION_USE_OPTITRACK:
+		return optitrack_read_vel_z();
+	case HEIGHT_FUSION_USE_VINS_MONO:
+		return vins_mono_read_vel_z();
+	case HEIGHT_FUSION_USE_BAROMETER:
+		return ins_get_fused_velocity_z();
+	default:
+		return 0.0f;
 	}
 }

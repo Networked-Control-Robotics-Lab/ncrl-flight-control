@@ -14,8 +14,13 @@ bool is_xy_position_info_available(void);
 bool is_height_info_available(void);
 
 void get_enu_position(float *pos);
+float get_enu_position_x(void);
+float get_enu_position_y(void);
 float get_enu_position_z(void);
 void get_enu_velocity(float *vel);
+float get_enu_velocity_x(void);
+float get_enu_velocity_y(void);
+float get_enu_velocity_z(void);
 
 void get_gps_longitude_latitude_height_s32(int32_t *longitude, int32_t *latitude, int32_t *height_msl);
 void get_gps_longitude_latitude_height(float *longitude, float *latitude, float *height);
