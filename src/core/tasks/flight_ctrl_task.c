@@ -167,9 +167,12 @@ void task_flight_ctrl(void *param)
 #endif
 
 #if (SELECT_NAVIGATION_DEVICE2 == NAV_DEV2_USE_VINS_MONO)
-		vins_mono_camera_trigger_20hz();
-		vins_mono_send_imu_200hz();
-		vins_mono_update();
+		/* XXX: vision_flight test code  */
+		if(rc.aux1_mode == RC_AUX_MODE2 || rc.aux1_mode == RC_AUX_MODE3) {
+			vins_mono_camera_trigger_20hz();
+			vins_mono_send_imu_200hz();
+			vins_mono_update();
+		}
 #endif
 
 		sbus_rc_read(&rc);
