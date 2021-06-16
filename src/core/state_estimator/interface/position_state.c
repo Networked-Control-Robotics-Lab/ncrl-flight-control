@@ -5,6 +5,7 @@
 #include "ms5611.h"
 #include "gps.h"
 #include "ins.h"
+#include "autopilot.h"
 
 sensor_manager_t sensor_manager = {
 	.heading_src = SELECT_HEADING_SENSOR,
@@ -200,4 +201,79 @@ float get_enu_velocity_z(void)
 	default:
 		return 0.0f;
 	}
+}
+
+void change_heading_sensor_src(int new_src)
+{
+	sensor_manager.heading_src = new_src;
+}
+
+void change_height_sensor_src(int new_src)
+{
+	/* calculate position error */
+	float curr_pos_z;
+	curr_pos_z = get_enu_position_z();
+
+	float des_pos_z;
+	des_pos_z = autopilot_get_pos_setpoint_z();
+
+	float pos_error_z;
+	pos_error_z = curr_pos_z - des_pos_z;
+
+	/* calculate velocity error */
+	float curr_vel_z;
+	curr_vel_z = get_enu_velocity_z();
+
+	float des_vel_z;
+	des_vel_z = autopilot_get_vel_setpoint_z();
+
+	float vel_error_z;
+	vel_error_z = curr_vel_z - des_vel_z;
+
+	/* switch to new sensor source */
+	sensor_manager.position_src = new_src;
+
+	//XXX: ignored the rotation
+	/* coordinate transform of the desire value */
+	autopilot_assign_pos_target_z(curr_pos_z - pos_error_z);
+	autopilot_assign_vel_target_z(curr_vel_z - vel_error_z);
+}
+
+void change_position_sensor_src(int new_src)
+{
+	/* calculate position error */
+	float curr_pos_x, curr_pos_y;
+	curr_pos_x = get_enu_position_x();
+	curr_pos_y = get_enu_position_y();
+
+	float des_pos_x, des_pos_y;
+	des_pos_x = autopilot_get_pos_setpoint_x();
+	des_pos_y = autopilot_get_pos_setpoint_y();
+
+	float pos_error_x, pos_error_y;
+	pos_error_x = curr_pos_x - des_pos_x;
+	pos_error_y = curr_pos_y - des_pos_y;
+
+	/* calculate velocity error */
+	float curr_vel_x, curr_vel_y;
+	curr_vel_x = get_enu_velocity_x();
+	curr_vel_y = get_enu_velocity_y();
+
+	float des_vel_x, des_vel_y;
+	des_vel_x = autopilot_get_vel_setpoint_x();
+	des_vel_y = autopilot_get_vel_setpoint_y();
+
+	float vel_error_x, vel_error_y;
+	vel_error_x = curr_vel_x - des_vel_x;
+	vel_error_y = curr_vel_y - des_vel_y;
+
+	/* switch to new sensor source */
+	sensor_manager.position_src = new_src;
+
+	//XXX: ignored the rotation
+	/* coordinate transform of the desire value */
+	autopilot_assign_pos_target_x(curr_pos_x - pos_error_x);
+	autopilot_assign_pos_target_y(curr_pos_y - pos_error_y);
+	autopilot_assign_vel_target_x(curr_vel_x - vel_error_x);
+	autopilot_assign_vel_target_y(curr_vel_y - vel_error_y);
 }

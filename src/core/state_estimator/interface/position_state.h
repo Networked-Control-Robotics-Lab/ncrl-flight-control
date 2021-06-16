@@ -22,6 +22,10 @@ float get_enu_velocity_x(void);
 float get_enu_velocity_y(void);
 float get_enu_velocity_z(void);
 
+void change_heading_sensor_src(int new_src);
+void change_height_sensor_src(int new_src);
+void change_position_sensor_src(int new_src);
+
 void get_gps_longitude_latitude_height_s32(int32_t *longitude, int32_t *latitude, int32_t *height_msl);
 void get_gps_longitude_latitude_height(float *longitude, float *latitude, float *height);
 void get_gps_velocity_ned(float *vx, float *vy, float *vz);
