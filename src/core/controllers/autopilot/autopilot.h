@@ -136,11 +136,14 @@ bool autopilot_is_armed(void);
 void autopilot_lock_motor(void);
 void autopilot_unlock_motor(void);
 
+void autopilot_assign_pos_target(float x, float y, float z);
 void autopilot_assign_pos_target_x(float x);
 void autopilot_assign_pos_target_y(float y);
 void autopilot_assign_pos_target_z(float z);
-void autopilot_assign_pos_target(float x, float y, float z);
 void autopilot_assign_vel_target(float vx, float vy, float vz);
+void autopilot_assign_vel_target_x(float vx);
+void autopilot_assign_vel_target_y(float vy);
+void autopilot_assign_vel_target_z(float vz);
 void autopilot_assign_zero_vel_target(void);
 void autopilot_assign_acc_feedforward(float ax, float ay, float az);
 void autopilot_assign_zero_acc_feedforward(void);
@@ -151,7 +154,13 @@ void autopilot_set_disarmed(void);
 
 int autopilot_get_mode(void);
 void autopilot_get_pos_setpoint(float *pos_set);
+float autopilot_get_pos_setpoint_x(void);
+float autopilot_get_pos_setpoint_y(void);
+float autopilot_get_pos_setpoint_z(void);
 void autopilot_get_vel_setpoint(float *vel_set);
+float autopilot_get_vel_setpoint_x(void);
+float autopilot_get_vel_setpoint_y(void);
+float autopilot_get_vel_setpoint_z(void);
 void autopilot_get_accel_feedforward(float *accel_ff);
 
 void autopilot_guidance_handler(float *curr_pos_enu, float *curr_vel_enu);

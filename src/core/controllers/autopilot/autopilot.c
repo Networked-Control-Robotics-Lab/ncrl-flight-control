@@ -70,6 +70,13 @@ void autopilot_unlock_motor(void)
 	autopilot.motor_locked = false;
 }
 
+void autopilot_assign_pos_target(float x, float y, float z)
+{
+	autopilot.ctrl_target.pos[0] = x;
+	autopilot.ctrl_target.pos[1] = y;
+	autopilot.ctrl_target.pos[2] = z;
+}
+
 void autopilot_assign_pos_target_x(float x)
 {
 	autopilot.ctrl_target.pos[0] = x;
@@ -85,17 +92,25 @@ void autopilot_assign_pos_target_z(float z)
 	autopilot.ctrl_target.pos[2] = z;
 }
 
-void autopilot_assign_pos_target(float x, float y, float z)
-{
-	autopilot.ctrl_target.pos[0] = x;
-	autopilot.ctrl_target.pos[1] = y;
-	autopilot.ctrl_target.pos[2] = z;
-}
-
 void autopilot_assign_vel_target(float vx, float vy, float vz)
 {
 	autopilot.ctrl_target.vel[0] = vx;
 	autopilot.ctrl_target.vel[1] = vy;
+	autopilot.ctrl_target.vel[2] = vz;
+}
+
+void autopilot_assign_vel_target_x(float vx)
+{
+	autopilot.ctrl_target.vel[0] = vx;
+}
+
+void autopilot_assign_vel_target_y(float vy)
+{
+	autopilot.ctrl_target.vel[1] = vy;
+}
+
+void autopilot_assign_vel_target_z(float vz)
+{
 	autopilot.ctrl_target.vel[2] = vz;
 }
 
@@ -147,11 +162,41 @@ void autopilot_get_pos_setpoint(float *pos_set)
 	pos_set[2] = autopilot.ctrl_target.pos[2];
 }
 
+float autopilot_get_pos_setpoint_x(void)
+{
+	return autopilot.ctrl_target.pos[0];
+}
+
+float autopilot_get_pos_setpoint_y(void)
+{
+	return autopilot.ctrl_target.pos[1];
+}
+
+float autopilot_get_pos_setpoint_z(void)
+{
+	return autopilot.ctrl_target.pos[2];
+}
+
 void autopilot_get_vel_setpoint(float *vel_set)
 {
 	vel_set[0] = autopilot.ctrl_target.vel[0];
 	vel_set[1] = autopilot.ctrl_target.vel[1];
 	vel_set[2] = autopilot.ctrl_target.vel[2];
+}
+
+float autopilot_get_vel_setpoint_x(void)
+{
+	return autopilot.ctrl_target.vel[0];
+}
+
+float autopilot_get_vel_setpoint_y(void)
+{
+	return autopilot.ctrl_target.vel[1];
+}
+
+float autopilot_get_vel_setpoint_z(void)
+{
+	return autopilot.ctrl_target.vel[2];
 }
 
 void autopilot_get_accel_feedforward(float *accel_ff)
