@@ -1,6 +1,12 @@
 #ifndef __POSITION_SENSOR_H__
 #define __POSITION_SENSOR_H__
 
+typedef struct {
+	int heading_src;
+	int height_src;
+	int position_src;
+} sensor_manager_t;
+
 bool is_gps_available(void);
 bool is_barometer_available(void);
 
