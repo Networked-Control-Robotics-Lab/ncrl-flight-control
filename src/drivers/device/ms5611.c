@@ -131,7 +131,7 @@ void ms5611_convert_pressure_temperature(int32_t d1, int32_t d2)
 		sens -= sens2;
 	}
 
-	int32_t pressure = (((d1 * sens) >> 21) - off) >> 15;
+	int64_t pressure = (((d1 * sens) >> 21) - off) >> 15;
 
 	ms5611.temp_raw = (float)temp / 100.0f;      //[deg c]
 	ms5611.press_raw = (float)pressure / 100.0f; //[mbar]
@@ -222,6 +222,8 @@ void ms5611_driver_handler(BaseType_t *higher_priority_task_woken)
 
 	/* get the result of d1 conversion */
 	ms5611_read_int24_data(&ms5611.d1);
+
+	CR_YIELD();
 
 	/* trigger ms5611 d2 conversion, need to wait 10ms for getting
 	 * the result */
