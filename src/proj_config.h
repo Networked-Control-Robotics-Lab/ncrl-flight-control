@@ -40,7 +40,7 @@
 /* ins algorithms */
 #define INS_COMPLEMENTARY_FILTER 0
 #define INS_ESKF                 1
-#define SELECT_INS INS_COMPLEMENTARY_FILTER
+#define SELECT_INS INS_ESKF
 
 /* quadrotor control algorithms */
 #define QUADROTOR_USE_PID      0
