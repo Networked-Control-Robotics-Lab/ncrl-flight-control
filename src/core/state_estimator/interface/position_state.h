@@ -7,7 +7,7 @@ typedef struct {
 	int position_src;
 } sensor_manager_t;
 
-bool is_compass_available(void);
+bool is_heading_available(void);
 bool is_xy_position_info_available(void);
 bool is_height_info_available(void);
 

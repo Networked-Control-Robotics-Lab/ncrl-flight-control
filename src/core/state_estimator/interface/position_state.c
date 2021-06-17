@@ -15,7 +15,7 @@ sensor_manager_t sensor_manager = {
 	.position_src = SELECT_POSITION_SENSOR
 };
 
-bool is_compass_available(void)
+bool is_heading_available(void)
 {
 	switch(sensor_manager.heading_src) {
 	case HEADING_FUSION_USE_COMPASS:
