@@ -10,6 +10,7 @@ typedef struct {
 bool is_gps_available(void);
 bool is_barometer_available(void);
 
+bool is_compass_available(void);
 bool is_xy_position_info_available(void);
 bool is_height_info_available(void);
 

@@ -6,12 +6,27 @@
 #include "gps.h"
 #include "ins.h"
 #include "autopilot.h"
+#include "ist8310.h"
 
 sensor_manager_t sensor_manager = {
 	.heading_src = SELECT_HEADING_SENSOR,
 	.height_src = SELECT_HEIGHT_SENSOR,
 	.position_src = SELECT_POSITION_SENSOR
 };
+
+bool is_compass_available(void)
+{
+	switch(sensor_manager.heading_src) {
+	case HEADING_FUSION_USE_COMPASS:
+		return ist8310_available();
+	case HEADING_FUSION_USE_OPTITRACK:
+		return optitrack_available();
+	case HEADING_FUSION_USE_VINS_MONO:
+		return vins_mono_available();
+	default:
+		return false;
+	}
+}
 
 bool is_xy_position_info_available(void)
 {
@@ -205,11 +220,59 @@ float get_enu_velocity_z(void)
 
 void change_heading_sensor_src(int new_src)
 {
+	if(sensor_manager.heading_src == new_src) {
+		return;
+	}
+
+	/* check if the sensor to switch is currently available */
+	bool sensor_available = false;
+
+	switch(new_src) {
+	case HEADING_FUSION_USE_COMPASS:
+		sensor_available = ist8310_available();
+	case HEADING_FUSION_USE_OPTITRACK:
+		sensor_available = optitrack_available();
+	case HEADING_FUSION_USE_VINS_MONO:
+		sensor_available = vins_mono_available();
+	default:
+		sensor_available = false;
+	}
+
+	if(sensor_available == false) {
+		return;
+	}
+
 	sensor_manager.heading_src = new_src;
 }
 
 void change_height_sensor_src(int new_src)
 {
+	if(sensor_manager.height_src == new_src) {
+		return;
+	}
+
+	/* check if the sensor to switch is currently available */
+	bool sensor_available = false;
+
+	switch(new_src) {
+	case HEIGHT_FUSION_USE_OPTITRACK:
+		sensor_available = optitrack_available();
+		break;
+	case HEIGHT_FUSION_USE_BAROMETER:
+		sensor_available = is_barometer_available();
+		break;
+	case HEIGHT_FUSION_USE_VINS_MONO:
+		sensor_available = vins_mono_available();
+		break;
+	default:
+		sensor_available = false;
+		break;
+	}
+
+	if(sensor_available == false) {
+		return;
+	}
+
 	/* calculate position error */
 	float curr_pos_z;
 	curr_pos_z = get_enu_position_z();
@@ -241,6 +304,28 @@ void change_height_sensor_src(int new_src)
 
 void change_position_sensor_src(int new_src)
 {
+	if(sensor_manager.position_src == new_src) {
+		return;
+	}
+
+	/* check if the sensor to switch is currently available */
+	bool sensor_available = false;
+
+	switch(new_src) {
+	case POSITION_FUSION_USE_OPTITRACK:
+		sensor_available =  optitrack_available();
+	case POSITION_FUSION_USE_GPS:
+		sensor_available = is_gps_available();
+	case POSITION_FUSION_USE_VINS_MONO:
+		sensor_available = vins_mono_available();
+	default:
+		sensor_available = false;
+	}
+
+	if(sensor_available == false) {
+		return;
+	}
+
 	/* calculate position error */
 	float curr_pos_x, curr_pos_y;
 	curr_pos_x = get_enu_position_x();

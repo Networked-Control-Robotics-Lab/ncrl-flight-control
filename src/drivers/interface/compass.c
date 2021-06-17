@@ -19,19 +19,6 @@ void get_compass_lpf(float *mag)
 	ist8310_get_mag_lpf(mag);
 }
 
-bool is_compass_available(void)
-{
-#if (SELECT_HEADING_SENSOR == HEADING_FUSION_USE_COMPASS)
-	return ist8310_available();
-#elif (SELECT_HEADING_SENSOR == HEADING_FUSION_USE_OPTITRACK)
-	return optitrack_available();
-#elif (SELECT_HEADING_SENSOR == HEADING_FUSION_USE_VINS_MONO)
-	return vins_mono_available();
-#else
-	return false;
-#endif
-}
-
 void compass_wait_until_stable(void)
 {
 #if (SELECT_HEADING_SENSOR == HEADING_FUSION_USE_COMPASS)
