@@ -7,6 +7,7 @@
 #include "ins.h"
 #include "autopilot.h"
 #include "ist8310.h"
+#include "barometer.h"
 
 sensor_manager_t sensor_manager = {
 	.heading_src = SELECT_HEADING_SENSOR,

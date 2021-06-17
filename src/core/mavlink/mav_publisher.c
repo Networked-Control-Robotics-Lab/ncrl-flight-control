@@ -10,6 +10,7 @@
 #include "position_state.h"
 #include "common_list.h"
 #include "sys_param.h"
+#include "gps.h"
 
 extern attitude_t attitude;
 

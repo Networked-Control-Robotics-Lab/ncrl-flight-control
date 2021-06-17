@@ -13,6 +13,7 @@
 #include "attitude_state.h"
 #include "proj_config.h"
 #include "vins_mono.h"
+#include "gps.h"
 
 /* position (enu) */
 float pos_last[3] = {0.0f};
