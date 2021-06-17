@@ -15,6 +15,7 @@ void multirotor_rc_special_function_handler(radio_t *rc)
 {
 	//call the test function you want to use here:
 	//multirotor_free_fall_rc(rc);
+	multirotor_navigation_switch_test(rc);
 }
 
 /* stability testing function: quadrotor free fall recovery
@@ -56,15 +57,15 @@ void multirotor_navigation_switch_test(radio_t *rc)
 
 	/* aux1 button: upper position */
 	if(rc->aux1_mode == RC_AUX_MODE1 && aux1_mode_last != RC_AUX_MODE1) {
-		change_heading_sensor_src(HEADING_FUSION_USE_OPTITRACK);
-		change_position_sensor_src(POSITION_FUSION_USE_OPTITRACK);
-		change_height_sensor_src(HEIGHT_FUSION_USE_OPTITRACK);
 	}
 
 	/* aux1 button: middle position */
 	if(rc->aux1_mode == RC_AUX_MODE2 && aux1_mode_last != RC_AUX_MODE2) {
 		/* middle position is used to trigger camera and imu only,
-                   the code is implemented in the flight control task */
+		   the code is implemented in the flight control task */
+		change_heading_sensor_src(HEADING_FUSION_USE_OPTITRACK);
+		change_position_sensor_src(POSITION_FUSION_USE_OPTITRACK);
+		change_height_sensor_src(HEIGHT_FUSION_USE_OPTITRACK);
 	}
 
 	/* aux1 button: lower position */
@@ -74,8 +75,8 @@ void multirotor_navigation_switch_test(radio_t *rc)
 		change_height_sensor_src(HEIGHT_FUSION_USE_VINS_MONO);
 
 		/* beside of navigation system switching, the camera trigger
-                   and imu data sending are implemented in the flight control
-                   task */
+		   and imu data sending are implemented in the flight control
+		   task */
 	}
 
 	aux1_mode_last = rc->aux1_mode;

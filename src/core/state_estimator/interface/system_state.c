@@ -59,22 +59,22 @@ bool is_height_available(void)
 
 void get_attitude_euler_angles(float *roll, float *pitch, float *yaw)
 {
-        ins_ahrs_get_attitude_euler_angles(roll, pitch, yaw);
+	ins_ahrs_get_attitude_euler_angles(roll, pitch, yaw);
 }
 
 void get_attitude_quaternion(float *q)
 {
-        ins_ahrs_get_attitude_quaternion(q);
+	ins_ahrs_get_attitude_quaternion(q);
 }
 
 void get_rotation_matrix_b2i(float **R_b2i)
 {
-        ins_ahrs_get_rotation_matrix_b2i(R_b2i);
+	ins_ahrs_get_rotation_matrix_b2i(R_b2i);
 }
 
 void get_rotation_matrix_i2b(float **R_i2b)
 {
-        ins_ahrs_get_rotation_matrix_i2b(R_i2b);
+	ins_ahrs_get_rotation_matrix_i2b(R_i2b);
 }
 
 void get_enu_position(float *pos)
@@ -251,12 +251,16 @@ void change_heading_sensor_src(int new_src)
 	switch(new_src) {
 	case HEADING_FUSION_USE_COMPASS:
 		sensor_available = ist8310_available();
+		break;
 	case HEADING_FUSION_USE_OPTITRACK:
 		sensor_available = optitrack_available();
+		break;
 	case HEADING_FUSION_USE_VINS_MONO:
 		sensor_available = vins_mono_available();
+		break;
 	default:
 		sensor_available = false;
+		break;
 	}
 
 	if(sensor_available == false) {
@@ -315,7 +319,7 @@ void change_height_sensor_src(int new_src)
 	vel_error_z = curr_vel_z - des_vel_z;
 
 	/* switch to new sensor source */
-	sensor_manager.position_src = new_src;
+	sensor_manager.height_src = new_src;
 
 	//XXX: ignored the rotation
 	/* coordinate transform of the desire value */
@@ -334,13 +338,17 @@ void change_position_sensor_src(int new_src)
 
 	switch(new_src) {
 	case POSITION_FUSION_USE_OPTITRACK:
-		sensor_available =  optitrack_available();
+		sensor_available = optitrack_available();
+		break;
 	case POSITION_FUSION_USE_GPS:
 		sensor_available = is_gps_available();
+		break;
 	case POSITION_FUSION_USE_VINS_MONO:
 		sensor_available = vins_mono_available();
+		break;
 	default:
 		sensor_available = false;
+		break;
 	}
 
 	if(sensor_available == false) {
