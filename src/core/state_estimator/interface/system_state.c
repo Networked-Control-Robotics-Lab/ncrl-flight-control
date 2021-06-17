@@ -321,6 +321,8 @@ void change_height_sensor_src(int new_src)
 	/* switch to new sensor source */
 	sensor_manager.height_src = new_src;
 
+	curr_pos_z = get_enu_position_z();
+
 	//XXX: ignored the rotation
 	/* coordinate transform of the desire value */
 	autopilot_assign_pos_target_z(curr_pos_z - pos_error_z);
@@ -383,6 +385,9 @@ void change_position_sensor_src(int new_src)
 
 	/* switch to new sensor source */
 	sensor_manager.position_src = new_src;
+
+	des_pos_x = autopilot_get_pos_setpoint_x();
+	des_pos_y = autopilot_get_pos_setpoint_y();
 
 	//XXX: ignored the rotation
 	/* coordinate transform of the desire value */
