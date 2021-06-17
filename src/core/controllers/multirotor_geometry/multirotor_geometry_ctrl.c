@@ -537,8 +537,8 @@ void multirotor_geometry_control(radio_t *rc, float *desired_heading)
 	rc_mode_handler_geometry_ctrl(rc);
 
 	/* get sensor status */
-	bool xy_pos_available = is_xy_position_info_available();
-	bool height_availabe = is_height_info_available();
+	bool xy_pos_available = is_xy_position_available();
+	bool height_availabe = is_height_available();
 	bool heading_available = is_compass_available();
 
 	/* get imu datay */

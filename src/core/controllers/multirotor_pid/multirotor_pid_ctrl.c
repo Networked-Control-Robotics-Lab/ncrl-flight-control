@@ -365,7 +365,7 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 	float final_roll_cmd;
 	float final_pitch_cmd;
 	if(pid_pos_x.enable == true && pid_pos_y.enable == true &&
-	    is_xy_position_info_available() == true) {
+	   is_xy_position_available() == true) {
 		/* attitude control signal from position-2d controller */
 		final_roll_cmd = +nav_ctl_roll_command;   //ned-y is contolled by roll
 		final_pitch_cmd = -nav_ctl_pitch_command; //ned-x is contolled by pitch
@@ -377,7 +377,7 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 
 	/* check if height sensor is present */
 	float throttle_cmd;
-	if(pid_alt_vel.enable == true && is_height_info_available()) {
+	if(pid_alt_vel.enable == true && is_height_available()) {
 		/* height autocontrolled */
 		throttle_cmd = pid_alt_vel.output;
 	} else {

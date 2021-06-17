@@ -8,8 +8,8 @@ typedef struct {
 } sensor_manager_t;
 
 bool is_heading_available(void);
-bool is_xy_position_info_available(void);
-bool is_height_info_available(void);
+bool is_xy_position_available(void);
+bool is_height_available(void);
 
 void get_enu_position(float *pos);
 float get_enu_position_x(void);

@@ -29,7 +29,7 @@ bool is_heading_available(void)
 	}
 }
 
-bool is_xy_position_info_available(void)
+bool is_xy_position_available(void)
 {
 	switch(sensor_manager.position_src) {
 	case POSITION_FUSION_USE_OPTITRACK:
@@ -43,7 +43,7 @@ bool is_xy_position_info_available(void)
 	}
 }
 
-bool is_height_info_available(void)
+bool is_height_available(void)
 {
 	switch(sensor_manager.height_src) {
 	case HEIGHT_FUSION_USE_OPTITRACK:
