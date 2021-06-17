@@ -34,7 +34,7 @@
 #include "ins.h"
 #include "ins_sensor_sync.h"
 #include "led.h"
-#include "attitude_state.h"
+#include "system_state.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 10
 

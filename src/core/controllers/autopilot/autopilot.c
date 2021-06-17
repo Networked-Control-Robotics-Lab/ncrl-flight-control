@@ -8,11 +8,10 @@
 #include "delay.h"
 #include "sbus_radio.h"
 #include "ahrs.h"
-#include "attitude_state.h"
 #include "trajectory_following.h"
 #include "takeoff_landing.h"
 #include "waypoint_following.h"
-#include "position_state.h"
+#include "system_state.h"
 
 autopilot_t autopilot;
 

@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include "autopilot.h"
-#include "position_state.h"
+#include "system_state.h"
 
 extern autopilot_t autopilot;
 

@@ -1,5 +1,5 @@
-#ifndef __POSITION_SENSOR_H__
-#define __POSITION_SENSOR_H__
+#ifndef __SYSTEM_STATE_H__
+#define __SYSTEM_STATE_H__
 
 typedef struct {
 	int heading_src;
@@ -11,10 +11,16 @@ bool is_heading_available(void);
 bool is_xy_position_available(void);
 bool is_height_available(void);
 
+void get_attitude_euler_angles(float *roll, float *pitch, float *yaw);
+void get_attitude_quaternion(float *q);
+void get_rotation_matrix_b2i(float **R_b2i);
+void get_rotation_matrix_i2b(float **R_i2b);
+
 void get_enu_position(float *pos);
 float get_enu_position_x(void);
 float get_enu_position_y(void);
 float get_enu_position_z(void);
+
 void get_enu_velocity(float *vel);
 float get_enu_velocity_x(void);
 float get_enu_velocity_y(void);

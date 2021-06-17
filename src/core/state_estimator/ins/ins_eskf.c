@@ -14,7 +14,7 @@
 #include "compass.h"
 #include "gps.h"
 #include "barometer.h"
-#include "position_state.h"
+#include "system_state.h"
 #include "vins_mono.h"
 
 #define ESKF_RESCALE(number) (number * 1e7) //to improve the numerical stability

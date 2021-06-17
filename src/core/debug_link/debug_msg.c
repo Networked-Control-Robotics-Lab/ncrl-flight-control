@@ -5,7 +5,7 @@
 #include "imu.h"
 #include "compass.h"
 #include "barometer.h"
-#include "position_state.h"
+#include "system_state.h"
 #include "ins.h"
 #include "gps.h"
 #include "optitrack.h"

@@ -77,8 +77,7 @@ SRC+=./core/main.c \
 	./core/state_estimator/ins/ins_eskf.c \
 	./core/state_estimator/ins/ins_sensor_sync.c \
 	./core/state_estimator/ins/dummy_sensors.c \
-	./core/state_estimator/interface/attitude_state.c \
-	./core/state_estimator/interface/position_state.c \
+	./core/state_estimator/interface/system_state.c \
 	./core/controllers/multirotor_pid/multirotor_pid_ctrl.c \
 	./core/controllers/multirotor_pid/multirotor_pid_param.c \
 	./core/controllers/multirotor_geometry/multirotor_geometry_ctrl.c \

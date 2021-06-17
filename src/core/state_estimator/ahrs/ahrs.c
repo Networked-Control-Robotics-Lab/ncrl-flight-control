@@ -22,7 +22,7 @@
 #include "debug_link.h"
 #include "sys_time.h"
 #include "led.h"
-#include "attitude_state.h"
+#include "system_state.h"
 
 extern optitrack_t optitrack;
 extern vins_mono_t vins_mono;

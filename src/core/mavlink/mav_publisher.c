@@ -7,7 +7,7 @@
 #include "sys_time.h"
 #include "optitrack.h"
 #include "sbus_radio.h"
-#include "position_state.h"
+#include "system_state.h"
 #include "common_list.h"
 #include "sys_param.h"
 #include "gps.h"
