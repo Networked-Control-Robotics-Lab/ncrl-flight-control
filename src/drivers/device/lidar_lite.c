@@ -4,6 +4,38 @@
 #include "lidar_lite.h"
 #include "sw_i2c.h"
 
+lidar_lite_t lidar_lite;
+
+void lidar_blocked_read_byte(uint8_t addr, uint8_t *data)
+{
+	sw_i2c_blocked_start();
+	sw_i2c_blocked_send_byte((LIDAR_DEV_ADDRESS << 1) | 0);
+	sw_i2c_blocked_wait_ack();
+	sw_i2c_blocked_send_byte(addr);
+	sw_i2c_blocked_wait_ack();
+	sw_i2c_blocked_start();
+	sw_i2c_blocked_send_byte((LIDAR_DEV_ADDRESS << 1) | 1);
+	sw_i2c_blocked_wait_ack();
+	*data = sw_i2c_blocked_read_byte();
+	sw_i2c_blocked_nack();
+	sw_i2c_blocked_stop();
+}
+
+void lidar_read_byte(uint8_t addr, uint8_t *data)
+{
+	sw_i2c_start();
+	sw_i2c_send_byte((LIDAR_DEV_ADDRESS << 1) | 0);
+	sw_i2c_wait_ack();
+	sw_i2c_send_byte(addr);
+	sw_i2c_wait_ack();
+	sw_i2c_start();
+	sw_i2c_send_byte((LIDAR_DEV_ADDRESS << 1) | 1);
+	sw_i2c_wait_ack();
+	*data = sw_i2c_read_byte();
+	sw_i2c_nack();
+	sw_i2c_stop();
+}
+
 void lidar_blocked_read_bytes(uint8_t addr, uint16_t *data, int size)
 {
 	sw_i2c_blocked_start();
@@ -99,4 +131,24 @@ void lidar_lite_init(void)
 
 void lidar_lite_isr_handler(void)
 {
+	lidar_lite.measurement_ready = true;
+}
+
+void lidar_lite_task_handler(void)
+{
+	if(lidar_lite.measurement_ready == true) {
+		lidar_read_bytes(LIDAR_DISTANCE_REG, &lidar_lite.dist_raw, 2);
+		lidar_read_byte(LIDAR_VELOCITY_REG, &lidar_lite.vel_raw);
+		lidar_lite.measurement_ready = false;
+	}
+}
+
+float lidar_lite_get_distance(void)
+{
+	return lidar_lite.dist_raw * 0.01f; //[m]
+}
+
+float lidar_lite_get_velocity(void)
+{
+	return lidar_lite.vel_raw * 0.01f; //[m/s]
 }
