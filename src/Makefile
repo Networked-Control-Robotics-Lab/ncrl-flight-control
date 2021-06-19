@@ -140,6 +140,7 @@ SRC+=./drivers/periph/uart.c \
 	./drivers/device/led.c \
 	./drivers/device/ublox_m8n.c \
 	./drivers/device/vins_mono.c \
+	./drivers/device/lidar_lite.c \
 	./drivers/interface/imu.c \
 	./drivers/interface/barometer.c \
 	./drivers/interface/compass.c \

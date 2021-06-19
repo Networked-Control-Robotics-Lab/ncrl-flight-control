@@ -364,7 +364,7 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 	float final_roll_cmd;
 	float final_pitch_cmd;
 	if(pid_pos_x.enable == true && pid_pos_y.enable == true &&
-	   is_xy_position_available() == true) {
+	    is_xy_position_available() == true) {
 		/* attitude control signal from position-2d controller */
 		final_roll_cmd = +nav_ctl_roll_command;   //ned-y is contolled by roll
 		final_pitch_cmd = -nav_ctl_pitch_command; //ned-x is contolled by pitch
