@@ -17,10 +17,9 @@
 
 typedef struct {
 	uint16_t dist_raw; //[cm]
-	int8_t vel_raw;    //[cm/s]
 
 	uint16_t dist_last;
-	float vel_num_diff;
+	float vel_num_diff; //[cm/s]
 	int prescaler_cnt;
 	float prescaler;
 	float dt;
@@ -32,6 +31,8 @@ typedef struct {
 void lidar_lite_init(void);
 
 void lidar_lite_task_handler(void);
+
+bool lidar_lite_available();
 
 float lidar_lite_get_distance(void);
 float lidar_lite_get_velocity(void);

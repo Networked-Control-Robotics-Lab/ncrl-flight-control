@@ -8,6 +8,16 @@
 
 lidar_lite_t lidar_lite;
 
+bool lidar_lite_available(void)
+{
+	//timeout if no data available more than 300ms
+	float current_time = get_sys_time_s();
+	if((current_time - lidar_lite.last_read_time) > 0.3) {
+		return false;
+	}
+	return true;
+}
+
 void lidar_blocked_read_byte(uint8_t addr, uint8_t *data)
 {
 	sw_i2c_blocked_start();
@@ -167,7 +177,7 @@ float lidar_lite_get_distance(void)
 
 float lidar_lite_get_velocity(void)
 {
-	return lidar_lite.vel_raw * 0.1f; //[m/s]
+	return lidar_lite.vel_num_diff * 0.01f; //[m/s]
 }
 
 void send_rangefinder_debug_message(debug_msg_t *payload)
