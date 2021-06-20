@@ -17,7 +17,13 @@
 
 typedef struct {
 	uint16_t dist_raw; //[cm]
-	uint8_t vel_raw;   //[cm/s]
+	int8_t vel_raw;    //[cm/s]
+
+	uint16_t dist_last;
+	float vel_num_diff;
+	int prescaler_cnt;
+	float prescaler;
+	float dt;
 } lidar_lite_t;
 
 void lidar_lite_init(void);

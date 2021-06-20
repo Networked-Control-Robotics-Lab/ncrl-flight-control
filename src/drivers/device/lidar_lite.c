@@ -113,6 +113,11 @@ void lidar_write_byte(uint8_t addr, uint8_t data)
 
 void lidar_lite_init(void)
 {
+	/* numerical differentiation parameter initialization */
+	lidar_lite.prescaler = 10;
+	lidar_lite.dt = 0.01;
+	lidar_lite.dt *= lidar_lite.prescaler;
+
 	/* reset lidar */
 	lidar_write_byte(LIDAR_ACQ_COMMAND_REG, 0x00);
 	freertos_task_delay(1000);
@@ -137,7 +142,15 @@ void lidar_lite_init(void)
 void lidar_lite_task_handler(void)
 {
 	lidar_read_bytes(LIDAR_DISTANCE_REG, (uint8_t *)&lidar_lite.dist_raw, 2);
-//	lidar_read_byte(LIDAR_VELOCITY_REG, &lidar_lite.vel_raw);
+	//lidar_read_byte(LIDAR_VELOCITY_REG, (uint8_t *)&lidar_lite.vel_raw);
+
+	if(lidar_lite.prescaler_cnt == lidar_lite.prescaler) {
+		/* numerical differention */
+		lidar_lite.vel_num_diff = ((float)lidar_lite.dist_raw - (float)lidar_lite.dist_last) / lidar_lite.dt;
+		lidar_lite.dist_last = lidar_lite.dist_raw;
+		lidar_lite.prescaler_cnt = 0;
+	}
+	lidar_lite.prescaler_cnt++;
 }
 
 float lidar_lite_get_distance(void)
@@ -147,13 +160,13 @@ float lidar_lite_get_distance(void)
 
 float lidar_lite_get_velocity(void)
 {
-	return lidar_lite.vel_raw * 0.01f; //[m/s]
+	return lidar_lite.vel_raw * 0.1f; //[m/s]
 }
 
 void send_rangefinder_debug_message(debug_msg_t *payload)
 {
-	float distance = lidar_lite.dist_raw * 0.01f;;
-	float velocity = lidar_lite.vel_raw * 0.01f;;
+	float distance = lidar_lite.dist_raw * 0.01f;
+	float velocity = lidar_lite.vel_num_diff * 0.01f;
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_RANGEFINDER);
 	pack_debug_debug_message_float(&distance, payload);
