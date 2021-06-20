@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "debug_link.h"
 
 #define LIDAR_DEV_ADDRESS 0x62
 
@@ -25,5 +26,7 @@ void lidar_lite_task_handler(void);
 
 float lidar_lite_get_distance(void);
 float lidar_lite_get_velocity(void);
+
+void send_rangefinder_debug_message(debug_msg_t *payload);
 
 #endif

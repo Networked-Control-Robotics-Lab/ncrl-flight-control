@@ -3,6 +3,7 @@
 #include "delay.h"
 #include "lidar_lite.h"
 #include "sw_i2c.h"
+#include "debug_link.h"
 
 lidar_lite_t lidar_lite;
 
@@ -147,4 +148,14 @@ float lidar_lite_get_distance(void)
 float lidar_lite_get_velocity(void)
 {
 	return lidar_lite.vel_raw * 0.01f; //[m/s]
+}
+
+void send_rangefinder_debug_message(debug_msg_t *payload)
+{
+	float distance = lidar_lite.dist_raw * 0.01f;;
+	float velocity = lidar_lite.vel_raw * 0.01f;;
+
+	pack_debug_debug_message_header(payload, MESSAGE_ID_RANGEFINDER);
+	pack_debug_debug_message_float(&distance, payload);
+	pack_debug_debug_message_float(&velocity, payload);
 }

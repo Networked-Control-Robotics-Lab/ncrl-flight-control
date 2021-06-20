@@ -554,6 +554,14 @@ class serial_plotter_class:
                 self.create_curve('v_acc', 'red')
                 self.show_subplot()
 
+        elif (message_id == 34):
+                plt.subplot(111)
+                plt.ylabel('rangefinder')
+                plt.ylim([-1, 10])
+                self.create_curve('distance', 'blue')
+                self.create_curve('velocity', 'red')
+                self.show_subplot()
+
 
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \
