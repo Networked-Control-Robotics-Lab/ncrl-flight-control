@@ -555,13 +555,23 @@ class serial_plotter_class:
                 self.show_subplot()
 
         elif (message_id == 34):
-                plt.subplot(111)
-                plt.ylabel('rangefinder')
+                plt.subplot(311)
+                plt.ylabel('distance')
                 plt.ylim([-1, 10])
                 self.create_curve('distance', 'blue')
+                self.show_subplot()
+
+                plt.subplot(312)
+                plt.ylabel('velocity')
+                plt.ylim([-15, 15])
                 self.create_curve('velocity', 'red')
                 self.show_subplot()
 
+                plt.subplot(313)
+                plt.ylabel('update freq')
+                plt.ylim([-1, 200])
+                self.create_curve('frequency', 'red')
+                self.show_subplot()
 
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \

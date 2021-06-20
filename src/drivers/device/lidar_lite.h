@@ -24,6 +24,9 @@ typedef struct {
 	int prescaler_cnt;
 	float prescaler;
 	float dt;
+
+	float last_read_time;
+	float update_freq;
 } lidar_lite_t;
 
 void lidar_lite_init(void);

@@ -4,6 +4,7 @@
 #include "lidar_lite.h"
 #include "sw_i2c.h"
 #include "debug_link.h"
+#include "sys_time.h"
 
 lidar_lite_t lidar_lite;
 
@@ -141,6 +142,7 @@ void lidar_lite_init(void)
 
 void lidar_lite_task_handler(void)
 {
+	/* sensor reading */
 	lidar_read_bytes(LIDAR_DISTANCE_REG, (uint8_t *)&lidar_lite.dist_raw, 2);
 	//lidar_read_byte(LIDAR_VELOCITY_REG, (uint8_t *)&lidar_lite.vel_raw);
 
@@ -151,6 +153,11 @@ void lidar_lite_task_handler(void)
 		lidar_lite.prescaler_cnt = 0;
 	}
 	lidar_lite.prescaler_cnt++;
+
+	/* update frequency calculation */
+	float curr_time = get_sys_time_s();
+	lidar_lite.update_freq = 1.0f / (curr_time - lidar_lite.last_read_time);
+	lidar_lite.last_read_time = curr_time;
 }
 
 float lidar_lite_get_distance(void)
@@ -171,4 +178,5 @@ void send_rangefinder_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_header(payload, MESSAGE_ID_RANGEFINDER);
 	pack_debug_debug_message_float(&distance, payload);
 	pack_debug_debug_message_float(&velocity, payload);
+	pack_debug_debug_message_float(&lidar_lite.update_freq, payload);
 }
