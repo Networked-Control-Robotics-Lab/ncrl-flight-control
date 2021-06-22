@@ -10,8 +10,6 @@
 #include "lpf.h"
 #include "ins_sensor_sync.h"
 
-SemaphoreHandle_t ist8310_semphr;
-
 ist8310_t ist8310 = {
 	.bias_x = 0.0f,
 	.bias_y = 0.0f,
@@ -159,11 +157,6 @@ void ist8310_wait_until_stable(void)
 	}
 }
 
-void ist8310_semaphore_handler(BaseType_t *higher_priority_task_woken)
-{
-	xSemaphoreGiveFromISR(ist8310_semphr, higher_priority_task_woken);
-}
-
 void ist8310_cancel_bias(float *mag)
 {
 	mag[0] -= ist8310.bias_x;
@@ -276,24 +269,4 @@ float ist8310_get_mag_lpf_strength(void)
 float ist8310_get_update_rate(void)
 {
 	return ist8310.update_rate;
-}
-
-void ist8310_driver_task(void *param)
-{
-	ist8130_init();
-
-	while(ins_sync_buffer_is_ready() == false);
-
-	while(1) {
-		while(xSemaphoreTake(ist8310_semphr, portMAX_DELAY) == pdFALSE);
-
-		ist8310_read_sensor();
-	}
-}
-
-void ist8310_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
-                           UBaseType_t priority)
-{
-	ist8310_semphr = xSemaphoreCreateBinary();
-	xTaskCreate(ist8310_driver_task, task_name, stack_size, NULL, priority, NULL);
 }

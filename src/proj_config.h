@@ -68,6 +68,9 @@
 /* barometer sensor option */
 #define ENABLE_BAROMETER       0
 
+/* rangefinder sensor option */
+#define ENABLE_RANGEFINDER     0 
+
 /*=======================================================*
  * sensor source settings for state estimation algorithm *
  *=======================================================*/
@@ -80,10 +83,11 @@
 #define SELECT_HEADING_SENSOR HEADING_FUSION_USE_OPTITRACK
 
 /* height fusion source */
-#define NO_HEIGHT_SENSOR            0
-#define HEIGHT_FUSION_USE_BAROMETER 1
-#define HEIGHT_FUSION_USE_OPTITRACK 2
-#define HEIGHT_FUSION_USE_VINS_MONO 3
+#define NO_HEIGHT_SENSOR              0
+#define HEIGHT_FUSION_USE_BAROMETER   1
+#define HEIGHT_FUSION_USE_OPTITRACK   2
+#define HEIGHT_FUSION_USE_VINS_MONO   3
+#define HEIGHT_FUSION_USE_RANGEFINDER 4
 #define SELECT_HEIGHT_SENSOR HEIGHT_FUSION_USE_OPTITRACK
 
 /* position fusion source */
@@ -118,6 +122,10 @@
 
 #if (ENABLE_BAROMETER == 0) && (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
 #error "barometer is not enabled."
+#endif
+
+#if (ENABLE_RANGEFINDER == 0) && (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_RANGEFINDER)
+#error "rangefinder is not enabled."
 #endif
 
 #endif

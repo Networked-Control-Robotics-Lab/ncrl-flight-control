@@ -61,9 +61,7 @@ typedef struct {
 void ist8130_init(void);
 void ist8310_wait_until_stable(void);
 bool ist8310_available(void);
-void ist8310_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
-                           UBaseType_t priority);
-void ist8310_semaphore_handler(BaseType_t *higher_priority_task_woken);
+void ist8310_read_sensor(void);
 
 void ist8310_get_mag_raw(float *mag_raw);
 void ist8310_get_mag_lpf(float *mag_lpf);

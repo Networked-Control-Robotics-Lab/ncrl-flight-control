@@ -35,6 +35,7 @@
 #include "ms5611.h"
 #include "ist8310.h"
 #include "ins_sensor_sync.h"
+#include "f4_board_support.h"
 
 perf_t perf_list[] = {
 	DEF_PERF(PERF_AHRS_INS, "ahrs and ins")
@@ -82,10 +83,9 @@ int main(void)
 
 	blocked_delay_ms(50);
 
-#if (ENABLE_MAGNETOMETER == 1)
-	/* compass (ist8310) */
+#if ((ENABLE_MAGNETOMETER == 1) || (ENABLE_RANGEFINDER == 1))
 	sw_i2c_init();
-	ist8310_register_task("compass driver", 512, tskIDLE_PRIORITY + 5);
+	f4_sw_i2c_driver_register_task("sw i2c driver", 512, tskIDLE_PRIORITY + 5);
 #endif
 
 #if (ENABLE_BAROMETER == 1)
