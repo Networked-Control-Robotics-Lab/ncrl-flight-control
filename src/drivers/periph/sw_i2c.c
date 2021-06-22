@@ -20,7 +20,7 @@
 #include "coroutine.h"
 #include "delay.h"
 
-#define I2C_FREQ 100000.0 //100k[Hz], XXX:change to 400k later
+#define I2C_FREQ 200000.0 //100k[Hz], XXX:change to 400k later
 #define I2C_CLOCK_PERIOD_MS ((1.0 / I2C_FREQ) * 1000.0) //[ms]
 
 #define SW_I2C_SCL GPIOE, GPIO_Pin_0

@@ -186,7 +186,7 @@ void ist8310_read_sensor(void)
 	ist8310_write_byte(IST8310_REG_CTRL1, IST8310_ODR_SINGLE);
 
 	//wait 6ms for 16x average
-	freertos_task_delay(15);
+	freertos_task_delay(6);
 
 	/* read sensor datas */
 	uint8_t buf[6];
