@@ -190,7 +190,7 @@ void ist8310_read_sensor(void)
 	/* check "IST8310 User Manual v1.5" for details */
 
 	//sigle measurement mode
-	ist8310_blocked_write_byte(IST8310_REG_CTRL1, IST8310_ODR_SINGLE);
+	ist8310_write_byte(IST8310_REG_CTRL1, IST8310_ODR_SINGLE);
 
 	//wait 6ms for 16x average
 	freertos_task_delay(15);
