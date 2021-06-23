@@ -131,8 +131,8 @@ void lidar_write_byte(uint8_t addr, uint8_t data)
 void lidar_lite_init(void)
 {
 	/* numerical differentiation parameter initialization */
-	lidar_lite.prescaler = 10;
-	lidar_lite.dt = 0.01;
+	lidar_lite.prescaler = 1;
+	lidar_lite.dt = 0.025;
 	lidar_lite.dt *= lidar_lite.prescaler;
 
 	/* reset lidar */

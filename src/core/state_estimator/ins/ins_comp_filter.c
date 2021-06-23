@@ -1,3 +1,4 @@
+#include <math.h>
 #include "debug_link.h"
 #include "optitrack.h"
 #include "imu.h"
@@ -13,6 +14,7 @@
 #include "proj_config.h"
 #include "vins_mono.h"
 #include "gps.h"
+#include "rangefinder.h"
 
 /* position (enu) */
 float pos_last[3] = {0.0f};
@@ -34,12 +36,14 @@ void ins_comp_filter_init(float _dt)
 	/* position fusion weights */
 	pos_a[0] = 0.2f; //weight of using gps raw x position
 	pos_a[1] = 0.2f; //weight of using gps raw y position
-	pos_a[2] = 0.05f; //weight of using barometer height
+	pos_a[2] = 0.1f; //weight of using rangefinder distance
+	//pos_a[2] = 0.05f; //weight of using barometer height
 
 	/* velocity fusion weights */
 	vel_a[0] = 0.2f; //weight of using gps raw x velocity
 	vel_a[1] = 0.2f; //weight of using gps raw y velocity
-	vel_a[2] = 0.05f; //weight of using barometer height velocity
+	vel_a[2] = 0.15; //weight of using rangefinder velocity
+	//vel_a[2] = 0.05f; //weight of using barometer velocity
 }
 
 /* estimate position and velocity using complementary filter */
@@ -132,8 +136,8 @@ void ins_comp_filter_barometer_correct(float pz_correct, float vz_correct,
 	vel_last[2] = vel_enu_out[2];
 }
 
-void ins_comp_filter_rangefinder_correct(float rangefinder_dist, float rangefinder_vel,
-                float *pos_enu_out, float *vel_enu_out)
+void rangefinder_direct_compensate(float rangefinder_dist, float rangefinder_vel,
+                                   float *true_pz, float *true_vz)
 {
 	float w[3];
 	get_gyro_lpf(w);
@@ -142,18 +146,23 @@ void ins_comp_filter_rangefinder_correct(float rangefinder_dist, float rangefind
 	get_attitude_quaternion(q);
 
 	float cos_theta = (q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3]);
-	float sin_theta = (-q[1] + q[0] + q[3] - q[2]) * w[0] +
-	                  (-q[2] - q[3] + q[0] + q[1]) * w[1] +
-	                  (-q[3] + q[2] - q[1] + q[0]) * w[2];
+	float sin_theta = sqrt(1 - cos_theta * cos_theta);
 
-	/* rangefinder coordinate transform */
-	float height, height_rate;
-	height = rangefinder_dist * cos_theta;
-	height_rate = rangefinder_vel * cos_theta + rangefinder_dist * sin_theta;
+	/* rangefinder rotation compensation */
+	*true_pz = rangefinder_dist * cos_theta;
+	*true_vz = rangefinder_vel * cos_theta + rangefinder_dist * sin_theta;
+}
+
+void ins_comp_filter_rangefinder_correct(float rangefinder_dist, float rangefinder_vel,
+                float *pos_enu_out, float *vel_enu_out)
+{
+	float rangefinder_pz, rangefinder_vz;
+	rangefinder_direct_compensate(rangefinder_dist, rangefinder_vel,
+	                              &rangefinder_pz, &rangefinder_vz);
 
 	/* fusion */
-	pos_enu_out[2] = (pos_a[2] * height) + ((1.0f - pos_a[2]) * pos_last[2]);
-	vel_enu_out[2] = (vel_a[2] * height_rate) + ((1.0f - vel_a[2]) * vel_last[2]);
+	pos_enu_out[2] = (pos_a[2] * rangefinder_pz) + ((1.0f - pos_a[2]) * pos_last[2]);
+	vel_enu_out[2] = (vel_a[2] * rangefinder_vz) + ((1.0f - vel_a[2]) * vel_last[2]);
 
 	/* save fused result for next iteration */
 	pos_last[2] = pos_enu_out[2];
@@ -174,25 +183,35 @@ void ins_complementary_filter_estimate(float *pos_enu_raw, float *vel_enu_raw,
 	/* check sensor status */
 	bool gps_ready = is_gps_available();
 	bool compass_ready = is_compass_available();
-	bool barometer_ready = is_barometer_available();
+#if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
+	bool height_sensor_ready = is_barometer_available();
+#elif (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_RANGEFINDER)
+	bool height_sensor_ready = rangefinder_available();
+#endif
 
-	bool sensor_all_ready = gps_ready && compass_ready && barometer_ready;
+	bool sensor_all_ready = gps_ready && compass_ready && height_sensor_ready;
 
 	/* change led state to indicate the sensor status */
 	set_rgb_led_service_navigation_on_flag(sensor_all_ready);
 
 	float longitude, latitude, gps_msl_height;
 	float gps_ned_vx, gps_ned_vy, gps_ned_vz;
-	float barometer_height, barometer_height_rate;
 
-	bool recvd_barometer = ins_barometer_sync_buffer_available();
+#if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
+	bool recvd_height = ins_barometer_sync_buffer_available();
+#elif (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_RANGEFINDER)
+	bool recvd_height = ins_rangefinder_sync_buffer_available();
+#endif
 	bool recvd_gps = ins_gps_sync_buffer_available();
 
 	/* predict position and velocity with kinematics equations (400Hz) */
 	ins_comp_filter_predict(pos_enu_fused, vel_enu_fused,
-	                        gps_ready, barometer_ready);
+	                        gps_ready, height_sensor_ready);
 
-	if(recvd_barometer == true) {
+	if(recvd_height == true) {
+#if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
+		float barometer_height, barometer_height_rate;
+
 		/* get barometer data from sync buffer */
 		ins_barometer_sync_buffer_pop(&barometer_height,
 		                              &barometer_height_rate);
@@ -203,6 +222,20 @@ void ins_complementary_filter_estimate(float *pos_enu_raw, float *vel_enu_raw,
 		ins_comp_filter_barometer_correct(
 		        barometer_height, barometer_height_rate,
 		        pos_enu_fused, vel_enu_fused);
+#elif (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_RANGEFINDER)
+		float rangefinder_dist, rangefinder_vel;
+
+		/* get rangefinder data from sync buffer */
+		ins_rangefinder_sync_buffer_pop(&rangefinder_dist,
+		                                &rangefinder_vel);
+
+		//TODO: update raw data
+
+		//run rangefinder correction (~50Hz)
+		ins_comp_filter_rangefinder_correct(
+		        rangefinder_dist, rangefinder_vel,
+		        pos_enu_fused, vel_enu_fused);
+#endif
 
 		if(recvd_gps == true) {
 			/* get gps data from sync buffer */
@@ -218,7 +251,7 @@ void ins_complementary_filter_estimate(float *pos_enu_raw, float *vel_enu_raw,
 
 			if(gps_home_is_set() == false) {
 				set_home_longitude_latitude(
-				        longitude, latitude, barometer_height);
+				        longitude, latitude, 0/*barometer_height*/); //XXX
 			}
 
 			/* convert gps velocity from ned frame to enu frame */
