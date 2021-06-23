@@ -5,10 +5,10 @@
 #include "task.h"
 #include "semphr.h"
 
-#define INS_SYNC_BAROMETER_BUF_SIZE 5
-#define INS_SYNC_GPS_BUF_SIZE 3
-#define INS_SYNC_COMPASS_BUF_SIZE 5
-#define INS_SYNC_RANGEFINDER_BUF_SIZE 5
+#define INS_SYNC_BAROMETER_BUF_SIZE   100
+#define INS_SYNC_GPS_BUF_SIZE          20
+#define INS_SYNC_COMPASS_BUF_SIZE     100
+#define INS_SYNC_RANGEFINDER_BUF_SIZE 100
 
 QueueHandle_t ins_sync_barometer_queue;
 QueueHandle_t ins_sync_gps_queue;
@@ -46,8 +46,10 @@ bool ins_sync_buffer_is_ready(void)
 
 bool ins_barometer_sync_buffer_available(void)
 {
-	if(uxQueueSpacesAvailable(ins_sync_barometer_queue) !=
-	    INS_SYNC_BAROMETER_BUF_SIZE) {
+	UBaseType_t free_size = uxQueueSpacesAvailable(ins_sync_barometer_queue);
+	UBaseType_t available_size = INS_SYNC_BAROMETER_BUF_SIZE - free_size;
+
+	if(available_size > 0) {
 		return true;
 	} else {
 		return false;
@@ -95,8 +97,10 @@ bool ins_barometer_sync_buffer_pop(float *height, float *height_rate)
 
 bool ins_gps_sync_buffer_available(void)
 {
-	if(uxQueueSpacesAvailable(ins_sync_gps_queue) !=
-	    INS_SYNC_GPS_BUF_SIZE) {
+	UBaseType_t free_size = uxQueueSpacesAvailable(ins_sync_gps_queue);
+	UBaseType_t available_size = INS_SYNC_GPS_BUF_SIZE - free_size;
+
+	if(available_size > 0) {
 		return true;
 	} else {
 		return false;
@@ -159,8 +163,10 @@ bool ins_gps_sync_buffer_pop(float *longitude, float *latitude, float *height_ms
 
 bool ins_compass_sync_buffer_available(void)
 {
-	if(uxQueueSpacesAvailable(ins_sync_compass_queue) !=
-	    INS_SYNC_COMPASS_BUF_SIZE) {
+	UBaseType_t free_size = uxQueueSpacesAvailable(ins_sync_compass_queue);
+	UBaseType_t available_size = INS_SYNC_COMPASS_BUF_SIZE - free_size;
+
+	if(available_size > 0) {
 		return true;
 	} else {
 		return false;
@@ -210,8 +216,10 @@ bool ins_compass_sync_buffer_pop(float *mag)
 
 bool ins_rangefinder_sync_buffer_available(void)
 {
-	if(uxQueueSpacesAvailable(ins_sync_rangefinder_queue) !=
-	    INS_SYNC_RANGEFINDER_BUF_SIZE) {
+	UBaseType_t free_size = uxQueueSpacesAvailable(ins_sync_rangefinder_queue);
+	UBaseType_t available_size = INS_SYNC_RANGEFINDER_BUF_SIZE - free_size;
+
+	if(available_size > 0) {
 		return true;
 	} else {
 		return false;
