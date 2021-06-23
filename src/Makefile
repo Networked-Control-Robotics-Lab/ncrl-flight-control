@@ -146,7 +146,8 @@ SRC+=./drivers/periph/uart.c \
 	./drivers/interface/imu.c \
 	./drivers/interface/barometer.c \
 	./drivers/interface/compass.c \
-	./drivers/interface/gps.c
+	./drivers/interface/gps.c \
+	./drivers/interface/rangefinder.c
 
 CFLAGS+=-I./
 CFLAGS+=-I./platform

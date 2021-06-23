@@ -8,6 +8,7 @@
 #include "autopilot.h"
 #include "ist8310.h"
 #include "barometer.h"
+#include "rangefinder.h"
 
 sensor_manager_t sensor_manager = {
 	.heading_src = SELECT_HEADING_SENSOR,
@@ -52,6 +53,8 @@ bool is_height_available(void)
 		return is_barometer_available();
 	case HEIGHT_FUSION_USE_VINS_MONO:
 		return vins_mono_available();
+	case HEIGHT_FUSION_USE_RANGEFINDER:
+		return rangefinder_available();
 	default:
 		return false;
 	}
@@ -110,6 +113,9 @@ void get_enu_position(float *pos)
 	case HEIGHT_FUSION_USE_BAROMETER:
 		pos[2] = ins_get_fused_position_z();
 		break;
+	case HEIGHT_FUSION_USE_RANGEFINDER:
+		pos[2] = ins_get_fused_position_z();
+		break;
 	default:
 		pos[2] = 0.0f;
 		break;
@@ -153,6 +159,8 @@ float get_enu_position_z(void)
 		return vins_mono_read_pos_z();
 	case HEIGHT_FUSION_USE_BAROMETER:
 		return ins_get_fused_position_z();
+	case HEIGHT_FUSION_USE_RANGEFINDER:
+		return ins_get_fused_position_z();
 	default:
 		return 0.0f;
 	}
@@ -189,6 +197,9 @@ void get_enu_velocity(float *vel)
 		vel[2] = vins_mono_read_vel_z();
 		break;
 	case HEIGHT_FUSION_USE_BAROMETER:
+		vel[2] = ins_get_fused_velocity_z();
+		break;
+	case HEIGHT_FUSION_USE_RANGEFINDER:
 		vel[2] = ins_get_fused_velocity_z();
 		break;
 	default:
@@ -233,6 +244,8 @@ float get_enu_velocity_z(void)
 	case HEIGHT_FUSION_USE_VINS_MONO:
 		return vins_mono_read_vel_z();
 	case HEIGHT_FUSION_USE_BAROMETER:
+		return ins_get_fused_velocity_z();
+	case HEIGHT_FUSION_USE_RANGEFINDER:
 		return ins_get_fused_velocity_z();
 	default:
 		return 0.0f;
@@ -288,6 +301,9 @@ void change_height_sensor_src(int new_src)
 		break;
 	case HEIGHT_FUSION_USE_VINS_MONO:
 		sensor_available = vins_mono_available();
+		break;
+	case HEIGHT_FUSION_USE_RANGEFINDER:
+		sensor_available = rangefinder_available();
 		break;
 	default:
 		sensor_available = false;

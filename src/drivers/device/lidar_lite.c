@@ -19,6 +19,11 @@ bool lidar_lite_available(void)
 	return true;
 }
 
+float lidar_lite_get_update_freq(void)
+{
+	return lidar_lite.update_freq;
+}
+
 void lidar_blocked_read_byte(uint8_t addr, uint8_t *data)
 {
 	sw_i2c_blocked_start();

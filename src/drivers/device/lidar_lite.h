@@ -33,6 +33,7 @@ void lidar_lite_init(void);
 void lidar_lite_task_handler(void);
 
 bool lidar_lite_available();
+float lidar_lite_get_update_freq(void);
 
 float lidar_lite_get_distance(void);
 float lidar_lite_get_velocity(void);
