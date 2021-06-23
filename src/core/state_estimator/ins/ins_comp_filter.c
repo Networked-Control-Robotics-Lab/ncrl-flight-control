@@ -42,7 +42,7 @@ void ins_comp_filter_init(float _dt)
 	/* velocity fusion weights */
 	vel_a[0] = 0.2f; //weight of using gps raw x velocity
 	vel_a[1] = 0.2f; //weight of using gps raw y velocity
-	vel_a[2] = 0.15; //weight of using rangefinder velocity
+	vel_a[2] = 0.05; //weight of using rangefinder velocity
 	//vel_a[2] = 0.05f; //weight of using barometer velocity
 }
 
