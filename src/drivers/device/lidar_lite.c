@@ -6,6 +6,7 @@
 #include "debug_link.h"
 #include "sys_time.h"
 #include "ins_sensor_sync.h"
+#include "system_state.h"
 
 lidar_lite_t lidar_lite;
 
@@ -131,7 +132,7 @@ void lidar_write_byte(uint8_t addr, uint8_t data)
 void lidar_lite_init(void)
 {
 	/* numerical differentiation parameter initialization */
-	lidar_lite.prescaler = 1;
+	lidar_lite.prescaler = 4;
 	lidar_lite.dt = 0.025;
 	lidar_lite.dt *= lidar_lite.prescaler;
 
@@ -169,13 +170,17 @@ void lidar_lite_task_handler(void)
 	if(lidar_dist_buf == 0) {
 		return;
 	} else {
-		lidar_lite.dist_raw = (float)lidar_dist_buf * 1e-2;
+		/* calculate hegiht from lidar lite distance */
+		float q[4];
+		get_attitude_quaternion(q);
+		float cos_theta = (q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3]);
+		lidar_lite.height_raw = (float)lidar_dist_buf * cos_theta * 1e-2;
 	}
 
 	if(lidar_lite.prescaler_cnt == lidar_lite.prescaler) {
 		/* numerical differention */
-		lidar_lite.vel_raw = (lidar_lite.dist_raw - lidar_lite.dist_last) / lidar_lite.dt;
-		lidar_lite.dist_last = lidar_lite.dist_raw;
+		lidar_lite.vel_raw = (lidar_lite.height_raw - lidar_lite.height_last) / lidar_lite.dt;
+		lidar_lite.height_last = lidar_lite.height_raw;
 		lidar_lite.prescaler_cnt = 0;
 	}
 	lidar_lite.prescaler_cnt++;
@@ -186,12 +191,12 @@ void lidar_lite_task_handler(void)
 	lidar_lite.last_read_time = curr_time;
 
 	/* push data to the ins synchorization buffer */
-	ins_rangefinder_sync_buffer_push(lidar_lite.dist_raw, lidar_lite.vel_raw);
+	ins_rangefinder_sync_buffer_push(lidar_lite.height_raw, lidar_lite.vel_raw);
 }
 
 float lidar_lite_get_distance(void)
 {
-	return lidar_lite.dist_raw; //[m]
+	return lidar_lite.height_raw; //[m]
 }
 
 float lidar_lite_get_velocity(void)
@@ -202,7 +207,7 @@ float lidar_lite_get_velocity(void)
 void send_rangefinder_debug_message(debug_msg_t *payload)
 {
 	pack_debug_debug_message_header(payload, MESSAGE_ID_RANGEFINDER);
-	pack_debug_debug_message_float(&lidar_lite.dist_raw, payload);
+	pack_debug_debug_message_float(&lidar_lite.height_raw, payload);
 	pack_debug_debug_message_float(&lidar_lite.vel_raw, payload);
 	pack_debug_debug_message_float(&lidar_lite.update_freq, payload);
 }

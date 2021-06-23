@@ -16,9 +16,9 @@
 #define LIDAR_DISTANCE_REG       0x8f
 
 typedef struct {
-	float dist_raw; //[m]
+	float height_raw; //[m]
 
-	float dist_last;
+	float height_last;
 	float vel_raw;  //[m/s]
 	int prescaler_cnt;
 	float prescaler;

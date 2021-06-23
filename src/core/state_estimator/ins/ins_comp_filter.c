@@ -136,23 +136,6 @@ void ins_comp_filter_height_correct(float pz_correct, float vz_correct,
 	vel_last[2] = vel_enu_out[2];
 }
 
-void rangefinder_direct_compensate(float rangefinder_dist, float rangefinder_vel,
-                                   float *true_pz, float *true_vz)
-{
-	float w[3];
-	get_gyro_lpf(w);
-
-	float q[4];
-	get_attitude_quaternion(q);
-
-	float cos_theta = (q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3]);
-	float sin_theta = sqrt(1 - cos_theta * cos_theta);
-
-	/* rangefinder rotation compensation */
-	*true_pz = rangefinder_dist * cos_theta;
-	*true_vz = rangefinder_vel * cos_theta + rangefinder_dist * sin_theta;
-}
-
 void ins_complementary_filter_estimate(float *pos_enu_raw, float *vel_enu_raw,
                                        float *pos_enu_fused, float *vel_enu_fused)
 {
@@ -208,16 +191,11 @@ void ins_complementary_filter_estimate(float *pos_enu_raw, float *vel_enu_raw,
 	/* height correction (rangefinder) */
 	bool recvd_rangefinder = ins_rangefinder_sync_buffer_available();
 	if(recvd_rangefinder == true) {
-		float rangefinder_dist, rangefinder_vel;           //body-fixed frame distance
 		float rangefinder_height, rangefinder_height_rate; //inertial frame height
 
 		/* get rangefinder data from sync buffer */
-		ins_rangefinder_sync_buffer_pop(&rangefinder_dist,
-		                                &rangefinder_vel);
-
-		/* rangefinder rotation compensation (coordinate transform) */
-		rangefinder_direct_compensate(rangefinder_dist, rangefinder_vel,
-		                              &rangefinder_height, &rangefinder_height_rate);
+		ins_rangefinder_sync_buffer_pop(&rangefinder_height,
+		                                &rangefinder_height_rate);
 
 		pos_enu_raw[2] = rangefinder_height;
 		vel_enu_raw[2] = rangefinder_height_rate;

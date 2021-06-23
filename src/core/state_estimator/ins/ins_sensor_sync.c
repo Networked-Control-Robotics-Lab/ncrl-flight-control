@@ -218,35 +218,35 @@ bool ins_rangefinder_sync_buffer_available(void)
 	}
 }
 
-void ins_rangefinder_sync_buffer_push(float distance, float velocity)
+void ins_rangefinder_sync_buffer_push(float height, float height_rate)
 {
 	ins_sync_rangefinder_item_t rangefinder_item = {
 		.timestamp_s = get_sys_time_s(),
-		.distance = distance,
-		.velocity = velocity
+		.height = height,
+		.height_rate = height_rate
 	};
 
 	xQueueSendToBack(ins_sync_rangefinder_queue, &rangefinder_item, 0);
 }
 
-void ins_rangefinder_sync_buffer_push_from_isr(float distance, float velocity,
+void ins_rangefinder_sync_buffer_push_from_isr(float height, float height_rate,
                 BaseType_t *higher_priority_task_woken)
 {
 	ins_sync_rangefinder_item_t rangefinder_item = {
 		.timestamp_s = get_sys_time_s(),
-		.distance = distance,
-		.velocity = velocity
+		.height = height,
+		.height_rate = height_rate
 	};
 
 	xQueueSendToBackFromISR(ins_sync_rangefinder_queue, &rangefinder_item, higher_priority_task_woken);
 }
 
-bool ins_rangefinder_sync_buffer_pop(float *distance, float *velocity)
+bool ins_rangefinder_sync_buffer_pop(float *height, float *height_rate)
 {
 	ins_sync_rangefinder_item_t recvd_rangefinder_item;
 	if(xQueueReceive(ins_sync_rangefinder_queue, &recvd_rangefinder_item, 0) == pdTRUE) {
-		*distance = recvd_rangefinder_item.distance;
-		*velocity = recvd_rangefinder_item.velocity;
+		*height = recvd_rangefinder_item.height;
+		*height_rate = recvd_rangefinder_item.height_rate;
 		return true;
 	} else {
 		return false;

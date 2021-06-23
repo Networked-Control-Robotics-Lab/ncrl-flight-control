@@ -34,8 +34,8 @@ bool ins_sync_buffer_is_ready(void);
 
 typedef struct {
 	float timestamp_s;
-	float distance;
-	float velocity;
+	float height;
+	float height_rate;
 } ins_sync_rangefinder_item_t;
 
 bool ins_barometer_sync_buffer_available(void);
@@ -59,9 +59,9 @@ void ins_compass_sync_buffer_push_from_isr(float *mag, BaseType_t *higher_priori
 bool ins_compass_sync_buffer_pop(float *mag);
 
 bool ins_rangefinder_sync_buffer_available(void);
-void ins_rangefinder_sync_buffer_push(float distance, float velocity);
-void ins_rangefinder_sync_buffer_push_from_isr(float distance, float velocity,
+void ins_rangefinder_sync_buffer_push(float height, float height_rate);
+void ins_rangefinder_sync_buffer_push_from_isr(float height, float height_rate,
                                                BaseType_t *higher_priority_task_woken);
-bool ins_rangefinder_sync_buffer_pop(float *distance, float *velocity);
+bool ins_rangefinder_sync_buffer_pop(float *height, float *height_rate);
 
 #endif
