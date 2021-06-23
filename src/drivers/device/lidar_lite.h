@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include "debug_link.h"
 
+#define LIDAR_FILTER_SIZE 10
+
 #define LIDAR_DEV_ADDRESS 0x62
 
 #define LIDAR_ACQ_COMMAND_REG    0x00
@@ -26,11 +28,15 @@ typedef struct {
 
 	float last_read_time;
 	float update_freq;
+
+	float median_filter_buff[LIDAR_FILTER_SIZE];
+	float sliding_window[LIDAR_FILTER_SIZE];
+	int median_filter_cnt;
 } lidar_lite_t;
 
 void lidar_lite_init(void);
 
-void lidar_lite_task_handler(void);
+void lidar_lite_read_sensor(void);
 
 bool lidar_lite_available();
 float lidar_lite_get_update_freq(void);

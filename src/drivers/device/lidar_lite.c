@@ -7,6 +7,7 @@
 #include "sys_time.h"
 #include "ins_sensor_sync.h"
 #include "system_state.h"
+#include "median_filter.h"
 
 lidar_lite_t lidar_lite;
 
@@ -157,7 +158,7 @@ void lidar_lite_init(void)
 	freertos_task_delay(10);
 }
 
-void lidar_lite_task_handler(void)
+void lidar_lite_read_sensor(void)
 {
 	uint16_t lidar_dist_buf = 0;
 	//int8_t lidar_vel_buf = 0;
@@ -169,16 +170,45 @@ void lidar_lite_task_handler(void)
 	/* handle communication failure of the i2c */
 	if(lidar_dist_buf == 0) {
 		return;
-	} else {
-		/* calculate hegiht from lidar lite distance */
-		float q[4];
-		get_attitude_quaternion(q);
-		float cos_theta = (q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3]);
-		lidar_lite.height_raw = (float)lidar_dist_buf * cos_theta * 1e-2;
 	}
 
+	/* calculate hegiht from lidar lite distance */
+	float q[4];
+	get_attitude_quaternion(q);
+	float cos_theta = (q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3]);
+	lidar_lite.height_raw = (float)lidar_dist_buf * cos_theta * 1e-2;
+
+	/* median filter */
+	/* filter is ready */
+	if(lidar_lite.median_filter_cnt == LIDAR_FILTER_SIZE) {
+		/* update the sliding window */
+		int i;
+		for(i = 0; i < (LIDAR_FILTER_SIZE - 1); i++) {
+			lidar_lite.sliding_window[i + 1] = lidar_lite.sliding_window[i];
+			lidar_lite.median_filter_buff[i + 1] = lidar_lite.sliding_window[i + 1];
+		}
+		lidar_lite.sliding_window[0] = lidar_lite.height_raw;
+		lidar_lite.median_filter_buff[0] = lidar_lite.height_raw;
+
+		/* execute the median filter */
+		lidar_lite.height_raw = median_filter(lidar_lite.median_filter_buff, LIDAR_FILTER_SIZE);
+
+		/* filter is not ready */
+	} else {
+		/* update the sliding window */
+		int i;
+		for(i = 0; i < LIDAR_FILTER_SIZE; i++) {
+			lidar_lite.sliding_window[i] = lidar_lite.height_raw;
+			lidar_lite.median_filter_buff[i] = lidar_lite.height_raw;
+		}
+
+		/* filter is not ready */
+		lidar_lite.median_filter_cnt++;
+		return;
+	}
+
+	/* numerical differention */
 	if(lidar_lite.prescaler_cnt == lidar_lite.prescaler) {
-		/* numerical differention */
 		lidar_lite.vel_raw = (lidar_lite.height_raw - lidar_lite.height_last) / lidar_lite.dt;
 		lidar_lite.height_last = lidar_lite.height_raw;
 		lidar_lite.prescaler_cnt = 0;

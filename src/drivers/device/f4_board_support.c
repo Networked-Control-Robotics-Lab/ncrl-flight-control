@@ -53,7 +53,7 @@ void f4_sw_i2c_driver_task(void *param)
 			/* is8310 takes ~6ms to read the data */
 			ist8310_read_sensor();
 		} else if(curr_i2c_dev > 0) {
-			lidar_lite_task_handler();
+			lidar_lite_read_sensor();
 		}
 
 		curr_i2c_dev++;
@@ -67,7 +67,7 @@ void f4_sw_i2c_driver_task(void *param)
 #elif (ENABLE_MAGNETOMETER == 1)
 		ist8310_read_sensor();
 #elif (ENABLE_RANGEFINDER == 1)
-		lidar_lite_task_handler();
+		lidar_lite_read_sensor();
 #endif
 	}
 }
