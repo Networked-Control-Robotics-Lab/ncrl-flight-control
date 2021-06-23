@@ -124,8 +124,8 @@ void ins_comp_filter_gps_correct(float px_correct, float py_correct,
 	vel_last[1] = vel_enu_out[1];
 }
 
-void ins_comp_filter_barometer_correct(float pz_correct, float vz_correct,
-                                       float *pos_enu_out, float *vel_enu_out)
+void ins_comp_filter_height_correct(float pz_correct, float vz_correct,
+                                    float *pos_enu_out, float *vel_enu_out)
 {
 	/* fusion */
 	pos_enu_out[2] = (pos_a[2] * pz_correct) + ((1.0f - pos_a[2]) * pos_last[2]);
@@ -153,22 +153,6 @@ void rangefinder_direct_compensate(float rangefinder_dist, float rangefinder_vel
 	*true_vz = rangefinder_vel * cos_theta + rangefinder_dist * sin_theta;
 }
 
-void ins_comp_filter_rangefinder_correct(float rangefinder_dist, float rangefinder_vel,
-                float *pos_enu_out, float *vel_enu_out)
-{
-	float rangefinder_pz, rangefinder_vz;
-	rangefinder_direct_compensate(rangefinder_dist, rangefinder_vel,
-	                              &rangefinder_pz, &rangefinder_vz);
-
-	/* fusion */
-	pos_enu_out[2] = (pos_a[2] * rangefinder_pz) + ((1.0f - pos_a[2]) * pos_last[2]);
-	vel_enu_out[2] = (vel_a[2] * rangefinder_vz) + ((1.0f - vel_a[2]) * vel_last[2]);
-
-	/* save fused result for next iteration */
-	pos_last[2] = pos_enu_out[2];
-	vel_last[2] = vel_enu_out[2];
-}
-
 void ins_complementary_filter_estimate(float *pos_enu_raw, float *vel_enu_raw,
                                        float *pos_enu_fused, float *vel_enu_fused)
 {
@@ -187,6 +171,9 @@ void ins_complementary_filter_estimate(float *pos_enu_raw, float *vel_enu_raw,
 	bool height_sensor_ready = is_barometer_available();
 #elif (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_RANGEFINDER)
 	bool height_sensor_ready = rangefinder_available();
+#else
+	bool height_sensor_ready = false;
+	(void)height_sensor_ready; //suppress warning
 #endif
 
 	bool sensor_all_ready = gps_ready && compass_ready && height_sensor_ready;
@@ -197,19 +184,14 @@ void ins_complementary_filter_estimate(float *pos_enu_raw, float *vel_enu_raw,
 	float longitude, latitude, gps_msl_height;
 	float gps_ned_vx, gps_ned_vy, gps_ned_vz;
 
-#if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
-	bool recvd_height = ins_barometer_sync_buffer_available();
-#elif (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_RANGEFINDER)
-	bool recvd_height = ins_rangefinder_sync_buffer_available();
-#endif
-	bool recvd_gps = ins_gps_sync_buffer_available();
-
 	/* predict position and velocity with kinematics equations (400Hz) */
 	ins_comp_filter_predict(pos_enu_fused, vel_enu_fused,
 	                        gps_ready, height_sensor_ready);
 
-	if(recvd_height == true) {
 #if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
+	/* height correction (barometer) */
+	bool recvd_barometer = ins_barometer_sync_buffer_available();
+	if(recvd_barometer == true) {
 		float barometer_height, barometer_height_rate;
 
 		/* get barometer data from sync buffer */
@@ -219,55 +201,59 @@ void ins_complementary_filter_estimate(float *pos_enu_raw, float *vel_enu_raw,
 		vel_enu_raw[2] = barometer_height_rate;
 
 		//run barometer correction (~50Hz)
-		ins_comp_filter_barometer_correct(
-		        barometer_height, barometer_height_rate,
-		        pos_enu_fused, vel_enu_fused);
+		ins_comp_filter_height_correct(barometer_height, barometer_height_rate,
+		                               pos_enu_fused, vel_enu_fused);
+	}
 #elif (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_RANGEFINDER)
-		float rangefinder_dist, rangefinder_vel;
+	/* height correction (rangefinder) */
+	bool recvd_rangefinder = ins_rangefinder_sync_buffer_available();
+	if(recvd_rangefinder == true) {
+		float rangefinder_dist, rangefinder_vel;           //body-fixed frame distance
+		float rangefinder_height, rangefinder_height_rate; //inertial frame height
 
 		/* get rangefinder data from sync buffer */
 		ins_rangefinder_sync_buffer_pop(&rangefinder_dist,
 		                                &rangefinder_vel);
 
-		//TODO: update raw data
+		/* rangefinder rotation compensation (coordinate transform) */
+		rangefinder_direct_compensate(rangefinder_dist, rangefinder_vel,
+		                              &rangefinder_height, &rangefinder_height_rate);
+
+		pos_enu_raw[2] = rangefinder_height;
+		vel_enu_raw[2] = rangefinder_height_rate;
 
 		//run rangefinder correction (~50Hz)
-		ins_comp_filter_rangefinder_correct(
-		        rangefinder_dist, rangefinder_vel,
-		        pos_enu_fused, vel_enu_fused);
+		ins_comp_filter_height_correct(rangefinder_height, rangefinder_height_rate,
+		                               pos_enu_fused, vel_enu_fused);
+	}
 #endif
 
-		if(recvd_gps == true) {
-			/* get gps data from sync buffer */
-			ins_gps_sync_buffer_pop(&longitude, &latitude, &gps_msl_height,
-			                        &gps_ned_vx, &gps_ned_vy, &gps_ned_vz);
+	/* position correction (gps module) */
+	bool recvd_gps = ins_gps_sync_buffer_available();
+	if(recvd_gps == true) {
+		/* get gps data from sync buffer */
+		ins_gps_sync_buffer_pop(&longitude, &latitude, &gps_msl_height,
+		                        &gps_ned_vx, &gps_ned_vy, &gps_ned_vz);
 
-			/* convert gps data from geographic coordinate system to
-			 * enu frame */
-			float dummy_z;
-			longitude_latitude_to_enu(
-			        longitude, latitude, 0,
-			        &pos_enu_raw[0], &pos_enu_raw[1], &dummy_z);
+		/* convert gps data from geographic coordinate system to
+		 * enu frame */
+		float dummy_z;
+		longitude_latitude_to_enu(
+		        longitude, latitude, 0,
+		        &pos_enu_raw[0], &pos_enu_raw[1], &dummy_z);
 
-			if(gps_home_is_set() == false) {
-				set_home_longitude_latitude(
-				        longitude, latitude, 0/*barometer_height*/); //XXX
-			}
-
-			/* convert gps velocity from ned frame to enu frame */
-			vel_enu_raw[0] = gps_ned_vy; //x_enu = y_ned
-			vel_enu_raw[1] = gps_ned_vx; //y_enu = x_ned
-
-			/* gps low pass filtering */
-			//lpf_first_order(pos_enu_raw[0], &gps_px_lpf, gps_px_lpf_gain);
-			//lpf_first_order(pos_enu_raw[1], &gps_py_lpf, gps_py_lpf_gain);
-			//lpf_first_order(vel_enu_raw[0], &gps_vx_lpf, gps_vx_lpf_gain);
-			//lpf_first_order(vel_enu_raw[1], &gps_vy_lpf, gps_vy_lpf_gain);
-
-			//run gps correction (~5Hz)
-			ins_comp_filter_gps_correct(pos_enu_raw[0], pos_enu_raw[1],
-			                            vel_enu_raw[0], vel_enu_raw[1],
-			                            pos_enu_fused, vel_enu_fused);
+		if(gps_home_is_set() == false) {
+			set_home_longitude_latitude(
+			        longitude, latitude, 0/*barometer_height*/); //XXX
 		}
+
+		/* convert gps velocity from ned frame to enu frame */
+		vel_enu_raw[0] = gps_ned_vy; //x_enu = y_ned
+		vel_enu_raw[1] = gps_ned_vx; //y_enu = x_ned
+
+		//run gps correction (~5Hz)
+		ins_comp_filter_gps_correct(pos_enu_raw[0], pos_enu_raw[1],
+		                            vel_enu_raw[0], vel_enu_raw[1],
+		                            pos_enu_fused, vel_enu_fused);
 	}
 }
