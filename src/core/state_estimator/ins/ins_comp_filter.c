@@ -132,6 +132,34 @@ void ins_comp_filter_barometer_correct(float pz_correct, float vz_correct,
 	vel_last[2] = vel_enu_out[2];
 }
 
+void ins_comp_filter_rangefinder_correct(float rangefinder_dist, float rangefinder_vel,
+                float *pos_enu_out, float *vel_enu_out)
+{
+	float w[3];
+	get_gyro_lpf(w);
+
+	float q[4];
+	get_attitude_quaternion(q);
+
+	float cos_theta = (q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3]);
+	float sin_theta = (-q[1] + q[0] + q[3] - q[2]) * w[0] +
+	                  (-q[2] - q[3] + q[0] + q[1]) * w[1] +
+	                  (-q[3] + q[2] - q[1] + q[0]) * w[2];
+
+	/* rangefinder coordinate transform */
+	float height, height_rate;
+	height = rangefinder_dist * cos_theta;
+	height_rate = rangefinder_vel * cos_theta + rangefinder_dist * sin_theta;
+
+	/* fusion */
+	pos_enu_out[2] = (pos_a[2] * height) + ((1.0f - pos_a[2]) * pos_last[2]);
+	vel_enu_out[2] = (vel_a[2] * height_rate) + ((1.0f - vel_a[2]) * vel_last[2]);
+
+	/* save fused result for next iteration */
+	pos_last[2] = pos_enu_out[2];
+	vel_last[2] = vel_enu_out[2];
+}
+
 void ins_complementary_filter_estimate(float *pos_enu_raw, float *vel_enu_raw,
                                        float *pos_enu_fused, float *vel_enu_fused)
 {
