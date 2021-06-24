@@ -16,6 +16,7 @@
 #include "barometer.h"
 #include "system_state.h"
 #include "vins_mono.h"
+#include "rangefinder.h"
 
 #define ESKF_RESCALE(number) (number * 1e7) //to improve the numerical stability
 
@@ -192,8 +193,8 @@ void eskf_ins_init(float _dt)
 
 	/* initialize V_rangefinder matrix */
 	matrix_reset(mat_data(_V_rangefinder), 2, 2);
-	V_rangefinder(0, 0) = ESKF_RESCALE(1e-1); //Var(pz)
-	V_rangefinder(1, 1) = ESKF_RESCALE(1e-1); //Var(vz)
+	V_rangefinder(0, 0) = ESKF_RESCALE(2.5e-2); //Var(pz)
+	V_rangefinder(1, 1) = ESKF_RESCALE(2.5e-2); //Var(vz)
 
 	matrix_reset(mat_data(_PHt_accel), 9, 3);
 	matrix_reset(mat_data(_PHt_mag), 9, 3);
@@ -1485,9 +1486,15 @@ bool ins_eskf_estimate(attitude_t *attitude,
 	/* check sensor status */
 	bool gps_ready = is_gps_available();
 	bool compass_ready = is_compass_available();
-	bool barometer_ready = is_barometer_available();
+#if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
+	bool height_ready = is_barometer_available();
+#elif (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_RANGEFINDER)
+	bool height_ready = rangefinder_available();
+#else
+	bool height_ready = false;
+#endif
 
-	bool sensor_all_ready = gps_ready && compass_ready && barometer_ready;
+	bool sensor_all_ready = gps_ready && compass_ready && height_ready;
 
 	if(sensor_all_ready == false) {
 		return false;
@@ -1496,18 +1503,9 @@ bool ins_eskf_estimate(attitude_t *attitude,
 	/* change led state to indicate the sensor status */
 	set_rgb_led_service_navigation_on_flag(sensor_all_ready);
 
-	/* variables of sensor readings */
+	/* prepare imu data */
 	float accel[3];
 	float gyro[3], gyro_rad[3];
-	float mag[3];
-	float longitude, latitude, gps_msl_height;
-	float gps_ned_vx, gps_ned_vy, gps_ned_vz;
-	float barometer_height, barometer_height_rate;
-
-	bool recvd_compass = ins_compass_sync_buffer_available();
-	bool recvd_barometer = ins_barometer_sync_buffer_available();
-	bool recvd_gps = ins_gps_sync_buffer_available();
-
 	get_accel_lpf(accel);
 	get_gyro_lpf(gyro);
 	gyro_rad[0] = deg_to_rad(gyro[0]);
@@ -1522,7 +1520,10 @@ bool ins_eskf_estimate(attitude_t *attitude,
 
 	/* compass correction (50Hz)*/
 	static bool compass_init = false;
+	bool recvd_compass = ins_compass_sync_buffer_available();
 	if(recvd_compass == true) {
+		/* get megnetometer data from sync buffer */
+		float mag[3];
 		ins_compass_sync_buffer_pop(mag);
 
 		if(compass_init == false) {
@@ -1534,9 +1535,12 @@ bool ins_eskf_estimate(attitude_t *attitude,
 		}
 	}
 
+#if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
 	/* barometer correction (50Hz) */
+	bool recvd_barometer = ins_barometer_sync_buffer_available();
 	if(recvd_barometer == true) {
 		/* get barometer data from sync buffer */
+		float barometer_height, barometer_height_rate;
 		ins_barometer_sync_buffer_pop(&barometer_height,
 		                              &barometer_height_rate);
 		pos_enu_raw[2] = barometer_height;
@@ -1544,10 +1548,27 @@ bool ins_eskf_estimate(attitude_t *attitude,
 
 		eskf_ins_barometer_correct(pos_enu_raw[2], vel_enu_raw[2]);
 	}
+#elif (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_RANGEFINDER)
+	/* rangefinder correction (50Hz) */
+	bool recvd_rangefinder = ins_rangefinder_sync_buffer_available();
+	if(recvd_rangefinder == true) {
+		/* get barometer data from sync buffer */
+		float rangefinder_height, rangefinder_height_rate;
+		ins_rangefinder_sync_buffer_pop(&rangefinder_height,
+		                                &rangefinder_height_rate);
+		pos_enu_raw[2] = rangefinder_height;
+		vel_enu_raw[2] = rangefinder_height_rate;
+
+		eskf_ins_rangefinder_correct(pos_enu_raw[2], vel_enu_raw[2]);
+	}
+#endif
 
 	/* gps correction (5Hz) */
+	bool recvd_gps = ins_gps_sync_buffer_available();
 	if(recvd_gps == true) {
 		/* get gps data from sync buffer */
+		float longitude, latitude, gps_msl_height;
+		float gps_ned_vx, gps_ned_vy, gps_ned_vz;
 		ins_gps_sync_buffer_pop(&longitude, &latitude, &gps_msl_height,
 		                        &gps_ned_vx, &gps_ned_vy, &gps_ned_vz);
 
@@ -1560,7 +1581,7 @@ bool ins_eskf_estimate(attitude_t *attitude,
 
 		if(gps_home_is_set() == false) {
 			set_home_longitude_latitude(
-			        longitude, latitude, barometer_height);
+			        longitude, latitude, 0/*barometer_height*/); //XXX
 		}
 
 		/* convert gps velocity from ned frame to enu frame */
