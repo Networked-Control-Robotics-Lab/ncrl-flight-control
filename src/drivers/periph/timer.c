@@ -114,7 +114,7 @@ void TIM3_IRQHandler(void)
 
 		/* disable the sensors in proj_config.h and uncomment the following
 		 * line */
-		dummy_sensors_update_isr_handler(&higher_priority_task_woken);
+		//dummy_sensors_update_isr_handler(&higher_priority_task_woken);
 
 		TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
 		portEND_SWITCHING_ISR(higher_priority_task_woken);
