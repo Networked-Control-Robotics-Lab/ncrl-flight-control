@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include "debug_link.h"
 
-#define LIDAR_FILTER_SIZE 10
+#define LIDAR_FILTER_SIZE 5
 
 #define LIDAR_DEV_ADDRESS 0x62
 
@@ -18,7 +18,8 @@
 #define LIDAR_DISTANCE_REG       0x8f
 
 typedef struct {
-	float height_raw; //[m]
+	float height_raw;      //[m]
+	float height_filtered; //[m]
 
 	float height_last;
 	float vel_raw;  //[m/s]
