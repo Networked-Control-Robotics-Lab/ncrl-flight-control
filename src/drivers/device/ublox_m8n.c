@@ -11,6 +11,8 @@
 #include "ncrl_mavlink.h"
 #include "ins_sensor_sync.h"
 
+#define GPS_ACC_TOLERANT 1.5 //[m]
+
 #define UBX_SYNC_C1 0xb5
 #define UBX_SYNC_C2 0x62
 
@@ -62,12 +64,22 @@ ublox_t ublox;
 
 bool ublox_available(void)
 {
-	//timeout if no gps data available more than 1000ms
+	/* timeout if no gps data available more than 1000ms */
 	float current_time = get_sys_time_s();
 	if((current_time - ublox.last_read_time) > 1.0) {
 		return false;
 	}
-	return true;
+
+	/* check gps uncertainty */
+	float h_acc = ublox.h_acc * 1e-3;
+	float v_acc = ublox.v_acc * 1e-3;
+
+	float _3d_acc = h_acc*h_acc + v_acc*v_acc;
+	if((_3d_acc > 0.0f) && (_3d_acc < (GPS_ACC_TOLERANT * GPS_ACC_TOLERANT))) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 void ublox_command_send(uint8_t *cmd, int size)
@@ -243,23 +255,19 @@ void ublox_decode_nav_pvt_msg(void)
 	memcpy(&ublox.num_sv, (ublox_payload_addr + 23), sizeof(uint8_t));
 	memcpy(&ublox.pdop, (ublox_payload_addr + 76), sizeof(uint16_t));
 
-	/* push gps data to ins sync buffer if satellite number >= 6 and
-	 * fix mode = 3D fix mode */
-	if((ublox.num_sv >= 6) && (ublox.fix_type == 3)) {
-		/* set ublox state to be available */
-		float curr_time = get_sys_time_s();
-		ublox.update_freq = 1.0f / (curr_time - ublox.last_read_time);
-		ublox.last_read_time = curr_time;
+	float curr_time = get_sys_time_s();
+	ublox.update_freq = 1.0f / (curr_time - ublox.last_read_time);
+	ublox.last_read_time = curr_time;
 
-		float longitude = ublox.longitude * 1e-7;
-		float latitude = ublox.latitude * 1e-7;
-		float height_msl = ublox.height_msl * 1e2;
-		float vel_n = ublox.vel_n * 1e-3;
-		float vel_e = ublox.vel_e * 1e-3;
-		float vel_d = ublox.vel_d * 1e-3;
-		ins_gps_sync_buffer_push(longitude, latitude, height_msl,
-		                         vel_n, vel_e, vel_d);
-	}
+	/* push gps data into the ins sync buffer */
+	float longitude = ublox.longitude * 1e-7;
+	float latitude = ublox.latitude * 1e-7;
+	float height_msl = ublox.height_msl * 1e2;
+	float vel_n = ublox.vel_n * 1e-3;
+	float vel_e = ublox.vel_e * 1e-3;
+	float vel_d = ublox.vel_d * 1e-3;
+	ins_gps_sync_buffer_push(longitude, latitude, height_msl,
+	                         vel_n, vel_e, vel_d);
 }
 
 void ublox_decode_nav_sat_msg(void)
