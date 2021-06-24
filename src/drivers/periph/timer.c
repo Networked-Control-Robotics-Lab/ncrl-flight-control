@@ -48,7 +48,7 @@ void timer3_init(void)
 {
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
 
-	/* 90MHz / (225000 * 10) = 400Hz */
+	/* 90MHz / (22500 * 10) = 400Hz */
 	TIM_TimeBaseInitTypeDef TimeBaseInitStruct = {
 		.TIM_Period = 22500 - 1,
 		.TIM_Prescaler = 10 - 1,
@@ -128,7 +128,7 @@ void TIM3_IRQHandler(void)
 
 		/* disable the sensors in proj_config.h and uncomment the following
 		 * line */
-		//dummy_sensors_update_isr_handler(&higher_priority_task_woken);
+		dummy_sensors_update_isr_handler(&higher_priority_task_woken);
 
 		TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
 		portEND_SWITCHING_ISR(higher_priority_task_woken);

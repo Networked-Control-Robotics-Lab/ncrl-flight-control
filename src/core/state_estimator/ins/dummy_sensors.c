@@ -5,7 +5,7 @@
 
 #define DUMMY_COMPASS_PRESCALER_RELOAD    8   //50Hz
 #define DUMMY_BAROMETER_PRESCALER_RELOAD  8   //50Hz
-#define DUMMY_GPS_PRESCALER_RELOAD        80  //5Hz
+#define DUMMY_GPS_PRESCALER_RELOAD        40  //10Hz
 
 void dummy_compass_handler(BaseType_t *higher_priority_task_woken)
 {
