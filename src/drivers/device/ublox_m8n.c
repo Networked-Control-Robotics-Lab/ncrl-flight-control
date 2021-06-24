@@ -44,9 +44,6 @@ uint8_t ubx_2g_mode_set[] = {0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x0
                              0x01, 0x00, 0x3C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x85, 0x2A
                             };
-uint8_t ubx_utc_time_set[] = {0xB5, 0x62, 0x06, 0x08, 0x06, 0x00, 0xC8, 0x00, 0x01,
-                              0x00, 0x00, 0x00, 0xDD, 0x68
-                             };
 uint8_t ubx_cfg_rate_set[] = {0xB5, 0x62, 0x06, 0x08, 0x06, 0x00, 0x64, 0x00, 0x01,
                               0x00, 0x01, 0x00, 0x7A, 0x12
                              };
@@ -99,11 +96,9 @@ void ublox_m8n_init(void)
 	ublox_command_send(ubx_nmea_gxrmc_set, UBX_NMEA_GXRMC_SET_LEN);
 	ublox_command_send(ubx_nmea_gxvtg_set, UBX_NMEA_GXVTG_SET_LEN);
 	ublox_command_send(ubx_cfg_rate_set, UBX_CFG_RATE_SET_LEN);
+
 	/* set dynamic range to 2g  */
 	ublox_command_send(ubx_2g_mode_set, UBX_2G_MODE_SET_LEN);
-
-	/* use UTC time */
-	ublox_command_send(ubx_utc_time_set, UBX_UTC_TIME_SET_LEN);
 
 	/* save configurations to rom */
 	//ublox_command_send(ubx_save_rom_cmd, UBX_SAVE_ROM_CMD_LEN);
