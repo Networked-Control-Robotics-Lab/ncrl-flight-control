@@ -16,7 +16,6 @@
 
 #define FLIGHT_CTL_PRESCALER_RELOAD      1000  //400Hz
 #define LED_CTRL_PRESCALER_RELOAD        16000 //25Hz
-#define I2C_DRIVER_PRESCALER_RELOAD      2     //200Hz
 #define BAROMETER_PRESCALER_RELOAD       4     //100Hz
 
 extern SemaphoreHandle_t flight_ctl_semphr;
@@ -100,10 +99,6 @@ void TIM3_IRQHandler(void)
 	static int barometer_cnt = BAROMETER_PRESCALER_RELOAD;
 #endif
 
-#if ((ENABLE_MAGNETOMETER == 1) || (ENABLE_RANGEFINDER == 1))
-	static int sw_i2c_cnt = I2C_DRIVER_PRESCALER_RELOAD;
-#endif
-
 	/* trigger ms5611 driver task (400Hz) */
 	if(TIM_GetITStatus(TIM3, TIM_IT_Update) == SET) {
 		BaseType_t higher_priority_task_woken = pdFALSE;
@@ -114,15 +109,6 @@ void TIM3_IRQHandler(void)
 		if(barometer_cnt == 0) {
 			barometer_cnt = BAROMETER_PRESCALER_RELOAD;
 			ms5611_driver_handler(&higher_priority_task_woken);
-		}
-#endif
-
-#if ((ENABLE_MAGNETOMETER == 1) || (ENABLE_RANGEFINDER == 1))
-		/* i2c driver (magnetometer & rangefinder) */
-		sw_i2c_cnt--;
-		if(sw_i2c_cnt == 0) {
-			sw_i2c_cnt = I2C_DRIVER_PRESCALER_RELOAD;
-			f4_sw_i2c_driver_semaphore_handler(&higher_priority_task_woken);
 		}
 #endif
 
