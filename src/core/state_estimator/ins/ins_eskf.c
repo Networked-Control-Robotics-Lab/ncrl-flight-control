@@ -19,29 +19,33 @@
 
 #define ESKF_RESCALE(number) (number * 1e7) //to improve the numerical stability
 
-#define R(r, c)             _R.pData[(r * 3) + c]
-#define Rt(r, c)            _Rt.pData[(r * 3) + c]
-#define P_prior(r, c)       _P_prior.pData[(r * 9) + c]
-#define P_post(r, c)        _P_post.pData[(r * 9) + c]
-#define R_am_ab_dt(r, c)    _R_am_ab_dt.pData[(r * 3) + c]
-#define Rt_wm_wb_dt(r, c)   _Rt_wm_wb_dt.pData[(r * 3) + c]
-#define Q_i(r, c)           _Q_i.pData[(r * 6) + c]
-#define K_accel(r, c)       _K_accel.pData[(r * 3) + c]
-#define K_mag(r, c)         _K_mag.pData[(r * 3) + c]
-#define K_gps(r, c)         _K_gps.pData[(r * 4) + c]
-#define K_baro(r, c)        _K_baro.pData[(r * 2) + c]
-#define V_accel(r, c)       _V_accel.pData[(r * 3) + c]
-#define V_mag(r, c)         _V_mag.pData[(r * 3) + c]
-#define V_gps(r, c)         _V_gps.pData[(r * 4) + c]
-#define V_baro(r, c)        _V_baro.pData[(r * 2) + c]
-#define PHt_accel(r, c)     _PHt_accel.pData[(r * 3) + c]
-#define PHt_mag(r, c)       _PHt_mag.pData[(r * 3) + c]
-#define PHt_gps(r, c)       _PHt_gps.pData[(r * 4) + c]
-#define PHt_baro(r, c)      _PHt_baro.pData[(r * 2) + c]
-#define HPHt_V_accel(r, c)  _HPHt_V_accel.pData[(r * 3) + c]
-#define HPHt_V_mag(r, c)    _HPHt_V_mag.pData[(r * 3) + c]
-#define HPHt_V_gps(r, c)    _HPHt_V_gps.pData[(r * 4) + c]
-#define HPHt_V_baro(r, c)   _HPHt_V_baro.pData[(r * 2) + c]
+#define R(r, c)                  _R.pData[(r * 3) + c]
+#define Rt(r, c)                 _Rt.pData[(r * 3) + c]
+#define P_prior(r, c)            _P_prior.pData[(r * 9) + c]
+#define P_post(r, c)             _P_post.pData[(r * 9) + c]
+#define R_am_ab_dt(r, c)         _R_am_ab_dt.pData[(r * 3) + c]
+#define Rt_wm_wb_dt(r, c)        _Rt_wm_wb_dt.pData[(r * 3) + c]
+#define Q_i(r, c)                _Q_i.pData[(r * 6) + c]
+#define K_accel(r, c)            _K_accel.pData[(r * 3) + c]
+#define K_mag(r, c)              _K_mag.pData[(r * 3) + c]
+#define K_gps(r, c)              _K_gps.pData[(r * 4) + c]
+#define K_baro(r, c)             _K_baro.pData[(r * 2) + c]
+#define K_rangefinder(r, c)      _K_rangefinder.pData[(r * 2) + c]
+#define V_accel(r, c)            _V_accel.pData[(r * 3) + c]
+#define V_mag(r, c)              _V_mag.pData[(r * 3) + c]
+#define V_gps(r, c)              _V_gps.pData[(r * 4) + c]
+#define V_baro(r, c)             _V_baro.pData[(r * 2) + c]
+#define V_rangefinder(r, c)      _V_rangefinder.pData[(r * 2) + c]
+#define PHt_accel(r, c)          _PHt_accel.pData[(r * 3) + c]
+#define PHt_mag(r, c)            _PHt_mag.pData[(r * 3) + c]
+#define PHt_gps(r, c)            _PHt_gps.pData[(r * 4) + c]
+#define PHt_baro(r, c)           _PHt_baro.pData[(r * 2) + c]
+#define PHt_rangefinder(r, c)    _PHt_rangefinder.pData[(r * 2) + c]
+#define HPHt_V_accel(r, c)       _HPHt_V_accel.pData[(r * 3) + c]
+#define HPHt_V_mag(r, c)         _HPHt_V_mag.pData[(r * 3) + c]
+#define HPHt_V_gps(r, c)         _HPHt_V_gps.pData[(r * 4) + c]
+#define HPHt_V_baro(r, c)        _HPHt_V_baro.pData[(r * 2) + c]
+#define HPHt_V_rangefinder(r, c) _HPHt_V_rangefinder.pData[(r * 2) + c]
 
 MAT_ALLOC(nominal_state, 10, 1);
 MAT_ALLOC(error_state, 9, 1);
@@ -50,6 +54,7 @@ MAT_ALLOC(_V_accel, 3, 3);
 MAT_ALLOC(_V_mag, 3, 3);
 MAT_ALLOC(_V_gps, 4, 4);
 MAT_ALLOC(_V_baro, 2, 2);
+MAT_ALLOC(_V_rangefinder, 2, 2);
 MAT_ALLOC(_P_prior, 9, 9);
 MAT_ALLOC(_P_post, 9, 9);
 MAT_ALLOC(_R, 3, 3);
@@ -60,18 +65,22 @@ MAT_ALLOC(_PHt_accel, 9, 3);
 MAT_ALLOC(_PHt_mag, 9, 3);
 MAT_ALLOC(_PHt_gps, 9, 4);
 MAT_ALLOC(_PHt_baro, 9, 2);
+MAT_ALLOC(_PHt_rangefinder, 9, 2);
 MAT_ALLOC(_HPHt_V_accel, 3, 3);
 MAT_ALLOC(_HPHt_V_mag, 3, 3);
 MAT_ALLOC(_HPHt_V_gps, 4, 4);
 MAT_ALLOC(_HPHt_V_baro, 2, 2);
+MAT_ALLOC(_HPHt_V_rangefinder, 2, 2);
 MAT_ALLOC(_HPHt_V_accel_inv, 3, 3);
 MAT_ALLOC(_HPHt_V_mag_inv, 3, 3);
 MAT_ALLOC(_HPHt_V_gps_inv, 4, 4);
 MAT_ALLOC(_HPHt_V_baro_inv, 2, 2);
+MAT_ALLOC(_HPHt_V_rangefinder_inv, 2, 2);
 MAT_ALLOC(_K_accel, 9, 3);
 MAT_ALLOC(_K_mag, 9, 3);
 MAT_ALLOC(_K_gps, 9, 4);
 MAT_ALLOC(_K_baro, 9, 2);
+MAT_ALLOC(_K_rangefinder, 9, 2);
 
 float dt;
 float half_dt;
@@ -90,6 +99,7 @@ void eskf_ins_init(float _dt)
 	MAT_INIT(_V_mag, 3, 3);
 	MAT_INIT(_V_gps, 4, 4);
 	MAT_INIT(_V_baro, 2, 2);
+	MAT_INIT(_V_rangefinder, 2, 2);
 	MAT_INIT(_P_prior, 9, 9);
 	MAT_INIT(_P_post, 9, 9);
 	MAT_INIT(_R, 3, 3);
@@ -100,18 +110,22 @@ void eskf_ins_init(float _dt)
 	MAT_INIT(_PHt_mag, 9, 3);
 	MAT_INIT(_PHt_gps, 9, 4);
 	MAT_INIT(_PHt_baro, 9, 2);
+	MAT_INIT(_PHt_rangefinder, 9, 2);
 	MAT_INIT(_HPHt_V_accel, 3, 3);
 	MAT_INIT(_HPHt_V_mag, 3, 3);
 	MAT_INIT(_HPHt_V_gps, 4, 4);
 	MAT_INIT(_HPHt_V_baro, 2, 2);
+	MAT_INIT(_HPHt_V_rangefinder, 2, 2);
 	MAT_INIT(_HPHt_V_accel_inv, 3, 3);
 	MAT_INIT(_HPHt_V_mag_inv, 3, 3);
 	MAT_INIT(_HPHt_V_gps_inv, 4, 4);
 	MAT_INIT(_HPHt_V_baro_inv, 2, 2);
+	MAT_INIT(_HPHt_V_rangefinder_inv, 2, 2);
 	MAT_INIT(_K_accel, 9, 3);
 	MAT_INIT(_K_mag, 9, 3);
 	MAT_INIT(_K_gps, 9, 4);
 	MAT_INIT(_K_baro, 9, 2);
+	MAT_INIT(_K_rangefinder, 9, 2);
 
 	/* initialize the nominal state */
 	mat_data(nominal_state)[0] = 0.0f; //px
@@ -176,15 +190,22 @@ void eskf_ins_init(float _dt)
 	V_baro(0, 0) = ESKF_RESCALE(1e-1); //Var(pz)
 	V_baro(1, 1) = ESKF_RESCALE(1e-1); //Var(vz)
 
+	/* initialize V_rangefinder matrix */
+	matrix_reset(mat_data(_V_rangefinder), 2, 2);
+	V_rangefinder(0, 0) = ESKF_RESCALE(1e-1); //Var(pz)
+	V_rangefinder(1, 1) = ESKF_RESCALE(1e-1); //Var(vz)
+
 	matrix_reset(mat_data(_PHt_accel), 9, 3);
 	matrix_reset(mat_data(_PHt_mag), 9, 3);
 	matrix_reset(mat_data(_PHt_gps), 9, 4);
 	matrix_reset(mat_data(_PHt_baro), 9, 2);
+	matrix_reset(mat_data(_PHt_rangefinder), 9, 2);
 
 	matrix_reset(mat_data(_HPHt_V_accel), 3, 3);
 	matrix_reset(mat_data(_HPHt_V_mag), 3, 3);
 	matrix_reset(mat_data(_HPHt_V_gps), 4, 4);
 	matrix_reset(mat_data(_HPHt_V_baro), 2, 2);
+	matrix_reset(mat_data(_HPHt_V_rangefinder), 2, 2);
 }
 
 void eskf_ins_predict(float *accel, float *gyro)
@@ -1272,6 +1293,156 @@ void eskf_ins_barometer_correct(float barometer_z, float barometer_vz)
 		P_post(7, 6) = P_post(6, 7);
 		P_post(7, 7) = P_prior(7,7)-K_baro(7,0)*P_prior(2,7)-K_baro(7,1)*P_prior(5,7);
 		P_post(7, 8) = P_prior(7,8)-K_baro(7,0)*P_prior(2,8)-K_baro(7,1)*P_prior(5,8);
+		P_post(8, 0) = P_post(0, 8);
+		P_post(8, 1) = P_post(1, 8);
+		P_post(8, 2) = P_post(2, 8);
+		P_post(8, 3) = P_post(3, 8);
+		P_post(8, 4) = P_post(4, 8);
+		P_post(8, 5) = P_post(5, 8);
+		P_post(8, 6) = P_post(6, 8);
+		P_post(8, 7) = P_post(7, 8);
+		P_post(8, 8) = P_prior(8,8)-K_rangefinder(8,0)*P_prior(2,8)-K_rangefinder(8,1)*P_prior(5,8);
+	}
+
+	/* P_post becoms the P_prior of other measurement's correction */
+	memcpy(mat_data(_P_prior), mat_data(_P_post), sizeof(float) * 9 * 9);
+
+	/* error state injection */
+	mat_data(nominal_state)[2] += mat_data(error_state)[2];
+	mat_data(nominal_state)[5] += mat_data(error_state)[5];
+}
+
+
+void eskf_ins_rangefinder_correct(float pz_rangefinder, float vz_rangefinder)
+{
+	float pz = mat_data(nominal_state)[2];
+	float vz = mat_data(nominal_state)[5];
+
+	/* codeblock for preventing nameing conflict */
+	{
+		/* calculate P * Ht */
+		PHt_rangefinder(0, 0) = P_prior(0,2);
+		PHt_rangefinder(0, 1) = P_prior(0,5);
+		PHt_rangefinder(1, 0) = P_prior(1,2);
+		PHt_rangefinder(1, 1) = P_prior(1,5);
+		PHt_rangefinder(2, 0) = P_prior(2,2);
+		PHt_rangefinder(2, 1) = P_prior(2,5);
+		PHt_rangefinder(3, 0) = P_prior(3,2);
+		PHt_rangefinder(3, 1) = P_prior(3,5);
+		PHt_rangefinder(4, 0) = P_prior(4,2);
+		PHt_rangefinder(4, 1) = P_prior(4,5);
+		PHt_rangefinder(5, 0) = P_prior(5,2);
+		PHt_rangefinder(5, 1) = P_prior(5,5);
+		PHt_rangefinder(6, 0) = P_prior(6,2);
+		PHt_rangefinder(6, 1) = P_prior(6,5);
+		PHt_rangefinder(7, 0) = P_prior(7,2);
+		PHt_rangefinder(7, 1) = P_prior(7,5);
+		PHt_rangefinder(8, 0) = P_prior(8,2);
+		PHt_rangefinder(8, 1) = P_prior(8,5);
+	}
+
+	/* codeblock for preventing nameing conflict */
+	{
+		/* calculate (H * P * Ht) + V */
+		HPHt_V_rangefinder(0, 0) = PHt_rangefinder(2,0)+V_rangefinder(0,0);
+		HPHt_V_rangefinder(0, 1) = PHt_rangefinder(2,1);
+		HPHt_V_rangefinder(1, 0) = PHt_rangefinder(5,0);
+		HPHt_V_rangefinder(1, 1) = PHt_rangefinder(5,1)+V_rangefinder(1,1);
+	}
+
+	/* calculate kalman gain */
+	//K = P * Ht * inv(H*P*Ht + V)
+	MAT_INV(&_HPHt_V_rangefinder, &_HPHt_V_rangefinder_inv);
+	MAT_MULT(&_PHt_rangefinder, &_HPHt_V_rangefinder_inv, &_K_rangefinder);
+
+	/* codeblock for preventing nameing conflict */
+	{
+		/* calculate error state residual */
+		float c0 = vz-vz_rangefinder;
+		float c1 = pz-pz_rangefinder;
+
+		mat_data(error_state)[2] = -K_rangefinder(2,0)*c1-K_rangefinder(2,1)*c0;
+		mat_data(error_state)[5] = -K_rangefinder(5,0)*c1-K_rangefinder(5,1)*c0;
+	}
+
+	/* codeblock for preventing nameing conflict */
+	{
+		/* calculate a posteriori process covariance matrix */
+		float c0 = K_rangefinder(5,1)-1.0;
+		float c1 = K_rangefinder(2,0)-1.0;
+
+		P_post(0, 0) = P_prior(0,0)-K_rangefinder(0,0)*P_prior(2,0)-K_rangefinder(0,1)*P_prior(5,0);
+		P_post(0, 1) = P_prior(0,1)-K_rangefinder(0,0)*P_prior(2,1)-K_rangefinder(0,1)*P_prior(5,1);
+		P_post(0, 2) = P_prior(0,2)-K_rangefinder(0,0)*P_prior(2,2)-K_rangefinder(0,1)*P_prior(5,2);
+		P_post(0, 3) = P_prior(0,3)-K_rangefinder(0,0)*P_prior(2,3)-K_rangefinder(0,1)*P_prior(5,3);
+		P_post(0, 4) = P_prior(0,4)-K_rangefinder(0,0)*P_prior(2,4)-K_rangefinder(0,1)*P_prior(5,4);
+		P_post(0, 5) = P_prior(0,5)-K_rangefinder(0,0)*P_prior(2,5)-K_rangefinder(0,1)*P_prior(5,5);
+		P_post(0, 6) = P_prior(0,6)-K_rangefinder(0,0)*P_prior(2,6)-K_rangefinder(0,1)*P_prior(5,6);
+		P_post(0, 7) = P_prior(0,7)-K_rangefinder(0,0)*P_prior(2,7)-K_rangefinder(0,1)*P_prior(5,7);
+		P_post(0, 8) = P_prior(0,8)-K_rangefinder(0,0)*P_prior(2,8)-K_rangefinder(0,1)*P_prior(5,8);
+		P_post(1, 0) = P_post(0, 1);
+		P_post(1, 1) = P_prior(1,1)-K_rangefinder(1,0)*P_prior(2,1)-K_rangefinder(1,1)*P_prior(5,1);
+		P_post(1, 2) = P_prior(1,2)-K_rangefinder(1,0)*P_prior(2,2)-K_rangefinder(1,1)*P_prior(5,2);
+		P_post(1, 3) = P_prior(1,3)-K_rangefinder(1,0)*P_prior(2,3)-K_rangefinder(1,1)*P_prior(5,3);
+		P_post(1, 4) = P_prior(1,4)-K_rangefinder(1,0)*P_prior(2,4)-K_rangefinder(1,1)*P_prior(5,4);
+		P_post(1, 5) = P_prior(1,5)-K_rangefinder(1,0)*P_prior(2,5)-K_rangefinder(1,1)*P_prior(5,5);
+		P_post(1, 6) = P_prior(1,6)-K_rangefinder(1,0)*P_prior(2,6)-K_rangefinder(1,1)*P_prior(5,6);
+		P_post(1, 7) = P_prior(1,7)-K_rangefinder(1,0)*P_prior(2,7)-K_rangefinder(1,1)*P_prior(5,7);
+		P_post(1, 8) = P_prior(1,8)-K_rangefinder(1,0)*P_prior(2,8)-K_rangefinder(1,1)*P_prior(5,8);
+		P_post(2, 0) = P_post(0, 2);
+		P_post(2, 1) = P_post(1, 2);
+		P_post(2, 2) = -P_prior(2,2)*c1-K_rangefinder(2,1)*P_prior(5,2);
+		P_post(2, 3) = -P_prior(2,3)*c1-K_rangefinder(2,1)*P_prior(5,3);
+		P_post(2, 4) = -P_prior(2,4)*c1-K_rangefinder(2,1)*P_prior(5,4);
+		P_post(2, 5) = -P_prior(2,5)*c1-K_rangefinder(2,1)*P_prior(5,5);
+		P_post(2, 6) = -P_prior(2,6)*c1-K_rangefinder(2,1)*P_prior(5,6);
+		P_post(2, 7) = -P_prior(2,7)*c1-K_rangefinder(2,1)*P_prior(5,7);
+		P_post(2, 8) = -P_prior(2,8)*c1-K_rangefinder(2,1)*P_prior(5,8);
+		P_post(3, 0) = P_post(0, 3);
+		P_post(3, 1) = P_post(1, 3);
+		P_post(3, 2) = P_post(2, 3);
+		P_post(3, 3) = P_prior(3,3)-K_rangefinder(3,0)*P_prior(2,3)-K_rangefinder(3,1)*P_prior(5,3);
+		P_post(3, 4) = P_prior(3,4)-K_rangefinder(3,0)*P_prior(2,4)-K_rangefinder(3,1)*P_prior(5,4);
+		P_post(3, 5) = P_prior(3,5)-K_rangefinder(3,0)*P_prior(2,5)-K_rangefinder(3,1)*P_prior(5,5);
+		P_post(3, 6) = P_prior(3,6)-K_rangefinder(3,0)*P_prior(2,6)-K_rangefinder(3,1)*P_prior(5,6);
+		P_post(3, 7) = P_prior(3,7)-K_rangefinder(3,0)*P_prior(2,7)-K_rangefinder(3,1)*P_prior(5,7);
+		P_post(3, 8) = P_prior(3,8)-K_rangefinder(3,0)*P_prior(2,8)-K_rangefinder(3,1)*P_prior(5,8);
+		P_post(4, 0) = P_post(0, 4);
+		P_post(4, 1) = P_post(1, 4);
+		P_post(4, 2) = P_post(2, 4);
+		P_post(4, 3) = P_post(3, 4);
+		P_post(4, 4) = P_prior(4,4)-K_rangefinder(4,0)*P_prior(2,4)-K_rangefinder(4,1)*P_prior(5,4);
+		P_post(4, 5) = P_prior(4,5)-K_rangefinder(4,0)*P_prior(2,5)-K_rangefinder(4,1)*P_prior(5,5);
+		P_post(4, 6) = P_prior(4,6)-K_rangefinder(4,0)*P_prior(2,6)-K_rangefinder(4,1)*P_prior(5,6);
+		P_post(4, 7) = P_prior(4,7)-K_rangefinder(4,0)*P_prior(2,7)-K_rangefinder(4,1)*P_prior(5,7);
+		P_post(4, 8) = P_prior(4,8)-K_rangefinder(4,0)*P_prior(2,8)-K_rangefinder(4,1)*P_prior(5,8);
+		P_post(5, 0) = P_post(0, 5);
+		P_post(5, 1) = P_post(1, 5);
+		P_post(5, 2) = P_post(2, 5);
+		P_post(5, 3) = P_post(3, 5);
+		P_post(5, 4) = P_post(4, 5);
+		P_post(5, 5) = -P_prior(5,5)*c0-K_rangefinder(5,0)*P_prior(2,5);
+		P_post(5, 6) = -P_prior(5,6)*c0-K_rangefinder(5,0)*P_prior(2,6);
+		P_post(5, 7) = -P_prior(5,7)*c0-K_rangefinder(5,0)*P_prior(2,7);
+		P_post(5, 8) = -P_prior(5,8)*c0-K_rangefinder(5,0)*P_prior(2,8);
+		P_post(6, 0) = P_post(0, 6);
+		P_post(6, 1) = P_post(1, 6);
+		P_post(6, 2) = P_post(2, 6);
+		P_post(6, 3) = P_post(3, 6);
+		P_post(6, 4) = P_post(4, 6);
+		P_post(6, 5) = P_post(5, 6);
+		P_post(6, 6) = P_prior(6,6)-K_rangefinder(6,0)*P_prior(2,6)-K_rangefinder(6,1)*P_prior(5,6);
+		P_post(6, 7) = P_prior(6,7)-K_rangefinder(6,0)*P_prior(2,7)-K_rangefinder(6,1)*P_prior(5,7);
+		P_post(6, 8) = P_prior(6,8)-K_rangefinder(6,0)*P_prior(2,8)-K_rangefinder(6,1)*P_prior(5,8);
+		P_post(7, 0) = P_post(0, 7);
+		P_post(7, 1) = P_post(1, 7);
+		P_post(7, 2) = P_post(2, 7);
+		P_post(7, 3) = P_post(3, 7);
+		P_post(7, 4) = P_post(4, 7);
+		P_post(7, 5) = P_post(5, 7);
+		P_post(7, 6) = P_post(6, 7);
+		P_post(7, 7) = P_prior(7,7)-K_rangefinder(7,0)*P_prior(2,7)-K_rangefinder(7,1)*P_prior(5,7);
+		P_post(7, 8) = P_prior(7,8)-K_rangefinder(7,0)*P_prior(2,8)-K_rangefinder(7,1)*P_prior(5,8);
 		P_post(8, 0) = P_post(0, 8);
 		P_post(8, 1) = P_post(1, 8);
 		P_post(8, 2) = P_post(2, 8);
