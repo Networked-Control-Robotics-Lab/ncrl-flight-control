@@ -3,4 +3,6 @@
 
 void f4_board_init(void);
 
+void ms5611_driver_trigger_handler(void);
+
 #endif

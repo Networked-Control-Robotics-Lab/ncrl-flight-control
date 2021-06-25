@@ -19,6 +19,9 @@
 #include "crc.h"
 #include "pwm.h"
 #include "exti.h"
+#include "ms5611.h"
+
+#define BAROMETER_PRESCALER_RELOAD 4 //100Hz
 
 void f4_sw_i2c_driver_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
                                     UBaseType_t priority);
@@ -70,6 +73,9 @@ void f4_board_init(void)
 	timer3_init();
 }
 
+/*================================*
+ * ist8310 and lidar lite support *
+ *================================*/
 void f4_sw_i2c_driver_task(void *param)
 {
 #if (ENABLE_MAGNETOMETER != 0)
@@ -103,3 +109,21 @@ void f4_sw_i2c_driver_register_task(const char *task_name, configSTACK_DEPTH_TYP
 	xTaskCreate(f4_sw_i2c_driver_task, task_name, stack_size, NULL, priority, NULL);
 }
 
+/*================*
+ * ms5611 support *
+ *================*/
+void ms5611_driver_trigger_handler(void)
+{
+#if (ENABLE_BAROMETER != 0)
+	static int barometer_cnt = BAROMETER_PRESCALER_RELOAD;
+
+	BaseType_t higher_priority_task_woken = pdFALSE;
+
+	/* barometer */
+	barometer_cnt--;
+	if(barometer_cnt == 0) {
+		barometer_cnt = BAROMETER_PRESCALER_RELOAD;
+		ms5611_driver_handler(&higher_priority_task_woken);
+	}
+#endif
+}

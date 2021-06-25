@@ -16,9 +16,6 @@
 
 #define FLIGHT_CTL_PRESCALER_RELOAD      1000  //400Hz
 #define LED_CTRL_PRESCALER_RELOAD        16000 //25Hz
-#define BAROMETER_PRESCALER_RELOAD       4     //100Hz
-
-extern SemaphoreHandle_t flight_ctl_semphr;
 
 void timer12_init(void)
 {
@@ -93,25 +90,12 @@ void TIM8_BRK_TIM12_IRQHandler(void)
 
 void TIM3_IRQHandler(void)
 {
-#if (ENABLE_BAROMETER == 1)
-	static int barometer_cnt = BAROMETER_PRESCALER_RELOAD;
-#endif
-
-	/* trigger ms5611 driver task (400Hz) */
+	/* timer3 for scheduling sensor measurements */
 	if(TIM_GetITStatus(TIM3, TIM_IT_Update) == SET) {
 		BaseType_t higher_priority_task_woken = pdFALSE;
 
-#if (ENABLE_BAROMETER == 1)
-		/* barometer */
-		barometer_cnt--;
-		if(barometer_cnt == 0) {
-			barometer_cnt = BAROMETER_PRESCALER_RELOAD;
-			ms5611_driver_handler(&higher_priority_task_woken);
-		}
-#endif
+		ms5611_driver_trigger_handler();
 
-		/* disable the sensors in proj_config.h and uncomment the following
-		 * line */
 		//dummy_sensors_update_isr_handler(&higher_priority_task_woken);
 
 		TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
