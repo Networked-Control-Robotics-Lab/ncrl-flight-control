@@ -69,7 +69,7 @@
 #define ENABLE_BAROMETER       0
 
 /* rangefinder sensor option */
-#define ENABLE_RANGEFINDER     0 
+#define ENABLE_RANGEFINDER     0
 
 /*=======================================================*
  * sensor source settings for state estimation algorithm *
