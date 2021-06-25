@@ -56,6 +56,7 @@ void task_debug_link(void *param)
 		//send_vins_mono_velocity_debug_message(&payload);
 		//send_gps_accuracy_debug_message(&payload);
 		//send_rangefinder_debug_message(&payload);
+		//send_ins_eskf_correct_freq_debug_message(&payload);
 
 		send_onboard_data(payload.s, payload.len);
 		freertos_task_delay(50); //XXX: 20Hz

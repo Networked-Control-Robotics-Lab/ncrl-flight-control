@@ -573,6 +573,32 @@ class serial_plotter_class:
                 self.create_curve('frequency', 'red')
                 self.show_subplot()
 
+        elif (message_id == 35):
+                plt.subplot(411)
+                plt.ylabel('mag freq')
+                plt.ylim([-1, 100])
+                self.create_curve('mag freq', 'blue')
+                self.show_subplot()
+
+                plt.subplot(412)
+                plt.ylabel('baro freq')
+                plt.ylim([-1, 100])
+                self.create_curve('baro freq', 'red')
+                self.show_subplot()
+
+                plt.subplot(413)
+                plt.ylabel('rangefinder freq')
+                plt.ylim([-1, 100])
+                self.create_curve('rangefinder freq', 'green')
+                self.show_subplot()
+
+                plt.subplot(414)
+                plt.ylabel('gps freq')
+                plt.ylim([-1, 100])
+                self.create_curve('gps freq', 'green')
+                self.show_subplot()
+
+
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \
 		interval=0, blit=True)

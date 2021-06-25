@@ -17,6 +17,8 @@
 #include "system_state.h"
 #include "vins_mono.h"
 #include "rangefinder.h"
+#include "sys_time.h"
+#include "ins_eskf.h"
 
 #define ESKF_RESCALE(number) (number * 1e7) //to improve the numerical stability
 
@@ -47,6 +49,8 @@
 #define HPHt_V_gps(r, c)         _HPHt_V_gps.pData[(r * 4) + c]
 #define HPHt_V_baro(r, c)        _HPHt_V_baro.pData[(r * 2) + c]
 #define HPHt_V_rangefinder(r, c) _HPHt_V_rangefinder.pData[(r * 2) + c]
+
+ins_eskf_t ins_eskf;
 
 MAT_ALLOC(nominal_state, 10, 1);
 MAT_ALLOC(error_state, 9, 1);
@@ -1483,6 +1487,8 @@ bool ins_eskf_estimate(attitude_t *attitude,
 	return false;
 #endif
 
+	float curr_time, elapsed_time;
+
 	/* check sensor status */
 	bool gps_ready = is_gps_available();
 	bool compass_ready = is_compass_available();
@@ -1518,7 +1524,7 @@ bool ins_eskf_estimate(attitude_t *attitude,
 	/* accelerometer (gravity) correction for attitude states (400Hz) */
 	eskf_ins_accelerometer_correct(accel);
 
-	/* compass correction (50Hz)*/
+	/* compass correction (40Hz)*/
 	static bool compass_init = false;
 	bool recvd_compass = ins_compass_sync_buffer_available();
 	if(recvd_compass == true) {
@@ -1531,12 +1537,18 @@ bool ins_eskf_estimate(attitude_t *attitude,
 		} else {
 			if(ahrs_compass_quality_test(mag) == true) {
 				eskf_ins_magnetometer_correct(mag);
+
+				/* calculate correct frequency */
+				curr_time = get_sys_time_s();
+				elapsed_time = curr_time - ins_eskf.mag_time_last;
+				ins_eskf.mag_correct_freq = 1.0f / elapsed_time;
+				ins_eskf.mag_time_last = curr_time;
 			}
 		}
 	}
 
 #if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
-	/* barometer correction (50Hz) */
+	/* barometer correction (40Hz) */
 	bool recvd_barometer = ins_barometer_sync_buffer_available();
 	if(recvd_barometer == true) {
 		/* get barometer data from sync buffer */
@@ -1547,6 +1559,12 @@ bool ins_eskf_estimate(attitude_t *attitude,
 		vel_enu_raw[2] = barometer_height_rate;
 
 		eskf_ins_barometer_correct(pos_enu_raw[2], vel_enu_raw[2]);
+
+		/* calculate correct frequency */
+		curr_time = get_sys_time_s();
+		elapsed_time = curr_time - ins_eskf.baro_time_last;
+		ins_eskf.baro_correct_freq = 1.0f / elapsed_time;
+		ins_eskf.baro_time_last = curr_time;
 	}
 #elif (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_RANGEFINDER)
 	/* rangefinder correction (50Hz) */
@@ -1560,6 +1578,12 @@ bool ins_eskf_estimate(attitude_t *attitude,
 		vel_enu_raw[2] = rangefinder_height_rate;
 
 		eskf_ins_rangefinder_correct(pos_enu_raw[2], vel_enu_raw[2]);
+
+		/* calculate correct frequency */
+		curr_time = get_sys_time_s();
+		elapsed_time = curr_time - ins_eskf.rangefinder_time_last;
+		ins_eskf.rangefinder_correct_freq = 1.0f / elapsed_time;
+		ins_eskf.rangefinder_time_last = curr_time;
 	}
 #endif
 
@@ -1590,6 +1614,12 @@ bool ins_eskf_estimate(attitude_t *attitude,
 
 		eskf_ins_gps_correct(pos_enu_raw[0], pos_enu_raw[1],
 		                     vel_enu_raw[0], vel_enu_raw[1]);
+
+		/* calculate correct frequency */
+		curr_time = get_sys_time_s();
+		elapsed_time = curr_time - ins_eskf.gps_time_last;
+		ins_eskf.gps_correct_freq = 1.0f / elapsed_time;
+		ins_eskf.gps_time_last = curr_time;
 	}
 
 	pos_enu_fused[0] = mat_data(nominal_state)[0];  //px
@@ -1639,4 +1669,13 @@ void send_ins_eskf1_covariance_matrix_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_float(&p66, payload);
 	pack_debug_debug_message_float(&p77, payload);
 	pack_debug_debug_message_float(&p88, payload);
+}
+
+void send_ins_eskf_correct_freq_debug_message(debug_msg_t *payload)
+{
+	pack_debug_debug_message_header(payload, MESSAGE_ID_INS_ESKF_CORRECT_FREQ);
+	pack_debug_debug_message_float(&ins_eskf.mag_correct_freq, payload);
+	pack_debug_debug_message_float(&ins_eskf.baro_correct_freq, payload);
+	pack_debug_debug_message_float(&ins_eskf.rangefinder_correct_freq, payload);
+	pack_debug_debug_message_float(&ins_eskf.gps_correct_freq, payload);
 }
