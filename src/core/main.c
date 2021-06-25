@@ -83,18 +83,7 @@ int main(void)
 
 	blocked_delay_ms(50);
 
-#if ((ENABLE_MAGNETOMETER == 1) || (ENABLE_RANGEFINDER == 1))
-	sw_i2c_init();
-	f4_sw_i2c_driver_register_task("sw i2c driver", 512, tskIDLE_PRIORITY + 5);
-#endif
-
-#if (ENABLE_BAROMETER == 1)
-	/* barometer (ms5611) */
-	spi3_init();
-	ms5611_init();
-#endif
-
-	timer3_init();
+	f4_board_init();
 
 	/* flight controller task (highest priority) */
 	flight_controller_register_task("flight controller", 4096, tskIDLE_PRIORITY + 6);
