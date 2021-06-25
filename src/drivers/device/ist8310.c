@@ -186,7 +186,8 @@ void ist8310_read_sensor(void)
 	ist8310_write_byte(IST8310_REG_CTRL1, IST8310_ODR_SINGLE);
 
 	//wait 6ms for 16x average
-	freertos_task_delay(6);
+	TickType_t last_wake_time = xTaskGetTickCount();
+	vTaskDelayUntil(&last_wake_time, CONVERT_MS_TO_TICK(6));
 
 	/* read sensor datas */
 	uint8_t buf[6];
