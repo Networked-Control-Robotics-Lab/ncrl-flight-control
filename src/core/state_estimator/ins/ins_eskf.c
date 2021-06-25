@@ -1484,7 +1484,7 @@ bool ins_eskf_estimate(attitude_t *attitude,
 #endif
 
 	/* check sensor status */
-	bool gps_ready = true;//is_gps_available();
+	bool gps_ready = is_gps_available();
 	bool compass_ready = is_compass_available();
 #if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
 	bool height_ready = is_barometer_available();
