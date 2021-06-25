@@ -259,15 +259,17 @@ void ublox_decode_nav_pvt_msg(void)
 	ublox.update_freq = 1.0f / (curr_time - ublox.last_read_time);
 	ublox.last_read_time = curr_time;
 
-	/* push gps data into the ins sync buffer */
-	float longitude = ublox.longitude * 1e-7;
-	float latitude = ublox.latitude * 1e-7;
-	float height_msl = ublox.height_msl * 1e2;
-	float vel_n = ublox.vel_n * 1e-3;
-	float vel_e = ublox.vel_e * 1e-3;
-	float vel_d = ublox.vel_d * 1e-3;
-	ins_gps_sync_buffer_push(longitude, latitude, height_msl,
-	                         vel_n, vel_e, vel_d);
+	if(ublox_available() == true) {
+		/* push gps data into the ins sync buffer */
+		float longitude = ublox.longitude * 1e-7;
+		float latitude = ublox.latitude * 1e-7;
+		float height_msl = ublox.height_msl * 1e2;
+		float vel_n = ublox.vel_n * 1e-3;
+		float vel_e = ublox.vel_e * 1e-3;
+		float vel_d = ublox.vel_d * 1e-3;
+		ins_gps_sync_buffer_push(longitude, latitude, height_msl,
+		                         vel_n, vel_e, vel_d);
+	}
 }
 
 void ublox_decode_nav_sat_msg(void)
