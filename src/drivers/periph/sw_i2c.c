@@ -21,7 +21,7 @@
 #include "delay.h"
 
 #define I2C_FREQ 200000.0 //100k[Hz], XXX:change to 400k later
-#define I2C_CLOCK_PERIOD_MS ((1.0 / I2C_FREQ) * 1000.0) //[ms]
+#define I2C_CLK_DELAY_TICK 2 //delay_tick = SYS_TIM_FREQ / I2C_FREQ
 
 #define SW_I2C_SCL GPIOE, GPIO_Pin_0
 #define SW_I2C_SDA GPIOE, GPIO_Pin_1
@@ -31,8 +31,8 @@ void sw_i2c_handler(void);
 SemaphoreHandle_t sw_i2c_semphr;
 
 volatile int i2c_state = SW_I2C_DO_NOTHING;
-float coroutine_delay_start_time = 0;
-float coroutine_delay_time = 0;
+uint64_t coroutine_delay_start_tick = 0;
+uint64_t coroutine_delay_tick = 0;
 uint8_t sw_i2c_recpt_data;
 uint8_t sw_i2c_send_data;
 volatile int i2c_rw_bit_index;
@@ -148,15 +148,15 @@ uint8_t sw_i2c_sda_read(void)
 
 void sw_i2c_coroutine_delay_start(float delay_ms)
 {
-	coroutine_delay_start_time = get_sys_time_ms();
-	coroutine_delay_time = delay_ms;
+	coroutine_delay_start_tick = get_sys_time_tick();
+	coroutine_delay_tick = delay_ms;
 }
 
 bool sw_i2c_coroutine_delay_times_up(void)
 {
-	float curr_time = get_sys_time_ms();
-	float elapsed_time = curr_time - coroutine_delay_start_time;
-	if(elapsed_time >= coroutine_delay_time) {
+	uint64_t curr_time = get_sys_time_tick();
+	uint64_t elapsed_time = curr_time - coroutine_delay_start_tick;
+	if(elapsed_time >= coroutine_delay_tick) {
 		return true;
 	} else {
 		return false;
@@ -170,11 +170,11 @@ void sw_i2c_start_handler(void)
 	sw_i2c_config_sda_out();
 	sw_i2c_sda_set_high();
 	sw_i2c_scl_set_high();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 	sw_i2c_sda_set_low();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 	sw_i2c_scl_set_low();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
 	i2c_state = SW_I2C_DO_NOTHING;
 
@@ -190,13 +190,13 @@ void sw_i2c_stop_handler(void)
 
 	sw_i2c_config_sda_out();
 	sw_i2c_scl_set_low();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 	sw_i2c_sda_set_low();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 	sw_i2c_scl_set_high();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 	sw_i2c_sda_set_high();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
 	i2c_state = SW_I2C_DO_NOTHING;
 
@@ -214,13 +214,13 @@ void sw_i2c_ack_handler(void)
 
 	sw_i2c_config_sda_out();
 	sw_i2c_scl_set_low();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 	sw_i2c_sda_set_low();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 	sw_i2c_scl_set_high();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 	sw_i2c_scl_set_low();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
 	i2c_state = SW_I2C_DO_NOTHING;
 
@@ -236,13 +236,13 @@ void sw_i2c_nack_handler(void)
 
 	sw_i2c_config_sda_out();
 	sw_i2c_scl_set_low();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 	sw_i2c_sda_set_high();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 	sw_i2c_scl_set_high();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 	sw_i2c_scl_set_low();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
 	i2c_state = SW_I2C_DO_NOTHING;
 
@@ -257,7 +257,7 @@ void sw_i2c_byte_send_handler(void)
 	CR_START();
 
 	sw_i2c_scl_set_low();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
 	if(sw_i2c_send_data & 0x80) {
 		sw_i2c_sda_set_high();
@@ -265,10 +265,10 @@ void sw_i2c_byte_send_handler(void)
 		sw_i2c_sda_set_low();
 	}
 	sw_i2c_send_data <<= 1;
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
 	sw_i2c_scl_set_high();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
 	i2c_rw_bit_index++;
 	if(i2c_rw_bit_index >= 8) {
@@ -290,9 +290,9 @@ void sw_i2c_byte_receive_handler(void)
 	sw_i2c_recpt_data <<= 1;
 
 	sw_i2c_scl_set_low();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 	sw_i2c_scl_set_high();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
 	if(sw_i2c_sda_read()) {
 		sw_i2c_recpt_data |= 0x01;
@@ -318,11 +318,11 @@ void sw_i2c_wait_ack_handler(void)
 	sw_i2c_config_sda_in();
 
 	sw_i2c_scl_set_low();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 	sw_i2c_sda_set_high();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 	sw_i2c_scl_set_high();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
 	float start_time = get_sys_time_ms();
 	float curr_time;
@@ -330,14 +330,14 @@ void sw_i2c_wait_ack_handler(void)
 	while(sw_i2c_sda_read()) {
 		curr_time = get_sys_time_ms();
 		elapsed_time = curr_time - start_time;
-		if(elapsed_time >= I2C_CLOCK_PERIOD_MS) {
+		if(elapsed_time >= I2C_CLK_DELAY_TICK) {
 			/* failed */
 			break;
 		}
 	}
 
 	sw_i2c_scl_set_low();
-	SW_I2C_COROUTINE_DELAY(I2C_CLOCK_PERIOD_MS);
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
 	i2c_state = SW_I2C_DO_NOTHING;
 
@@ -378,7 +378,7 @@ void sw_i2c_handler(void)
 
 void sw_i2c_start(void)
 {
-	while(xSemaphoreTake(sw_i2c_semphr, portMAX_DELAY) != pdTRUE);
+	while(xSemaphoreTake(sw_i2c_semphr, 10) != pdTRUE);
 
 	sw_i2c_timer_enable();
 	i2c_state = SW_I2C_START;
@@ -427,7 +427,7 @@ uint8_t sw_i2c_read_byte(void)
 
 void sw_i2c_send_byte(uint8_t data)
 {
-	while(xSemaphoreTake(sw_i2c_semphr, portMAX_DELAY) != pdTRUE);
+	while(xSemaphoreTake(sw_i2c_semphr, 10) != pdTRUE);
 
 	i2c_rw_bit_index = 0;
 	sw_i2c_send_data = data;
@@ -459,11 +459,11 @@ void sw_i2c_blocked_start(void)
 
 	sw_i2c_sda_set_high();
 	sw_i2c_scl_set_high();
-	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+	sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 	sw_i2c_sda_set_low();
-	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+	sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 	sw_i2c_scl_set_low();
-	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+	sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 }
 
 void sw_i2c_blocked_stop(void)
@@ -471,13 +471,13 @@ void sw_i2c_blocked_stop(void)
 	sw_i2c_config_sda_out();
 
 	sw_i2c_scl_set_low();
-	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+	sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 	sw_i2c_sda_set_low();
-	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+	sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 	sw_i2c_scl_set_high();
-	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+	sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 	sw_i2c_sda_set_high();
-	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+	sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 }
 
 /* wait for slave device's ack
@@ -488,11 +488,11 @@ bool sw_i2c_blocked_wait_ack(void)
 	sw_i2c_config_sda_in();
 
 	sw_i2c_scl_set_low();
-	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+	sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 	sw_i2c_sda_set_high();
-	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+	sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 	sw_i2c_scl_set_high();
-	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+	sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 
 	float start_time = get_sys_time_ms();
 	float curr_time;
@@ -500,7 +500,7 @@ bool sw_i2c_blocked_wait_ack(void)
 	while(sw_i2c_sda_read()) {
 		curr_time = get_sys_time_ms();
 		elapsed_time = curr_time - start_time;
-		if(elapsed_time >= I2C_CLOCK_PERIOD_MS) {
+		if(elapsed_time >= I2C_CLK_DELAY_TICK) {
 			/* failed */
 			sw_i2c_scl_set_low();
 			return false;
@@ -508,7 +508,7 @@ bool sw_i2c_blocked_wait_ack(void)
 	}
 
 	sw_i2c_scl_set_low();
-	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+	sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 
 	return true;
 }
@@ -518,13 +518,13 @@ void sw_i2c_blocked_ack(void)
 	sw_i2c_config_sda_out();
 
 	sw_i2c_scl_set_low();
-	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+	sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 	sw_i2c_sda_set_low();
-	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+	sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 	sw_i2c_scl_set_high();
-	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+	sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 	sw_i2c_scl_set_low();
-	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+	sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 }
 
 void sw_i2c_blocked_nack(void)
@@ -532,13 +532,13 @@ void sw_i2c_blocked_nack(void)
 	sw_i2c_config_sda_out();
 
 	sw_i2c_scl_set_low();
-	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+	sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 	sw_i2c_sda_set_high();
-	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+	sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 	sw_i2c_scl_set_high();
-	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+	sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 	sw_i2c_scl_set_low();
-	sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+	sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 }
 
 void sw_i2c_blocked_send_byte(uint8_t data)
@@ -548,7 +548,7 @@ void sw_i2c_blocked_send_byte(uint8_t data)
 	int i;
 	for(i = 0; i < 8; i++) {
 		sw_i2c_scl_set_low();
-		sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+		sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 
 		if(data & 0x80) {
 			sw_i2c_sda_set_high();
@@ -557,10 +557,10 @@ void sw_i2c_blocked_send_byte(uint8_t data)
 		}
 		data <<= 1;
 
-		sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+		sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 
 		sw_i2c_scl_set_high();
-		sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+		sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 	}
 	sw_i2c_scl_set_low();
 }
@@ -577,9 +577,9 @@ uint8_t sw_i2c_blocked_read_byte(void)
 		data <<= 1;
 
 		sw_i2c_scl_set_low();
-		sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+		sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 		sw_i2c_scl_set_high();
-		sw_i2c_delay_ms(I2C_CLOCK_PERIOD_MS);
+		sw_i2c_delay_ms(I2C_CLK_DELAY_TICK);
 
 		if(sw_i2c_sda_read()) {
 			data |= 0x01;
