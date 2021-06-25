@@ -6,18 +6,6 @@
 #include "semphr.h"
 #include "freertos_config.h"
 #include "delay.h"
-#include "gpio.h"
-#include "uart.h"
-#include "spi.h"
-#include "timer.h"
-#include "pwm.h"
-#include "exti.h"
-#include "mpu6500.h"
-#include "sbus_radio.h"
-#include "optitrack.h"
-#include "vins_mono.h"
-#include "sys_time.h"
-#include "motor.h"
 #include "debug_link.h"
 #include "multirotor_pid_ctrl.h"
 #include "flight_ctrl_task.h"
@@ -27,13 +15,7 @@
 #include "debug_link_task.h"
 #include "perf.h"
 #include "perf_list.h"
-#include "sw_i2c.h"
-#include "crc.h"
-#include "ublox_m8n.h"
 #include "calibration_task.h"
-#include "flash.h"
-#include "ms5611.h"
-#include "ist8310.h"
 #include "ins_sensor_sync.h"
 #include "f4_board_support.h"
 
@@ -53,36 +35,7 @@ int main(void)
 	/* initialize sensor synchronization buffer */
 	ins_sync_buffer_init();
 
-	/* driver initialization */
-	flash_init();
-	_crc_init();
-	led_init();
-	ext_switch_init();
-	uart1_init(115200);
-	uart3_init(115200); //telem
-	uart4_init(100000); //s-bus
-
-#if (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_GPS)
-	uart7_init(38400); //gps
-	ublox_m8n_init();
-#elif (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_OPTITRACK)
-	uart7_init(115200);
-	optitrack_init(UAV_DEFAULT_ID); //setup tracker id for this MAV
-#endif
-
-#if (SELECT_NAVIGATION_DEVICE2 == NAV_DEV2_USE_VINS_MONO)
-	uart6_init(115200);
-	vins_mono_init(UAV_DEFAULT_ID); //TODO: tracker id is not needed
-#endif
-
-	timer12_init();    //system timer and flight controller timer
-	pwm_timer1_init(); //motor
-	pwm_timer4_init(); //motor
-	exti10_init();     //imu ext interrupt
-	spi1_init();       //imu
-
-	blocked_delay_ms(50);
-
+	/* f4 board driver initialization */
 	f4_board_init();
 
 	/* flight controller task (highest priority) */
