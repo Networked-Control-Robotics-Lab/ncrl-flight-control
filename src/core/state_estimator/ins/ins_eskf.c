@@ -1537,14 +1537,14 @@ bool ins_eskf_estimate(attitude_t *attitude,
 		} else {
 			if(ahrs_compass_quality_test(mag) == true) {
 				eskf_ins_magnetometer_correct(mag);
-
-				/* calculate correct frequency */
-				curr_time = get_sys_time_s();
-				elapsed_time = curr_time - ins_eskf.mag_time_last;
-				ins_eskf.mag_correct_freq = 1.0f / elapsed_time;
-				ins_eskf.mag_time_last = curr_time;
 			}
 		}
+
+		/* calculate correct frequency */
+		curr_time = get_sys_time_s();
+		elapsed_time = curr_time - ins_eskf.mag_time_last;
+		ins_eskf.mag_correct_freq = 1.0f / elapsed_time;
+		ins_eskf.mag_time_last = curr_time;
 	}
 
 #if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
