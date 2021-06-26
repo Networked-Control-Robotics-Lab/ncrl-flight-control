@@ -28,7 +28,7 @@ bool autopilot_get_waypoint_gps_mavlink(int index, int32_t *latitude, int32_t *l
 	}
 }
 
-int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec, float radius)
+int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec)
 {
 	if(autopilot_test_point_in_rectangular_fence(pos) == false) {
 		return AUTOPILOT_WAYPOINT_OUT_OF_FENCE;
@@ -39,7 +39,6 @@ int autopilot_add_new_waypoint(float pos[3], float heading, float halt_time_sec,
 		autopilot.waypoints[waypoint_num].pos[2] = pos[2];
 		autopilot.waypoints[waypoint_num].heading = heading;
 		autopilot.waypoints[waypoint_num].halt_time_sec = halt_time_sec;
-		autopilot.waypoints[waypoint_num].touch_radius = radius;
 		autopilot.waypoint_num++;
 		return AUTOPILOT_SET_SUCCEED;
 	} else {
@@ -70,7 +69,6 @@ int autopilot_add_new_waypoint_gps_mavlink(int frame, int32_t x, int32_t y, floa
 		//      set default for now
 		autopilot.waypoints[waypoint_num].heading = 0.0;
 		autopilot.waypoints[waypoint_num].halt_time_sec = 3.0;
-		autopilot.waypoints[waypoint_num].touch_radius = 50.0;
 
 		autopilot.waypoint_num++;
 		return AUTOPILOT_SET_SUCCEED;
@@ -238,7 +236,7 @@ void autopilot_follow_waypoint_handler(float *curr_pos)
 	curr_dist[1] *= curr_dist[1];
 	curr_dist[2] *= curr_dist[2];
 
-	float accept_dist = autopilot.waypoints[curr_waypoint_num].touch_radius;
+	float accept_dist = autopilot.waypoint_touch_radius;
 	accept_dist *= accept_dist;
 
 	if((curr_dist[0] + curr_dist[1] + curr_dist[2]) < accept_dist) {

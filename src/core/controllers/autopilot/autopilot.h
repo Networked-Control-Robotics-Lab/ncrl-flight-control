@@ -67,7 +67,6 @@ struct waypoint_t {
 	float pos[3];        //[m]
 	float heading;       //[deg]
 	float halt_time_sec; //[s]
-	float touch_radius;  //[m]
 
 	/* compatible with mavlink design */
 	int32_t latitude;  //[deg], scaled by 1/1e7

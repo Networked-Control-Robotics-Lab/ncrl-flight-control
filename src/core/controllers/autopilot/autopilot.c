@@ -297,10 +297,10 @@ void debug_print_waypoint_list(void)
 	char s[200] = {0};
 	int i;
 	for(i = 0; i < autopilot.waypoint_num; i++) {
-		sprintf(s, "wp #%d: x=%.1f, y=%.1f, z=%.1f, heading=%.1f,  stay_time=%.1f, radius=%.1f\n\r",
+		sprintf(s, "wp #%d: x=%.1f, y=%.1f, z=%.1f, heading=%.1f,  stay_time=%.1f\n\r",
 		        i, autopilot.waypoints[i].pos[0], autopilot.waypoints[i].pos[1],
 		        autopilot.waypoints[i].pos[2], autopilot.waypoints[i].heading,
-		        autopilot.waypoints[i].halt_time_sec, autopilot.waypoints[i].touch_radius);
+		        autopilot.waypoints[i].halt_time_sec);
 		uart1_puts(s, strlen(s));
 	}
 }
@@ -316,14 +316,13 @@ void debug_print_waypoint_status(void)
 	char s[200] = {'\0'};
 	int curr_waypoint_num = autopilot.curr_waypoint;
 	sprintf(s, "current waypoint = #%d, x=%.1fm, y=%.1fm, z=%.1fm,"
-	        " heading=%.1f, stay_time=%.1f, radius=%.1fm\n\r",
+	        " heading=%.1f, stay_time=%.1f\n\r",
 	        curr_waypoint_num,
 	        autopilot.waypoints[curr_waypoint_num].pos[0] * 0.01,
 	        autopilot.waypoints[curr_waypoint_num].pos[1] * 0.01,
 	        autopilot.waypoints[curr_waypoint_num].pos[2] * 0.01,
 	        autopilot.waypoints[curr_waypoint_num].heading,
-	        autopilot.waypoints[curr_waypoint_num].halt_time_sec,
-	        autopilot.waypoints[curr_waypoint_num].touch_radius * 0.01);
+	        autopilot.waypoints[curr_waypoint_num].halt_time_sec);
 	uart1_puts(s, strlen(s));
 	freertos_task_delay(1);
 }

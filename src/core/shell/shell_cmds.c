@@ -206,7 +206,6 @@ static void mission_add_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_L
 	float pos[3] = {0.0f, 0.0f, 0.0f};
 	float heading = 0.0f;
 	float stay_time_sec = 1.0f;
-	float radius = 0.0f;
 
 	if(parse_float_from_str(param_list[2], &pos[0]) == false) {
 		shell_puts("abort, bad arguments\n\r");
@@ -229,15 +228,10 @@ static void mission_add_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_L
 		shell_puts("abort, bad arguments\n\r");
 		return;
 	}
-	if(parse_float_from_str(param_list[7], &radius) == false) {
-		shell_puts("abort, bad arguments\n\r");
-		return;
-	}
 
 	char s[200] = {'\0'};
-	sprintf(s, "new waypoint: x=%.1fm, y=%.1fm, z=%.1fm, heading=%.1f, "
-	        "stay_time=%.1f, radius=%.1fm\n\r",
-	        pos[0], pos[1], pos[2], heading, stay_time_sec, radius);
+	sprintf(s, "new waypoint: x=%.1fm, y=%.1fm, z=%.1fm, heading=%.1f, stay_time=%.1fsec\n\r",
+	        pos[0], pos[1], pos[2], heading, stay_time_sec);
 	shell_puts(s);
 
 	char user_agree[CMD_LEN_MAX];
@@ -246,7 +240,7 @@ static void mission_add_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_L
 	shell_cli(&shell);
 
 	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
-		int ret_val = autopilot_add_new_waypoint(pos, heading, stay_time_sec, radius);
+		int ret_val = autopilot_add_new_waypoint(pos, heading, stay_time_sec);
 		if(ret_val == AUTOPILOT_SET_SUCCEED) {
 			shell_puts("successfully added new waypoint.\n\r");
 		} else if(ret_val == AUTOPILOT_WAYPOINT_LIST_FULL) {
