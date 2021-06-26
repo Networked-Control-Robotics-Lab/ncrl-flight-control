@@ -48,7 +48,7 @@ static void mav_cmd_long_takeoff(uint8_t sender_id, mavlink_command_long_t *cmd_
 {
 	uint8_t ack_result;
 
-	/* trigger auto-takeoff */
+	/* change autopilot state */
 	int retval = autopilot_trigger_auto_takeoff();
 	switch(retval) {
 	case AUTOPILOT_SET_SUCCEED:
@@ -59,7 +59,7 @@ static void mav_cmd_long_takeoff(uint8_t sender_id, mavlink_command_long_t *cmd_
 		ack_result = MAV_RESULT_DENIED;
 	}
 
-	/* send command long ack message */
+	/* send ack message if the sender ask to confirm */
 	if(cmd_long->confirmation == 1) {
 		command_long_trigger_ack_sending(sender_id, MAV_CMD_NAV_TAKEOFF, ack_result);
 	}
@@ -69,7 +69,7 @@ static void mav_cmd_long_land(uint8_t sender_id, mavlink_command_long_t *cmd_lon
 {
 	uint8_t ack_result;
 
-	/* trigger auto-takeoff */
+	/* change autopilot state */
 	int retval = autopilot_trigger_auto_landing();
 	switch(retval) {
 	case AUTOPILOT_SET_SUCCEED:
@@ -80,49 +80,112 @@ static void mav_cmd_long_land(uint8_t sender_id, mavlink_command_long_t *cmd_lon
 		ack_result = MAV_RESULT_DENIED;
 	}
 
-	/* send command long ack message */
+	/* send ack message if the sender ask to confirm */
 	if(cmd_long->confirmation == 1) {
 		command_long_trigger_ack_sending(sender_id, MAV_CMD_NAV_LAND, ack_result);
 	}
 }
 
+static void mav_cmd_override_goto_handler(uint8_t sender_id, mavlink_command_long_t *cmd_long)
+{
+	float yaw = 0;
+	float pos[3] = {0};
+
+	uint8_t ack_result;
+
+	switch((int)cmd_long->param3) {
+	case MAV_FRAME_GLOBAL: /* format: latitude, longitude, altitude */
+		//TODO
+		ack_result = MAV_RESULT_DENIED;
+		break;
+	case MAV_FRAME_LOCAL_NED: /* format: x, y, z in local ned frame */
+		yaw = cmd_long->param4;
+		pos[1] = cmd_long->param5;
+		pos[0] = cmd_long->param6;
+		pos[2] = -cmd_long->param7;
+		ack_result = MAV_RESULT_ACCEPTED;
+		break;
+	case MAV_FRAME_LOCAL_ENU: /* format: x, y, z in local enu frame */
+		yaw = cmd_long->param4;
+		pos[0] = cmd_long->param5;
+		pos[1] = cmd_long->param6;
+		pos[2] = cmd_long->param7;
+
+		/* change autopilot state */
+		int retval = autopilot_goto_waypoint_now(yaw, pos, true);
+		if(retval == AUTOPILOT_SET_SUCCEED) {
+			ack_result = MAV_RESULT_ACCEPTED;
+		} else if(retval == AUTOPILOT_WAYPOINT_OUT_OF_FENCE) {
+			ack_result = MAV_RESULT_DENIED;
+		} else {
+			ack_result = MAV_RESULT_DENIED;
+		}
+
+		break;
+	default:
+		ack_result = MAV_RESULT_DENIED;
+	}
+
+	/* send ack message if the sender ask to confirm */
+	if(cmd_long->confirmation == 1) {
+		command_long_trigger_ack_sending(sender_id, MAV_CMD_OVERRIDE_GOTO, ack_result);
+	}
+}
+
+static void mav_cmd_override_mission_resume_handler(uint8_t sender_id, mavlink_command_long_t *cmd_long)
+{
+	uint8_t ack_result;
+
+	/* change autopilot state */
+	int retval = autopilot_resume_waypoint_mission();
+	switch(retval) {
+	case AUTOPILOT_SET_SUCCEED:
+		ack_result = MAV_RESULT_ACCEPTED;
+		break;
+	case AUTOPILOT_NO_HALTED_WAYPOINT_MISSION:
+	default:
+		ack_result = MAV_RESULT_DENIED;
+	}
+
+	/* send ack message if the sender ask to confirm */
+	if(cmd_long->confirmation == 1) {
+		command_long_trigger_ack_sending(sender_id, MAV_CMD_OVERRIDE_GOTO, ack_result);
+	}
+}
+
+static void mav_cmd_override_mission_halt_handler(uint8_t sender_id, mavlink_command_long_t *cmd_long)
+{
+	uint8_t ack_result;
+
+	int retval = autopilot_resume_waypoint_mission();
+	switch(retval) {
+	case AUTOPILOT_SET_SUCCEED:
+		ack_result = MAV_RESULT_ACCEPTED;
+		break;
+	case AUTOPILOT_NOT_IN_WAYPOINT_MODE:
+	default:
+		ack_result = MAV_RESULT_DENIED;
+	}
+
+	/* send ack message if the sender ask to confirm */
+	if(cmd_long->confirmation == 1) {
+		command_long_trigger_ack_sending(sender_id, MAV_CMD_OVERRIDE_GOTO, ack_result);
+	}
+}
+
 static void mav_cmd_long_override_goto(uint8_t sender_id, mavlink_command_long_t *cmd_long)
 {
-	/* goto specified position */
-	if(((int)cmd_long->param1 == MAV_GOTO_DO_HOLD) &&
-	    ((int)cmd_long->param2 == MAV_GOTO_HOLD_AT_SPECIFIED_POSITION)) {
-		float yaw = 0;
-		float pos[3] = {0};
-
-		uint8_t ack_result;
-
-		switch((int)cmd_long->param3) {
-		case MAV_FRAME_GLOBAL: /* format: latitude, longitude, altitude */
-			//TODO
-			ack_result = MAV_RESULT_DENIED;
-			break;
-		case MAV_FRAME_LOCAL_NED: /* format: x, y, z in local ned frame */
-			yaw = cmd_long->param4;
-			pos[1] = cmd_long->param5;
-			pos[0] = cmd_long->param6;
-			pos[2] = -cmd_long->param7;
-			ack_result = MAV_RESULT_ACCEPTED;
-			break;
-		case MAV_FRAME_LOCAL_ENU: /* format: x, y, z in local enu frame */
-			yaw = cmd_long->param4;
-			pos[0] = cmd_long->param5;
-			pos[1] = cmd_long->param6;
-			pos[2] = cmd_long->param7;
-			autopilot_goto_waypoint_now(yaw, pos, true);
-			ack_result = MAV_RESULT_ACCEPTED;
-			break;
-		default:
-			ack_result = MAV_RESULT_DENIED;
+	if((int)cmd_long->param1 == MAV_GOTO_DO_HOLD) {
+		if((int)cmd_long->param2 == MAV_GOTO_HOLD_AT_SPECIFIED_POSITION) {
+			/* goto specified position */
+			mav_cmd_override_goto_handler(sender_id, cmd_long);
+		} else if((int)cmd_long->param2 == MAV_GOTO_HOLD_AT_CURRENT_POSITION) {
+			/* mission halt (hovering) */
+			mav_cmd_override_mission_halt_handler(sender_id, cmd_long);
 		}
-
-		if(cmd_long->confirmation == 1) {
-			command_long_trigger_ack_sending(sender_id, MAV_CMD_OVERRIDE_GOTO, ack_result);
-		}
+	} else if((int)cmd_long->param1 == MAV_GOTO_DO_CONTINUE) {
+		/* mission resume */
+		mav_cmd_override_mission_resume_handler(sender_id, cmd_long);
 	}
 }
 
