@@ -12,6 +12,6 @@ typedef struct {
 } cmd_long_msg_manager_t;
 
 void mav_command_long(mavlink_message_t *received_msg);
-void command_long_microsevice_handler(void);
+void command_long_microservice_handler(void);
 
 #endif

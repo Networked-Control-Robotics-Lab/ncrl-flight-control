@@ -232,7 +232,7 @@ void command_long_trigger_ack_sending(uint8_t target_system, uint16_t ack_cmd, u
 	cmd_long_msg_manager.ack_result = ack_result;
 }
 
-void command_long_microsevice_handler(void)
+void command_long_microservice_handler(void)
 {
 	/* XXX: replace with freertos queue? */
 	if(cmd_long_msg_manager.send_ack_msg == true) {
@@ -250,7 +250,7 @@ void command_long_microsevice_handler(void)
 
 		mavlink_message_t msg;
 		mavlink_msg_command_ack_pack((uint8_t)sys_id, 1, &msg, cmd, result, progress,
-                                             result_param2, target_system, target_component);
+		                             result_param2, target_system, target_component);
 		send_mavlink_msg_to_uart(&msg);
 	}
 }

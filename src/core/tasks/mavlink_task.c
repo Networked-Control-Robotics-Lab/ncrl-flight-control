@@ -15,6 +15,7 @@
 #include "autopilot.h"
 #include "sys_time.h"
 #include "mavlink_task.h"
+#include "mav_command.h"
 
 #define MAVLINK_QUEUE_SIZE 10
 
@@ -124,6 +125,7 @@ void mavlink_tx_task(void *param)
 		mission_waypoint_microservice_handler();
 		paramater_microservice_handler();
 		polynomial_trajectory_microservice_handler();
+		command_long_microservice_handler();
 
 		freertos_task_delay(delay_time_ms);
 	}
