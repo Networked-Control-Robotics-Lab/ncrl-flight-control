@@ -40,6 +40,7 @@ void autopilot_init(void)
 	autopilot.landing_accept_height_upper = 0.12f; //[m]
 	autopilot.tracking_speed = 1.0; //[m/s]
 	autopilot.land_avaliable = false;
+	autopilot.waypoint_touch_radius = 0.5; //[m]
 }
 
 bool autopilot_is_auto_flight_mode(void)
@@ -266,6 +267,9 @@ void autopilot_guidance_handler(float *curr_pos_enu, float *curr_vel_enu)
 	switch(autopilot.mode) {
 	case AUTOPILOT_MANUAL_FLIGHT_MODE:
 	case AUTOPILOT_HOVERING_MODE:
+		break;
+	case AUTOPILOT_GOTO_MODE:
+		autopilot_goto_handler(curr_pos_enu);
 		break;
 	case AUTOPILOT_TRAJECTORY_FOLLOWING_MODE:
 		autopilot_trajectory_following_handler();

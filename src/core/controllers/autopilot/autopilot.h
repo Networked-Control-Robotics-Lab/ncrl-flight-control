@@ -10,6 +10,8 @@ enum {
 	AUTOPILOT_MANUAL_FLIGHT_MODE,
 	/* hovering at a waypoint */
 	AUTOPILOT_HOVERING_MODE,
+	/* fly to a given position */
+	AUTOPILOT_GOTO_MODE,
 	/* follow the waypoint list to fly */
 	AUTOPILOT_FOLLOW_WAYPOINT_MODE,
 	/* hovering at current waypoint for some time before traveling to next one */
@@ -92,7 +94,16 @@ typedef struct {
 		float height;
 	} geo_fence;
 
-	/* auto-takeoff and landing */
+	/* autopilot datas and flags */
+	float period; //executing period
+	int mode;
+	bool halt_flag;
+	bool loop_mission;
+	bool armed;
+	bool motor_locked;
+	float waypoint_touch_radius;
+	
+	/* 1. auto-takeoff and landing */
 	bool land_avaliable;
 	float landing_speed;
 	float landing_accept_height_upper;
@@ -101,21 +112,21 @@ typedef struct {
 	float takeoff_height;
 	float tracking_speed;
 
-	/* autopilot datas and flags */
-	float period; //executing period
-	int mode;
-	bool halt_flag;
-	bool loop_mission;
-	bool armed;
-	bool motor_locked;
+	/* 2. goto mission */
+	struct {
+		float pos[3];  //[m]
+		float vel[3];  //[m/s]
+		float heading; //[deg]
+		bool change_height;
+	} goto_target;
 
-	/* waypoint mission datas */
+	/* 3. waypoint mission */
 	struct waypoint_t waypoints[TRAJ_WP_MAX_NUM]; //waypoint list (enu frame)
 	int curr_waypoint;       //index of current waypoint to track
 	int waypoint_num;        //total waypoint numbers
 	int waypoint_wait_timer; //used for delay between waypoints
 
-	/* trajectory following datas */
+	/* 4. trajectory mission */
 	struct trajectory_segment_t trajectory_segments[TRAJ_WP_MAX_NUM]; //trajectory list
 	float trajectory_update_time;
 	float traj_start_time;

@@ -14,5 +14,6 @@ void autopilot_mission_reset(void);
 
 void autopilot_wait_next_waypoint_handler(void);
 void autopilot_follow_waypoint_handler(float *curr_pos);
+void autopilot_goto_handler(float *curr_pos);
 
 #endif
