@@ -91,7 +91,7 @@ int autopilot_clear_waypoint_list(void)
 	}
 }
 
-int autopilot_goto_waypoint_now(float pos[3], bool change_height)
+int autopilot_goto_waypoint_now(float yaw, float pos[3], bool change_height)
 {
 	bool in_fence = autopilot_test_point_in_rectangular_fence(pos);
 

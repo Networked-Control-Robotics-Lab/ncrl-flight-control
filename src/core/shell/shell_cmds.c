@@ -190,7 +190,7 @@ void shell_cmd_fly(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int para
 	shell_cli(&shell);
 
 	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
-		int ret_val = autopilot_goto_waypoint_now(pos, change_z);
+		int ret_val = autopilot_goto_waypoint_now(0, pos, change_z);
 		if(ret_val == AUTOPILOT_WAYPOINT_OUT_OF_FENCE) {
 			shell_puts("failed, waypoint out of geo-fence!\n\r");
 		} else {

@@ -11,6 +11,7 @@
 #include "esc_calibration.h"
 #include "common_list.h"
 #include "takeoff_landing.h"
+#include "waypoint_following.h"
 
 static void mavlink_send_capability(void)
 {
@@ -50,6 +51,31 @@ static void mav_cmd_long_land(void)
 
 static void mav_cmd_long_override_goto(mavlink_command_long_t *cmd_long)
 {
+	/* goto specified position */
+	if(((int)cmd_long->param1 == MAV_GOTO_DO_HOLD) &&
+	    ((int)cmd_long->param2 == MAV_GOTO_HOLD_AT_SPECIFIED_POSITION)) {
+		float yaw = 0;
+		float pos[3] = {0};
+
+		switch((int)cmd_long->param3) {
+		case MAV_FRAME_GLOBAL: /* format: latitude, longitude, altitude */
+			//TODO
+			break;
+		case MAV_FRAME_LOCAL_NED: /* format: x, y, z in local ned frame */
+			yaw = cmd_long->param4;
+			pos[1] = cmd_long->param5;
+			pos[0] = cmd_long->param6;
+			pos[2] = -cmd_long->param7;
+			break;
+		case MAV_FRAME_LOCAL_ENU: /* format: x, y, z in local enu frame */
+			yaw = cmd_long->param4;
+			pos[0] = cmd_long->param5;
+			pos[1] = cmd_long->param6;
+			pos[2] = cmd_long->param7;
+			autopilot_goto_waypoint_now(yaw, pos, true);
+			break;
+		}
+	}
 }
 
 static void mav_cmd_preflight_calibration(mavlink_message_t *received_msg,
