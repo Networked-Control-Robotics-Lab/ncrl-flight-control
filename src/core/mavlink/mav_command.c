@@ -247,6 +247,30 @@ static void mav_cmd_preflight_storage(mavlink_message_t *received_msg,
 	}
 }
 
+static void mav_cmd_long_mission_start(uint8_t sender_id, mavlink_command_long_t *cmd_long)
+{
+	//TODO: support start and end waypoint assignment
+	//(int)cmd_long->param1; //start waypoint
+	//(int)cmd_long->param2; //end waypoint
+
+	uint8_t ack_result;
+
+	int retval = autopilot_waypoint_mission_start(false);
+	switch(retval) {
+	case AUTOPILOT_SET_SUCCEED:
+		ack_result = MAV_RESULT_ACCEPTED;
+		break;
+	case AUTOPILOT_WAYPOINT_LIST_EMPYT:
+	default:
+		ack_result = MAV_RESULT_DENIED;
+	}
+
+	/* send ack message if the sender ask to confirm */
+	if(cmd_long->confirmation == 1) {
+		command_long_trigger_ack_sending(sender_id, MAV_CMD_OVERRIDE_GOTO, ack_result);
+	}
+}
+
 void mav_command_long(mavlink_message_t *received_msg)
 {
 	float sys_id;
@@ -283,6 +307,9 @@ void mav_command_long(mavlink_message_t *received_msg)
 		break;
 	case MAV_CMD_PREFLIGHT_STORAGE:
 		mav_cmd_preflight_storage(received_msg, &mav_command_long);
+		break;
+	case MAV_CMD_MISSION_START:
+		mav_cmd_long_mission_start(sender_id, &mav_command_long);
 		break;
 	}
 }
