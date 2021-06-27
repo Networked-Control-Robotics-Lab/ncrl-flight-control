@@ -11,6 +11,7 @@
 #include "vins_mono.h"
 #include "sys_time.h"
 #include "debug_link.h"
+#include "quaternion.h"
 
 #define VINS_MONO_IMU_MSG_SIZE 27
 #define VINS_MONO_CHECKSUM_INIT_VAL 19
@@ -110,12 +111,13 @@ int vins_mono_serial_decoder(uint8_t *buf)
 
 	vins_mono.time_now = get_sys_time_ms();
 
-	float q_enu[4];
+	float pos_enu[3];
+	float q_enu[4], q_ned[4];
 
 	/* decode position (enu frame) */
-	memcpy(&vins_mono.pos[0], &buf[3], sizeof(float));
-	memcpy(&vins_mono.pos[1], &buf[7], sizeof(float));
-	memcpy(&vins_mono.pos[2], &buf[11], sizeof(float));
+	memcpy(&pos_enu[0], &buf[3], sizeof(float));
+	memcpy(&pos_enu[1], &buf[7], sizeof(float));
+	memcpy(&pos_enu[2], &buf[11], sizeof(float));
 
 	/* decode velocity (enu frame) */
 	memcpy(&vins_mono.vel_raw[0], &buf[15], sizeof(float));
@@ -127,10 +129,10 @@ int vins_mono_serial_decoder(uint8_t *buf)
 	memcpy(&q_enu[1], &buf[31], sizeof(float));
 	memcpy(&q_enu[2], &buf[35], sizeof(float));
 	memcpy(&q_enu[3], &buf[39], sizeof(float));
-	vins_mono.q[0] = q_enu[0];
-	vins_mono.q[1] = q_enu[2];
-	vins_mono.q[2] = q_enu[1];
-	vins_mono.q[3] = -q_enu[3];
+	q_ned[0] =  q_enu[0];
+	q_ned[1] =  q_enu[2];
+	q_ned[2] =  q_enu[1];
+	q_ned[3] = -q_enu[3];
 
 	vins_mono.vel_filtered[0] = vins_mono.vel_raw[0];
 	vins_mono.vel_filtered[1] = vins_mono.vel_raw[1];
@@ -143,7 +145,72 @@ int vins_mono_serial_decoder(uint8_t *buf)
 	/* save time for next iteration */
 	vins_mono.time_last = vins_mono.time_now;
 
+	/* orientation alignment */
+	if(vins_mono.q_align_on == true) {
+		/* rotation */
+		quaternion_mult(q_ned, vins_mono.q_align, vins_mono.q);
+
+		/* translation */
+		float R[3*3], Rt[3*3];
+		quat_to_rotation_matrix(vins_mono.q_align, R, Rt);
+		vins_mono.pos[0] = R[0*3 + 0]*pos_enu[0] + R[0*3 + 1]*pos_enu[1] + R[0*3 + 2]*pos_enu[2];
+		vins_mono.pos[1] = R[1*3 + 0]*pos_enu[0] + R[1*3 + 1]*pos_enu[1] + R[1*3 + 2]*pos_enu[2];
+		vins_mono.pos[2] = R[2*3 + 0]*pos_enu[0] + R[2*3 + 1]*pos_enu[1] + R[2*3 + 2]*pos_enu[2];
+
+		/* position alignment */
+		if(vins_mono.pos_align_on == true) {
+			vins_mono.pos[0] += vins_mono.pos_align[0];
+			vins_mono.pos[1] += vins_mono.pos_align[1];
+			vins_mono.pos[2] += vins_mono.pos_align[2];
+		}
+	} else {
+		quaternion_copy(vins_mono.q, q_ned);
+
+		/* position alignment */
+		if(vins_mono.pos_align_on == true) {
+			vins_mono.pos[0] = pos_enu[0] + vins_mono.pos_align[0];
+			vins_mono.pos[1] = pos_enu[1] + vins_mono.pos_align[1];
+			vins_mono.pos[2] = pos_enu[2] + vins_mono.pos_align[2];
+		} else {
+			vins_mono.pos[0] = pos_enu[0];
+			vins_mono.pos[1] = pos_enu[1];
+			vins_mono.pos[2] = pos_enu[2];
+		}
+	}
+
 	return 0;
+}
+
+void enable_orientation_alignment(void)
+{
+	vins_mono.q_align_on = true;
+}
+
+void disable_orientation_alignment(void)
+{
+	vins_mono.q_align_on = false;
+}
+
+void enable_position_alignment(void)
+{
+	vins_mono.pos_align_on = true;
+}
+
+void disable_position_alignment(void)
+{
+	vins_mono.pos_align_on = false;
+}
+
+void set_vins_mono_orientation_alignment(float *q)
+{
+	quaternion_copy(vins_mono.q_align, q);
+}
+
+void set_vins_mono_position_alignment(float *pos)
+{
+	vins_mono.pos_align[0] = pos[0];
+	vins_mono.pos_align[1] = pos[1];
+	vins_mono.pos_align[2] = pos[2];
 }
 
 float vins_mono_read_pos_x()
