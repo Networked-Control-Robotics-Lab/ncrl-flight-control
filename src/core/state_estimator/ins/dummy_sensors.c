@@ -23,8 +23,8 @@ void dummy_barometer_handler(BaseType_t *higher_priority_task_woken)
 
 void dummy_gps_handler(BaseType_t *higher_priority_task_woken)
 {
-	float dummy_longitude = 23.6978f;
-	float dummy_latitude = 120.9605f;
+	float dummy_longitude = 120.9605f;
+	float dummy_latitude = 23.6978f;
 	float dummy_height_msl = 0.0f;
 	float dummy_vx_ned = 0.0f;
 	float dummy_vy_ned = 0.0f;
@@ -41,8 +41,8 @@ void dummy_sensors_update_isr_handler(BaseType_t *higher_priority_task_woken)
 	static int compass_prescaler = DUMMY_COMPASS_PRESCALER_RELOAD;
 	static int barometer_prescaler = DUMMY_BAROMETER_PRESCALER_RELOAD;
 	static int gps_prescaler = DUMMY_GPS_PRESCALER_RELOAD;
-
 	compass_prescaler--;
+
 	if(compass_prescaler == 0) {
 		compass_prescaler = DUMMY_COMPASS_PRESCALER_RELOAD;
 		dummy_compass_handler(higher_priority_task_woken);
