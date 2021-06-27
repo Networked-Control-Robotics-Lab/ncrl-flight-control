@@ -4,7 +4,20 @@
 #include "matrix.h"
 #include "se3_math.h"
 
-#define EARTH_RADIUS 6371000.0f //[m]
+/*================================================================*
+ * ellipsoid model of earth.                                      *
+ * the parameters is given by NASA's Earth Fact Sheet:            *
+ * https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html *
+ *================================================================*/
+#define EQUATORIAL_RADIUS 6378137   //[m], earth semi-major length (AE)
+#define POLAR_RADIUS      6356752   //[m], earth semi-minor length (AP)
+#define AP_SQ_DIV_AE_SQ   0.99331   //(AP^2)/(AE^2)
+#define ECCENTRICITY      0.0066945 //e^2 = 1 - (AP^2)/(AE^2)
+
+/*==========================*
+ * spherical model of earth *
+ *==========================*/
+#define AVERAGE_EARTH_RADIUS 6371000.0f //[m]
 
 float home_longitude = 0.0f;
 float home_latitude = 0.0f;
@@ -22,19 +35,32 @@ bool gps_home_is_set(void)
 
 void set_home_longitude_latitude(float longitude, float latitude, float height_msl)
 {
+	home_longitude = longitude;
+	home_latitude = latitude;
+
+#if 1
+	float sin_lambda = sin(deg_to_rad(longitude));
+	float cos_lambda = cos(deg_to_rad(longitude));
+	float sin_phi = sin(deg_to_rad(latitude));
+	float cos_phi = cos(deg_to_rad(latitude));
+#else
 	float sin_lambda = arm_sin_f32(deg_to_rad(longitude));
 	float cos_lambda = arm_cos_f32(deg_to_rad(longitude));
 	float sin_phi = arm_sin_f32(deg_to_rad(latitude));
 	float cos_phi = arm_cos_f32(deg_to_rad(latitude));
+#endif
 
-	home_longitude = longitude;
-	home_latitude = latitude;
+#if 1   /* ellipsoid */
+	float N = EQUATORIAL_RADIUS / sqrt(1 - (ECCENTRICITY * sin_phi * sin_phi));
 
-	home_longitude = longitude;
-	home_latitude = latitude;
-	home_ecef_x = (height_msl + EARTH_RADIUS) * cos_phi * cos_lambda;
-	home_ecef_y = (height_msl + EARTH_RADIUS) * cos_phi * sin_lambda;
-	home_ecef_z = (height_msl + EARTH_RADIUS) * sin_phi;
+	home_ecef_x = (N + height_msl) * cos_phi * cos_lambda;
+	home_ecef_y = (N + height_msl) * cos_phi * sin_lambda;
+	home_ecef_z = (AP_SQ_DIV_AE_SQ + height_msl) * sin_phi;
+#else   /* sphere */
+	home_ecef_x = (height_msl + AVERAGE_EARTH_RADIUS) * cos_phi * cos_lambda;
+	home_ecef_y = (height_msl + AVERAGE_EARTH_RADIUS) * cos_phi * sin_lambda;
+	home_ecef_z = (height_msl + AVERAGE_EARTH_RADIUS) * sin_phi;
+#endif
 
 	home_is_set = true;
 }
@@ -54,9 +80,16 @@ void longitude_latitude_to_enu(float longitude, float latitude, float height_msl
 	float cos_phi = cos(deg_to_rad(latitude));
 
 	/* convert geodatic coordinates to earth center earth fixed frame (ecef) */
-	float ecef_now_x = (height_msl + EARTH_RADIUS) * cos_phi * cos_lambda;
-	float ecef_now_y = (height_msl + EARTH_RADIUS) * cos_phi * sin_lambda;
-	float ecef_now_z = (height_msl + EARTH_RADIUS) * sin_phi;
+#if 1   /* ellipsoid */
+	float N = EQUATORIAL_RADIUS / sqrt(1 - (ECCENTRICITY * sin_phi * sin_phi));
+	float ecef_now_x = (N + height_msl) * cos_phi * cos_lambda;
+	float ecef_now_y = (N + height_msl) * cos_phi * sin_lambda;
+	float ecef_now_z = (AP_SQ_DIV_AE_SQ + height_msl) * sin_phi;
+#else   /* sphere */
+	float ecef_now_x = (height_msl + AVERAGE_EARTH_RADIUS) * cos_phi * cos_lambda;
+	float ecef_now_y = (height_msl + AVERAGE_EARTH_RADIUS) * cos_phi * sin_lambda;
+	float ecef_now_z = (height_msl + AVERAGE_EARTH_RADIUS) * sin_phi;
+#endif
 
 	/* convert position from earth center earth fixed frame to east north up frame */
 	float r11 = -sin_lambda;
