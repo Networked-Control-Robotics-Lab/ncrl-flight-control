@@ -332,7 +332,7 @@ void geometry_ctrl_init(void)
 	Gamma_diag_gain[2] = 8.0f;
 	C1_gain = 0.1f;
 	C2_gain = 0.1f;
-	k_cl_m_gain = 0.1f;
+	k_cl_m_gain = 7.5f;
 	k_cl_diag_gain[0] = 5.0f;
 	k_cl_diag_gain[1] = 5.0f;
 	k_cl_diag_gain[2] = 5.0f;
