@@ -9,10 +9,10 @@
  * the parameters is given by NASA's Earth Fact Sheet:            *
  * https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html *
  *================================================================*/
-#define EQUATORIAL_RADIUS 6378137   //[m], earth semi-major length (AE)
-#define POLAR_RADIUS      6356752   //[m], earth semi-minor length (AP)
-#define AP_SQ_DIV_AE_SQ   0.99331   //(AP^2)/(AE^2)
-#define ECCENTRICITY      0.0066945 //e^2 = 1 - (AP^2)/(AE^2)
+#define EQUATORIAL_RADIUS 6378137 //[m], earth semi-major length (AE)
+#define POLAR_RADIUS      6356752 //[m], earth semi-minor length (AP)
+#define AP_SQ_DIV_AE_SQ   0.99331 //(AP^2)/(AE^2)
+#define ECCENTRICITY      0.08182 //e^2 = 1 - (AP^2)/(AE^2)
 
 /*==========================*
  * spherical model of earth *
@@ -55,7 +55,7 @@ void set_home_longitude_latitude(float longitude, float latitude, float height_m
 
 	home_ecef_x = (N + height_msl) * cos_phi * cos_lambda;
 	home_ecef_y = (N + height_msl) * cos_phi * sin_lambda;
-	home_ecef_z = (AP_SQ_DIV_AE_SQ + height_msl) * sin_phi;
+	home_ecef_z = (N * AP_SQ_DIV_AE_SQ + height_msl) * sin_phi;
 #else   /* sphere */
 	home_ecef_x = (height_msl + AVERAGE_EARTH_RADIUS) * cos_phi * cos_lambda;
 	home_ecef_y = (height_msl + AVERAGE_EARTH_RADIUS) * cos_phi * sin_lambda;
@@ -84,7 +84,7 @@ void longitude_latitude_to_enu(float longitude, float latitude, float height_msl
 	float N = EQUATORIAL_RADIUS / sqrt(1 - (ECCENTRICITY * sin_phi * sin_phi));
 	float ecef_now_x = (N + height_msl) * cos_phi * cos_lambda;
 	float ecef_now_y = (N + height_msl) * cos_phi * sin_lambda;
-	float ecef_now_z = (AP_SQ_DIV_AE_SQ + height_msl) * sin_phi;
+	float ecef_now_z = (N * AP_SQ_DIV_AE_SQ + height_msl) * sin_phi;
 #else   /* sphere */
 	float ecef_now_x = (height_msl + AVERAGE_EARTH_RADIUS) * cos_phi * cos_lambda;
 	float ecef_now_y = (height_msl + AVERAGE_EARTH_RADIUS) * cos_phi * sin_lambda;
