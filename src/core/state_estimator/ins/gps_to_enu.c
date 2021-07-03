@@ -92,14 +92,14 @@ void longitude_latitude_to_enu(float longitude, float latitude, float height_msl
 #endif
 
 	/* convert position from earth center earth fixed frame to east north up frame */
-	float r11 = -sin_lambda;
-	float r12 = cos_lambda;
-	float r13 = 0;
-	float r21 = -cos_lambda * sin_phi;
-	float r22 = -sin_lambda * sin_phi;
-	float r23 = cos_phi;
-	//float r31 = cos_lambda * cos_phi;
-	//float r32 = sin_lambda * cos_phi;
+	float r11 = -sin_phi * sin_lambda;
+	float r12 = -sin_phi * cos_lambda;
+	float r13 = -cos_phi;
+	float r21 = cos_lambda;
+	float r22 = -sin_phi;
+	float r23 = 0;
+	//float r31 = -cos_phi * sin_lambda;
+	//float r32 = -cos_phi * cos_lambda;
 	//float r33 = sin_phi;
 
 	float dx = ecef_now_x - home_ecef_x;
