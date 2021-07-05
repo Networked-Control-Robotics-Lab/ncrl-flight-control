@@ -185,8 +185,8 @@ void eskf_ins_init(float _dt)
 
 	/* initial V_gps matrix */
 	matrix_reset(mat_data(_V_gps), 4, 4);
-	V_gps(0, 0) = ESKF_RESCALE(2e-2); //Var(px)
-	V_gps(1, 1) = ESKF_RESCALE(2e-2); //Var(py)
+	V_gps(0, 0) = ESKF_RESCALE(1e-4); //Var(px)
+	V_gps(1, 1) = ESKF_RESCALE(1e-4); //Var(py)
 	V_gps(2, 2) = ESKF_RESCALE(1e-4); //Var(vx)
 	V_gps(3, 3) = ESKF_RESCALE(1e-4); //Var(vy)
 
