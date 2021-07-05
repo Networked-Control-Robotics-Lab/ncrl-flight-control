@@ -72,9 +72,9 @@ bool ublox_available(void)
 
 	/* check gps uncertainty */
 	float h_acc = ublox.h_acc * 1e-3;
-	float v_acc = ublox.v_acc * 1e-3;
+	//float v_acc = ublox.v_acc * 1e-3;
 
-	float _3d_acc = h_acc*h_acc + v_acc*v_acc;
+	float _3d_acc = h_acc*h_acc;
 	if(_3d_acc < (GPS_ACC_TOLERANT * GPS_ACC_TOLERANT)) {
 		return true;
 	} else {
@@ -254,8 +254,8 @@ void ublox_decode_nav_pvt_msg(void)
 
 	if(ublox_available() == true) {
 		/* push gps data into the ins sync buffer */
-		float longitude = ublox.longitude * 1e-7;
-		float latitude = ublox.latitude * 1e-7;
+		int32_t longitude = ublox.longitude;
+		int32_t latitude = ublox.latitude;
 		float height_msl = ublox.height_msl * 1e2;
 		float vel_n = ublox.vel_n * 1e-3;
 		float vel_e = ublox.vel_e * 1e-3;
