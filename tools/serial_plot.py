@@ -45,6 +45,7 @@ class serial_plotter_class:
         self.plot_begin = False;
         self.plot_time_last = time.time()
         self.update_rate_last = 0
+        self.recvd_datas = []
 
     def set_graph(curve_count, serial_data):
 	self.curve_number = curve_count
@@ -373,19 +374,19 @@ class serial_plotter_class:
         	self.show_subplot()
 
         elif (message_id == 18):
-           	plt.subplot(521)
+           	plt.subplot(421)
         	plt.ylabel('time [ms]')
         	plt.ylim([0.0, 600000.0])
         	self.create_curve('time', 'red')
         	self.show_subplot()
 
-           	plt.subplot(522)
-        	plt.ylabel('gps update time [ms]')
-        	plt.ylim([0.0, 600000.0])
-        	self.create_curve('time', 'red')
-        	self.show_subplot()
+           	#plt.subplot(522)
+        	#plt.ylabel('gps update time [ms]')
+        	#plt.ylim([0.0, 600000.0])
+        	#self.create_curve('time', 'red')
+        	#self.show_subplot()
 
-           	plt.subplot(523)
+           	plt.subplot(422)
         	plt.ylabel('accel (lpf) [m/s^2]')
         	plt.ylim([-30.0, 30.0])
         	self.create_curve('ax', 'red')
@@ -393,7 +394,7 @@ class serial_plotter_class:
                 self.create_curve('az', 'green')
         	self.show_subplot()
 
-           	plt.subplot(524)
+           	plt.subplot(423)
         	plt.ylabel('gyro (raw) [rad/s]')
         	plt.ylim([-10.0, 10.0])
         	self.create_curve('wx', 'red')
@@ -401,7 +402,7 @@ class serial_plotter_class:
                 self.create_curve('wz', 'green')
         	self.show_subplot()
 
-           	plt.subplot(525)
+           	plt.subplot(424)
         	plt.ylabel('mag (raw) [uT]')
         	plt.ylim([-100, 100])
         	self.create_curve('mx', 'red')
@@ -409,7 +410,7 @@ class serial_plotter_class:
                 self.create_curve('mz', 'green')
         	self.show_subplot()
 
-           	plt.subplot(526)
+           	plt.subplot(425)
         	plt.ylabel('gps [deg]')
         	plt.ylim([-180, 180])
         	self.create_curve('longitude', 'red')
@@ -417,7 +418,7 @@ class serial_plotter_class:
                 self.create_curve('height', 'green')
         	self.show_subplot()
 
-           	plt.subplot(527)
+           	plt.subplot(426)
         	plt.ylabel('gps velocity [m/s]')
         	plt.ylim([-5.0, 5.0])
         	self.create_curve('vx', 'red')
@@ -425,13 +426,13 @@ class serial_plotter_class:
                 self.create_curve('vz', 'green')
         	self.show_subplot()
 
-                plt.subplot(528)
+                plt.subplot(427)
         	plt.ylabel('barometer height [m]')
         	plt.ylim([-1.0, 5.0])
         	self.create_curve('height', 'red')
         	self.show_subplot()
 
-                plt.subplot(529)
+                plt.subplot(428)
         	plt.ylabel('barometer velocity [m]')
         	plt.ylim([-10.0, 10.0])
         	self.create_curve('velocity', 'red')
@@ -616,6 +617,51 @@ class serial_plotter_class:
                     csv_token.write(data_str)
                     csv_token.write(',')
 
+    def parse_field_float(self, buffer, i):
+        binary_data = ''.join([buffer[i * 4], buffer[i * 4 + 1], buffer[i * 4 + 2], buffer[i * 4 + 3]])
+        float_data = np.asarray(struct.unpack("f", binary_data));
+        self.serial_data[i].add(float_data)
+        self.recvd_datas.append(float_data)
+        print("payload #%d: %f" %(i, float_data))
+        return float_data; 
+
+    def parse_field_int32(self, buffer, i):
+        binary_data = ''.join([buffer[i * 4], buffer[i * 4 + 1], buffer[i * 4 + 2], buffer[i * 4 + 3]])
+        int32_data = np.asarray(struct.unpack("i", binary_data))
+        self.serial_data[i].add(int32_data)
+        self.recvd_datas.append(int32_data)
+        print("payload #%d: %d" %(i, int32_data))
+        return int32_data
+
+    def parse_general_message(self, buffer):
+        self.recvd_datas = []
+
+        for i in range(0, self.curve_number):
+            #unpack received data
+            float_data = self.parse_field_float(buffer, i);
+
+    def parse_ins_sensor_message(self, buffer):
+        self.recvd_datas = []
+
+        self.parse_field_float(buffer, 0);
+        self.parse_field_float(buffer, 1);
+        self.parse_field_float(buffer, 2);
+        self.parse_field_float(buffer, 3);
+        self.parse_field_float(buffer, 4);
+        self.parse_field_float(buffer, 5);
+        self.parse_field_float(buffer, 6);
+        self.parse_field_float(buffer, 7);
+        self.parse_field_float(buffer, 8);
+        self.parse_field_float(buffer, 9);
+        self.parse_field_int32(buffer, 10);
+        self.parse_field_int32(buffer, 11);
+        self.parse_field_float(buffer, 12);
+        self.parse_field_float(buffer, 13);
+        self.parse_field_float(buffer, 14);
+        self.parse_field_float(buffer, 15);
+        self.parse_field_float(buffer, 16);
+        self.parse_field_float(buffer, 17);
+
     def serial_receive(self):
         buffer = []
         checksum = 0
@@ -675,19 +721,13 @@ class serial_plotter_class:
             self.set_figure(message_id)
             self.plot_begin = True
 
-        recvd_datas = []
-
-        for i in range(0, self.curve_number):
-            #unpack received data
-            binary_data = ''.join([buffer[i * 4], buffer[i * 4 + 1], buffer[i * 4 + 2], buffer[i * 4 + 3]])
-            float_data = np.asarray(struct.unpack("f", binary_data))
-            self.serial_data[i].add(float_data)
-            print("payload #%d: %f" %(i, float_data))
-
-            recvd_datas.append(float_data)
+        if message_id == 18:
+            self.parse_ins_sensor_message(buffer)
+        else:
+            self.parse_general_message(buffer)
 
         if save_csv == True:
-            self.save_csv(recvd_datas)
+            self.save_csv(self.recvd_datas)
 
         #print("-----------------------------");
 
