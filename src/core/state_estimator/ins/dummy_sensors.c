@@ -23,8 +23,8 @@ void dummy_barometer_handler(BaseType_t *higher_priority_task_woken)
 
 void dummy_gps_handler(BaseType_t *higher_priority_task_woken)
 {
-	float dummy_longitude = 120.9605f;
-	float dummy_latitude = 23.6978f;
+	int32_t dummy_longitude = 1207299564; //120.7299564
+	int32_t dummy_latitude = 242500496;   //24.2500496
 	float dummy_height_msl = 0.0f;
 	float dummy_vx_ned = 0.0f;
 	float dummy_vy_ned = 0.0f;

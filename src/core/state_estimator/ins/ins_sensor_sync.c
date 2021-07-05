@@ -107,7 +107,7 @@ bool ins_gps_sync_buffer_available(void)
 	}
 }
 
-void ins_gps_sync_buffer_push(float longitude, float latitude, float height_msl,
+void ins_gps_sync_buffer_push(int32_t longitude, int32_t latitude, float height_msl,
                               float vx_ned, float vy_ned, float vz_ned)
 {
 	ins_sync_gps_item_t gps_item = {
@@ -123,7 +123,7 @@ void ins_gps_sync_buffer_push(float longitude, float latitude, float height_msl,
 	xQueueSendToBack(ins_sync_gps_queue, &gps_item, 0);
 }
 
-void ins_gps_sync_buffer_push_from_isr(float longitude, float latitude, float height_msl,
+void ins_gps_sync_buffer_push_from_isr(int32_t longitude, int32_t latitude, float height_msl,
                                        float vx_ned, float vy_ned, float vz_ned,
                                        BaseType_t *higher_priority_task_woken)
 {
@@ -140,7 +140,7 @@ void ins_gps_sync_buffer_push_from_isr(float longitude, float latitude, float he
 	xQueueSendToBackFromISR(ins_sync_gps_queue, &gps_item, higher_priority_task_woken);
 }
 
-bool ins_gps_sync_buffer_pop(float *longitude, float *latitude, float *height_msl,
+bool ins_gps_sync_buffer_pop(int32_t *longitude, int32_t *latitude, float *height_msl,
                              float *vx_ned, float *vy_ned, float *vz_ned)
 {
 	ins_sync_gps_item_t recvd_gps_item;

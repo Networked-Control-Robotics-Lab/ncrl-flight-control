@@ -124,13 +124,6 @@ void ublox_m8n_get_longitude_latitude_height_s32(int32_t *longitude, int32_t *la
 	*height_msl = ublox.height_msl; //[mm]
 }
 
-void ublox_m8n_get_longitude_latitude_height(float *longitude, float *latitude, float *height_msl)
-{
-	*longitude = (float)ublox.longitude * 1e-7;   //[deg]
-	*latitude = (float)ublox.latitude * 1e-7;     //[deg]
-	*height_msl = (float)ublox.height_msl * 1e-3; //[m]
-}
-
 void ublox_m8n_get_velocity_ned(float *vx, float *vy, float *vz)
 {
 	*vx = (float)ublox.vel_n * 1e-3; //[m/s]

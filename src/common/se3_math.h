@@ -1,8 +1,10 @@
 #ifndef __SE3_MATH_H__
 #define __SE3_MATH_H__
 
-#define deg_to_rad(angle) (angle * 0.01745329252)
-#define rad_to_deg(radian) (radian * 57.2957795056)
+#include <math.h>
+
+#define deg_to_rad(angle) (angle * M_PI / 180.0)
+#define rad_to_deg(radian) (radian * 180.0 / M_PI)
 
 #include "se3_math.h"
 

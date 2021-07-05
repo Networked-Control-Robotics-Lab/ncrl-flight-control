@@ -164,7 +164,8 @@ void ins_complementary_filter_estimate(float *pos_enu_raw, float *vel_enu_raw,
 	/* change led state to indicate the sensor status */
 	set_rgb_led_service_navigation_on_flag(sensor_all_ready);
 
-	float longitude, latitude, gps_msl_height;
+	int32_t longitude, latitude;
+	float gps_msl_height;
 	float gps_ned_vx, gps_ned_vy, gps_ned_vz;
 
 	/* predict position and velocity with kinematics equations (400Hz) */

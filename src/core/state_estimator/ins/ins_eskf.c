@@ -1591,7 +1591,8 @@ bool ins_eskf_estimate(attitude_t *attitude,
 	bool recvd_gps = ins_gps_sync_buffer_available();
 	if(recvd_gps == true) {
 		/* get gps data from sync buffer */
-		float longitude, latitude, gps_msl_height;
+		int32_t longitude, latitude;
+		float gps_msl_height;
 		float gps_ned_vx, gps_ned_vy, gps_ned_vz;
 		ins_gps_sync_buffer_pop(&longitude, &latitude, &gps_msl_height,
 		                        &gps_ned_vx, &gps_ned_vy, &gps_ned_vz);
