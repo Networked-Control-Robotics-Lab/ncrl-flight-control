@@ -11,7 +11,7 @@
 #include "ncrl_mavlink.h"
 #include "ins_sensor_sync.h"
 
-#define GPS_ACC_TOLERANT 1.5 //[m]
+#define GPS_ACC_TOLERANT 1.0 //[m]
 
 #define UBX_SYNC_C1 0xb5
 #define UBX_SYNC_C2 0x62
@@ -75,7 +75,7 @@ bool ublox_available(void)
 	float v_acc = ublox.v_acc * 1e-3;
 
 	float _3d_acc = h_acc*h_acc + v_acc*v_acc;
-	if((_3d_acc > 0.0f) && (_3d_acc < (GPS_ACC_TOLERANT * GPS_ACC_TOLERANT))) {
+	if(_3d_acc < (GPS_ACC_TOLERANT * GPS_ACC_TOLERANT)) {
 		return true;
 	} else {
 		return false;
