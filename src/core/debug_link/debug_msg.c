@@ -10,6 +10,7 @@
 #include "gps.h"
 #include "optitrack.h"
 #include "rangefinder.h"
+#include "proj_config.h"
 
 void send_alt_est_debug_message(debug_msg_t *payload)
 {
