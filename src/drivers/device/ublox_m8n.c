@@ -70,9 +70,13 @@ bool ublox_available(void)
 		return false;
 	}
 
-	/* check gps uncertainty */
 	float h_acc = ublox.h_acc * 1e-3;
 	//float v_acc = ublox.v_acc * 1e-3;
+
+	/* accuracy range check */
+	if(ublox.h_acc < 0 || ublox.v_acc < 0) {
+		return false;
+	}
 
 	float _3d_acc = h_acc*h_acc;
 	if(_3d_acc < (GPS_ACC_TOLERANT * GPS_ACC_TOLERANT)) {
