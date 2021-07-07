@@ -157,7 +157,7 @@ static void mav_cmd_override_mission_halt_handler(uint8_t sender_id, mavlink_com
 {
 	uint8_t ack_result;
 
-	int retval = autopilot_resume_waypoint_mission();
+	int retval = autopilot_halt_waypoint_mission();
 	switch(retval) {
 	case AUTOPILOT_SET_SUCCEED:
 		ack_result = MAV_RESULT_ACCEPTED;
