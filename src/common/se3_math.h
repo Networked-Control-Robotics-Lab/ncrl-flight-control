@@ -21,5 +21,6 @@ void cross_product_3x1(float *vec_a, float *vec_b, float *vec_result);
 void norm_3x1(float *vec, float *norm);
 void normalize_3x1(float *vec);
 float calc_vectors_angle_3x1(float *vec1, float *vec2);
+void calc_matrix_multiply_vector_3d(float *vec_out, float *vec_in, float *matrix);
 
 #endif

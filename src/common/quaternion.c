@@ -44,6 +44,11 @@ void quat_to_euler(float *q, euler_t *euler)
 	euler->yaw = atan2(2.0*(q[0]*q[3] + q[1]*q[2]), 1.0-2.0*(q[2]*q[2] + q[3]*q[3]));
 }
 
+float calc_yaw_from_quat(float *q)
+{
+	return atan2(2.0*(q[0]*q[3] + q[1]*q[2]), 1.0-2.0*(q[2]*q[2] + q[3]*q[3]));
+}
+
 //in: euler angle [radian], out: quaternion
 void euler_to_quat(euler_t *euler, float *q)
 {

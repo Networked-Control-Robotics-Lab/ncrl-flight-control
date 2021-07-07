@@ -138,3 +138,10 @@ float calc_vectors_angle_3x1(float *vec1, float *vec2)
 
 	return rad_to_deg(acosf(dot_div_norm));
 }
+
+void calc_matrix_multiply_vector_3d(float *vec_out, float *vec_in, float *matrix)
+{
+	vec_out[0] = matrix[0*3 + 0] * vec_in[0] + matrix[0*3 + 1] * vec_in[1] + matrix[0*3 + 2] * vec_in[2];
+	vec_out[1] = matrix[1*3 + 0] * vec_in[0] + matrix[1*3 + 1] * vec_in[1] + matrix[1*3 + 2] * vec_in[2];
+	vec_out[2] = matrix[2*3 + 0] * vec_in[0] + matrix[2*3 + 1] * vec_in[1] + matrix[2*3 + 2] * vec_in[2];
+}

@@ -1,6 +1,8 @@
 #ifndef __VINS_MONO_H__
 #define __VINS_MONO_H__
 
+#include "debug_link.h"
+
 #define VINS_MONO_SERIAL_MSG_SIZE 44
 
 typedef struct {
@@ -9,9 +11,8 @@ typedef struct {
 	/* position [m] */
 	float pos[3];
 
-	/* velocity (numerical differentiation) [m/s] */
-	float vel_raw[3];
-	float vel_filtered[3];
+	/* velocity [m/s] */
+	float vel[3];
 
 	/* orientation (quaternion) */
 	float q[4];
@@ -23,12 +24,6 @@ typedef struct {
 	volatile int buf_pos;
 	uint8_t buf[VINS_MONO_SERIAL_MSG_SIZE];
 	bool vel_ready;
-
-	/* coordinate alignment */
-	float q_align[4];
-	float pos_align[3];
-	bool q_align_on;
-	bool pos_align_on;
 } vins_mono_t ;
 
 
@@ -48,21 +43,19 @@ void vins_mono_camera_trigger_20hz(void);
 void vins_mono_update(void);
 bool vins_mono_available(void);
 
-/* coordinate alignment interface */
-void enable_orientation_alignment(void);
-void disable_orientation_alignment(void);
-void enable_position_alignment(void);
-void disable_position_alignment(void);
-void set_vins_mono_orientation_alignment(float *q);
-void set_vins_mono_position_alignment(float *pos);
-
 /* vins_mono getters */
+
+void vins_mono_read_pos(float *pos);
 float vins_mono_read_pos_x(void);
 float vins_mono_read_pos_y(void);
 float vins_mono_read_pos_z(void);
+
+void vins_mono_read_vel(float *vel);
 float vins_mono_read_vel_x(void);
 float vins_mono_read_vel_y(void);
 float vins_mono_read_vel_z(void);
+
+void vins_mono_read_quaternion(float *q);
 
 /* vins-mono debug messages */
 void send_vins_mono_position_debug_message(debug_msg_t *payload);

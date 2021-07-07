@@ -1,6 +1,7 @@
 #ifndef __AUTOPILOT_H__
 #define __AUTOPILOT_H__
 
+#include <stdint.h>
 #include <stdbool.h>
 
 #define TRAJ_WP_MAX_NUM 50

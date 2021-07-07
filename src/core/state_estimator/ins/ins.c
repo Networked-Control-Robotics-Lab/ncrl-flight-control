@@ -72,6 +72,13 @@ void ins_state_estimate(void)
 }
 
 /* raw position getters */
+void ins_get_raw_position(float *pos)
+{
+	pos[0] = pos_enu_raw[0];
+	pos[1] = pos_enu_raw[1];
+	pos[2] = pos_enu_raw[2];
+}
+
 float ins_get_raw_position_x(void)
 {
 	return pos_enu_raw[0];
@@ -88,6 +95,13 @@ float ins_get_raw_position_z(void)
 }
 
 /* raw velocity getters */
+void ins_get_raw_velocity(float *vel)
+{
+	vel[0] = vel_enu_raw[0];
+	vel[1] = vel_enu_raw[1];
+	vel[2] = vel_enu_raw[2];
+}
+
 float ins_get_raw_velocity_x(void)
 {
 	return vel_enu_raw[0];
@@ -104,6 +118,13 @@ float ins_get_raw_velocity_z(void)
 }
 
 /* ins fused position getters */
+void ins_get_fused_position(float *pos)
+{
+	pos[0] = pos_enu_fused[0];
+	pos[1] = pos_enu_fused[1];
+	pos[2] = pos_enu_fused[2];
+}
+
 float ins_get_fused_position_x(void)
 {
 	return pos_enu_fused[0];
@@ -120,6 +141,13 @@ float ins_get_fused_position_z(void)
 }
 
 /* ins fused velocity getters */
+void ins_get_fused_velocity(float *vel)
+{
+	vel[0] = vel_enu_fused[0];
+	vel[1] = vel_enu_fused[1];
+	vel[2] = vel_enu_fused[2];
+}
+
 float ins_get_fused_velocity_x(void)
 {
 	return vel_enu_fused[0];
