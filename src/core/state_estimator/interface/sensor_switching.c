@@ -59,36 +59,36 @@ static void nav_switch_non_aligned_vio_to_gnss_ins(void)
 	vio_get_quaternion(q_nonaligned_vio);
 
 	/* calculate yaw angle from the quaternion */
-	//float yaw_gnss_ins = calc_yaw_from_quat(q_gnss_ins);
-	//float yaw_nonaligned_vio = calc_yaw_from_quat(q_nonaligned_vio);
+	float yaw_gnss_ins = calc_yaw_from_quat(q_gnss_ins);
+	float yaw_nonaligned_vio = calc_yaw_from_quat(q_nonaligned_vio);
 
 	/* calculate translation */
-	float p_transform[3]/*, yaw_transform*/;
+	float p_transform[3], yaw_transform;
 	p_transform[0] = p_gnss_ins[0] - p_nonaligned_vio[0];
 	p_transform[1] = p_gnss_ins[1] - p_nonaligned_vio[1];
 	p_transform[2] = p_gnss_ins[2] - p_nonaligned_vio[2];
-	//yaw_transform = yaw_gnss_ins - yaw_nonaligned_vio;
+	yaw_transform = yaw_gnss_ins - yaw_nonaligned_vio;
 
-	float xd[3]/*, yaw_d*/;
+	float xd[3], yaw_d;
 	autopilot_get_pos_setpoint(xd);
-	//yaw_d = autopilot_get_yaw_setpoint();
+	yaw_d = autopilot_get_heading_setpoint();
 
 	/* calculate coordinate transform */
 	xd[0] += p_transform[0];
 	xd[1] += p_transform[1];
 	xd[2] += p_transform[2];
-	//yaw_d += yaw_transform;
+	yaw_d += yaw_transform;
 
 	/* bound the yaw angle in the range of [-180, +180] */
-	//if(yaw_d > +180.0f) {
-	//	yaw_d -= 360.0f;
-	//} else if(*yaw_d < -180.0f) {
-	//	yaw_d += 360.0f;
-	//}
+	if(yaw_d > +180.0f) {
+		yaw_d -= 360.0f;
+	} else if(yaw_d < -180.0f) {
+		yaw_d += 360.0f;
+	}
 
 	/* apply coordinate transform to the controller */
 	autopilot_assign_pos_target(xd[0], xd[1], xd[2]);
-	//autopilot_assign_yaw_target(yaw_d); //XXX
+	autopilot_assign_heading_target(yaw_d);
 }
 
 static void nav_switch_aligned_vio_to_gnss_ins(void)
