@@ -548,8 +548,14 @@ class serial_plotter_class:
                 self.show_subplot()
 
         elif (message_id == 33):
-          	plt.subplot(111)
-        	plt.ylabel('eskf1 P matrix')
+                plt.subplot(211)
+                plt.ylabel('time [ms]')
+                plt.ylim([0.0, 600000.0])
+                self.create_curve('time', 'red')
+                self.show_subplot()
+
+          	plt.subplot(212)
+        	plt.ylabel('GPS accuracy')
         	plt.ylim([-1, 30])
         	self.create_curve('h_acc', 'blue')
                 self.create_curve('v_acc', 'red')

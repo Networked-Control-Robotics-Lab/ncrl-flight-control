@@ -139,6 +139,8 @@ void send_ins_fusion_debug_message(debug_msg_t *payload)
 
 void send_gps_accuracy_debug_message(debug_msg_t *payload)
 {
+	float curr_time_ms = get_sys_time_ms();
+
 	float h_acc, v_acc;
 	get_gps_position_uncertainty(&h_acc, &v_acc);
 
@@ -147,6 +149,7 @@ void send_gps_accuracy_debug_message(debug_msg_t *payload)
 	v_acc *= 0.001;
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_GPS_ACCURACY);
+	pack_debug_debug_message_float(&curr_time_ms, payload);
 	pack_debug_debug_message_float(&h_acc, payload);
 	pack_debug_debug_message_float(&v_acc, payload);
 }
