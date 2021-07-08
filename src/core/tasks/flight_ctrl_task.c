@@ -80,20 +80,6 @@ void rc_safety_protection(void)
 	} while(rc_safety_check(&rc) == 1);
 }
 
-void rc_yaw_setpoint_handler(float *desired_yaw, float rc_yaw_cmd, float dt)
-{
-	/* changing yaw setpoint if yaw joystick exceed the +-5 degree zone */
-	if(rc_yaw_cmd > +5.0f || rc_yaw_cmd < -5.0f) {
-		*desired_yaw += rc_yaw_cmd * dt;
-		/* signal bounding */
-		if(*desired_yaw > +180.0f) {
-			*desired_yaw -= 360.0f;
-		} else if(*desired_yaw < -180.0f) {
-			*desired_yaw += 360.0f;
-		}
-	}
-}
-
 void task_flight_ctrl(void *param)
 {
 #if (SELECT_CONTROLLER == QUADROTOR_USE_PID)
@@ -149,8 +135,6 @@ void task_flight_ctrl(void *param)
 	/* from now on, led control task will be taken by rgb_led_service driver */
 	enable_rgb_led_service();
 
-	float desired_yaw = 0.0f;
-
 	/* flight control loop */
 	while(1) {
 		perf_start(PERF_FLIGHT_CONTROL_TRIGGER_TIME);
@@ -176,7 +160,6 @@ void task_flight_ctrl(void *param)
 #endif
 
 		sbus_rc_read(&rc);
-		rc_yaw_setpoint_handler(&desired_yaw, -rc.yaw, 0.0025);
 
 		/* attitude estimation */
 		perf_start(PERF_AHRS_INS);
@@ -189,9 +172,9 @@ void task_flight_ctrl(void *param)
 		perf_start(PERF_CONTROLLER);
 		{
 #if (SELECT_CONTROLLER == QUADROTOR_USE_PID)
-			multirotor_pid_control(&rc, &desired_yaw);
+			multirotor_pid_control(&rc);
 #elif (SELECT_CONTROLLER == QUADROTOR_USE_GEOMETRY)
-			multirotor_geometry_control(&rc, &desired_yaw);
+			multirotor_geometry_control(&rc);
 #endif
 		}
 		perf_end(PERF_CONTROLLER);

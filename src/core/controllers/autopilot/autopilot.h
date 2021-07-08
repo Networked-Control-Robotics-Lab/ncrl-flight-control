@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "sbus_radio.h"
 
 #define TRAJ_WP_MAX_NUM 50
 
@@ -147,6 +148,7 @@ bool autopilot_is_armed(void);
 void autopilot_lock_motor(void);
 void autopilot_unlock_motor(void);
 
+void autopilot_assign_heading_target(float heading);
 void autopilot_assign_pos_target(float x, float y, float z);
 void autopilot_assign_pos_target_x(float x);
 void autopilot_assign_pos_target_y(float y);
@@ -164,6 +166,7 @@ void autopilot_set_armed(void);
 void autopilot_set_disarmed(void);
 
 int autopilot_get_mode(void);
+float autopilot_get_heading_setpoint(void);
 void autopilot_get_pos_setpoint(float *pos_set);
 float autopilot_get_pos_setpoint_x(void);
 float autopilot_get_pos_setpoint_y(void);
@@ -174,7 +177,7 @@ float autopilot_get_vel_setpoint_y(void);
 float autopilot_get_vel_setpoint_z(void);
 void autopilot_get_accel_feedforward(float *accel_ff);
 
-void autopilot_guidance_handler(float *curr_pos_enu, float *curr_vel_enu);
+void autopilot_guidance_handler(radio_t *rc, float *curr_pos_enu, float *curr_vel_enu);
 
 void debug_print_waypoint_list(void);
 void debug_print_waypoint_status(void);

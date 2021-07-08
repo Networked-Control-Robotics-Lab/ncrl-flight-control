@@ -530,7 +530,7 @@ void rc_mode_handler_geometry_ctrl(radio_t *rc)
 	auto_flight_mode_last = rc->auto_flight;
 }
 
-void multirotor_geometry_control(radio_t *rc, float *desired_heading)
+void multirotor_geometry_control(radio_t *rc)
 {
 	/* check rc events */
 	rc_mode_handler_geometry_ctrl(rc);
@@ -540,7 +540,7 @@ void multirotor_geometry_control(radio_t *rc, float *desired_heading)
 	bool height_availabe = is_height_available();
 	bool heading_available = is_compass_available();
 
-	/* get imu datay */
+	/* get imu data */
 	float accel_lpf[3];
 	float gyro_lpf[3];
 	get_accel_lpf(accel_lpf);
@@ -572,26 +572,27 @@ void multirotor_geometry_control(radio_t *rc, float *desired_heading)
 	gyro[1] = deg_to_rad(gyro_lpf[1]);
 	gyro[2] = deg_to_rad(gyro_lpf[2]);
 
-	/* prepare manual control attitude commands (euler angle) */
+	/* guidance loop (autopilot) */
+	autopilot_guidance_handler(rc, curr_pos_enu, curr_vel_enu);
+
+	/* prepare desired heading angle, position, velocity and acceleration feedforward */
+	float desired_heading, pos_des_enu[3], vel_des_enu[3], accel_ff_enu[3];
+	desired_heading = autopilot_get_heading_setpoint();
+	autopilot_get_pos_setpoint(pos_des_enu);
+	autopilot_get_vel_setpoint(vel_des_enu);
+	autopilot_get_accel_feedforward(accel_ff_enu);
+
+	/* prepare manual control attitude commands (euler angles) */
 	euler_t attitude_cmd;
 	attitude_cmd.roll = deg_to_rad(-rc->roll);
 	attitude_cmd.pitch = deg_to_rad(-rc->pitch);
 	if(heading_available == true) {
 		//yaw control mode
-		attitude_cmd.yaw = deg_to_rad(*desired_heading);
+		attitude_cmd.yaw = deg_to_rad(desired_heading);
 	} else {
 		//yaw rate control mode
 		attitude_cmd.yaw = deg_to_rad(-rc->yaw);
 	}
-
-	/* guidance loop (autopilot) */
-	autopilot_guidance_handler(curr_pos_enu, curr_vel_enu);
-
-	/* prepare desired position, velocity and acceleration feedforward */
-	float pos_des_enu[3], vel_des_enu[3], accel_ff_enu[3];
-	autopilot_get_pos_setpoint(pos_des_enu);
-	autopilot_get_vel_setpoint(vel_des_enu);
-	autopilot_get_accel_feedforward(accel_ff_enu);
 
 	float control_moments[3] = {0.0f}, control_force = 0.0f;
 
@@ -615,7 +616,7 @@ void multirotor_geometry_control(radio_t *rc, float *desired_heading)
 	}
 
 	if(rc->safety == true) {
-		*desired_heading = attitude_yaw;
+		autopilot_assign_heading_target(attitude_yaw);
 		barometer_set_sea_level();
 		set_rgb_led_service_motor_lock_flag(true);
 	} else {

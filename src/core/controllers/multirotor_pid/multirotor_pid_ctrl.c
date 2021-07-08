@@ -304,7 +304,7 @@ void rc_mode_change_handler_pid(radio_t *rc)
 	auto_flight_mode_last = rc->auto_flight;
 }
 
-void multirotor_pid_control(radio_t *rc, float *desired_heading)
+void multirotor_pid_control(radio_t *rc)
 {
 	rc_mode_change_handler_pid(rc);
 
@@ -332,7 +332,10 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 	altitude_control(pos_enu[2], vel_enu[2], &pid_alt_vel, &pid_alt);
 
 	/* guidance loop (autopilot) */
-	autopilot_guidance_handler(pos_enu, vel_enu);
+	autopilot_guidance_handler(rc, pos_enu, vel_enu);
+
+	/* get desired heading angle */
+	float desired_heading = autopilot_get_heading_setpoint();
 
 	/* feed position controller setpoint from autopilot (ned) */
 	float position_setpoint[3];
@@ -390,7 +393,7 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 
 	//used if heading sensor is not present
 	yaw_rate_p_control(&pid_yaw_rate, -rc->yaw, gyro_lpf[2]);
-	yaw_pd_control(&pid_yaw, *desired_heading, attitude_yaw, gyro_lpf[2], 0.0025);
+	yaw_pd_control(&pid_yaw, desired_heading, attitude_yaw, gyro_lpf[2], 0.0025);
 
 	/* check if heading sensor is present */
 	float yaw_ctrl_output = pid_yaw.output;
@@ -400,8 +403,8 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 	}
 
 	if(rc->safety == true) {
+		autopilot_assign_heading_target(attitude_yaw);
 		set_yaw_pd_setpoint(&pid_yaw, attitude_yaw);
-		*desired_heading = attitude_yaw;
 		set_rgb_led_service_motor_lock_flag(true);
 	} else {
 		set_rgb_led_service_motor_lock_flag(false);
