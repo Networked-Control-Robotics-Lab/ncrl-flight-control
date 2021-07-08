@@ -79,8 +79,7 @@ SRC+=./core/main.c \
 	./core/state_estimator/ins/ins_sensor_sync.c \
 	./core/state_estimator/ins/dummy_sensors.c \
 	./core/state_estimator/interface/system_state.c \
-	./core/state_estimator/interface/vio_interface.c \
-	./core/state_estimator/interface/sensor_switching.c \
+	./core/state_estimator/sensor_switching/sensor_switching.c \
 	./core/controllers/multirotor_pid/multirotor_pid_ctrl.c \
 	./core/controllers/multirotor_pid/multirotor_pid_param.c \
 	./core/controllers/multirotor_geometry/multirotor_geometry_ctrl.c \
@@ -149,7 +148,8 @@ SRC+=./drivers/periph/uart.c \
 	./drivers/interface/barometer.c \
 	./drivers/interface/compass.c \
 	./drivers/interface/gps.c \
-	./drivers/interface/rangefinder.c
+	./drivers/interface/rangefinder.c \
+	./drivers/interface/vio.c
 
 CFLAGS+=-I./
 CFLAGS+=-I./platform
@@ -159,6 +159,7 @@ CFLAGS+=-I./core/state_estimator
 CFLAGS+=-I./core/state_estimator/ahrs
 CFLAGS+=-I./core/state_estimator/ins
 CFLAGS+=-I./core/state_estimator/interface
+CFLAGS+=-I./core/state_estimator/sensor_switching
 CFLAGS+=-I./core/state_estimator/misc/free_fall
 CFLAGS+=-I./core/controllers
 CFLAGS+=-I./core/controllers/multirotor_pid

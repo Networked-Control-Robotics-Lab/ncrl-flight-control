@@ -7,6 +7,7 @@
 #include "esc_calibration.h"
 #include "proj_config.h"
 #include "system_state.h"
+#include "sensor_switching.h"
 
 void multirotor_free_fall_rc(radio_t *rc);
 void multirotor_navigation_switch_test(radio_t *rc);
@@ -63,16 +64,13 @@ void multirotor_navigation_switch_test(radio_t *rc)
 	if(rc->aux1_mode == RC_AUX_MODE2 && aux1_mode_last != RC_AUX_MODE2) {
 		/* middle position is used to trigger camera and imu only,
 		   the code is implemented in the flight control task */
-		change_heading_sensor_src(HEADING_FUSION_USE_OPTITRACK);
-		change_position_sensor_src(POSITION_FUSION_USE_OPTITRACK);
-		change_height_sensor_src(HEIGHT_FUSION_USE_OPTITRACK);
+		switch_navigation_system(NAV_GNSS_INS);
 	}
 
 	/* aux1 button: lower position */
 	if(rc->aux1_mode == RC_AUX_MODE3 && aux1_mode_last != RC_AUX_MODE3) {
-		change_heading_sensor_src(HEADING_FUSION_USE_VINS_MONO);
-		change_position_sensor_src(POSITION_FUSION_USE_VINS_MONO);
-		change_height_sensor_src(HEIGHT_FUSION_USE_VINS_MONO);
+		switch_navigation_system(NAV_LOCAL_VIO);
+		//switch_navigation_system(NAV_GNSS_ALIGNED_VIO);
 
 		/* beside of navigation system switching, the camera trigger
 		   and imu data sending are implemented in the flight control

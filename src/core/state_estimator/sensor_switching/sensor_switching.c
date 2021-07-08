@@ -1,21 +1,53 @@
 #include <stdbool.h>
 #include "sensor_switching.h"
 #include "autopilot.h"
-#include "vio_interface.h"
+#include "vio.h"
 #include "ins.h"
 #include "quaternion.h"
+#include "vio.h"
+#include "gps.h"
+#include "vins_mono.h"
+#include "compass.h"
+#include "proj_config.h"
+#include "system_state.h"
 
-nav_sys_manager_t nav_sys_mananger;
+#define ENABLE_SENSOR_SWITCHING 0
 
-void navigation_system_manager_init(int select)
+nav_sys_manager_t nav_sys_manager;
+
+void navigation_system_manager_init(void)
 {
-	nav_sys_mananger.select = select;
+#if (ENABLE_SENSOR_SWITCHING == 0)
+	return;
+#endif
+
+#if 1   /* initial start with the gnss/ins */
+	nav_sys_manager.curr_nav_sys = NAV_GNSS_INS;
+	change_heading_sensor_src(HEADING_FUSION_USE_COMPASS);
+	change_position_sensor_src(POSITION_FUSION_USE_GPS);
+	change_height_sensor_src(HEIGHT_FUSION_USE_RANGEFINDER);
+#else   /* initial start with the vio */
+	change_heading_sensor_src(HEADING_FUSION_USE_VINS_MONO);
+	change_position_sensor_src(POSITION_FUSION_USE_VINS_MONO);
+	change_height_sensor_src(HEIGHT_FUSION_USE_VINS_MONO);
+#endif
 }
 
 static void nav_switch_gnss_ins_to_aligned_vio(void)
 {
-	/* select new navigation system */
-	nav_sys_mananger.select = NAV_GNSS_ALIGNED_VIO;
+	/* curr_nav_sys new navigation system */
+	nav_sys_manager.curr_nav_sys = NAV_GNSS_ALIGNED_VIO;
+
+	/*=========================*
+	 * update reference signal *
+	 *=========================*/
+
+	vio_calc_frame_alignment_transform();
+	vio_enable_frame_alignment();
+
+	/*=========================*
+	 * update control setpoint *
+	 *=========================*/
 
 	/* position state from the gnss aligned vio */
 	float p_aligned_vio[3];
@@ -45,8 +77,19 @@ static void nav_switch_gnss_ins_to_aligned_vio(void)
 
 static void nav_switch_non_aligned_vio_to_gnss_ins(void)
 {
-	/* select new navigation system */
-	nav_sys_mananger.select = NAV_GNSS_INS;
+	/* curr_nav_sys new navigation system */
+	nav_sys_manager.curr_nav_sys = NAV_GNSS_INS;
+
+	/*=========================*
+	 * update reference signal *
+	 *=========================*/
+	change_heading_sensor_src(HEADING_FUSION_USE_COMPASS);
+	change_position_sensor_src(POSITION_FUSION_USE_GPS);
+	change_height_sensor_src(HEIGHT_FUSION_USE_RANGEFINDER);
+
+	/*=========================*
+	 * update control setpoint *
+	 *=========================*/
 
 	/* position and quaternion state from the gnss ins */
 	float p_gnss_ins[3], q_gnss_ins[4];
@@ -93,8 +136,19 @@ static void nav_switch_non_aligned_vio_to_gnss_ins(void)
 
 static void nav_switch_aligned_vio_to_gnss_ins(void)
 {
-	/* select new navigation system */
-	nav_sys_mananger.select = NAV_GNSS_INS;
+	/* curr_nav_sys new navigation system */
+	nav_sys_manager.curr_nav_sys = NAV_GNSS_INS;
+
+	/*=========================*
+	 * update reference signal *
+	 *=========================*/
+	change_heading_sensor_src(HEADING_FUSION_USE_COMPASS);
+	change_position_sensor_src(POSITION_FUSION_USE_GPS);
+	change_height_sensor_src(HEIGHT_FUSION_USE_RANGEFINDER);
+
+	/*=========================*
+	 * update control setpoint *
+	 *=========================*/
 
 	/* position state from the gnss aligned vio */
 	float p_aligned_vio[3];
@@ -122,20 +176,47 @@ static void nav_switch_aligned_vio_to_gnss_ins(void)
 	autopilot_assign_pos_target(xd[0], xd[1], xd[2]);
 }
 
-bool switch_navigation_system(int new_select)
+void switch_navigation_system(int new_nav_sys)
 {
-	int old_select = nav_sys_mananger.select;
+	nav_sys_manager.new_nav_sys = new_nav_sys;
+	nav_sys_manager.require_update = true;
+}
+
+void sensor_switching_handler(void)
+{
+#if (ENABLE_SENSOR_SWITCHING == 0)
+	return;
+#endif
+
+	/* XXX: currently we can not handle the navigation system failure
+	   properly. If the case is happened, we turn off the auto-flight
+	   mode and let the user control the uav manually */
+
+	/* TODO: vio failure recovery procedure:
+	 * 1. save last position and quaternion as extrinsic parameters
+	 * 2. restart the vio, the origin is set at the new position in space
+	 * 3. coordinate transform with the extrinsic parameters */
+
+	/* TODO: gnss/ins failure recovery */
+
+	bool gps_ready = is_gps_available();
+	bool compass_ready = is_compass_available();
+	bool vio_ready = vins_mono_available();
+	bool sensors_all_ready = gps_ready && compass_ready && vio_ready;
+
+	if(nav_sys_manager.require_update == false && sensors_all_ready == true) {
+		return;
+	}
+	nav_sys_manager.require_update = false;
+
+	int old_select = nav_sys_manager.curr_nav_sys;
+	int new_select = nav_sys_manager.new_nav_sys;
 
 	if(old_select == NAV_GNSS_INS && new_select == NAV_GNSS_ALIGNED_VIO) {
 		nav_switch_gnss_ins_to_aligned_vio();
-		return true;
 	} else if(old_select == NAV_LOCAL_VIO && new_select == NAV_GNSS_INS) {
 		nav_switch_non_aligned_vio_to_gnss_ins();
-		return true;
 	} else if(old_select == NAV_GNSS_ALIGNED_VIO && new_select == NAV_GNSS_INS) {
 		nav_switch_aligned_vio_to_gnss_ins();
-		return true;
 	}
-
-	return false;
 }

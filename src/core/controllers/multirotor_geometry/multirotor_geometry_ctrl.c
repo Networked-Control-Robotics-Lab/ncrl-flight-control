@@ -24,6 +24,7 @@
 #include "led.h"
 #include "waypoint_following.h"
 #include "fence.h"
+#include "sensor_switching.h"
 
 #define dt 0.0025 //[s]
 #define MOTOR_TO_CG_LENGTH 16.25f //[cm]
@@ -92,6 +93,8 @@ void geometry_ctrl_init(void)
 	init_multirotor_geometry_param_list();
 
 	autopilot_init();
+
+	navigation_system_manager_init(); //for sensor switching
 
 	float geo_fence_origin[3] = {0.0f, 0.0f, 0.0f};
 	autopilot_set_enu_rectangular_fence(geo_fence_origin, 2.5f, 1.3f, 3.0f);
@@ -532,6 +535,9 @@ void rc_mode_handler_geometry_ctrl(radio_t *rc)
 
 void multirotor_geometry_control(radio_t *rc)
 {
+	/* handle sensor failure and navigation system switching */
+	sensor_switching_handler();
+
 	/* check rc events */
 	rc_mode_handler_geometry_ctrl(rc);
 
