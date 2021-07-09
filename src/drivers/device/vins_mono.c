@@ -111,13 +111,10 @@ int vins_mono_serial_decoder(uint8_t *buf)
 
 	vins_mono.time_now = get_sys_time_ms();
 
-	float pos_enu[3];
-	float q_enu[4];
-
 	/* decode position (enu frame) */
-	memcpy(&pos_enu[0], &buf[3], sizeof(float));
-	memcpy(&pos_enu[1], &buf[7], sizeof(float));
-	memcpy(&pos_enu[2], &buf[11], sizeof(float));
+	memcpy(&vins_mono.pos[0], &buf[3], sizeof(float));
+	memcpy(&vins_mono.pos[1], &buf[7], sizeof(float));
+	memcpy(&vins_mono.pos[2], &buf[11], sizeof(float));
 
 	/* decode velocity (enu frame) */
 	memcpy(&vins_mono.vel[0], &buf[15], sizeof(float));
@@ -125,6 +122,7 @@ int vins_mono_serial_decoder(uint8_t *buf)
 	memcpy(&vins_mono.vel[2], &buf[23], sizeof(float));
 
 	/* decode quaternion (ned frame) */
+	float q_enu[4];
 	memcpy(&q_enu[0], &buf[27], sizeof(float));
 	memcpy(&q_enu[1], &buf[31], sizeof(float));
 	memcpy(&q_enu[2], &buf[35], sizeof(float));
