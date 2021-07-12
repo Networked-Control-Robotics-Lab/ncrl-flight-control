@@ -9,10 +9,10 @@
  * the parameters is given by NASA's Earth Fact Sheet:            *
  * https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html *
  *================================================================*/
-#define EQUATORIAL_RADIUS 6378137 //[m], earth semi-major length (AE)
-#define POLAR_RADIUS      6356752 //[m], earth semi-minor length (AP)
-#define AP_SQ_DIV_AE_SQ   0.99331 //(AP^2)/(AE^2)
-#define ECCENTRICITY      0.08182 //e^2 = 1 - (AP^2)/(AE^2)
+#define EQUATORIAL_RADIUS 6378137       //[m], earth semi-major length (AE)
+#define POLAR_RADIUS      6356752       //[m], earth semi-minor length (AP)
+#define AP_SQ_DIV_AE_SQ   0.9933055218  //(AP^2)/(AE^2)
+#define ECCENTRICITY      0.00669447819 //e^2 = 1 - (AP^2)/(AE^2)
 
 /*==========================*
  * spherical model of earth *
