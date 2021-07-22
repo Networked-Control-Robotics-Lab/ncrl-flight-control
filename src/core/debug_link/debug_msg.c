@@ -11,6 +11,7 @@
 #include "optitrack.h"
 #include "rangefinder.h"
 #include "proj_config.h"
+#include "vins_mono.h"
 
 void send_alt_est_debug_message(debug_msg_t *payload)
 {
@@ -152,4 +153,24 @@ void send_gps_accuracy_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_float(&curr_time_ms, payload);
 	pack_debug_debug_message_float(&h_acc, payload);
 	pack_debug_debug_message_float(&v_acc, payload);
+}
+
+void send_optitrack_vins_mono_debug_message(debug_msg_t *payload)
+{
+	float curr_time_ms = get_sys_time_ms();
+
+	float pos_optitrack[3];
+	optitrack_read_pos(pos_optitrack);
+
+	float pos_vins_mono[3];
+	vins_mono_read_pos(pos_vins_mono);
+
+	pack_debug_debug_message_header(payload, MESSAGE_ID_OPTITRACK_VINS_MONO);
+	pack_debug_debug_message_float(&curr_time_ms, payload);
+	pack_debug_debug_message_float(&pos_optitrack[0], payload);
+	pack_debug_debug_message_float(&pos_optitrack[1], payload);
+	pack_debug_debug_message_float(&pos_optitrack[2], payload);
+	pack_debug_debug_message_float(&pos_vins_mono[0], payload);
+	pack_debug_debug_message_float(&pos_vins_mono[1], payload);
+	pack_debug_debug_message_float(&pos_vins_mono[2], payload);
 }

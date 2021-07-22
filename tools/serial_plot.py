@@ -17,7 +17,7 @@ ser = serial.Serial(
     bytesize=serial.EIGHTBITS,\
     timeout=100)
 
-save_csv = False
+save_csv = True
 csv_file = 'serial_log.csv'
 
 if save_csv == True:
@@ -603,6 +603,29 @@ class serial_plotter_class:
                 plt.ylabel('gps freq')
                 plt.ylim([-1, 100])
                 self.create_curve('gps freq', 'green')
+                self.show_subplot()
+
+        elif (message_id == 36):
+                plt.subplot(311)
+                plt.ylabel('time [ms]')
+                plt.ylim([0.0, 600000.0])
+                self.create_curve('time', 'red')
+                self.show_subplot()
+
+                plt.subplot(312)
+                plt.ylabel('optitrack pos [cm]')
+                plt.ylim([-2, 2])
+                self.create_curve('x', 'red')
+                self.create_curve('y', 'orange')
+                self.create_curve('z', 'yellow')
+                self.show_subplot()
+
+                plt.subplot(313)
+                plt.ylabel('vins_mono pos')
+                plt.ylim([-2, 2])
+                self.create_curve('x', 'red')
+                self.create_curve('y', 'orange')
+                self.create_curve('z', 'yellow')
                 self.show_subplot()
 
 

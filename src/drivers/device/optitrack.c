@@ -163,6 +163,13 @@ int optitrack_serial_decoder(uint8_t *buf)
 	return 0;
 }
 
+void optitrack_read_pos(float *pos)
+{
+	pos[0] = optitrack.pos[0];
+	pos[1] = optitrack.pos[1];
+	pos[2] = optitrack.pos[2];
+}
+
 float optitrack_read_pos_x(void)
 {
 	return optitrack.pos[0];
