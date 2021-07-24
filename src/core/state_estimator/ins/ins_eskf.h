@@ -16,6 +16,7 @@ typedef struct {
 } ins_eskf_t;
 
 void eskf_ins_init(float dt);
+bool eskf_ins_is_stable(void);
 bool ins_eskf_estimate(attitude_t *attitude,
                        float *pos_enu_raw, float *vel_enu_raw,
                        float *pos_enu_fused, float *vel_enu_fused);

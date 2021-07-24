@@ -61,6 +61,7 @@ void ins_state_estimate(void)
 	/* full state estimator */
 	bool eskf_ready = ins_eskf_estimate(&attitude, pos_enu_raw, vel_enu_raw,
 	                                    pos_enu_fused, vel_enu_fused);
+	eskf_ready &= eskf_ins_is_stable(); //check if the covariance matrix norm is converged
 
 	/* switch to complementary filter */
 	if(eskf_ready == false) {
