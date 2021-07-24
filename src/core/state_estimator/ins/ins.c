@@ -68,6 +68,9 @@ void ins_state_estimate(void)
 		ahrs_estimate(&attitude);
 		ins_complementary_filter_estimate(pos_enu_raw, vel_enu_raw,
 		                                  pos_enu_fused, vel_enu_fused);
+
+		/* set flight mode to manual mode */
+		autopilot_set_mode(AUTOPILOT_MANUAL_FLIGHT_MODE);
 	}
 #endif
 }
