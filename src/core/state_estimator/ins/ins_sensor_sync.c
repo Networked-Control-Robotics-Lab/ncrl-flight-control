@@ -5,10 +5,10 @@
 #include "task.h"
 #include "semphr.h"
 
-#define INS_SYNC_BAROMETER_BUF_SIZE   100
-#define INS_SYNC_GPS_BUF_SIZE          20
-#define INS_SYNC_COMPASS_BUF_SIZE     100
-#define INS_SYNC_RANGEFINDER_BUF_SIZE 100
+#define INS_SYNC_BAROMETER_BUF_SIZE   50
+#define INS_SYNC_GPS_BUF_SIZE         10
+#define INS_SYNC_COMPASS_BUF_SIZE     50
+#define INS_SYNC_RANGEFINDER_BUF_SIZE 50
 
 QueueHandle_t ins_sync_barometer_queue;
 QueueHandle_t ins_sync_gps_queue;
