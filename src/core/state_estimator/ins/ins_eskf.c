@@ -213,6 +213,27 @@ void eskf_ins_init(float _dt)
 	matrix_reset(mat_data(_HPHt_V_rangefinder), 2, 2);
 }
 
+float eskf_ins_get_covariance_matrix_norm(void)
+{
+	float norm = 0;
+
+	int i;
+	for(i = 0; i < 9; i++) {
+		norm += P_prior(i, i);
+	}
+
+	return norm * 1e-7;
+}
+
+bool eskf_ins_is_stable(void)
+{
+	if(eskf_ins_get_covariance_matrix_norm() < 1e-2) {
+		return  true;
+	} else {
+		return false;
+	}
+}
+
 void eskf_ins_predict(float *accel, float *gyro)
 {
 	/* input variables (ned frame) */
