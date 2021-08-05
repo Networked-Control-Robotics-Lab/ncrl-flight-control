@@ -33,7 +33,7 @@ void euler_to_rotation_matrix(euler_t *euler, float *r, float *r_transpose)
 	r_transpose[2*3 + 0] = r[0*3 + 2];
 
 	r_transpose[0*3 + 1] = r[1*3 + 0];
-	r_transpose[1*3 + 1] = r[1*3 + 0];
+	r_transpose[1*3 + 1] = r[1*3 + 1];
 	r_transpose[2*3 + 1] = r[1*3 + 2];
 
 	r_transpose[0*3 + 2] = r[2*3 + 0];
@@ -73,7 +73,7 @@ void quat_to_rotation_matrix(float *q, float *r, float *r_transpose)
 	r_transpose[2*3 + 0] = r[0*3 + 2];
 
 	r_transpose[0*3 + 1] = r[1*3 + 0];
-	r_transpose[1*3 + 1] = r[1*3 + 0];
+	r_transpose[1*3 + 1] = r[1*3 + 1];
 	r_transpose[2*3 + 1] = r[1*3 + 2];
 
 	r_transpose[0*3 + 2] = r[2*3 + 0];
