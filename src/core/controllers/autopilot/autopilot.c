@@ -217,7 +217,7 @@ void autopilot_get_accel_feedforward(float *accel_ff)
 	accel_ff[2] = autopilot.ctrl_target.acc_feedforward[2];
 }
 
-void autopilot_hovering_position_trimming_handler(void)
+void autopilot_hovering_position_trimming_handler(radio_t *rc)
 {
 	const float dt = 0.0001;
 
@@ -229,17 +229,14 @@ void autopilot_hovering_position_trimming_handler(void)
 	float x_increment_i = 0.0f;
 	float y_increment_i = 0.0f;
 
-	radio_t rc;
-	sbus_rc_read(&rc);
-
 	/* pitch */
-	if(rc.pitch > 5.0f || rc.pitch < -5.0f) {
-		x_increment_b = rc.pitch * dt;
+	if(rc->pitch > 5.0f || rc->pitch < -5.0f) {
+		x_increment_b = rc->pitch * dt;
 	}
 
 	/* roll */
-	if(rc.roll > 5.0f || rc.roll < -5.0f) {
-		y_increment_b = -rc.roll * dt; //TODO: unifying rc sign
+	if(rc->roll > 5.0f || rc->roll < -5.0f) {
+		y_increment_b = -rc->roll * dt; //TODO: unifying rc sign
 	}
 
 	float *R_b2i;
@@ -278,7 +275,7 @@ void autopilot_guidance_handler(radio_t *rc, float *curr_pos_enu, float *curr_ve
 	/* receive and handle remote controller commands */
 	switch(autopilot.mode) {
 	case AUTOPILOT_HOVERING_MODE:
-		autopilot_hovering_position_trimming_handler();
+		autopilot_hovering_position_trimming_handler(rc);
 		break;
 	}
 

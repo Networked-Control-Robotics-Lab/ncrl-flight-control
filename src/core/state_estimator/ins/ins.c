@@ -55,25 +55,41 @@ void ins_init(void)
 void ins_state_estimate(void)
 {
 #if (SELECT_INS == INS_COMPLEMENTARY_FILTER)
+	/* decouple orientation and position state estimation */
+
+	/* orientation state estimation (exact algorithm depends on user's selection) */
 	ahrs_estimate(&attitude);
+
+	/* position state estimation by complementary filter */
 	ins_complementary_filter_estimate(pos_enu_raw, vel_enu_raw,
 	                                  pos_enu_fused, vel_enu_fused);
 #elif (SELECT_INS == INS_ESKF)
-	/* full state estimator */
+	/* full state (orientation + position) estimation by eskf */
 	bool eskf_ready = ins_eskf_estimate(&attitude, pos_enu_raw, vel_enu_raw,
 	                                    pos_enu_fused, vel_enu_fused);
 	eskf_ready &= eskf_ins_is_stable(); //check if the covariance matrix norm is converged
 
-	/* switch to complementary filter */
+	/* use naive algorithm if eskf is not yet ready */
 	if(eskf_ready == false) {
+		/* decouple orientation and position state estimation */
+
+		/* orientation state estimation (exact algorithm depends on user's selection) */
 		ahrs_estimate(&attitude);
+
+		/* position state estimation by complementary filter */
 		ins_complementary_filter_estimate(pos_enu_raw, vel_enu_raw,
 		                                  pos_enu_fused, vel_enu_fused);
+	}
+#endif
 
+	/* deactivate the autopilot if the navigation state is not fully observable  */
+	bool navigation_ready = is_heading_available() &&
+	                        is_xy_position_available() &&
+	                        is_height_available();
+	if(navigation_ready == false) {
 		/* set flight mode to manual mode */
 		autopilot_set_mode(AUTOPILOT_MANUAL_FLIGHT_MODE);
 	}
-#endif
 }
 
 /* raw position getters */
