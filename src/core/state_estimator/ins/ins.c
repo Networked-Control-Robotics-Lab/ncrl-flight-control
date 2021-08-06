@@ -18,6 +18,7 @@
 #include "optitrack.h"
 #include "ahrs.h"
 #include "ins_eskf.h"
+#include "autopilot.h"
 
 #define INS_LOOP_PERIOD 0.0025f //400Hz
 
