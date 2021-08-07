@@ -7,6 +7,7 @@
 #include "gps.h"
 #include "compass.h"
 #include "ins.h"
+#include "optitrack.h"
 
 vio_t vio;
 
@@ -17,41 +18,53 @@ bool vio_available(void)
 
 void vio_enable_frame_alignment(void)
 {
-	vio.frame_align_on = true;
+	vio.frame_align = true;
 }
 
 void vio_disable_frame_alignment(void)
 {
-	vio.frame_align_on = false;
+	vio.frame_align = false;
 }
 
 void vio_calc_frame_alignment_transform(void)
 {
-	float q_gnss[4];
-	ins_ahrs_get_attitude_quaternion(q_gnss);
+	/* get position and quaternion from gnss/ins */
+	float p_gnss_ins[3], q_gnss_ins[4];
+	optitrack_read_pos(p_gnss_ins); //FIXME
+	ins_ahrs_get_attitude_quaternion(q_gnss_ins);
 
-	float q_local_vio[4];
+	/* get position and quaternion from local vio */
+	float p_local_vio[3], q_local_vio[4];
+	vins_mono_read_pos(p_local_vio);
 	vins_mono_read_quaternion(q_local_vio);
 
-	/* calculate inv(q_local_vio) */
-	float q_local_vio_inv[4];
-	quaternion_conj(q_local_vio, q_local_vio_inv);
+	/* calculate conjugation of q_local_vio */
+	float q_local_vio_conj[4];
+	quaternion_conj(q_local_vio, q_local_vio_conj);
 
-	/* calculate vio.q_align = inv(q_local_vio) * q_gnss */
-	quaternion_mult(q_local_vio_inv, q_gnss, vio.q_align);
+	/* calculate frame rotation */
+	float R[3*3]; //XXX: dummy variable
+	quaternion_mult(q_local_vio_conj, q_gnss_ins, vio.q_g2l); //q_g2l = conj(q_local_vio) * q_gnss_ins
+	quat_to_rotation_matrix(vio.q_g2l, R, vio.R_l2g);         //R_l2g = Rt(q_g2l)
 
-	vio.frame_align_on = true;
+	/* calculate frame translation
+	 * p_l2g = p_gnss_ins - (R_l2g * p_local_vio) */
+	float p_tmp[3] = {0.0f};
+	calc_matrix_multiply_vector_3d(p_tmp, p_local_vio, vio.R_l2g);
+	vio.p_l2g[0] = p_gnss_ins[0] - p_tmp[0];
+	vio.p_l2g[1] = p_gnss_ins[1] - p_tmp[1];
+	vio.p_l2g[2] = p_gnss_ins[2] - p_tmp[2];
 }
 
 void vio_get_quaternion(float *q)
 {
-	if(vio.frame_align_on == true) {
+	if(vio.frame_align == true) {
 		/* read local vio quaternion */
-		float q_local_vio[4];
+		float q_local_vio[4] = {0.0f};
 		vins_mono_read_quaternion(q_local_vio);
 
-		/* calculate q_gnss = q_local_vio * vio.q_align */
-		quaternion_mult(q_local_vio, vio.q_align, q);
+		/* calculate q_vio_global = q_local_vio * vio.q_g2l */
+		quaternion_mult(q_local_vio, vio.q_g2l, q);
 	} else {
 		vins_mono_read_quaternion(q);
 	}
@@ -59,17 +72,18 @@ void vio_get_quaternion(float *q)
 
 void vio_get_position(float *pos)
 {
-	if(vio.frame_align_on == true) {
-		/* read local vio position */
+	if(vio.frame_align == true) {
+		/* get position from local vio */
 		float p_local_vio[3];
 		vins_mono_read_pos(p_local_vio);
 
-		/* calculate Rt(a_align) */
-		float R[3*3], Rt[3*3];
-		quat_to_rotation_matrix(vio.q_align, R, Rt);
-
-		/* calculate p_gnss = Rt(q_align) * p_local_vio */
-		calc_matrix_multiply_vector_3d(pos, p_local_vio, Rt);
+		/* apply frame translation
+		 * p_global = (R_l2g * p_local_vio) + p_l2g */
+		float p_tmp[3] = {0.0f};
+		calc_matrix_multiply_vector_3d(p_tmp, p_local_vio, vio.R_l2g);
+		pos[0] = p_tmp[0] + vio.p_l2g[0];
+		pos[1] = p_tmp[1] + vio.p_l2g[1];
+		pos[2] = p_tmp[2] + vio.p_l2g[2];
 	} else {
 		vins_mono_read_pos(pos);
 	}

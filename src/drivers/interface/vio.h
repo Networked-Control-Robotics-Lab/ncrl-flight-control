@@ -2,8 +2,11 @@
 #define __VIO_H__
 
 typedef struct {
-	float q_align[4];
-	bool frame_align_on;
+	float q_g2l[4];   //frame rotation from global to local
+	float R_l2g[3*3]; //frame rotation from local to global
+	float p_l2g[3];   //frame translation from local to global
+
+	bool frame_align; //flag to enable vio frame alignment
 } vio_t;
 
 bool vio_available(void);
