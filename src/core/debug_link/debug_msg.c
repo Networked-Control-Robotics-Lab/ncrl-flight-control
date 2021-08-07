@@ -12,6 +12,9 @@
 #include "rangefinder.h"
 #include "proj_config.h"
 #include "vins_mono.h"
+#include "vio.h"
+#include "se3_math.h"
+#include "quaternion.h"
 
 void send_alt_est_debug_message(debug_msg_t *payload)
 {
@@ -155,22 +158,46 @@ void send_gps_accuracy_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_float(&v_acc, payload);
 }
 
-void send_optitrack_vins_mono_debug_message(debug_msg_t *payload)
+void send_optitrack_vio_debug_message(debug_msg_t *payload)
 {
+	/* get system time */
 	float curr_time_ms = get_sys_time_ms();
 
-	float pos_optitrack[3];
-	optitrack_read_pos(pos_optitrack);
+	/* get position and quaternion from optitrack */
+	float p_optitrack[3], q_optitrack[4];
+	optitrack_read_pos(p_optitrack);
+	optitrack_get_quaternion(q_optitrack);
 
-	float pos_vins_mono[3];
-	vins_mono_read_pos(pos_vins_mono);
+	/* get position and quaternion from vio */
+	float p_vio[3], q_vio[4];
+	vio_get_position(p_vio);
+	vio_get_quaternion(q_vio);
 
-	pack_debug_debug_message_header(payload, MESSAGE_ID_OPTITRACK_VINS_MONO);
+	/* convert quaternion to eulers angle */
+	euler_t euler_optitrack, euler_vio;
+	quat_to_euler(q_optitrack, &euler_optitrack);
+	quat_to_euler(q_vio, &euler_vio);
+
+	/* convert eulers angle from radian to degree */
+	euler_optitrack.roll = rad_to_deg(euler_optitrack.roll);
+	euler_optitrack.pitch = rad_to_deg(euler_optitrack.pitch);
+	euler_optitrack.yaw = rad_to_deg(euler_optitrack.yaw);
+	euler_vio.roll = rad_to_deg(euler_vio.roll);
+	euler_vio.pitch = rad_to_deg(euler_vio.pitch);
+	euler_vio.yaw = rad_to_deg(euler_vio.yaw);
+
+	pack_debug_debug_message_header(payload, MESSAGE_ID_OPTITRACK_VIO);
 	pack_debug_debug_message_float(&curr_time_ms, payload);
-	pack_debug_debug_message_float(&pos_optitrack[0], payload);
-	pack_debug_debug_message_float(&pos_optitrack[1], payload);
-	pack_debug_debug_message_float(&pos_optitrack[2], payload);
-	pack_debug_debug_message_float(&pos_vins_mono[0], payload);
-	pack_debug_debug_message_float(&pos_vins_mono[1], payload);
-	pack_debug_debug_message_float(&pos_vins_mono[2], payload);
+	pack_debug_debug_message_float(&p_optitrack[0], payload);
+	pack_debug_debug_message_float(&p_optitrack[1], payload);
+	pack_debug_debug_message_float(&p_optitrack[2], payload);
+	pack_debug_debug_message_float(&p_vio[0], payload);
+	pack_debug_debug_message_float(&p_vio[1], payload);
+	pack_debug_debug_message_float(&p_vio[2], payload);
+	pack_debug_debug_message_float(&euler_optitrack.roll, payload);
+	pack_debug_debug_message_float(&euler_optitrack.pitch, payload);
+	pack_debug_debug_message_float(&euler_optitrack.yaw, payload);
+	pack_debug_debug_message_float(&euler_vio.roll, payload);
+	pack_debug_debug_message_float(&euler_vio.pitch, payload);
+	pack_debug_debug_message_float(&euler_vio.yaw, payload);
 }

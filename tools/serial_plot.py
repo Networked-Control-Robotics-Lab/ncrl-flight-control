@@ -606,13 +606,13 @@ class serial_plotter_class:
                 self.show_subplot()
 
         elif (message_id == 36):
-                plt.subplot(311)
+                plt.subplot(511)
                 plt.ylabel('time [ms]')
                 plt.ylim([0.0, 600000.0])
                 self.create_curve('time', 'red')
                 self.show_subplot()
 
-                plt.subplot(312)
+                plt.subplot(512)
                 plt.ylabel('optitrack pos [cm]')
                 plt.ylim([-2, 2])
                 self.create_curve('x', 'red')
@@ -620,14 +620,29 @@ class serial_plotter_class:
                 self.create_curve('z', 'yellow')
                 self.show_subplot()
 
-                plt.subplot(313)
-                plt.ylabel('vins_mono pos')
+                plt.subplot(513)
+                plt.ylabel('vio pos')
                 plt.ylim([-2, 2])
                 self.create_curve('x', 'red')
                 self.create_curve('y', 'orange')
                 self.create_curve('z', 'yellow')
                 self.show_subplot()
 
+                plt.subplot(514)
+                plt.ylabel('optitrack euler')
+                plt.ylim([-200, 200])
+                self.create_curve('roll', 'red')
+                self.create_curve('pitch', 'orange')
+                self.create_curve('yaw', 'yellow')
+                self.show_subplot()
+
+                plt.subplot(515)
+                plt.ylabel('vio euler')
+                plt.ylim([-200, 200])
+                self.create_curve('roll', 'red')
+                self.create_curve('pitch', 'orange')
+                self.create_curve('yaw', 'yellow')
+                self.show_subplot()
 
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \
