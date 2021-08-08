@@ -2,9 +2,9 @@
 #define __SYSTEM_STATE_H__
 
 typedef struct {
-	int heading_src;
-	int height_src;
-	int position_src;
+	int heading_sensor;
+	int height_sensor;
+	int position_sensor;
 } sensor_manager_t;
 
 bool is_heading_available(void);
@@ -26,8 +26,12 @@ float get_enu_velocity_x(void);
 float get_enu_velocity_y(void);
 float get_enu_velocity_z(void);
 
-void change_heading_sensor_src(int new_src);
-void change_height_sensor_src(int new_src);
-void change_position_sensor_src(int new_src);
+int get_heading_sensor(void);
+int get_height_sensor(void);
+int get_position_sensor(void);
+
+void set_heading_sensor(int new_heading_sensor);
+void set_height_sensor(int new_height_sensor);
+void set_position_sensor(int new_position_sensor);
 
 #endif

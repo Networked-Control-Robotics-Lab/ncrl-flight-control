@@ -12,14 +12,14 @@
 #include "vio.h"
 
 sensor_manager_t sensor_manager = {
-	.heading_src = SELECT_HEADING_SENSOR,
-	.height_src = SELECT_HEIGHT_SENSOR,
-	.position_src = SELECT_POSITION_SENSOR
+	.heading_sensor = SELECT_HEADING_SENSOR,
+	.height_sensor = SELECT_HEIGHT_SENSOR,
+	.position_sensor = SELECT_POSITION_SENSOR
 };
 
 bool is_heading_available(void)
 {
-	switch(sensor_manager.heading_src) {
+	switch(sensor_manager.heading_sensor) {
 	case HEADING_FUSION_USE_COMPASS:
 		return ist8310_available();
 	case HEADING_FUSION_USE_OPTITRACK:
@@ -33,7 +33,7 @@ bool is_heading_available(void)
 
 bool is_xy_position_available(void)
 {
-	switch(sensor_manager.position_src) {
+	switch(sensor_manager.position_sensor) {
 	case POSITION_FUSION_USE_OPTITRACK:
 		return optitrack_available();
 	case POSITION_FUSION_USE_GPS:
@@ -47,7 +47,7 @@ bool is_xy_position_available(void)
 
 bool is_height_available(void)
 {
-	switch(sensor_manager.height_src) {
+	switch(sensor_manager.height_sensor) {
 	case HEIGHT_FUSION_USE_OPTITRACK:
 		return optitrack_available();
 	case HEIGHT_FUSION_USE_BAROMETER:
@@ -84,7 +84,7 @@ void get_rotation_matrix_i2b(float **R_i2b)
 void get_enu_position(float *pos)
 {
 	/* x-y position */
-	switch(sensor_manager.position_src) {
+	switch(sensor_manager.position_sensor) {
 	case POSITION_FUSION_USE_OPTITRACK:
 		pos[0] = optitrack_read_pos_x();
 		pos[1] = optitrack_read_pos_y();
@@ -104,7 +104,7 @@ void get_enu_position(float *pos)
 	}
 
 	/* z position */
-	switch(sensor_manager.height_src) {
+	switch(sensor_manager.height_sensor) {
 	case HEIGHT_FUSION_USE_OPTITRACK:
 		pos[2] = optitrack_read_pos_z();
 		break;
@@ -125,7 +125,7 @@ void get_enu_position(float *pos)
 
 float get_enu_position_x(void)
 {
-	switch(sensor_manager.position_src) {
+	switch(sensor_manager.position_sensor) {
 	case POSITION_FUSION_USE_OPTITRACK:
 		return optitrack_read_pos_x();
 	case POSITION_FUSION_USE_VINS_MONO:
@@ -139,7 +139,7 @@ float get_enu_position_x(void)
 
 float get_enu_position_y(void)
 {
-	switch(sensor_manager.position_src) {
+	switch(sensor_manager.position_sensor) {
 	case POSITION_FUSION_USE_OPTITRACK:
 		return optitrack_read_pos_y();
 	case POSITION_FUSION_USE_VINS_MONO:
@@ -153,7 +153,7 @@ float get_enu_position_y(void)
 
 float get_enu_position_z(void)
 {
-	switch(sensor_manager.height_src) {
+	switch(sensor_manager.height_sensor) {
 	case HEIGHT_FUSION_USE_OPTITRACK:
 		return optitrack_read_pos_z();
 	case HEIGHT_FUSION_USE_VINS_MONO:
@@ -170,7 +170,7 @@ float get_enu_position_z(void)
 void get_enu_velocity(float *vel)
 {
 	/* x-y velocity */
-	switch(sensor_manager.position_src) {
+	switch(sensor_manager.position_sensor) {
 	case POSITION_FUSION_USE_OPTITRACK:
 		vel[0] = optitrack_read_vel_x();
 		vel[1] = optitrack_read_vel_y();
@@ -190,7 +190,7 @@ void get_enu_velocity(float *vel)
 	}
 
 	/* z velocity */
-	switch(sensor_manager.height_src) {
+	switch(sensor_manager.height_sensor) {
 	case HEIGHT_FUSION_USE_OPTITRACK:
 		vel[2] = optitrack_read_vel_z();
 		break;
@@ -211,7 +211,7 @@ void get_enu_velocity(float *vel)
 
 float get_enu_velocity_x(void)
 {
-	switch(sensor_manager.position_src) {
+	switch(sensor_manager.position_sensor) {
 	case POSITION_FUSION_USE_OPTITRACK:
 		return optitrack_read_vel_x();
 	case POSITION_FUSION_USE_VINS_MONO:
@@ -225,7 +225,7 @@ float get_enu_velocity_x(void)
 
 float get_enu_velocity_y(void)
 {
-	switch(sensor_manager.position_src) {
+	switch(sensor_manager.position_sensor) {
 	case POSITION_FUSION_USE_OPTITRACK:
 		return optitrack_read_vel_y();
 	case POSITION_FUSION_USE_VINS_MONO:
@@ -239,7 +239,7 @@ float get_enu_velocity_y(void)
 
 float get_enu_velocity_z(void)
 {
-	switch(sensor_manager.height_src) {
+	switch(sensor_manager.height_sensor) {
 	case HEIGHT_FUSION_USE_OPTITRACK:
 		return optitrack_read_vel_z();
 	case HEIGHT_FUSION_USE_VINS_MONO:
@@ -253,94 +253,32 @@ float get_enu_velocity_z(void)
 	}
 }
 
-void change_heading_sensor_src(int new_src)
+int get_heading_sensor(void)
 {
-	if(sensor_manager.heading_src == new_src) {
-		return;
-	}
-
-	/* check if the sensor to switch is currently available */
-	bool sensor_available = false;
-
-	switch(new_src) {
-	case HEADING_FUSION_USE_COMPASS:
-		sensor_available = ist8310_available();
-		break;
-	case HEADING_FUSION_USE_OPTITRACK:
-		sensor_available = optitrack_available();
-		break;
-	case HEADING_FUSION_USE_VINS_MONO:
-		sensor_available = vio_available();
-		break;
-	default:
-		sensor_available = false;
-		break;
-	}
-
-	if(sensor_available == false) {
-		return;
-	}
-
-	sensor_manager.heading_src = new_src;
+	return sensor_manager.heading_sensor;
 }
 
-void change_height_sensor_src(int new_src)
+int get_height_sensor(void)
 {
-	if(sensor_manager.height_src == new_src) {
-		return;
-	}
-
-	/* check if the sensor to switch is currently available */
-	bool sensor_available = false;
-
-	switch(new_src) {
-	case HEIGHT_FUSION_USE_OPTITRACK:
-		sensor_available = optitrack_available();
-		break;
-	case HEIGHT_FUSION_USE_BAROMETER:
-		sensor_available = is_barometer_available();
-		break;
-	case HEIGHT_FUSION_USE_VINS_MONO:
-		sensor_available = vio_available();
-		break;
-	case HEIGHT_FUSION_USE_RANGEFINDER:
-		sensor_available = rangefinder_available();
-		break;
-	default:
-		sensor_available = false;
-		break;
-	}
-
-	if(sensor_available == false) {
-		return;
-	}
+	return sensor_manager.height_sensor;
 }
 
-void change_position_sensor_src(int new_src)
+int get_position_sensor(void)
 {
-	if(sensor_manager.position_src == new_src) {
-		return;
-	}
+	return sensor_manager.position_sensor;
+}
 
-	/* check if the sensor to switch is currently available */
-	bool sensor_available = false;
+void set_heading_sensor(int new_heading_sensor)
+{
+	sensor_manager.heading_sensor = new_heading_sensor;
+}
 
-	switch(new_src) {
-	case POSITION_FUSION_USE_OPTITRACK:
-		sensor_available = optitrack_available();
-		break;
-	case POSITION_FUSION_USE_GPS:
-		sensor_available = is_gps_available();
-		break;
-	case POSITION_FUSION_USE_VINS_MONO:
-		sensor_available = vio_available();
-		break;
-	default:
-		sensor_available = false;
-		break;
-	}
+void set_height_sensor(int new_height_sensor)
+{
+	sensor_manager.height_sensor = new_height_sensor;
+}
 
-	if(sensor_available == false) {
-		return;
-	}
+void set_position_sensor(int new_position_sensor)
+{
+	sensor_manager.position_sensor = new_position_sensor;
 }

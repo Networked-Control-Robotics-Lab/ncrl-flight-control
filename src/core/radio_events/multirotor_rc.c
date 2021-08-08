@@ -69,8 +69,8 @@ void multirotor_navigation_switch_test(radio_t *rc)
 
 	/* aux1 button: lower position */
 	if(rc->aux1_mode == RC_AUX_MODE3 && aux1_mode_last != RC_AUX_MODE3) {
-		switch_navigation_system(NAV_LOCAL_VIO);
-		//switch_navigation_system(NAV_GNSS_ALIGNED_VIO);
+		//switch_navigation_system(NAV_LOCAL_VIO);
+		switch_navigation_system(NAV_GLOBAL_VIO);
 
 		/* beside of navigation system switching, the camera trigger
 		   and imu data sending are implemented in the flight control

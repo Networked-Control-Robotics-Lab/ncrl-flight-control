@@ -94,7 +94,7 @@ void geometry_ctrl_init(void)
 
 	autopilot_init();
 
-	navigation_system_manager_init(); //for sensor switching
+	navigation_manager_init();
 
 	float geo_fence_origin[3] = {0.0f, 0.0f, 0.0f};
 	autopilot_set_enu_rectangular_fence(geo_fence_origin, 2.5f, 1.3f, 3.0f);
@@ -536,7 +536,7 @@ void rc_mode_handler_geometry_ctrl(radio_t *rc)
 void multirotor_geometry_control(radio_t *rc)
 {
 	/* handle sensor failure and navigation system switching */
-	sensor_switching_handler();
+	navigation_manager_handler();
 
 	/* check rc events */
 	rc_mode_handler_geometry_ctrl(rc);

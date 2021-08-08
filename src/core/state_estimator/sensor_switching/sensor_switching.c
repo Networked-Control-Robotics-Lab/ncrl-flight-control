@@ -14,30 +14,30 @@
 
 #define ENABLE_SENSOR_SWITCHING 1
 
-nav_sys_manager_t nav_sys_manager;
+navigation_manager_t navigation_manager;
 
-void navigation_system_manager_init(void)
+void navigation_manager_init(void)
 {
 #if (ENABLE_SENSOR_SWITCHING == 0)
 	return;
 #endif
 
 #if 1   /* initial start with the gnss/ins */
-	nav_sys_manager.curr_nav_sys = NAV_GNSS_INS;
-	//change_heading_sensor_src(HEADING_FUSION_USE_COMPASS);
-	//change_position_sensor_src(POSITION_FUSION_USE_GPS);
-	//change_height_sensor_src(HEIGHT_FUSION_USE_RANGEFINDER);
+	navigation_manager.current_system = NAV_GNSS_INS;
+	//set_heading_sensor(HEADING_FUSION_USE_COMPASS);
+	//set_position_sensor(POSITION_FUSION_USE_GPS);
+	//set_height_sensor(HEIGHT_FUSION_USE_RANGEFINDER);
 #else   /* initial start with the vio */
-	nav_sys_manager.curr_nav_sys = NAV_LOCAL_VIO;
-	change_heading_sensor_src(HEADING_FUSION_USE_VINS_MONO);
-	change_position_sensor_src(POSITION_FUSION_USE_VINS_MONO);
-	change_height_sensor_src(HEIGHT_FUSION_USE_VINS_MONO);
+	navigation_manager.current_system = NAV_LOCAL_VIO;
+	set_heading_sensor(HEADING_FUSION_USE_VINS_MONO);
+	set_position_sensor(POSITION_FUSION_USE_VINS_MONO);
+	set_height_sensor(HEIGHT_FUSION_USE_VINS_MONO);
 #endif
 }
 
-static void nav_switch_gnss_ins_to_aligned_vio(void)
+static void switch_gnss_ins_to_global_vio(void)
 {
-	nav_sys_manager.curr_nav_sys = NAV_GNSS_ALIGNED_VIO;
+	navigation_manager.current_system = NAV_GLOBAL_VIO;
 
 	/*=====================*
 	 * vio frame alignment *
@@ -50,9 +50,9 @@ static void nav_switch_gnss_ins_to_aligned_vio(void)
 	 * update reference signal *
 	 *=========================*/
 
-	change_heading_sensor_src(HEADING_FUSION_USE_VINS_MONO);
-	change_position_sensor_src(POSITION_FUSION_USE_VINS_MONO);
-	change_height_sensor_src(HEIGHT_FUSION_USE_VINS_MONO);
+	set_heading_sensor(HEADING_FUSION_USE_VINS_MONO);
+	set_position_sensor(POSITION_FUSION_USE_VINS_MONO);
+	set_height_sensor(HEIGHT_FUSION_USE_VINS_MONO);
 
 	/*=========================*
 	 * update control setpoint *
@@ -85,16 +85,16 @@ static void nav_switch_gnss_ins_to_aligned_vio(void)
 	autopilot_assign_pos_target(xd[0], xd[1], xd[2]);
 }
 
-static void nav_switch_non_aligned_vio_to_gnss_ins(void)
+static void switch_local_vio_to_gnss_ins(void)
 {
-	nav_sys_manager.curr_nav_sys = NAV_GNSS_INS;
+	navigation_manager.current_system = NAV_GNSS_INS;
 
 	/*=========================*
 	 * update reference signal *
 	 *=========================*/
-	change_heading_sensor_src(HEADING_FUSION_USE_COMPASS);
-	change_position_sensor_src(POSITION_FUSION_USE_GPS);
-	change_height_sensor_src(HEIGHT_FUSION_USE_RANGEFINDER);
+	set_heading_sensor(HEADING_FUSION_USE_COMPASS);
+	set_position_sensor(POSITION_FUSION_USE_GPS);
+	set_height_sensor(HEIGHT_FUSION_USE_RANGEFINDER);
 
 	/*=========================*
 	 * update control setpoint *
@@ -144,20 +144,20 @@ static void nav_switch_non_aligned_vio_to_gnss_ins(void)
 	autopilot_assign_heading_target(yaw_d);
 }
 
-static void nav_switch_aligned_vio_to_gnss_ins(void)
+static void switch_global_vio_to_gnss_ins(void)
 {
-	nav_sys_manager.curr_nav_sys = NAV_GNSS_INS;
+	navigation_manager.current_system = NAV_GNSS_INS;
 
 	/*=========================*
 	 * update reference signal *
 	 *=========================*/
 
-	//change_heading_sensor_src(HEADING_FUSION_USE_COMPASS);
-	//change_position_sensor_src(POSITION_FUSION_USE_GPS);
-	//change_height_sensor_src(HEIGHT_FUSION_USE_RANGEFINDER);
-	change_heading_sensor_src(HEADING_FUSION_USE_OPTITRACK);
-	change_position_sensor_src(POSITION_FUSION_USE_OPTITRACK);
-	change_height_sensor_src(HEIGHT_FUSION_USE_OPTITRACK);
+	//set_heading_sensor(HEADING_FUSION_USE_COMPASS);
+	//set_position_sensor(POSITION_FUSION_USE_GPS);
+	//set_height_sensor(HEIGHT_FUSION_USE_RANGEFINDER);
+	set_heading_sensor(HEADING_FUSION_USE_OPTITRACK);
+	set_position_sensor(POSITION_FUSION_USE_OPTITRACK);
+	set_height_sensor(HEIGHT_FUSION_USE_OPTITRACK);
 
 	/*=========================*
 	 * update control setpoint *
@@ -190,13 +190,13 @@ static void nav_switch_aligned_vio_to_gnss_ins(void)
 	autopilot_assign_pos_target(xd[0], xd[1], xd[2]);
 }
 
-void switch_navigation_system(int new_nav_sys)
+void switch_navigation_system(int new_system)
 {
-	nav_sys_manager.new_nav_sys = new_nav_sys;
-	nav_sys_manager.require_update = true;
+	navigation_manager.new_system = new_system;
+	navigation_manager.require_update = true;
 }
 
-void sensor_switching_handler(void)
+void navigation_manager_handler(void)
 {
 #if (ENABLE_SENSOR_SWITCHING == 0)
 	return;
@@ -213,23 +213,24 @@ void sensor_switching_handler(void)
 
 	/* TODO: gnss/ins failure recovery */
 
-	bool gnss_ins_ready = true;//is_gps_available() && is_compass_available(); //XXX
-	bool vio_ready = vins_mono_available();
-	bool sensors_all_ready = gnss_ins_ready && vio_ready;
+	/* check if gnss/ins and vio are both vaild */
+	bool gnss_ins_ready = true; //eskf_ins_is_stable(); //XXX
+	bool vio_ready = vio_available();
 
-	if(nav_sys_manager.require_update == false && sensors_all_ready == true) {
+	if(navigation_manager.require_update == false && gnss_ins_ready && vio_ready) {
 		return;
 	}
-	nav_sys_manager.require_update = false;
+	navigation_manager.require_update = false;
 
-	int old_select = nav_sys_manager.curr_nav_sys;
-	int new_select = nav_sys_manager.new_nav_sys;
+	/* switch navigation system */
+	int current_system = navigation_manager.current_system;
+	int new_system = navigation_manager.new_system;
 
-	if(old_select == NAV_GNSS_INS && new_select == NAV_GNSS_ALIGNED_VIO) {
-		nav_switch_gnss_ins_to_aligned_vio();
-	} else if(old_select == NAV_LOCAL_VIO && new_select == NAV_GNSS_INS) {
-		nav_switch_non_aligned_vio_to_gnss_ins();
-	} else if(old_select == NAV_GNSS_ALIGNED_VIO && new_select == NAV_GNSS_INS) {
-		nav_switch_aligned_vio_to_gnss_ins();
+	if(current_system == NAV_GNSS_INS && new_system == NAV_GLOBAL_VIO) {
+		switch_gnss_ins_to_global_vio();
+	} else if(current_system == NAV_LOCAL_VIO && new_system == NAV_GNSS_INS) {
+		switch_local_vio_to_gnss_ins();
+	} else if(current_system == NAV_GLOBAL_VIO && new_system == NAV_GNSS_INS) {
+		switch_global_vio_to_gnss_ins();
 	}
 }
