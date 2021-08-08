@@ -227,8 +227,21 @@ float eskf_ins_get_covariance_matrix_norm(void)
 
 bool eskf_ins_is_stable(void)
 {
-	if(eskf_ins_get_covariance_matrix_norm() < 1e-2) {
-		return  true;
+	/* TODO: refactor this code */
+	bool gps_ready = is_gps_available();
+	bool compass_ready = is_compass_available();
+#if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
+	bool height_ready = is_barometer_available();
+#elif (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_RANGEFINDER)
+	bool height_ready = rangefinder_available();
+#else
+	bool height_ready = false;
+#endif
+
+	bool sensor_all_ready = gps_ready && compass_ready && height_ready;
+
+	if(sensor_all_ready && eskf_ins_get_covariance_matrix_norm() < 1e-2) {
+		return true;
 	} else {
 		return false;
 	}

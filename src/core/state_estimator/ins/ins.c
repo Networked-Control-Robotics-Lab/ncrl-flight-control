@@ -24,10 +24,10 @@
 
 attitude_t attitude;
 
-float pos_enu_raw[3];
-float vel_enu_raw[3];
-float pos_enu_fused[3];
-float vel_enu_fused[3];
+float pos_raw[3];
+float vel_raw[3];
+float pos_fused[3];
+float vel_fused[3];
 
 void ins_init(void)
 {
@@ -35,136 +35,125 @@ void ins_init(void)
 	eskf_ins_init(INS_LOOP_PERIOD);
 }
 
+static void ins_decoupled_state_estimation(void)
+{
+	/* decoupled orientation state estimation */
+	ahrs_estimate(&attitude);
+
+	/* decoupled position state estimation with complementary filter */
+	ins_complementary_filter_estimate(pos_raw, vel_raw, pos_fused, vel_fused);
+}
+
+static void ins_full_state_estimation(void)
+{
+	/* full state estimation with eskf */
+	ins_eskf_estimate(&attitude, pos_raw, vel_raw, pos_fused, vel_fused);
+
+	/* call decoupled state estimation if eskf is not ready */
+	if(eskf_ins_is_stable() == false) {
+		ins_decoupled_state_estimation();
+	}
+}
+
 void ins_state_estimate(void)
 {
 #if (SELECT_INS == INS_COMPLEMENTARY_FILTER)
-	/* decouple orientation and position state estimation */
-
-	/* orientation state estimation (exact algorithm depends on user's selection) */
-	ahrs_estimate(&attitude);
-
-	/* position state estimation by complementary filter */
-	ins_complementary_filter_estimate(pos_enu_raw, vel_enu_raw,
-	                                  pos_enu_fused, vel_enu_fused);
+	ins_decoupled_state_estimation();
 #elif (SELECT_INS == INS_ESKF)
-	/* full state (orientation + position) estimation by eskf */
-	bool eskf_ready = ins_eskf_estimate(&attitude, pos_enu_raw, vel_enu_raw,
-	                                    pos_enu_fused, vel_enu_fused);
-	eskf_ready &= eskf_ins_is_stable(); //check if the covariance matrix norm is converged
-
-	/* use naive algorithm if eskf is not yet ready */
-	if(eskf_ready == false) {
-		/* decouple orientation and position state estimation */
-
-		/* orientation state estimation (exact algorithm depends on user's selection) */
-		ahrs_estimate(&attitude);
-
-		/* position state estimation by complementary filter */
-		ins_complementary_filter_estimate(pos_enu_raw, vel_enu_raw,
-		                                  pos_enu_fused, vel_enu_fused);
-	}
+	ins_full_state_estimation();
 #endif
-
-	/* deactivate the autopilot if the navigation state is not fully observable  */
-	bool navigation_ready = is_heading_available() &&
-	                        is_xy_position_available() &&
-	                        is_height_available();
-	if(navigation_ready == false) {
-		/* set flight mode to manual mode */
-		autopilot_set_mode(AUTOPILOT_MANUAL_FLIGHT_MODE);
-	}
 }
 
 /* raw position getters */
 void ins_get_raw_position(float *pos)
 {
-	pos[0] = pos_enu_raw[0];
-	pos[1] = pos_enu_raw[1];
-	pos[2] = pos_enu_raw[2];
+	pos[0] = pos_raw[0];
+	pos[1] = pos_raw[1];
+	pos[2] = pos_raw[2];
 }
 
 float ins_get_raw_position_x(void)
 {
-	return pos_enu_raw[0];
+	return pos_raw[0];
 }
 
 float ins_get_raw_position_y(void)
 {
-	return pos_enu_raw[1];
+	return pos_raw[1];
 }
 
 float ins_get_raw_position_z(void)
 {
-	return pos_enu_raw[2];
+	return pos_raw[2];
 }
 
 /* raw velocity getters */
 void ins_get_raw_velocity(float *vel)
 {
-	vel[0] = vel_enu_raw[0];
-	vel[1] = vel_enu_raw[1];
-	vel[2] = vel_enu_raw[2];
+	vel[0] = vel_raw[0];
+	vel[1] = vel_raw[1];
+	vel[2] = vel_raw[2];
 }
 
 float ins_get_raw_velocity_x(void)
 {
-	return vel_enu_raw[0];
+	return vel_raw[0];
 }
 
 float ins_get_raw_velocity_y(void)
 {
-	return vel_enu_raw[1];
+	return vel_raw[1];
 }
 
 float ins_get_raw_velocity_z(void)
 {
-	return vel_enu_raw[2];
+	return vel_raw[2];
 }
 
 /* ins fused position getters */
 void ins_get_fused_position(float *pos)
 {
-	pos[0] = pos_enu_fused[0];
-	pos[1] = pos_enu_fused[1];
-	pos[2] = pos_enu_fused[2];
+	pos[0] = pos_fused[0];
+	pos[1] = pos_fused[1];
+	pos[2] = pos_fused[2];
 }
 
 float ins_get_fused_position_x(void)
 {
-	return pos_enu_fused[0];
+	return pos_fused[0];
 }
 
 float ins_get_fused_position_y(void)
 {
-	return pos_enu_fused[1];
+	return pos_fused[1];
 }
 
 float ins_get_fused_position_z(void)
 {
-	return pos_enu_fused[2];
+	return pos_fused[2];
 }
 
 /* ins fused velocity getters */
 void ins_get_fused_velocity(float *vel)
 {
-	vel[0] = vel_enu_fused[0];
-	vel[1] = vel_enu_fused[1];
-	vel[2] = vel_enu_fused[2];
+	vel[0] = vel_fused[0];
+	vel[1] = vel_fused[1];
+	vel[2] = vel_fused[2];
 }
 
 float ins_get_fused_velocity_x(void)
 {
-	return vel_enu_fused[0];
+	return vel_fused[0];
 }
 
 float ins_get_fused_velocity_y(void)
 {
-	return vel_enu_fused[1];
+	return vel_fused[1];
 }
 
 float ins_get_fused_velocity_z(void)
 {
-	return vel_enu_fused[2];
+	return vel_fused[2];
 }
 
 /* ins ahrs attitude getters */
