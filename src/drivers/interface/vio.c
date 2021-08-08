@@ -29,15 +29,25 @@ void vio_disable_frame_alignment(void)
 void vio_calc_frame_alignment_transform(void)
 {
 	/* get position and quaternion from gnss/ins */
-	float p_gnss_ins[3], q_gnss_ins[4];
-	optitrack_read_pos(p_gnss_ins); //FIXME
+	float p_gnss_ins_enu[3], p_gnss_ins[3], q_gnss_ins[4];
+	optitrack_read_pos(p_gnss_ins_enu); //FIXME
 	ins_ahrs_get_attitude_quaternion(q_gnss_ins);
 
+	//FIXME: unify the coordinate system to ned
+	p_gnss_ins[0] =  p_gnss_ins_enu[1];
+	p_gnss_ins[1] =  p_gnss_ins_enu[0];
+	p_gnss_ins[2] = -p_gnss_ins_enu[2];
+
 	/* get position and quaternion from local vio */
-	float p_local_vio[3], q_local_vio[4], q_local_vio_conj[4];
-	vins_mono_read_pos(p_local_vio);                //we get position of bk frame under the c0 frame
+	float p_local_vio_enu[3], p_local_vio[3], q_local_vio[4], q_local_vio_conj[4];
+	vins_mono_read_pos(p_local_vio_enu);            //we get position of bk frame under the c0 frame
 	vins_mono_read_quaternion(q_local_vio_conj);    //we get q from b to c0 here
 	quaternion_conj(q_local_vio_conj, q_local_vio); //get q from c0 to b
+
+	//FIXME: unify the coordinate system to ned
+	p_local_vio[0] =  p_local_vio_enu[1];
+	p_local_vio[1] =  p_local_vio_enu[0];
+	p_local_vio[2] = -p_local_vio_enu[2];
 
 	/* calculate frame rotation */
 	float Rt[3*3]; //XXX: dummy variable
@@ -71,16 +81,22 @@ void vio_get_position(float *pos)
 {
 	if(vio.frame_align == true) {
 		/* get position from local vio */
-		float p_local_vio[3];
-		vins_mono_read_pos(p_local_vio); //we get position of bk frame under the c0 frame
+		float p_local_vio_enu[3], p_local_vio[3];
+		vins_mono_read_pos(p_local_vio_enu); //we get position of bk frame under the c0 frame
+
+		//TODO: unify the coordinate system to ned
+		p_local_vio[0] =  p_local_vio_enu[1];
+		p_local_vio[1] =  p_local_vio_enu[0];
+		p_local_vio[2] = -p_local_vio_enu[2];
 
 		/* apply frame translation
 		 * p_global = R_l2g * p_local_vio + p_l2g */
 		float p_tmp[3];
 		calc_matrix_multiply_vector_3d(p_tmp, p_local_vio, vio.R_l2g);
-		pos[0] = p_tmp[0];// + vio.p_l2g[0];
-		pos[1] = p_tmp[1];// + vio.p_l2g[1];
-		pos[2] = p_tmp[2];// + vio.p_l2g[2];
+		//TODO: unify the coordinate system to ned
+		pos[0] = p_tmp[1] + vio.p_l2g[1];
+		pos[1] = p_tmp[0] + vio.p_l2g[0];
+		pos[2] = -(p_tmp[2] + vio.p_l2g[2]);
 	} else {
 		vins_mono_read_pos(pos);
 	}
