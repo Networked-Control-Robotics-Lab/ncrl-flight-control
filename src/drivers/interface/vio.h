@@ -2,7 +2,7 @@
 #define __VIO_H__
 
 typedef struct {
-	float q_g2l[4];   //frame rotation from global to local
+	float q_l2g[4];   //frame rotation from global to local
 	float R_l2g[3*3]; //frame rotation from local to global
 	float p_l2g[3];   //frame translation from local to global
 
