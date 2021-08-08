@@ -29,25 +29,8 @@ float vel_enu_raw[3];
 float pos_enu_fused[3];
 float vel_enu_fused[3];
 
-/* gps position and velocity low pass filtering */
-float gps_px_lpf_gain;
-float gps_py_lpf_gain;
-float gps_vx_lpf_gain;
-float gps_vy_lpf_gain;
-
-float gps_px_lpf;
-float gps_py_lpf;
-float gps_vx_lpf;
-float gps_vy_lpf;
-
 void ins_init(void)
 {
-	//sampling time = 0.2s (5Hz), cutoff frequency = 10Hz
-	lpf_first_order_init(&gps_px_lpf_gain, 0.2, 1);
-	lpf_first_order_init(&gps_py_lpf_gain, 0.2, 1);
-	lpf_first_order_init(&gps_vx_lpf_gain, 0.2, 1);
-	lpf_first_order_init(&gps_vy_lpf_gain, 0.2, 1);
-
 	ins_comp_filter_init(INS_LOOP_PERIOD);
 	eskf_ins_init(INS_LOOP_PERIOD);
 }
