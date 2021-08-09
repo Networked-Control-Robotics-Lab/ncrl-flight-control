@@ -26,7 +26,7 @@ void vio_disable_frame_alignment(void)
 	vio.frame_align = false;
 }
 
-void vio_calc_frame_alignment_transform(void)
+void vio_calculate_frame_alignment(void)
 {
 	/* get position and quaternion from gnss/ins */
 	float p_gnss_ins_enu[3], p_gnss_ins[3], q_gnss_ins[4];
@@ -104,17 +104,26 @@ void vio_get_position(float *pos)
 
 float vio_get_position_x(void)
 {
-	return vins_mono_read_pos_x();
+	float pos[3];
+	vio_get_position(pos);
+
+	return pos[0];
 }
 
 float vio_get_position_y(void)
 {
-	return vins_mono_read_pos_y();
+	float pos[3];
+	vio_get_position(pos);
+
+	return pos[1];
 }
 
 float vio_get_position_z(void)
 {
-	return vins_mono_read_pos_z();
+	float pos[3];
+	vio_get_position(pos);
+
+	return pos[2];
 }
 
 void vio_get_velocity(float *vel)

@@ -13,7 +13,7 @@ bool vio_available(void);
 
 void vio_enable_frame_alignment(void);
 void vio_disable_frame_alignment(void);
-void vio_calc_frame_alignment_transform(void);
+void vio_calculate_frame_alignment(void);
 
 void vio_get_quaternion(float *q);
 void vio_get_position(float *pos);

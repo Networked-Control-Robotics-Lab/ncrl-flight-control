@@ -43,7 +43,7 @@ static void switch_gnss_ins_to_global_vio(void)
 	 * vio frame alignment *
 	 *=====================*/
 
-	vio_calc_frame_alignment_transform();
+	vio_calculate_frame_alignment();
 	vio_enable_frame_alignment();
 
 	/*=========================*
@@ -92,9 +92,12 @@ static void switch_local_vio_to_gnss_ins(void)
 	/*=========================*
 	 * update reference signal *
 	 *=========================*/
-	set_heading_sensor(HEADING_FUSION_USE_COMPASS);
-	set_position_sensor(POSITION_FUSION_USE_GPS);
-	set_height_sensor(HEIGHT_FUSION_USE_RANGEFINDER);
+	//set_heading_sensor(HEADING_FUSION_USE_COMPASS);
+	//set_position_sensor(POSITION_FUSION_USE_GPS);
+	//set_height_sensor(HEIGHT_FUSION_USE_RANGEFINDER);
+	set_heading_sensor(HEADING_FUSION_USE_OPTITRACK);
+	set_position_sensor(POSITION_FUSION_USE_OPTITRACK);
+	set_height_sensor(HEIGHT_FUSION_USE_OPTITRACK);
 
 	/*=========================*
 	 * update control setpoint *
@@ -188,6 +191,8 @@ static void switch_global_vio_to_gnss_ins(void)
 
 	/* apply coordinate transform to the controller */
 	autopilot_assign_pos_target(xd[0], xd[1], xd[2]);
+
+	vio_disable_frame_alignment();
 }
 
 void switch_navigation_system(int new_system)
