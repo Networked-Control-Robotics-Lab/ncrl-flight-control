@@ -102,6 +102,30 @@ void vio_get_position(float *pos)
 	}
 }
 
+void vio_get_velocity(float *vel)
+{
+	if(vio.frame_align == true) {
+		/* get position from local vio */
+		float v_local_vio_enu[3], v_local_vio[3];
+		vins_mono_read_vel(v_local_vio_enu); //we get velocity of bk frame under the c0 frame
+
+		//TODO: unify the coordinate system to ned
+		v_local_vio[0] =  v_local_vio_enu[1];
+		v_local_vio[1] =  v_local_vio_enu[0];
+		v_local_vio[2] = -v_local_vio_enu[2];
+
+		/* apply frame translation
+		 * v_global = R_l2g * v_local_vio */
+		float v_tmp[3];
+		calc_matrix_multiply_vector_3d(v_tmp, v_local_vio, vio.R_l2g);
+		vel[0] =  v_tmp[1];
+		vel[1] =  v_tmp[0];
+		vel[2] = -v_tmp[2];
+	} else {
+		vins_mono_read_vel(vel);
+	}
+}
+
 float vio_get_position_x(void)
 {
 	float pos[3];
@@ -126,22 +150,26 @@ float vio_get_position_z(void)
 	return pos[2];
 }
 
-void vio_get_velocity(float *vel)
-{
-	vins_mono_read_vel(vel);
-}
-
 float vio_get_velocity_x(void)
 {
-	return vins_mono_read_vel_x();
+	float pos[3];
+	vio_get_velocity(pos);
+
+	return pos[0];
 }
 
 float vio_get_velocity_y(void)
 {
-	return vins_mono_read_vel_y();
+	float pos[3];
+	vio_get_velocity(pos);
+
+	return pos[1];
 }
 
 float vio_get_velocity_z(void)
 {
-	return vins_mono_read_vel_z();
+	float pos[3];
+	vio_get_velocity(pos);
+
+	return pos[2];
 }
