@@ -13,13 +13,20 @@ bool vio_available(void);
 
 void vio_enable_frame_alignment(void);
 void vio_disable_frame_alignment(void);
+
 void vio_calculate_frame_alignment(void);
 
+void vio_get_frame_alignment_quaternion(float *q_l2g);
+void vio_get_frame_alignment_rotation_matrix(float *R_l2g);
+void vio_get_frame_alignment_translation(float *p_l2g);
+
 void vio_get_quaternion(float *q);
+
 void vio_get_position(float *pos);
 float vio_get_position_x(void);
 float vio_get_position_y(void);
 float vio_get_position_z(void);
+
 void vio_get_velocity(float *vel);
 float vio_get_velocity_x(void);
 float vio_get_velocity_y(void);

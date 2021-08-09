@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 #include "se3_math.h"
 #include "vio.h"
 #include "vins_mono.h"
@@ -31,7 +32,8 @@ void vio_calculate_frame_alignment(void)
 	/* get position and quaternion from gnss/ins */
 	float p_gnss_ins_enu[3], p_gnss_ins[3], q_gnss_ins[4];
 	optitrack_read_pos(p_gnss_ins_enu); //FIXME
-	ins_ahrs_get_attitude_quaternion(q_gnss_ins);
+	optitrack_get_quaternion(q_gnss_ins);
+	//ins_ahrs_get_attitude_quaternion(q_gnss_ins);
 
 	//FIXME: unify the coordinate system to ned
 	p_gnss_ins[0] =  p_gnss_ins_enu[1];
@@ -61,6 +63,21 @@ void vio_calculate_frame_alignment(void)
 	vio.p_l2g[0] = p_gnss_ins[0] - p_tmp[0];
 	vio.p_l2g[1] = p_gnss_ins[1] - p_tmp[1];
 	vio.p_l2g[2] = p_gnss_ins[2] - p_tmp[2];
+}
+
+void vio_get_frame_alignment_quaternion(float *q_l2g)
+{
+	memcpy(q_l2g, vio.q_l2g, sizeof(float) * 4);
+}
+
+void vio_get_frame_alignment_rotation_matrix(float *R_l2g)
+{
+	memcpy(R_l2g, vio.R_l2g, sizeof(float) * 3 * 3);
+}
+
+void vio_get_frame_alignment_translation(float *p_l2g)
+{
+	memcpy(p_l2g, vio.p_l2g, sizeof(float) * 3);
 }
 
 void vio_get_quaternion(float *q)
@@ -152,24 +169,24 @@ float vio_get_position_z(void)
 
 float vio_get_velocity_x(void)
 {
-	float pos[3];
-	vio_get_velocity(pos);
+	float vel[3];
+	vio_get_velocity(vel);
 
-	return pos[0];
+	return vel[0];
 }
 
 float vio_get_velocity_y(void)
 {
-	float pos[3];
-	vio_get_velocity(pos);
+	float vel[3];
+	vio_get_velocity(vel);
 
-	return pos[1];
+	return vel[1];
 }
 
 float vio_get_velocity_z(void)
 {
-	float pos[3];
-	vio_get_velocity(pos);
+	float vel[3];
+	vio_get_velocity(vel);
 
-	return pos[2];
+	return vel[2];
 }

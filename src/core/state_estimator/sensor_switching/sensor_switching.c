@@ -22,7 +22,7 @@ void navigation_manager_init(void)
 	return;
 #endif
 
-#if 1   /* initial start with the gnss/ins */
+#if 0   /* initial start with the gnss/ins */
 	navigation_manager.current_system = NAV_GNSS_INS;
 	//set_heading_sensor(HEADING_FUSION_USE_COMPASS);
 	//set_position_sensor(POSITION_FUSION_USE_GPS);
@@ -89,9 +89,19 @@ static void switch_local_vio_to_gnss_ins(void)
 {
 	navigation_manager.current_system = NAV_GNSS_INS;
 
+	/* calculate vio frame alignment parameters */
+	vio_calculate_frame_alignment();
+
+	/* get frame alignment parameters */
+	float q_l2g[4], R_l2g[3*3], p_l2g[3];
+	vio_get_frame_alignment_quaternion(q_l2g);
+	vio_get_frame_alignment_rotation_matrix(R_l2g);
+	vio_get_frame_alignment_translation(p_l2g);
+
 	/*=========================*
 	 * update reference signal *
 	 *=========================*/
+
 	//set_heading_sensor(HEADING_FUSION_USE_COMPASS);
 	//set_position_sensor(POSITION_FUSION_USE_GPS);
 	//set_height_sensor(HEIGHT_FUSION_USE_RANGEFINDER);
@@ -103,48 +113,59 @@ static void switch_local_vio_to_gnss_ins(void)
 	 * update control setpoint *
 	 *=========================*/
 
-	/* position and quaternion state from the gnss ins */
-	float p_gnss_ins[3], q_gnss_ins[4];
-	//ins_get_fused_position(p_gnss_ins);
-	optitrack_read_pos(p_gnss_ins); //XXX: indoor test only
-	ins_ahrs_get_attitude_quaternion(q_gnss_ins);
-
-	/* position and quaternion state from the nonaligned vio */
-	float p_local_vio[3], q_local_vio[4];
-	vio_get_position(p_local_vio);
-	vio_get_quaternion(q_local_vio);
-
 	/* calculate yaw angle from the quaternion */
-	float yaw_gnss_ins = calc_yaw_from_quat(q_gnss_ins);
-	float yaw_nonaligned_vio = calc_yaw_from_quat(q_local_vio);
+	float yaw_transform = rad_to_deg(calc_yaw_from_quat(q_l2g));
 
-	/* calculate translation */
-	float p_translation[3], yaw_transform;
-	p_translation[0] = p_gnss_ins[0] - p_local_vio[0];
-	p_translation[1] = p_gnss_ins[1] - p_local_vio[1];
-	p_translation[2] = p_gnss_ins[2] - p_local_vio[2];
-	yaw_transform = yaw_gnss_ins - yaw_nonaligned_vio;
-
-	float xd[3], yaw_d;
-	autopilot_get_pos_setpoint(xd);
+	/* get desired values from autopilot */
+	float xd_enu[3], xd[3], vd_enu[3], vd[3], yaw_d;
+	autopilot_get_pos_setpoint(xd_enu);
+	autopilot_get_vel_setpoint(vd_enu);
 	yaw_d = autopilot_get_heading_setpoint();
 
-	/* calculate coordinate transform */
-	xd[0] += p_translation[0];
-	xd[1] += p_translation[1];
-	xd[2] += p_translation[2];
+	/* XXX: convert xd and vd from enu to ned */
+	xd[0] =  xd_enu[1];
+	xd[1] =  xd_enu[0];
+	xd[2] = -xd_enu[2];
+	vd[0] =  vd_enu[1];
+	vd[1] =  vd_enu[0];
+	vd[2] = -vd_enu[2];
+
+	/* calculate new xd */
+	float new_xd_ned[3], new_xd[3];
+	calc_matrix_multiply_vector_3d(new_xd_ned, xd, R_l2g);
+	new_xd_ned[0] += p_l2g[0];
+	new_xd_ned[1] += p_l2g[1];
+	new_xd_ned[2] += p_l2g[2];
+	/* XXX: convert ned back to enu */
+	new_xd[0] =  new_xd_ned[1];
+	new_xd[1] =  new_xd_ned[0];
+	new_xd[2] = -new_xd_ned[2];
+
+	/* calculate new vd */
+	float new_vd_ned[3], new_vd[3];
+	calc_matrix_multiply_vector_3d(new_vd_ned, vd, R_l2g);
+	/* XXX: convert ned back to enu */
+	new_vd[0] =  new_vd_ned[1];
+	new_vd[1] =  new_vd_ned[0];
+	new_vd[2] = -new_vd_ned[2];
+
+	/* calculate new yaw_d */
 	yaw_d += yaw_transform;
 
 	/* bound the yaw angle in the range of [-180, +180] */
 	if(yaw_d > +180.0f) {
 		yaw_d -= 360.0f;
-	} else if(yaw_d < -180.0f) {
+	} else if(yaw_d <= -180.0f) {
 		yaw_d += 360.0f;
 	}
 
 	/* apply coordinate transform to the controller */
-	autopilot_assign_pos_target(xd[0], xd[1], xd[2]);
+	autopilot_assign_pos_target(new_xd[0], new_xd[1], new_xd[2]);
+	autopilot_assign_vel_target(new_vd[0], new_vd[1], new_vd[2]);
 	autopilot_assign_heading_target(yaw_d);
+
+	/* activate vio frame alignment */
+	vio_enable_frame_alignment();
 }
 
 static void switch_global_vio_to_gnss_ins(void)
@@ -191,8 +212,6 @@ static void switch_global_vio_to_gnss_ins(void)
 
 	/* apply coordinate transform to the controller */
 	autopilot_assign_pos_target(xd[0], xd[1], xd[2]);
-
-	vio_disable_frame_alignment();
 }
 
 void switch_navigation_system(int new_system)
@@ -219,10 +238,10 @@ void navigation_manager_handler(void)
 	/* TODO: gnss/ins failure recovery */
 
 	/* check if gnss/ins and vio are both vaild */
-	bool gnss_ins_ready = true; //eskf_ins_is_stable(); //XXX
+	bool gnss_ins_ready = optitrack_available(); //eskf_ins_is_stable(); //XXX
 	bool vio_ready = vio_available();
 
-	if(navigation_manager.require_update == false && gnss_ins_ready && vio_ready) {
+	if(navigation_manager.require_update == false || !gnss_ins_ready || !vio_ready) {
 		return;
 	}
 	navigation_manager.require_update = false;
