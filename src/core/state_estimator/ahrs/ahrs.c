@@ -23,9 +23,7 @@
 #include "sys_time.h"
 #include "led.h"
 #include "system_state.h"
-
-extern optitrack_t optitrack;
-extern vins_mono_t vins_mono;
+#include "vio.h"
 
 extern SemaphoreHandle_t flight_ctrl_semphr;
 
@@ -369,15 +367,27 @@ void ahrs_estimate(attitude_t *attitude)
 	(void)gravity; //suppress the unused variable warning
 #endif
 
-#if (SELECT_HEADING_SENSOR == HEADING_FUSION_USE_OPTITRACK)
-	if(optitrack_available() == true) {
-		realign_ahrs_yaw_direction(attitude->q, optitrack.q);
+	/* direct heading alignment with external navigation systems */
+	switch(get_heading_sensor()) {
+	case HEADING_FUSION_USE_OPTITRACK: {
+		float q_optitrack[4];
+		optitrack_get_quaternion(q_optitrack);
+
+		if(optitrack_available() == true) {
+			realign_ahrs_yaw_direction(attitude->q, q_optitrack);
+		}
+		break;
 	}
-#elif (SELECT_HEADING_SENSOR == HEADING_FUSION_USE_VINS_MONO)
-	if(vins_mono_available() == true) {
-		realign_ahrs_yaw_direction(attitude->q, vins_mono.q);
+	case HEADING_FUSION_USE_VINS_MONO: {
+		float q_vio[4];
+		vio_get_quaternion(q_vio);
+
+		if(vio_available() == true) {
+			realign_ahrs_yaw_direction(attitude->q, q_vio);
+		}
+		break;
 	}
-#endif
+	}
 
 	euler_t euler;
 	quat_to_euler(attitude->q, &euler);
