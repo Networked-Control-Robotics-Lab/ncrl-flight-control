@@ -19,6 +19,7 @@
 #include "ahrs.h"
 #include "ins_eskf.h"
 #include "autopilot.h"
+#include "vio.h"
 
 #define INS_LOOP_PERIOD 0.0025f //400Hz
 
@@ -55,6 +56,27 @@ static void ins_full_state_estimation(void)
 	}
 }
 
+static void ins_led_state_update(void)
+{
+	switch(get_position_sensor()) {
+	case POSITION_FUSION_USE_OPTITRACK:
+		set_rgb_led_service_navigation_on_flag(optitrack_available());
+		break;
+	case POSITION_FUSION_USE_VINS_MONO:
+		set_rgb_led_service_navigation_on_flag(vio_available());
+		break;
+	case POSITION_FUSION_USE_GPS:
+#if (SELECT_INS == INS_COMPLEMENTARY_FILTER)
+		set_rgb_led_service_navigation_on_flag(ins_complementary_filter_ready());
+#elif (SELECT_INS == INS_ESKF)
+		set_rgb_led_service_navigation_on_flag(eskf_ins_is_stable());
+#endif
+		break;
+	default:
+		set_rgb_led_service_navigation_on_flag(false);
+	}
+}
+
 void ins_state_estimate(void)
 {
 #if (SELECT_INS == INS_COMPLEMENTARY_FILTER)
@@ -62,6 +84,8 @@ void ins_state_estimate(void)
 #elif (SELECT_INS == INS_ESKF)
 	ins_full_state_estimation();
 #endif
+
+	ins_led_state_update();
 }
 
 /* raw position getters */

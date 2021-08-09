@@ -1513,14 +1513,6 @@ bool ins_eskf_estimate(attitude_t *attitude,
                        float *pos_enu_raw, float *vel_enu_raw,
                        float *pos_enu_fused, float *vel_enu_fused)
 {
-#if (SELECT_POSITION_SENSOR == POSITION_FUSION_USE_OPTITRACK)
-	set_rgb_led_service_navigation_on_flag(optitrack_available());
-	return false;
-#elif (SELECT_POSITION_SENSOR == POSITION_FUSION_USE_VINS_MONO)
-	set_rgb_led_service_navigation_on_flag(vins_mono_available());
-	return false;
-#endif
-
 	float curr_time, elapsed_time;
 
 	/* check sensor status */
@@ -1539,9 +1531,6 @@ bool ins_eskf_estimate(attitude_t *attitude,
 	if(sensor_all_ready == false) {
 		return false;
 	}
-
-	/* change led state to indicate the sensor status */
-	set_rgb_led_service_navigation_on_flag(sensor_all_ready);
 
 	/* prepare imu data */
 	float accel[3];

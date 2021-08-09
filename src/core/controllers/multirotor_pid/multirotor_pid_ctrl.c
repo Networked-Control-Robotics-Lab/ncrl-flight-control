@@ -397,7 +397,7 @@ void multirotor_pid_control(radio_t *rc)
 
 	/* check if heading sensor is present */
 	float yaw_ctrl_output = pid_yaw.output;
-	if(is_compass_available() == false) {
+	if(is_heading_available() == false) {
 		/* yaw rate control only */
 		yaw_ctrl_output = pid_yaw_rate.output;
 	}

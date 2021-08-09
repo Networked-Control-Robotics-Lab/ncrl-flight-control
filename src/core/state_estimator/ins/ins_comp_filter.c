@@ -136,18 +136,8 @@ void ins_comp_filter_height_correct(float pz_correct, float vz_correct,
 	vel_last[2] = vel_enu_out[2];
 }
 
-void ins_complementary_filter_estimate(float *pos_enu_raw, float *vel_enu_raw,
-                                       float *pos_enu_fused, float *vel_enu_fused)
+bool ins_complementary_filter_ready(void)
 {
-#if (SELECT_POSITION_SENSOR == POSITION_FUSION_USE_OPTITRACK)
-	set_rgb_led_service_navigation_on_flag(optitrack_available());
-	return;
-#elif (SELECT_POSITION_SENSOR == POSITION_FUSION_USE_VINS_MONO)
-	set_rgb_led_service_navigation_on_flag(vins_mono_available());
-	return;
-#endif
-
-	/* check sensor status */
 	bool gps_ready = is_gps_available();
 	bool compass_ready = is_compass_available();
 #if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
@@ -156,13 +146,23 @@ void ins_complementary_filter_estimate(float *pos_enu_raw, float *vel_enu_raw,
 	bool height_sensor_ready = rangefinder_available();
 #else
 	bool height_sensor_ready = false;
-	(void)height_sensor_ready; //suppress warning
 #endif
 
-	bool sensor_all_ready = gps_ready && compass_ready && height_sensor_ready;
+	return gps_ready && compass_ready && height_sensor_ready;
+}
 
-	/* change led state to indicate the sensor status */
-	set_rgb_led_service_navigation_on_flag(sensor_all_ready);
+void ins_complementary_filter_estimate(float *pos_enu_raw, float *vel_enu_raw,
+                                       float *pos_enu_fused, float *vel_enu_fused)
+{
+	/* check sensor status */
+	bool gps_compass_ready = is_gps_available() && is_compass_available();
+#if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
+	bool height_sensor_ready = is_barometer_available();
+#elif (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_RANGEFINDER)
+	bool height_sensor_ready = rangefinder_available();
+#else
+	bool height_sensor_ready = false;
+#endif
 
 	int32_t longitude, latitude;
 	float gps_msl_height;
@@ -170,7 +170,7 @@ void ins_complementary_filter_estimate(float *pos_enu_raw, float *vel_enu_raw,
 
 	/* predict position and velocity with kinematics equations (400Hz) */
 	ins_comp_filter_predict(pos_enu_fused, vel_enu_fused,
-	                        gps_ready, height_sensor_ready);
+	                        gps_compass_ready, height_sensor_ready);
 
 #if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
 	/* height correction (barometer) */
