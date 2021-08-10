@@ -1,5 +1,5 @@
-#ifndef __GPS_TO_ENU_H__
-#define __GPS_TO_ENU_H__
+#ifndef __GEOGRAPHIC_TRANSFORM_H__
+#define __GEOGRAPHIC_TRANSFORM_H__
 
 bool gps_home_is_set(void);
 

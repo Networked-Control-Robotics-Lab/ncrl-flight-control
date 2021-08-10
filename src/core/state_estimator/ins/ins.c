@@ -1,6 +1,6 @@
 #include <stdbool.h>
 #include <stdint.h>
-#include "gps_to_enu.h"
+#include "geographic_transform_util.h"
 #include "system_state.h"
 #include "barometer.h"
 #include "compass.h"

@@ -3,7 +3,7 @@
 #include "optitrack.h"
 #include "imu.h"
 #include "barometer.h"
-#include "gps_to_enu.h"
+#include "geographic_transform_util.h"
 #include "system_state.h"
 #include "ins_comp_filter.h"
 #include "ahrs.h"
