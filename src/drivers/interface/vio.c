@@ -30,26 +30,17 @@ void vio_disable_frame_alignment(void)
 void vio_calculate_frame_alignment(void)
 {
 	/* get position and quaternion from gnss/ins */
-	float p_gnss_ins_enu[3], p_gnss_ins[3], q_gnss_ins[4];
-	optitrack_get_position_enu(p_gnss_ins_enu); //FIXME
-	optitrack_get_quaternion(q_gnss_ins);
+	float p_gnss_ins[3], q_gnss_ins[4];
+	optitrack_get_position_ned(p_gnss_ins); //we get position under the i frame
+	optitrack_get_quaternion(q_gnss_ins);   //we get q from b to i here
+	//TODO:
 	//ins_ahrs_get_attitude_quaternion(q_gnss_ins);
 
-	//FIXME: unify the coordinate system to ned
-	p_gnss_ins[0] =  p_gnss_ins_enu[1];
-	p_gnss_ins[1] =  p_gnss_ins_enu[0];
-	p_gnss_ins[2] = -p_gnss_ins_enu[2];
-
 	/* get position and quaternion from local vio */
-	float p_local_vio_enu[3], p_local_vio[3], q_local_vio[4], q_local_vio_conj[4];
-	vins_mono_get_position_enu(p_local_vio_enu);    //we get position of bk frame under the c0 frame
+	float p_local_vio[3], q_local_vio[4], q_local_vio_conj[4];
+	vins_mono_get_position_ned(p_local_vio);        //we get position of bk frame under the c0 frame
 	vins_mono_get_quaternion(q_local_vio_conj);     //we get q from b to c0 here
 	quaternion_conj(q_local_vio_conj, q_local_vio); //get q from c0 to b
-
-	//FIXME: unify the coordinate system to ned
-	p_local_vio[0] =  p_local_vio_enu[1];
-	p_local_vio[1] =  p_local_vio_enu[0];
-	p_local_vio[2] = -p_local_vio_enu[2];
 
 	/* calculate frame rotation */
 	float Rt[3*3]; //XXX: dummy variable
@@ -98,22 +89,21 @@ void vio_get_position(float *pos)
 {
 	if(vio.frame_align == true) {
 		/* get position from local vio */
-		float p_local_vio_enu[3], p_local_vio[3];
-		vins_mono_get_position_enu(p_local_vio_enu); //we get position of bk frame under the c0 frame
-
-		//TODO: unify the coordinate system to ned
-		p_local_vio[0] =  p_local_vio_enu[1];
-		p_local_vio[1] =  p_local_vio_enu[0];
-		p_local_vio[2] = -p_local_vio_enu[2];
+		float p_local_vio[3];
+		vins_mono_get_position_ned(p_local_vio); //we get position of bk frame under the c0 frame
 
 		/* apply frame translation
-		 * p_global = R_l2g * p_local_vio + p_l2g */
-		float p_tmp[3];
+		 * p_global_vio = R_l2g * p_local_vio + p_l2g */
+		float p_global_vio[3], p_tmp[3];
 		calc_matrix_multiply_vector_3d(p_tmp, p_local_vio, vio.R_l2g);
-		//TODO: unify the coordinate system to ned
-		pos[0] = p_tmp[1] + vio.p_l2g[1];
-		pos[1] = p_tmp[0] + vio.p_l2g[0];
-		pos[2] = -(p_tmp[2] + vio.p_l2g[2]);
+		p_global_vio[0] = p_tmp[0] + vio.p_l2g[0];
+		p_global_vio[1] = p_tmp[1] + vio.p_l2g[1];
+		p_global_vio[2] = p_tmp[2] + vio.p_l2g[2];
+
+		/* XXX: return result in enu coordinate system */
+		pos[0] =  p_global_vio[0];
+		pos[1] =  p_global_vio[1];
+		pos[2] = -p_global_vio[2];
 	} else {
 		vins_mono_get_position_enu(pos);
 	}
@@ -122,22 +112,19 @@ void vio_get_position(float *pos)
 void vio_get_velocity(float *vel)
 {
 	if(vio.frame_align == true) {
-		/* get position from local vio */
-		float v_local_vio_enu[3], v_local_vio[3];
-		vins_mono_get_velocity_enu(v_local_vio_enu); //we get velocity of bk frame under the c0 frame
-
-		//TODO: unify the coordinate system to ned
-		v_local_vio[0] =  v_local_vio_enu[1];
-		v_local_vio[1] =  v_local_vio_enu[0];
-		v_local_vio[2] = -v_local_vio_enu[2];
+		/* get velocity from local vio */
+		float v_local_vio[3];
+		vins_mono_get_velocity_ned(v_local_vio); //we get velocity of bk frame under the c0 frame
 
 		/* apply frame translation
-		 * v_global = R_l2g * v_local_vio */
-		float v_tmp[3];
-		calc_matrix_multiply_vector_3d(v_tmp, v_local_vio, vio.R_l2g);
-		vel[0] =  v_tmp[1];
-		vel[1] =  v_tmp[0];
-		vel[2] = -v_tmp[2];
+		 * v_global_vio = R_l2g * v_local_vio */
+		float v_global_vio[3];
+		calc_matrix_multiply_vector_3d(v_global_vio, v_local_vio, vio.R_l2g);
+
+		/* XXX: return result in enu coordinate system */
+		vel[0] =  v_global_vio[1];
+		vel[1] =  v_global_vio[0];
+		vel[2] = -v_global_vio[2];
 	} else {
 		vins_mono_get_velocity_enu(vel);
 	}
