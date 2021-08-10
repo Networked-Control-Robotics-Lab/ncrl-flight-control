@@ -15,13 +15,13 @@ typedef struct {
 	float gps_time_last;
 } ins_eskf_t;
 
-void eskf_ins_init(float dt);
-bool eskf_ins_is_stable(void);
+void ins_eskf_init(float dt);
+bool ins_eskf_is_stable(void);
 bool ins_eskf_estimate(attitude_t *attitude,
                        float *pos_enu_raw, float *vel_enu_raw,
                        float *pos_enu_fused, float *vel_enu_fused);
 
-void get_eskf_ins_attitude_quaternion(float *q_out);
+void get_ins_eskf_attitude_quaternion(float *q_out);
 
 void send_ins_eskf1_covariance_matrix_debug_message(debug_msg_t *payload);
 void send_ins_eskf_correct_freq_debug_message(debug_msg_t *payload);

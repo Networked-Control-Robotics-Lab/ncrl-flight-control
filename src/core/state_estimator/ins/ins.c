@@ -33,7 +33,7 @@ float vel_fused[3];
 void ins_init(void)
 {
 	ins_comp_filter_init(INS_LOOP_PERIOD);
-	eskf_ins_init(INS_LOOP_PERIOD);
+	ins_eskf_init(INS_LOOP_PERIOD);
 }
 
 static void ins_decoupled_state_estimation(void)
@@ -51,7 +51,7 @@ static void ins_full_state_estimation(void)
 	ins_eskf_estimate(&attitude, pos_raw, vel_raw, pos_fused, vel_fused);
 
 	/* call decoupled state estimation if eskf is not ready */
-	if(eskf_ins_is_stable() == false) {
+	if(ins_eskf_is_stable() == false) {
 		ins_decoupled_state_estimation();
 	}
 }
@@ -69,7 +69,7 @@ static void ins_led_state_update(void)
 #if (SELECT_INS == INS_COMPLEMENTARY_FILTER)
 		set_rgb_led_service_navigation_on_flag(ins_complementary_filter_ready());
 #elif (SELECT_INS == INS_ESKF)
-		set_rgb_led_service_navigation_on_flag(eskf_ins_is_stable());
+		set_rgb_led_service_navigation_on_flag(ins_eskf_is_stable());
 #endif
 		break;
 	default:

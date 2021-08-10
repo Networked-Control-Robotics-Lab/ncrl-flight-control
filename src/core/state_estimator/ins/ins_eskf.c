@@ -91,7 +91,7 @@ float dt;
 float half_dt;
 float half_dt_squared;
 
-void eskf_ins_init(float _dt)
+void ins_eskf_init(float _dt)
 {
 	dt = _dt;
 	half_dt = 0.5f * dt;
@@ -213,7 +213,7 @@ void eskf_ins_init(float _dt)
 	matrix_reset(mat_data(_HPHt_V_rangefinder), 2, 2);
 }
 
-float eskf_ins_get_covariance_matrix_norm(void)
+float ins_eskf_get_covariance_matrix_norm(void)
 {
 	float norm = 0;
 
@@ -225,7 +225,7 @@ float eskf_ins_get_covariance_matrix_norm(void)
 	return norm * 1e-7;
 }
 
-bool eskf_ins_is_stable(void)
+bool ins_eskf_is_stable(void)
 {
 	/* TODO: refactor this code */
 	bool gps_ready = is_gps_available();
@@ -240,14 +240,14 @@ bool eskf_ins_is_stable(void)
 
 	bool sensor_all_ready = gps_ready && compass_ready && height_ready;
 
-	if(sensor_all_ready && eskf_ins_get_covariance_matrix_norm() < 1e-2) {
+	if(sensor_all_ready && ins_eskf_get_covariance_matrix_norm() < 1e-2) {
 		return true;
 	} else {
 		return false;
 	}
 }
 
-void eskf_ins_predict(float *accel, float *gyro)
+void ins_eskf_predict(float *accel, float *gyro)
 {
 	/* input variables (ned frame) */
 	float accel_b_x = accel[0];
@@ -501,7 +501,7 @@ void eskf_ins_predict(float *accel, float *gyro)
 	quat_to_rotation_matrix(q, mat_data(_R), mat_data(_Rt));
 }
 
-void eskf_ins_accelerometer_correct(float *accel)
+void ins_eskf_accelerometer_correct(float *accel)
 {
 	float accel_sum_squared = (accel[0])*(accel[0]) + (accel[1])*(accel[1]) +
 	                          (accel[2])*(accel[2]) + (accel[3])*(accel[3]);
@@ -739,7 +739,7 @@ void eskf_ins_accelerometer_correct(float *accel)
 	quat_to_rotation_matrix(q, mat_data(_R), mat_data(_Rt));
 }
 
-void eskf_ins_magnetometer_correct(float *mag)
+void ins_eskf_magnetometer_correct(float *mag)
 {
 	float mag_sum_squared = (mag[0])*(mag[0]) + (mag[1])*(mag[1]) +
 	                        (mag[2])*(mag[2]) + (mag[3])*(mag[3]);
@@ -1006,7 +1006,7 @@ void eskf_ins_magnetometer_correct(float *mag)
 	quat_to_rotation_matrix(q, mat_data(_R), mat_data(_Rt));
 }
 
-void eskf_ins_gps_correct(float px_enu, float py_enu,
+void ins_eskf_gps_correct(float px_enu, float py_enu,
                           float vx_enu, float vy_enu)
 {
 	float px_gps = px_enu;
@@ -1200,7 +1200,7 @@ void eskf_ins_gps_correct(float px_enu, float py_enu,
 	mat_data(nominal_state)[4] += mat_data(error_state)[4];
 }
 
-void eskf_ins_barometer_correct(float barometer_z, float barometer_vz)
+void ins_eskf_barometer_correct(float barometer_z, float barometer_vz)
 {
 	float pz_baro = barometer_z;
 	float vz_baro = barometer_vz;
@@ -1352,7 +1352,7 @@ void eskf_ins_barometer_correct(float barometer_z, float barometer_vz)
 }
 
 
-void eskf_ins_rangefinder_correct(float pz_rangefinder, float vz_rangefinder)
+void ins_eskf_rangefinder_correct(float pz_rangefinder, float vz_rangefinder)
 {
 	float pz = mat_data(nominal_state)[2];
 	float vz = mat_data(nominal_state)[5];
@@ -1501,7 +1501,7 @@ void eskf_ins_rangefinder_correct(float pz_rangefinder, float vz_rangefinder)
 	mat_data(nominal_state)[5] += mat_data(error_state)[5];
 }
 
-void get_eskf_ins_attitude_quaternion(float *q_out)
+void ins_eskf_get_attitude_quaternion(float *q_out)
 {
 	/* return the conjugated quaternion since we use opposite convention compared to the paper.
 	 * paper: quaternion of earth frame to body-fixed frame
@@ -1542,10 +1542,10 @@ bool ins_eskf_estimate(attitude_t *attitude,
 	gyro_rad[2] = deg_to_rad(gyro[2]);
 
 	/* eskf prediction (400Hz) */
-	eskf_ins_predict(accel, gyro_rad);
+	ins_eskf_predict(accel, gyro_rad);
 
 	/* accelerometer (gravity) correction for attitude states (400Hz) */
-	eskf_ins_accelerometer_correct(accel);
+	ins_eskf_accelerometer_correct(accel);
 
 	/* compass correction (40Hz)*/
 	static bool compass_init = false;
@@ -1559,7 +1559,7 @@ bool ins_eskf_estimate(attitude_t *attitude,
 			compass_init = true;
 		} else {
 			if(ahrs_compass_quality_test(mag) == true) {
-				eskf_ins_magnetometer_correct(mag);
+				ins_eskf_magnetometer_correct(mag);
 			}
 		}
 
@@ -1581,7 +1581,7 @@ bool ins_eskf_estimate(attitude_t *attitude,
 		pos_enu_raw[2] = barometer_height;
 		vel_enu_raw[2] = barometer_height_rate;
 
-		eskf_ins_barometer_correct(pos_enu_raw[2], vel_enu_raw[2]);
+		ins_eskf_barometer_correct(pos_enu_raw[2], vel_enu_raw[2]);
 
 		/* calculate correct frequency */
 		curr_time = get_sys_time_s();
@@ -1600,7 +1600,7 @@ bool ins_eskf_estimate(attitude_t *attitude,
 		pos_enu_raw[2] = rangefinder_height;
 		vel_enu_raw[2] = rangefinder_height_rate;
 
-		eskf_ins_rangefinder_correct(pos_enu_raw[2], vel_enu_raw[2]);
+		ins_eskf_rangefinder_correct(pos_enu_raw[2], vel_enu_raw[2]);
 
 		/* calculate correct frequency */
 		curr_time = get_sys_time_s();
@@ -1636,7 +1636,7 @@ bool ins_eskf_estimate(attitude_t *attitude,
 		vel_enu_raw[0] = gps_ned_vy; //x_enu = y_ned
 		vel_enu_raw[1] = gps_ned_vx; //y_enu = x_ned
 
-		eskf_ins_gps_correct(pos_enu_raw[0], pos_enu_raw[1],
+		ins_eskf_gps_correct(pos_enu_raw[0], pos_enu_raw[1],
 		                     vel_enu_raw[0], vel_enu_raw[1]);
 
 		/* calculate correct frequency */
