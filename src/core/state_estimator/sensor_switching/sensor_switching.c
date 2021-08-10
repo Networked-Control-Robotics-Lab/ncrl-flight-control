@@ -65,7 +65,7 @@ static void switch_gnss_ins_to_global_vio(void)
 	/* position state from the gnss ins */
 	float p_gnss_ins[3];
 	//ins_get_fused_position(p_gnss_ins);
-	optitrack_read_pos(p_gnss_ins); //XXX: indoor test only
+	optitrack_get_position_enu(p_gnss_ins); //XXX: indoor test only
 
 	/* calculate translation */
 	float p_translation[3];
@@ -194,7 +194,7 @@ static void switch_global_vio_to_gnss_ins(void)
 	/* position state from the gnss ins */
 	float p_gnss_ins[3];
 	//ins_get_fused_position(p_gnss_ins);
-	optitrack_read_pos(p_gnss_ins); //XXX: indoor test only
+	optitrack_get_position_enu(p_gnss_ins); //XXX: indoor test only
 
 	/* calculate translation */
 	float p_translation[3];

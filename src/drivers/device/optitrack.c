@@ -15,6 +15,7 @@
 #include "proj_config.h"
 
 #define OPTITRACK_QUEUE_SIZE (32 * 400) //~400 packets
+#define OPTITRACK_CHECKSUM_INIT_VAL 19
 
 typedef struct {
 	char c;
@@ -86,7 +87,6 @@ void optitrack_update(void)
 	}
 }
 
-#define OPTITRACK_CHECKSUM_INIT_VAL 19
 static uint8_t generate_optitrack_checksum_byte(uint8_t *payload, int payload_count)
 {
 	uint8_t result = OPTITRACK_CHECKSUM_INIT_VAL;
@@ -101,23 +101,24 @@ static uint8_t generate_optitrack_checksum_byte(uint8_t *payload, int payload_co
 void optitrack_numerical_vel_calc(void)
 {
 	const float dt = 1.0f / 120.0f; //fixed dt (120Hz)
-	optitrack.vel_raw[0] = (optitrack.pos[0] - optitrack.pos_last[0]) / dt;
-	optitrack.vel_raw[1] = (optitrack.pos[1] - optitrack.pos_last[1]) / dt;
-	optitrack.vel_raw[2] = (optitrack.pos[2] - optitrack.pos_last[2]) / dt;
+	optitrack.vel_enu[0] = (optitrack.pos_enu[0] - optitrack.pos_last_enu[0]) / dt;
+	optitrack.vel_enu[1] = (optitrack.pos_enu[1] - optitrack.pos_last_enu[1]) / dt;
+	optitrack.vel_enu[2] = (optitrack.pos_enu[2] - optitrack.pos_last_enu[2]) / dt;
 
 	float received_period = (optitrack.time_now - optitrack.time_last) * 0.001;
 	optitrack.update_rate = 1.0f / received_period;
 
-	optitrack.vel_filtered[0] = optitrack.vel_raw[0];
-	optitrack.vel_filtered[1] = optitrack.vel_raw[1];
-	optitrack.vel_filtered[2] = optitrack.vel_raw[2];
-	//lpf(optitrack.vel_raw[0], &(optitrack.vel_filtered[0]), 0.8);
-	//lpf(optitrack.vel_raw[1], &(optitrack.vel_filtered[1]), 0.8);
-	//lpf(optitrack.vel_raw[2], &(optitrack.vel_filtered[2]), 0.8);
+	optitrack.vel_filtered[0] = optitrack.vel_enu[0];
+	optitrack.vel_filtered[1] = optitrack.vel_enu[1];
+	optitrack.vel_filtered[2] = optitrack.vel_enu[2];
+	//lpf(optitrack.vel_enu[0], &(optitrack.vel_filtered[0]), 0.8);
+	//lpf(optitrack.vel_enu[1], &(optitrack.vel_filtered[1]), 0.8);
+	//lpf(optitrack.vel_enu[2], &(optitrack.vel_filtered[2]), 0.8);
 }
 
 int optitrack_serial_decoder(uint8_t *buf)
 {
+	/* checksum validation */
 	uint8_t recv_checksum = buf[1];
 	uint8_t checksum = generate_optitrack_checksum_byte(&buf[3], OPTITRACK_SERIAL_MSG_SIZE - 4);
 	int recv_id = buf[2];
@@ -125,79 +126,86 @@ int optitrack_serial_decoder(uint8_t *buf)
 		return 1; //error detected
 	}
 
+	/* update reception time */
 	optitrack.time_now = get_sys_time_ms();
 
-	float enu_pos_x, enu_pos_y, enu_pos_z;
+	/* decode position */
+	memcpy(&optitrack.pos_enu[0], &buf[3], sizeof(float));
+	memcpy(&optitrack.pos_enu[1], &buf[7], sizeof(float));
+	memcpy(&optitrack.pos_enu[2], &buf[11], sizeof(float));
 
-	memcpy(&enu_pos_x, &buf[3], sizeof(float)); //in ned coordinate system
-	memcpy(&enu_pos_y, &buf[7], sizeof(float));
-	memcpy(&enu_pos_z, &buf[11], sizeof(float));
-	optitrack.pos[0] = enu_pos_x; //east
-	optitrack.pos[1] = enu_pos_y; //north
-	optitrack.pos[2] = enu_pos_z; //up
-	/* swap the order of quaternion to make the frame consistent with ahrs' rotation order */
+	/* decode quaternion, also swap the order to make the frame convention consist to the ahrs */
 	memcpy(&optitrack.q[1], &buf[15], sizeof(float));
 	memcpy(&optitrack.q[2], &buf[19], sizeof(float));
 	memcpy(&optitrack.q[3], &buf[23], sizeof(float));
 	memcpy(&optitrack.q[0], &buf[27], sizeof(float));
 	optitrack.q[3] *= -1;
 
+	/* first reception */
 	if(optitrack.vel_ready == false) {
 		optitrack.time_last = get_sys_time_ms();
-		optitrack.pos_last[0] = optitrack.pos[0];
-		optitrack.pos_last[1] = optitrack.pos[1];
-		optitrack.pos_last[2] = optitrack.pos[2];
-		optitrack.vel_raw[0] = 0.0f;
-		optitrack.vel_raw[1] = 0.0f;
-		optitrack.vel_raw[2] = 0.0f;
+		optitrack.pos_last_enu[0] = optitrack.pos_enu[0];
+		optitrack.pos_last_enu[1] = optitrack.pos_enu[1];
+		optitrack.pos_last_enu[2] = optitrack.pos_enu[2];
+		optitrack.vel_enu[0] = 0.0f;
+		optitrack.vel_enu[1] = 0.0f;
+		optitrack.vel_enu[2] = 0.0f;
 		optitrack.vel_ready = true;
 		return 0;
 	}
 
+	/* calculate velocity with numerical differentiation */
 	optitrack_numerical_vel_calc();
-	optitrack.pos_last[0] = optitrack.pos[0]; //save for next iteration
-	optitrack.pos_last[1] = optitrack.pos[1];
-	optitrack.pos_last[2] = optitrack.pos[2];
+	optitrack.pos_last_enu[0] = optitrack.pos_enu[0]; //save for next iteration
+	optitrack.pos_last_enu[1] = optitrack.pos_enu[1];
+	optitrack.pos_last_enu[2] = optitrack.pos_enu[2];
 	optitrack.time_last = optitrack.time_now;
 
 	return 0;
 }
 
-void optitrack_read_pos(float *pos)
+void optitrack_get_position_enu(float *pos)
 {
-	pos[0] = optitrack.pos[0];
-	pos[1] = optitrack.pos[1];
-	pos[2] = optitrack.pos[2];
+	pos[0] = optitrack.pos_enu[0];
+	pos[1] = optitrack.pos_enu[1];
+	pos[2] = optitrack.pos_enu[2];
 }
 
-float optitrack_read_pos_x(void)
+float optitrack_get_position_enu_x(void)
 {
-	return optitrack.pos[0];
+	return optitrack.pos_enu[0];
 }
 
-float optitrack_read_pos_y(void)
+float optitrack_get_position_enu_y(void)
 {
-	return optitrack.pos[1];
+	return optitrack.pos_enu[1];
 }
 
-float optitrack_read_pos_z(void)
+float optitrack_get_position_enu_z(void)
 {
-	return optitrack.pos[2];
+	return optitrack.pos_enu[2];
 }
 
-float optitrack_read_vel_x(void)
+void optitrack_get_velocity_enu(float *vel)
 {
-	return optitrack.vel_raw[0];
+	vel[0] = optitrack.vel_enu[0];
+	vel[1] = optitrack.vel_enu[1];
+	vel[2] = optitrack.vel_enu[2];
 }
 
-float optitrack_read_vel_y(void)
+float optitrack_get_velocity_enu_x(void)
 {
-	return optitrack.vel_raw[1];
+	return optitrack.vel_enu[0];
 }
 
-float optitrack_read_vel_z(void)
+float optitrack_get_velocity_enu_y(void)
 {
-	return optitrack.vel_raw[2];
+	return optitrack.vel_enu[1];
+}
+
+float optitrack_get_velocity_enu_z(void)
+{
+	return optitrack.vel_enu[2];
 }
 
 void optitrack_get_quaternion(float *q)
@@ -210,9 +218,10 @@ void optitrack_get_quaternion(float *q)
 
 void send_optitrack_position_debug_message(debug_msg_t *payload)
 {
-	float px = optitrack.pos[0] * 100.0f; //[cm]
-	float py = optitrack.pos[1] * 100.0f; //[cm]
-	float pz = optitrack.pos[2] * 100.0f; //[cm]
+	//unit: [cm/s]
+	float px = optitrack.pos_enu[0] * 100.0f;
+	float py = optitrack.pos_enu[1] * 100.0f;
+	float pz = optitrack.pos_enu[2] * 100.0f;
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_OPTITRACK_POSITION);
 	pack_debug_debug_message_float(&px, payload);
@@ -231,12 +240,13 @@ void send_optitrack_quaternion_debug_message(debug_msg_t *payload)
 
 void send_optitrack_velocity_debug_message(debug_msg_t *payload)
 {
-	float vx_raw = optitrack.vel_raw[0] * 100.0f; //[cm/s]
-	float vy_raw = optitrack.vel_raw[1] * 100.0f; //[cm/s]
-	float vz_raw = optitrack.vel_raw[2] * 100.0f; //[cm/s]
-	float vx_filtered = optitrack.vel_filtered[0] * 100.0f; //[cm/s]
-	float vy_filtered = optitrack.vel_filtered[1] * 100.0f; //[cm/s]
-	float vz_filtered = optitrack.vel_filtered[2] * 100.0f; //[cm/s]
+	//unit: [cm/s]
+	float vx_raw = optitrack.vel_enu[0] * 100.0f;
+	float vy_raw = optitrack.vel_enu[1] * 100.0f;
+	float vz_raw = optitrack.vel_enu[2] * 100.0f;
+	float vx_filtered = optitrack.vel_filtered[0] * 100.0f;
+	float vy_filtered = optitrack.vel_filtered[1] * 100.0f;
+	float vz_filtered = optitrack.vel_filtered[2] * 100.0f;
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_OPTITRACK_VELOCITY);
 	pack_debug_debug_message_float(&vx_raw, payload);

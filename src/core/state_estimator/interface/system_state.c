@@ -86,8 +86,8 @@ void get_enu_position(float *pos)
 	/* x-y position */
 	switch(sensor_manager.position_sensor) {
 	case POSITION_FUSION_USE_OPTITRACK:
-		pos[0] = optitrack_read_pos_x();
-		pos[1] = optitrack_read_pos_y();
+		pos[0] = optitrack_get_position_enu_x();
+		pos[1] = optitrack_get_position_enu_y();
 		break;
 	case POSITION_FUSION_USE_VINS_MONO:
 		pos[0] = vio_get_position_x();
@@ -106,7 +106,7 @@ void get_enu_position(float *pos)
 	/* z position */
 	switch(sensor_manager.height_sensor) {
 	case HEIGHT_FUSION_USE_OPTITRACK:
-		pos[2] = optitrack_read_pos_z();
+		pos[2] = optitrack_get_position_enu_z();
 		break;
 	case HEIGHT_FUSION_USE_VINS_MONO:
 		pos[2] = vio_get_position_z();
@@ -127,7 +127,7 @@ float get_enu_position_x(void)
 {
 	switch(sensor_manager.position_sensor) {
 	case POSITION_FUSION_USE_OPTITRACK:
-		return optitrack_read_pos_x();
+		return optitrack_get_position_enu_x();
 	case POSITION_FUSION_USE_VINS_MONO:
 		return vio_get_position_x();
 	case POSITION_FUSION_USE_GPS:
@@ -141,7 +141,7 @@ float get_enu_position_y(void)
 {
 	switch(sensor_manager.position_sensor) {
 	case POSITION_FUSION_USE_OPTITRACK:
-		return optitrack_read_pos_y();
+		return optitrack_get_position_enu_y();
 	case POSITION_FUSION_USE_VINS_MONO:
 		return vio_get_position_y();
 	case POSITION_FUSION_USE_GPS:
@@ -155,7 +155,7 @@ float get_enu_position_z(void)
 {
 	switch(sensor_manager.height_sensor) {
 	case HEIGHT_FUSION_USE_OPTITRACK:
-		return optitrack_read_pos_z();
+		return optitrack_get_position_enu_z();
 	case HEIGHT_FUSION_USE_VINS_MONO:
 		return vio_get_position_z();
 	case HEIGHT_FUSION_USE_BAROMETER:
@@ -172,8 +172,8 @@ void get_enu_velocity(float *vel)
 	/* x-y velocity */
 	switch(sensor_manager.position_sensor) {
 	case POSITION_FUSION_USE_OPTITRACK:
-		vel[0] = optitrack_read_vel_x();
-		vel[1] = optitrack_read_vel_y();
+		vel[0] = optitrack_get_velocity_enu_x();
+		vel[1] = optitrack_get_velocity_enu_y();
 		break;
 	case POSITION_FUSION_USE_VINS_MONO:
 		vel[0] = vio_get_velocity_x();
@@ -192,7 +192,7 @@ void get_enu_velocity(float *vel)
 	/* z velocity */
 	switch(sensor_manager.height_sensor) {
 	case HEIGHT_FUSION_USE_OPTITRACK:
-		vel[2] = optitrack_read_vel_z();
+		vel[2] = optitrack_get_velocity_enu_z();
 		break;
 	case HEIGHT_FUSION_USE_VINS_MONO:
 		vel[2] = vio_get_velocity_z();
@@ -213,7 +213,7 @@ float get_enu_velocity_x(void)
 {
 	switch(sensor_manager.position_sensor) {
 	case POSITION_FUSION_USE_OPTITRACK:
-		return optitrack_read_vel_x();
+		return optitrack_get_velocity_enu_x();
 	case POSITION_FUSION_USE_VINS_MONO:
 		return vio_get_velocity_x();
 	case POSITION_FUSION_USE_GPS:
@@ -227,7 +227,7 @@ float get_enu_velocity_y(void)
 {
 	switch(sensor_manager.position_sensor) {
 	case POSITION_FUSION_USE_OPTITRACK:
-		return optitrack_read_vel_y();
+		return optitrack_get_velocity_enu_y();
 	case POSITION_FUSION_USE_VINS_MONO:
 		return vio_get_velocity_y();
 	case POSITION_FUSION_USE_GPS:
@@ -241,7 +241,7 @@ float get_enu_velocity_z(void)
 {
 	switch(sensor_manager.height_sensor) {
 	case HEIGHT_FUSION_USE_OPTITRACK:
-		return optitrack_read_vel_z();
+		return optitrack_get_velocity_enu_z();
 	case HEIGHT_FUSION_USE_VINS_MONO:
 		return vio_get_velocity_z();
 	case HEIGHT_FUSION_USE_BAROMETER:

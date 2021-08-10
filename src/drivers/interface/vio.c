@@ -31,7 +31,7 @@ void vio_calculate_frame_alignment(void)
 {
 	/* get position and quaternion from gnss/ins */
 	float p_gnss_ins_enu[3], p_gnss_ins[3], q_gnss_ins[4];
-	optitrack_read_pos(p_gnss_ins_enu); //FIXME
+	optitrack_get_position_enu(p_gnss_ins_enu); //FIXME
 	optitrack_get_quaternion(q_gnss_ins);
 	//ins_ahrs_get_attitude_quaternion(q_gnss_ins);
 
