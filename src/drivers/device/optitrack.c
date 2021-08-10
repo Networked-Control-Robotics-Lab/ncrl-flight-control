@@ -208,6 +208,50 @@ float optitrack_get_velocity_enu_z(void)
 	return optitrack.vel_enu[2];
 }
 
+void optitrack_get_position_ned(float *pos)
+{
+	pos[0] =  optitrack.pos_enu[1];
+	pos[1] =  optitrack.pos_enu[0];
+	pos[2] = -optitrack.pos_enu[2];
+}
+
+float optitrack_get_position_ned_x(void)
+{
+	return optitrack.pos_enu[1];
+}
+
+float optitrack_get_position_ned_y(void)
+{
+	return optitrack.pos_enu[0];
+}
+
+float optitrack_get_position_ned_z(void)
+{
+	return -optitrack.pos_enu[2];
+}
+
+void optitrack_get_velocity_ned(float *vel)
+{
+	vel[0] =  optitrack.vel_enu[1];
+	vel[1] =  optitrack.vel_enu[0];
+	vel[2] = -optitrack.vel_enu[2];
+}
+
+float optitrack_get_velocity_ned_x(void)
+{
+	return optitrack.vel_enu[1];
+}
+
+float optitrack_get_velocity_ned_y(void)
+{
+	return optitrack.vel_enu[0];
+}
+
+float optitrack_get_velocity_ned_z(void)
+{
+	return -optitrack.vel_enu[2];
+}
+
 void optitrack_get_quaternion(float *q)
 {
 	q[0] = optitrack.q[0];

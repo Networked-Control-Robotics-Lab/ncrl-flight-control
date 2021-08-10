@@ -47,6 +47,16 @@ float optitrack_get_velocity_enu_x(void);
 float optitrack_get_velocity_enu_y(void);
 float optitrack_get_velocity_enu_z(void);
 
+void optitrack_get_position_ned(float *pos);
+float optitrack_get_position_ned_x(void);
+float optitrack_get_position_ned_y(void);
+float optitrack_get_position_ned_z(void);
+
+void optitrack_get_velocity_ned(float *vel);
+float optitrack_get_velocity_ned_x(void);
+float optitrack_get_velocity_ned_y(void);
+float optitrack_get_velocity_ned_z(void);
+
 void optitrack_get_quaternion(float *q);
 
 void send_optitrack_position_debug_message(debug_msg_t *payload);
