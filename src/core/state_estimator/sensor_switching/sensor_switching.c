@@ -12,7 +12,7 @@
 #include "system_state.h"
 #include "optitrack.h"
 
-#define ENABLE_SENSOR_SWITCHING 1
+#define ENABLE_SENSOR_SWITCHING 0
 
 navigation_manager_t navigation_manager;
 
@@ -45,7 +45,7 @@ void navigation_manager_init(void)
 	return;
 #endif
 
-#if 0
+#if 1
 	/* initial start with the gnss/ins */
 	sensor_combination_gnss_ins();
 #else

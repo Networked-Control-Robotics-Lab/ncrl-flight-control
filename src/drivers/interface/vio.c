@@ -37,8 +37,12 @@ void vio_calculate_frame_alignment(void)
 	optitrack_get_quaternion(q_gnss_ins);   //we get q from b to i here
 #else
 	/* align with gnss/ins */
-	ins_get_fused_position(p_gnss_ins);           //we get position under the i frame
+	float p_fnss_ins_enu[3]; //FIXME
+	ins_get_fused_position(p_gnss_ins_enu);       //we get position under the i frame
 	ins_ahrs_get_attitude_quaternion(q_gnss_ins); //we get q from b to i here
+	p_fnss_ins[0] =  p_fnss_ins_enu[1];
+	p_fnss_ins[1] =  p_fnss_ins_enu[0];
+	p_fnss_ins[2] = -p_fnss_ins_enu[2];
 #endif
 	/* get position and quaternion from local vio */
 	float p_local_vio[3], q_local_vio[4], q_local_vio_conj[4];
@@ -104,7 +108,7 @@ void vio_get_position_ned(float *pos)
 		pos[1] = p_tmp[1] + vio.p_l2g[1];
 		pos[2] = p_tmp[2] + vio.p_l2g[2];
 	} else {
-		vins_mono_get_position_enu(pos);
+		vins_mono_get_position_ned(pos);
 	}
 }
 
@@ -119,7 +123,7 @@ void vio_get_velocity_ned(float *vel)
 		 * v_global_vio = R_l2g * v_local_vio */
 		calc_matrix_multiply_vector_3d(vel, v_local_vio, vio.R_l2g);
 	} else {
-		vins_mono_get_velocity_enu(vel);
+		vins_mono_get_velocity_ned(vel);
 	}
 }
 
