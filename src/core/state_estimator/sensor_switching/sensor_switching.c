@@ -60,7 +60,7 @@ static void switch_gnss_ins_to_global_vio(void)
 
 	/* position state from the gnss aligned vio */
 	float p_global_vio[3];
-	vio_get_position(p_global_vio);
+	vio_get_position_enu(p_global_vio);
 
 	/* position state from the gnss ins */
 	float p_gnss_ins[3];
@@ -189,7 +189,7 @@ static void switch_global_vio_to_gnss_ins(void)
 
 	/* position state from the gnss aligned vio */
 	float p_global_vio[3];
-	vio_get_position(p_global_vio);
+	vio_get_position_enu(p_global_vio);
 
 	/* position state from the gnss ins */
 	float p_gnss_ins[3];

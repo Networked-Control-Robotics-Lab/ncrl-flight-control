@@ -85,7 +85,7 @@ void vio_get_quaternion(float *q)
 	}
 }
 
-void vio_get_position(float *pos)
+void vio_get_position_ned(float *pos)
 {
 	if(vio.frame_align == true) {
 		/* get position from local vio */
@@ -94,22 +94,17 @@ void vio_get_position(float *pos)
 
 		/* apply frame translation
 		 * p_global_vio = R_l2g * p_local_vio + p_l2g */
-		float p_global_vio[3], p_tmp[3];
+		float p_tmp[3];
 		calc_matrix_multiply_vector_3d(p_tmp, p_local_vio, vio.R_l2g);
-		p_global_vio[0] = p_tmp[0] + vio.p_l2g[0];
-		p_global_vio[1] = p_tmp[1] + vio.p_l2g[1];
-		p_global_vio[2] = p_tmp[2] + vio.p_l2g[2];
-
-		/* XXX: return result in enu coordinate system */
-		pos[0] =  p_global_vio[0];
-		pos[1] =  p_global_vio[1];
-		pos[2] = -p_global_vio[2];
+		pos[0] = p_tmp[0] + vio.p_l2g[0];
+		pos[1] = p_tmp[1] + vio.p_l2g[1];
+		pos[2] = p_tmp[2] + vio.p_l2g[2];
 	} else {
 		vins_mono_get_position_enu(pos);
 	}
 }
 
-void vio_get_velocity(float *vel)
+void vio_get_velocity_ned(float *vel)
 {
 	if(vio.frame_align == true) {
 		/* get velocity from local vio */
@@ -118,62 +113,106 @@ void vio_get_velocity(float *vel)
 
 		/* apply frame translation
 		 * v_global_vio = R_l2g * v_local_vio */
-		float v_global_vio[3];
-		calc_matrix_multiply_vector_3d(v_global_vio, v_local_vio, vio.R_l2g);
-
-		/* XXX: return result in enu coordinate system */
-		vel[0] =  v_global_vio[1];
-		vel[1] =  v_global_vio[0];
-		vel[2] = -v_global_vio[2];
+		calc_matrix_multiply_vector_3d(vel, v_local_vio, vio.R_l2g);
 	} else {
 		vins_mono_get_velocity_enu(vel);
 	}
 }
 
-float vio_get_position_x(void)
+float vio_get_position_ned_x(void)
 {
 	float pos[3];
-	vio_get_position(pos);
+	vio_get_position_ned(pos);
 
 	return pos[0];
 }
 
-float vio_get_position_y(void)
+float vio_get_position_ned_y(void)
 {
 	float pos[3];
-	vio_get_position(pos);
+	vio_get_position_ned(pos);
 
 	return pos[1];
 }
 
-float vio_get_position_z(void)
+float vio_get_position_ned_z(void)
 {
 	float pos[3];
-	vio_get_position(pos);
+	vio_get_position_ned(pos);
 
 	return pos[2];
 }
 
-float vio_get_velocity_x(void)
+float vio_get_velocity_ned_x(void)
 {
 	float vel[3];
-	vio_get_velocity(vel);
+	vio_get_velocity_ned(vel);
 
 	return vel[0];
 }
 
-float vio_get_velocity_y(void)
+float vio_get_velocity_ned_y(void)
 {
 	float vel[3];
-	vio_get_velocity(vel);
+	vio_get_velocity_ned(vel);
 
 	return vel[1];
 }
 
-float vio_get_velocity_z(void)
+float vio_get_velocity_ned_z(void)
 {
 	float vel[3];
-	vio_get_velocity(vel);
+	vio_get_velocity_ned(vel);
 
 	return vel[2];
+}
+
+void vio_get_position_enu(float *pos)
+{
+	float pos_ned[3];
+	vio_get_position_ned(pos_ned);
+
+	pos[0] =  pos_ned[1];
+	pos[1] =  pos_ned[0];
+	pos[2] = -pos_ned[2];
+}
+
+void vio_get_velocity_enu(float *vel)
+{
+	float vel_ned[3];
+	vio_get_velocity_ned(vel_ned);
+
+	vel[0] =  vel_ned[1];
+	vel[1] =  vel_ned[0];
+	vel[2] = -vel_ned[2];
+}
+
+float vio_get_position_enu_x(void)
+{
+	return vio_get_position_ned_y();
+}
+
+float vio_get_position_enu_y(void)
+{
+	return vio_get_position_ned_x();
+}
+
+float vio_get_position_enu_z(void)
+{
+	return -vio_get_position_ned_z();
+}
+
+float vio_get_velocity_enu_x(void)
+{
+	return vio_get_velocity_ned_y();
+}
+
+float vio_get_velocity_enu_y(void)
+{
+	return vio_get_velocity_ned_x();
+}
+
+float vio_get_velocity_enu_z(void)
+{
+	return -vio_get_velocity_ned_z();
 }

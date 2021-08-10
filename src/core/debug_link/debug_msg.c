@@ -170,7 +170,7 @@ void send_optitrack_vio_debug_message(debug_msg_t *payload)
 
 	/* get position and quaternion from vio */
 	float p_vio[3], q_vio[4];
-	vio_get_position(p_vio);
+	vio_get_position_enu(p_vio);
 	vio_get_quaternion(q_vio);
 
 	/* convert quaternion to eulers angle */

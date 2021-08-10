@@ -22,14 +22,24 @@ void vio_get_frame_alignment_translation(float *p_l2g);
 
 void vio_get_quaternion(float *q);
 
-void vio_get_position(float *pos);
-float vio_get_position_x(void);
-float vio_get_position_y(void);
-float vio_get_position_z(void);
+void vio_get_position_ned(float *pos);
+float vio_get_position_ned_x(void);
+float vio_get_position_ned_y(void);
+float vio_get_position_ned_z(void);
 
-void vio_get_velocity(float *vel);
-float vio_get_velocity_x(void);
-float vio_get_velocity_y(void);
-float vio_get_velocity_z(void);
+void vio_get_velocity_ned(float *vel);
+float vio_get_velocity_ned_x(void);
+float vio_get_velocity_ned_y(void);
+float vio_get_velocity_ned_z(void);
+
+void vio_get_position_enu(float *pos);
+float vio_get_position_enu_x(void);
+float vio_get_position_enu_y(void);
+float vio_get_position_enu_z(void);
+
+void vio_get_velocity_enu(float *vel);
+float vio_get_velocity_enu_x(void);
+float vio_get_velocity_enu_y(void);
+float vio_get_velocity_enu_z(void);
 
 #endif

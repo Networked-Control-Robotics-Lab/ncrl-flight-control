@@ -90,8 +90,8 @@ void get_enu_position(float *pos)
 		pos[1] = optitrack_get_position_enu_y();
 		break;
 	case POSITION_FUSION_USE_VINS_MONO:
-		pos[0] = vio_get_position_x();
-		pos[1] = vio_get_position_y();
+		pos[0] = vio_get_position_enu_x();
+		pos[1] = vio_get_position_enu_y();
 		break;
 	case POSITION_FUSION_USE_GPS:
 		pos[0] = ins_get_fused_position_x();
@@ -109,7 +109,7 @@ void get_enu_position(float *pos)
 		pos[2] = optitrack_get_position_enu_z();
 		break;
 	case HEIGHT_FUSION_USE_VINS_MONO:
-		pos[2] = vio_get_position_z();
+		pos[2] = vio_get_position_enu_z();
 		break;
 	case HEIGHT_FUSION_USE_BAROMETER:
 		pos[2] = ins_get_fused_position_z();
@@ -129,7 +129,7 @@ float get_enu_position_x(void)
 	case POSITION_FUSION_USE_OPTITRACK:
 		return optitrack_get_position_enu_x();
 	case POSITION_FUSION_USE_VINS_MONO:
-		return vio_get_position_x();
+		return vio_get_position_enu_x();
 	case POSITION_FUSION_USE_GPS:
 		return ins_get_fused_position_x();
 	default:
@@ -143,7 +143,7 @@ float get_enu_position_y(void)
 	case POSITION_FUSION_USE_OPTITRACK:
 		return optitrack_get_position_enu_y();
 	case POSITION_FUSION_USE_VINS_MONO:
-		return vio_get_position_y();
+		return vio_get_position_enu_y();
 	case POSITION_FUSION_USE_GPS:
 		return ins_get_fused_position_y();
 	default:
@@ -157,7 +157,7 @@ float get_enu_position_z(void)
 	case HEIGHT_FUSION_USE_OPTITRACK:
 		return optitrack_get_position_enu_z();
 	case HEIGHT_FUSION_USE_VINS_MONO:
-		return vio_get_position_z();
+		return vio_get_position_enu_z();
 	case HEIGHT_FUSION_USE_BAROMETER:
 		return ins_get_fused_position_z();
 	case HEIGHT_FUSION_USE_RANGEFINDER:
@@ -176,8 +176,8 @@ void get_enu_velocity(float *vel)
 		vel[1] = optitrack_get_velocity_enu_y();
 		break;
 	case POSITION_FUSION_USE_VINS_MONO:
-		vel[0] = vio_get_velocity_x();
-		vel[1] = vio_get_velocity_y();
+		vel[0] = vio_get_velocity_enu_x();
+		vel[1] = vio_get_velocity_enu_y();
 		break;
 	case POSITION_FUSION_USE_GPS:
 		vel[0] = ins_get_fused_velocity_x();
@@ -195,7 +195,7 @@ void get_enu_velocity(float *vel)
 		vel[2] = optitrack_get_velocity_enu_z();
 		break;
 	case HEIGHT_FUSION_USE_VINS_MONO:
-		vel[2] = vio_get_velocity_z();
+		vel[2] = vio_get_velocity_enu_z();
 		break;
 	case HEIGHT_FUSION_USE_BAROMETER:
 		vel[2] = ins_get_fused_velocity_z();
@@ -215,7 +215,7 @@ float get_enu_velocity_x(void)
 	case POSITION_FUSION_USE_OPTITRACK:
 		return optitrack_get_velocity_enu_x();
 	case POSITION_FUSION_USE_VINS_MONO:
-		return vio_get_velocity_x();
+		return vio_get_velocity_enu_x();
 	case POSITION_FUSION_USE_GPS:
 		return ins_get_fused_velocity_x();
 	default:
@@ -229,7 +229,7 @@ float get_enu_velocity_y(void)
 	case POSITION_FUSION_USE_OPTITRACK:
 		return optitrack_get_velocity_enu_y();
 	case POSITION_FUSION_USE_VINS_MONO:
-		return vio_get_velocity_y();
+		return vio_get_velocity_enu_y();
 	case POSITION_FUSION_USE_GPS:
 		return ins_get_fused_velocity_y();
 	default:
@@ -243,7 +243,7 @@ float get_enu_velocity_z(void)
 	case HEIGHT_FUSION_USE_OPTITRACK:
 		return optitrack_get_velocity_enu_z();
 	case HEIGHT_FUSION_USE_VINS_MONO:
-		return vio_get_velocity_z();
+		return vio_get_velocity_enu_z();
 	case HEIGHT_FUSION_USE_BAROMETER:
 		return ins_get_fused_velocity_z();
 	case HEIGHT_FUSION_USE_RANGEFINDER:
