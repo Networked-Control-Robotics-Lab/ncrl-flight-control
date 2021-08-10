@@ -54,7 +54,17 @@ float vins_mono_get_velocity_enu_x(void);
 float vins_mono_get_velocity_enu_y(void);
 float vins_mono_get_velocity_enu_z(void);
 
-void vins_mono_read_quaternion(float *q);
+void vins_mono_get_position_ned(float *pos);
+float vins_mono_get_position_ned_x(void);
+float vins_mono_get_position_ned_y(void);
+float vins_mono_get_position_ned_z(void);
+
+void vins_mono_get_velocity_ned(float *vel);
+float vins_mono_get_velocity_ned_x(void);
+float vins_mono_get_velocity_ned_y(void);
+float vins_mono_get_velocity_ned_z(void);
+
+void vins_mono_get_quaternion(float *q);
 
 /* vins-mono debug messages */
 void send_vins_mono_position_debug_message(debug_msg_t *payload);

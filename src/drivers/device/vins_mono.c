@@ -186,7 +186,51 @@ float vins_mono_get_velocity_enu_z()
 	return vins_mono.vel_enu[2];
 }
 
-void vins_mono_read_quaternion(float *q)
+void vins_mono_get_position_ned(float *pos)
+{
+	pos[0] =  vins_mono.pos_enu[1];
+	pos[1] =  vins_mono.pos_enu[0];
+	pos[2] = -vins_mono.pos_enu[2];
+}
+
+float vins_mono_get_position_ned_x()
+{
+	return vins_mono.pos_enu[1];
+}
+
+float vins_mono_get_position_ned_y()
+{
+	return vins_mono.pos_enu[0];
+}
+
+float vins_mono_get_position_ned_z()
+{
+	return -vins_mono.pos_enu[2];
+}
+
+void vins_mono_get_velocity_ned(float *vel)
+{
+	vel[0] =  vins_mono.vel_enu[1];
+	vel[1] =  vins_mono.vel_enu[0];
+	vel[2] = -vins_mono.vel_enu[2];
+}
+
+float vins_mono_get_velocity_ned_x()
+{
+	return vins_mono.vel_enu[1];
+}
+
+float vins_mono_get_velocity_ned_y()
+{
+	return vins_mono.vel_enu[0];
+}
+
+float vins_mono_get_velocity_ned_z()
+{
+	return -vins_mono.vel_enu[2];
+}
+
+void vins_mono_get_quaternion(float *q)
 {
 	q[0] = vins_mono.q[0];
 	q[1] = vins_mono.q[1];

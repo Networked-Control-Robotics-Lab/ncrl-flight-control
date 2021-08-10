@@ -42,8 +42,8 @@ void vio_calculate_frame_alignment(void)
 
 	/* get position and quaternion from local vio */
 	float p_local_vio_enu[3], p_local_vio[3], q_local_vio[4], q_local_vio_conj[4];
-	vins_mono_get_position_enu(p_local_vio_enu);            //we get position of bk frame under the c0 frame
-	vins_mono_read_quaternion(q_local_vio_conj);    //we get q from b to c0 here
+	vins_mono_get_position_enu(p_local_vio_enu);    //we get position of bk frame under the c0 frame
+	vins_mono_get_quaternion(q_local_vio_conj);     //we get q from b to c0 here
 	quaternion_conj(q_local_vio_conj, q_local_vio); //get q from c0 to b
 
 	//FIXME: unify the coordinate system to ned
@@ -85,12 +85,12 @@ void vio_get_quaternion(float *q)
 	if(vio.frame_align == true) {
 		/* read local vio quaternion */
 		float q_local_vio_conj[4];
-		vins_mono_read_quaternion(q_local_vio_conj); //we get q from b to c0 here
+		vins_mono_get_quaternion(q_local_vio_conj); //we get q from b to c0 here
 
 		/* calculate q_vio_global = q_l2g * conj(q_local_vio) */
 		quaternion_mult(vio.q_l2g, q_local_vio_conj, q);
 	} else {
-		vins_mono_read_quaternion(q);
+		vins_mono_get_quaternion(q);
 	}
 }
 
