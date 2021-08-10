@@ -31,11 +31,15 @@ void vio_calculate_frame_alignment(void)
 {
 	/* get position and quaternion from gnss/ins */
 	float p_gnss_ins[3], q_gnss_ins[4];
+#if (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_OPTITRACK)
+	/* align with optitrack (indoor testing) */
 	optitrack_get_position_ned(p_gnss_ins); //we get position under the i frame
 	optitrack_get_quaternion(q_gnss_ins);   //we get q from b to i here
-	//TODO:
-	//ins_ahrs_get_attitude_quaternion(q_gnss_ins);
-
+#else
+	/* align with gnss/ins */
+	ins_get_fused_position(p_gnss_ins);           //we get position under the i frame
+	ins_ahrs_get_attitude_quaternion(q_gnss_ins); //we get q from b to i here
+#endif
 	/* get position and quaternion from local vio */
 	float p_local_vio[3], q_local_vio[4], q_local_vio_conj[4];
 	vins_mono_get_position_ned(p_local_vio);        //we get position of bk frame under the c0 frame

@@ -16,22 +16,41 @@
 
 navigation_manager_t navigation_manager;
 
+void sensor_combination_gnss_ins(void)
+{
+	navigation_manager.current_system = NAV_GNSS_INS;
+
+#if (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_OPTITRACK)
+	set_heading_sensor(HEADING_FUSION_USE_OPTITRACK);
+	set_position_sensor(POSITION_FUSION_USE_OPTITRACK);
+	set_height_sensor(HEIGHT_FUSION_USE_OPTITRACK);
+#else
+	set_heading_sensor(HEADING_FUSION_USE_COMPASS);
+	set_position_sensor(POSITION_FUSION_USE_GPS);
+	set_height_sensor(HEIGHT_FUSION_USE_RANGEFINDER);
+#endif
+}
+
+void sensors_combination_vio(void)
+{
+	navigation_manager.current_system = NAV_LOCAL_VIO;
+	set_heading_sensor(HEADING_FUSION_USE_VINS_MONO);
+	set_position_sensor(POSITION_FUSION_USE_VINS_MONO);
+	set_height_sensor(HEIGHT_FUSION_USE_VINS_MONO);
+}
+
 void navigation_manager_init(void)
 {
 #if (ENABLE_SENSOR_SWITCHING == 0)
 	return;
 #endif
 
-#if 0   /* initial start with the gnss/ins */
-	navigation_manager.current_system = NAV_GNSS_INS;
-	//set_heading_sensor(HEADING_FUSION_USE_COMPASS);
-	//set_position_sensor(POSITION_FUSION_USE_GPS);
-	//set_height_sensor(HEIGHT_FUSION_USE_RANGEFINDER);
-#else   /* initial start with the vio */
-	navigation_manager.current_system = NAV_LOCAL_VIO;
-	set_heading_sensor(HEADING_FUSION_USE_VINS_MONO);
-	set_position_sensor(POSITION_FUSION_USE_VINS_MONO);
-	set_height_sensor(HEIGHT_FUSION_USE_VINS_MONO);
+#if 0
+	/* initial start with the gnss/ins */
+	sensor_combination_gnss_ins();
+#else
+	/* initial start with the vio */
+	sensors_combination_vio();
 #endif
 }
 
@@ -64,8 +83,11 @@ static void switch_gnss_ins_to_global_vio(void)
 
 	/* position state from the gnss ins */
 	float p_gnss_ins[3];
-	//ins_get_fused_position(p_gnss_ins);
-	optitrack_get_position_enu(p_gnss_ins); //XXX: indoor test only
+#if (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_OPTITRACK)
+	optitrack_get_position_enu(p_gnss_ins);
+#else
+	ins_get_fused_position(p_gnss_ins);
+#endif
 
 	/* calculate translation */
 	float p_translation[3];
@@ -102,12 +124,15 @@ static void switch_local_vio_to_gnss_ins(void)
 	 * update reference signal *
 	 *=========================*/
 
-	//set_heading_sensor(HEADING_FUSION_USE_COMPASS);
-	//set_position_sensor(POSITION_FUSION_USE_GPS);
-	//set_height_sensor(HEIGHT_FUSION_USE_RANGEFINDER);
+#if (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_OPTITRACK)
 	set_heading_sensor(HEADING_FUSION_USE_OPTITRACK);
 	set_position_sensor(POSITION_FUSION_USE_OPTITRACK);
 	set_height_sensor(HEIGHT_FUSION_USE_OPTITRACK);
+#else
+	set_heading_sensor(HEADING_FUSION_USE_COMPASS);
+	set_position_sensor(POSITION_FUSION_USE_GPS);
+	set_height_sensor(HEIGHT_FUSION_USE_RANGEFINDER);
+#endif
 
 	/*=========================*
 	 * update control setpoint *
@@ -176,12 +201,15 @@ static void switch_global_vio_to_gnss_ins(void)
 	 * update reference signal *
 	 *=========================*/
 
-	//set_heading_sensor(HEADING_FUSION_USE_COMPASS);
-	//set_position_sensor(POSITION_FUSION_USE_GPS);
-	//set_height_sensor(HEIGHT_FUSION_USE_RANGEFINDER);
+#if (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_OPTITRACK)
 	set_heading_sensor(HEADING_FUSION_USE_OPTITRACK);
 	set_position_sensor(POSITION_FUSION_USE_OPTITRACK);
 	set_height_sensor(HEIGHT_FUSION_USE_OPTITRACK);
+#else
+	set_heading_sensor(HEADING_FUSION_USE_COMPASS);
+	set_position_sensor(POSITION_FUSION_USE_GPS);
+	set_height_sensor(HEIGHT_FUSION_USE_RANGEFINDER);
+#endif
 
 	/*=========================*
 	 * update control setpoint *
@@ -193,8 +221,11 @@ static void switch_global_vio_to_gnss_ins(void)
 
 	/* position state from the gnss ins */
 	float p_gnss_ins[3];
-	//ins_get_fused_position(p_gnss_ins);
-	optitrack_get_position_enu(p_gnss_ins); //XXX: indoor test only
+#if (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_OPTITRACK)
+	optitrack_get_position_enu(p_gnss_ins);
+#else
+	ins_get_fused_position(p_gnss_ins);
+#endif
 
 	/* calculate translation */
 	float p_translation[3];
@@ -238,7 +269,11 @@ void navigation_manager_handler(void)
 	/* TODO: gnss/ins failure recovery */
 
 	/* check if gnss/ins and vio are both vaild */
-	bool gnss_ins_ready = optitrack_available(); //eskf_ins_is_stable(); //XXX
+#if (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_OPTITRACK)
+	bool gnss_ins_ready = optitrack_available(); //switch between vio and optitrack
+#else
+	bool gnss_ins_ready = eskf_ins_is_stable();  //switch between vio and gnss/ins
+#endif
 	bool vio_ready = vio_available();
 
 	if(navigation_manager.require_update == false || !gnss_ins_ready || !vio_ready) {
