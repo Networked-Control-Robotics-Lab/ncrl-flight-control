@@ -9,10 +9,10 @@ typedef struct {
 	uint8_t id;
 
 	/* position [m] */
-	float pos[3];
+	float pos_enu[3];
 
 	/* velocity [m/s] */
-	float vel[3];
+	float vel_enu[3];
 
 	/* orientation (quaternion) */
 	float q[4];
@@ -44,16 +44,15 @@ void vins_mono_update(void);
 bool vins_mono_available(void);
 
 /* vins_mono getters */
+void vins_mono_get_position_enu(float *pos);
+float vins_mono_get_position_enu_x(void);
+float vins_mono_get_position_enu_y(void);
+float vins_mono_get_position_enu_z(void);
 
-void vins_mono_read_pos(float *pos);
-float vins_mono_read_pos_x(void);
-float vins_mono_read_pos_y(void);
-float vins_mono_read_pos_z(void);
-
-void vins_mono_read_vel(float *vel);
-float vins_mono_read_vel_x(void);
-float vins_mono_read_vel_y(void);
-float vins_mono_read_vel_z(void);
+void vins_mono_get_velocity_enu(float *vel);
+float vins_mono_get_velocity_enu_x(void);
+float vins_mono_get_velocity_enu_y(void);
+float vins_mono_get_velocity_enu_z(void);
 
 void vins_mono_read_quaternion(float *q);
 

@@ -19,9 +19,9 @@
 void send_alt_est_debug_message(debug_msg_t *payload)
 {
 	float altitude = ins_get_fused_position_z();
-	float optitrack_z = optitrack_read_pos_z();
+	float optitrack_z = optitrack_get_position_enu_z();
 	float altitude_rate = ins_get_fused_velocity_z();
-	float optitrack_vz = optitrack_read_vel_z();
+	float optitrack_vz = optitrack_get_velocity_enu_z();
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_ALT_EST);
 	pack_debug_debug_message_float(&altitude, payload);
@@ -165,7 +165,7 @@ void send_optitrack_vio_debug_message(debug_msg_t *payload)
 
 	/* get position and quaternion from optitrack */
 	float p_optitrack[3], q_optitrack[4];
-	optitrack_read_pos(p_optitrack);
+	optitrack_get_position_enu(p_optitrack);
 	optitrack_get_quaternion(q_optitrack);
 
 	/* get position and quaternion from vio */

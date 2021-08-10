@@ -42,7 +42,7 @@ void vio_calculate_frame_alignment(void)
 
 	/* get position and quaternion from local vio */
 	float p_local_vio_enu[3], p_local_vio[3], q_local_vio[4], q_local_vio_conj[4];
-	vins_mono_read_pos(p_local_vio_enu);            //we get position of bk frame under the c0 frame
+	vins_mono_get_position_enu(p_local_vio_enu);            //we get position of bk frame under the c0 frame
 	vins_mono_read_quaternion(q_local_vio_conj);    //we get q from b to c0 here
 	quaternion_conj(q_local_vio_conj, q_local_vio); //get q from c0 to b
 
@@ -99,7 +99,7 @@ void vio_get_position(float *pos)
 	if(vio.frame_align == true) {
 		/* get position from local vio */
 		float p_local_vio_enu[3], p_local_vio[3];
-		vins_mono_read_pos(p_local_vio_enu); //we get position of bk frame under the c0 frame
+		vins_mono_get_position_enu(p_local_vio_enu); //we get position of bk frame under the c0 frame
 
 		//TODO: unify the coordinate system to ned
 		p_local_vio[0] =  p_local_vio_enu[1];
@@ -115,7 +115,7 @@ void vio_get_position(float *pos)
 		pos[1] = p_tmp[0] + vio.p_l2g[0];
 		pos[2] = -(p_tmp[2] + vio.p_l2g[2]);
 	} else {
-		vins_mono_read_pos(pos);
+		vins_mono_get_position_enu(pos);
 	}
 }
 
@@ -124,7 +124,7 @@ void vio_get_velocity(float *vel)
 	if(vio.frame_align == true) {
 		/* get position from local vio */
 		float v_local_vio_enu[3], v_local_vio[3];
-		vins_mono_read_vel(v_local_vio_enu); //we get velocity of bk frame under the c0 frame
+		vins_mono_get_velocity_enu(v_local_vio_enu); //we get velocity of bk frame under the c0 frame
 
 		//TODO: unify the coordinate system to ned
 		v_local_vio[0] =  v_local_vio_enu[1];
@@ -139,7 +139,7 @@ void vio_get_velocity(float *vel)
 		vel[1] =  v_tmp[0];
 		vel[2] = -v_tmp[2];
 	} else {
-		vins_mono_read_vel(vel);
+		vins_mono_get_velocity_enu(vel);
 	}
 }
 
