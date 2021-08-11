@@ -18,9 +18,9 @@
 
 void send_alt_est_debug_message(debug_msg_t *payload)
 {
-	float altitude = ins_get_fused_position_z();
+	float altitude = ins_get_fused_position_enu_z();
 	float optitrack_z = optitrack_get_position_enu_z();
-	float altitude_rate = ins_get_fused_velocity_z();
+	float altitude_rate = ins_get_fused_velocity_enu_z();
 	float optitrack_vz = optitrack_get_velocity_enu_z();
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_ALT_EST);
@@ -90,9 +90,9 @@ void send_ins_sensor_debug_message(debug_msg_t *payload)
 void send_ins_raw_position_debug_message(debug_msg_t *payload)
 {
 	float pos_enu[3]; //x, y from gps, z from height sensor
-	pos_enu[0] = ins_get_raw_position_x();
-	pos_enu[1] = ins_get_raw_position_y();
-	pos_enu[2] = ins_get_raw_position_z();
+	pos_enu[0] = ins_get_raw_position_enu_x();
+	pos_enu[1] = ins_get_raw_position_enu_y();
+	pos_enu[2] = ins_get_raw_position_enu_z();
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_INS_RAW_POSITION);
 	pack_debug_debug_message_float(&pos_enu[0], payload);
@@ -106,21 +106,21 @@ void send_ins_fusion_debug_message(debug_msg_t *payload)
 	float satellite_num = get_gps_satellite_numbers();
 	float gps_update_rate = get_gps_update_freq();
 
-	float pos_raw_x = ins_get_raw_position_x();
-	float pos_raw_y = ins_get_raw_position_y();
-	float pos_raw_z = ins_get_raw_position_z();
+	float pos_raw_x = ins_get_raw_position_enu_x();
+	float pos_raw_y = ins_get_raw_position_enu_y();
+	float pos_raw_z = ins_get_raw_position_enu_z();
 
-	float pos_fused_x = ins_get_fused_position_x();
-	float pos_fused_y = ins_get_fused_position_y();
-	float pos_fused_z = ins_get_fused_position_z();
+	float pos_fused_x = ins_get_fused_position_enu_x();
+	float pos_fused_y = ins_get_fused_position_enu_y();
+	float pos_fused_z = ins_get_fused_position_enu_z();
 
-	float vel_raw_x = ins_get_raw_velocity_x();
-	float vel_raw_y = ins_get_raw_velocity_y();
-	float vel_raw_z = ins_get_raw_velocity_z();
+	float vel_raw_x = ins_get_raw_velocity_enu_x();
+	float vel_raw_y = ins_get_raw_velocity_enu_y();
+	float vel_raw_z = ins_get_raw_velocity_enu_z();
 
-	float vel_fused_x = ins_get_fused_velocity_x();
-	float vel_fused_y = ins_get_fused_velocity_y();
-	float vel_fused_z = ins_get_fused_velocity_z();
+	float vel_fused_x = ins_get_fused_velocity_enu_x();
+	float vel_fused_y = ins_get_fused_velocity_enu_y();
+	float vel_fused_z = ins_get_fused_velocity_enu_z();
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_INS_FUSION);
 

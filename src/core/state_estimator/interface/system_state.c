@@ -94,8 +94,8 @@ void get_enu_position(float *pos)
 		pos[1] = vio_get_position_enu_y();
 		break;
 	case POSITION_FUSION_USE_GPS:
-		pos[0] = ins_get_fused_position_x();
-		pos[1] = ins_get_fused_position_y();
+		pos[0] = ins_get_fused_position_enu_x();
+		pos[1] = ins_get_fused_position_enu_y();
 		break;
 	default:
 		pos[0] = 0.0f;
@@ -112,10 +112,10 @@ void get_enu_position(float *pos)
 		pos[2] = vio_get_position_enu_z();
 		break;
 	case HEIGHT_FUSION_USE_BAROMETER:
-		pos[2] = ins_get_fused_position_z();
+		pos[2] = ins_get_fused_position_enu_z();
 		break;
 	case HEIGHT_FUSION_USE_RANGEFINDER:
-		pos[2] = ins_get_fused_position_z();
+		pos[2] = ins_get_fused_position_enu_z();
 		break;
 	default:
 		pos[2] = 0.0f;
@@ -131,7 +131,7 @@ float get_enu_position_x(void)
 	case POSITION_FUSION_USE_VINS_MONO:
 		return vio_get_position_enu_x();
 	case POSITION_FUSION_USE_GPS:
-		return ins_get_fused_position_x();
+		return ins_get_fused_position_enu_x();
 	default:
 		return 0.0f;
 	}
@@ -145,7 +145,7 @@ float get_enu_position_y(void)
 	case POSITION_FUSION_USE_VINS_MONO:
 		return vio_get_position_enu_y();
 	case POSITION_FUSION_USE_GPS:
-		return ins_get_fused_position_y();
+		return ins_get_fused_position_enu_y();
 	default:
 		return 0.0f;
 	}
@@ -159,9 +159,9 @@ float get_enu_position_z(void)
 	case HEIGHT_FUSION_USE_VINS_MONO:
 		return vio_get_position_enu_z();
 	case HEIGHT_FUSION_USE_BAROMETER:
-		return ins_get_fused_position_z();
+		return ins_get_fused_position_enu_z();
 	case HEIGHT_FUSION_USE_RANGEFINDER:
-		return ins_get_fused_position_z();
+		return ins_get_fused_position_enu_z();
 	default:
 		return 0.0f;
 	}
@@ -180,8 +180,8 @@ void get_enu_velocity(float *vel)
 		vel[1] = vio_get_velocity_enu_y();
 		break;
 	case POSITION_FUSION_USE_GPS:
-		vel[0] = ins_get_fused_velocity_x();
-		vel[1] = ins_get_fused_velocity_y();
+		vel[0] = ins_get_fused_velocity_enu_x();
+		vel[1] = ins_get_fused_velocity_enu_y();
 		break;
 	default:
 		vel[0] = 0.0f;
@@ -198,10 +198,10 @@ void get_enu_velocity(float *vel)
 		vel[2] = vio_get_velocity_enu_z();
 		break;
 	case HEIGHT_FUSION_USE_BAROMETER:
-		vel[2] = ins_get_fused_velocity_z();
+		vel[2] = ins_get_fused_velocity_enu_z();
 		break;
 	case HEIGHT_FUSION_USE_RANGEFINDER:
-		vel[2] = ins_get_fused_velocity_z();
+		vel[2] = ins_get_fused_velocity_enu_z();
 		break;
 	default:
 		vel[2] = 0.0f;
@@ -217,7 +217,7 @@ float get_enu_velocity_x(void)
 	case POSITION_FUSION_USE_VINS_MONO:
 		return vio_get_velocity_enu_x();
 	case POSITION_FUSION_USE_GPS:
-		return ins_get_fused_velocity_x();
+		return ins_get_fused_velocity_enu_x();
 	default:
 		return 0.0f;
 	}
@@ -231,7 +231,7 @@ float get_enu_velocity_y(void)
 	case POSITION_FUSION_USE_VINS_MONO:
 		return vio_get_velocity_enu_y();
 	case POSITION_FUSION_USE_GPS:
-		return ins_get_fused_velocity_y();
+		return ins_get_fused_velocity_enu_y();
 	default:
 		return 0.0f;
 	}
@@ -245,9 +245,9 @@ float get_enu_velocity_z(void)
 	case HEIGHT_FUSION_USE_VINS_MONO:
 		return vio_get_velocity_enu_z();
 	case HEIGHT_FUSION_USE_BAROMETER:
-		return ins_get_fused_velocity_z();
+		return ins_get_fused_velocity_enu_z();
 	case HEIGHT_FUSION_USE_RANGEFINDER:
-		return ins_get_fused_velocity_z();
+		return ins_get_fused_velocity_enu_z();
 	default:
 		return 0.0f;
 	}

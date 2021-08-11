@@ -20,8 +20,8 @@ typedef struct {
 void ins_eskf_init(float dt);
 bool ins_eskf_is_stable(void);
 bool ins_eskf_estimate(attitude_t *attitude,
-                       float *pos_enu_raw, float *vel_enu_raw,
-                       float *pos_enu_fused, float *vel_enu_fused);
+                       float *pos_ned_raw, float *vel_ned_raw,
+                       float *pos_ned_fused, float *vel_ned_fused);
 
 void get_ins_eskf_attitude_quaternion(float *q_out);
 

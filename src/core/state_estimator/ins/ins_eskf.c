@@ -258,19 +258,13 @@ void ins_eskf_predict(float *accel, float *gyro)
 	float gyro_b_z = gyro[2];
 
 	/* body-frame to inertial-frame conversion */
-	float accel_i_ned[3] = {0};
-	accel_i_ned[0] = R(0, 0) * accel_b_x + R(0, 1) * accel_b_y + R(0, 2) * accel_b_z;
-	accel_i_ned[1] = R(1, 0) * accel_b_x + R(1, 1) * accel_b_y + R(1, 2) * accel_b_z;
-	accel_i_ned[2] = R(2, 0) * accel_b_x + R(2, 1) * accel_b_y + R(2, 2) * accel_b_z;
+	float accel_i[3] = {0};
+	accel_i[0] = R(0, 0) * accel_b_x + R(0, 1) * accel_b_y + R(0, 2) * accel_b_z;
+	accel_i[1] = R(1, 0) * accel_b_x + R(1, 1) * accel_b_y + R(1, 2) * accel_b_z;
+	accel_i[2] = R(2, 0) * accel_b_x + R(2, 1) * accel_b_y + R(2, 2) * accel_b_z;
 
 	/* gravity compensation */
-	accel_i_ned[2] += 9.78f;
-
-	//ned to enu conversion
-	float accel_i[3];
-	accel_i[0] =  accel_i_ned[1];
-	accel_i[1] =  accel_i_ned[0];
-	accel_i[2] = -accel_i_ned[2];
+	accel_i[2] += 9.78f;
 
 	/*======================*
 	 * nominal state update *
@@ -1006,13 +1000,13 @@ void ins_eskf_magnetometer_correct(float *mag)
 	quat_to_rotation_matrix(q, mat_data(_R), mat_data(_Rt));
 }
 
-void ins_eskf_gps_correct(float px_enu, float py_enu,
-                          float vx_enu, float vy_enu)
+void ins_eskf_gps_correct(float px_ned, float py_ned,
+                          float vx_ned, float vy_ned)
 {
-	float px_gps = px_enu;
-	float py_gps = py_enu;
-	float vx_gps = vx_enu;
-	float vy_gps = vy_enu;
+	float px_gps = px_ned;
+	float py_gps = py_ned;
+	float vx_gps = vx_ned;
+	float vy_gps = vy_ned;
 	float px = mat_data(nominal_state)[0];
 	float py = mat_data(nominal_state)[1];
 	float vx = mat_data(nominal_state)[3];
@@ -1510,8 +1504,8 @@ void ins_eskf_get_attitude_quaternion(float *q_out)
 }
 
 bool ins_eskf_estimate(attitude_t *attitude,
-                       float *pos_enu_raw, float *vel_enu_raw,
-                       float *pos_enu_fused, float *vel_enu_fused)
+                       float *pos_ned_raw, float *vel_ned_raw,
+                       float *pos_ned_fused, float *vel_ned_fused)
 {
 	float curr_time, elapsed_time;
 
@@ -1578,10 +1572,10 @@ bool ins_eskf_estimate(attitude_t *attitude,
 		float barometer_height, barometer_height_rate;
 		ins_barometer_sync_buffer_pop(&barometer_height,
 		                              &barometer_height_rate);
-		pos_enu_raw[2] = barometer_height;
-		vel_enu_raw[2] = barometer_height_rate;
+		pos_ned_raw[2] = -barometer_height;
+		vel_ned_raw[2] = -barometer_height_rate;
 
-		ins_eskf_barometer_correct(pos_enu_raw[2], vel_enu_raw[2]);
+		ins_eskf_barometer_correct(pos_ned_raw[2], vel_ned_raw[2]);
 
 		/* calculate correct frequency */
 		curr_time = get_sys_time_s();
@@ -1597,10 +1591,10 @@ bool ins_eskf_estimate(attitude_t *attitude,
 		float rangefinder_height, rangefinder_height_rate;
 		ins_rangefinder_sync_buffer_pop(&rangefinder_height,
 		                                &rangefinder_height_rate);
-		pos_enu_raw[2] = rangefinder_height;
-		vel_enu_raw[2] = rangefinder_height_rate;
+		pos_ned_raw[2] = -rangefinder_height;
+		vel_ned_raw[2] = -rangefinder_height_rate;
 
-		ins_eskf_rangefinder_correct(pos_enu_raw[2], vel_enu_raw[2]);
+		ins_eskf_rangefinder_correct(pos_ned_raw[2], vel_ned_raw[2]);
 
 		/* calculate correct frequency */
 		curr_time = get_sys_time_s();
@@ -1620,19 +1614,18 @@ bool ins_eskf_estimate(attitude_t *attitude,
 		ins_gps_sync_buffer_pop(&longitude, &latitude, &gps_msl_height,
 		                        &gps_ned_vx, &gps_ned_vy, &gps_ned_vz);
 
-		/* convert gps data from geographic coordinate system to enu frame */
-		longitude_latitude_to_enu(pos_enu_raw, longitude, latitude, 0);
+		/* convert gps data from geographic coordinate system to ned frame */
+		longitude_latitude_to_ned(pos_ned_raw, longitude, latitude, 0);
 
 		if(gps_home_is_set() == false) {
 			set_home_longitude_latitude(longitude, latitude, 0/*barometer_height*/); //XXX
 		}
 
-		/* convert gps velocity from ned frame to enu frame */
-		vel_enu_raw[0] = gps_ned_vy; //x_enu = y_ned
-		vel_enu_raw[1] = gps_ned_vx; //y_enu = x_ned
+		vel_ned_raw[0] = gps_ned_vx;
+		vel_ned_raw[1] = gps_ned_vy;
 
-		ins_eskf_gps_correct(pos_enu_raw[0], pos_enu_raw[1],
-		                     vel_enu_raw[0], vel_enu_raw[1]);
+		ins_eskf_gps_correct(pos_ned_raw[0], pos_ned_raw[1],
+		                     vel_ned_raw[0], vel_ned_raw[1]);
 
 		/* calculate correct frequency */
 		curr_time = get_sys_time_s();
@@ -1641,12 +1634,12 @@ bool ins_eskf_estimate(attitude_t *attitude,
 		ins_eskf.gps_time_last = curr_time;
 	}
 
-	pos_enu_fused[0] = mat_data(nominal_state)[0];  //px
-	pos_enu_fused[1] = mat_data(nominal_state)[1];  //py
-	pos_enu_fused[2] = mat_data(nominal_state)[2];  //pz
-	vel_enu_fused[0] = mat_data(nominal_state)[3];  //vx
-	vel_enu_fused[1] = mat_data(nominal_state)[4];  //vy
-	vel_enu_fused[2] = mat_data(nominal_state)[5];  //vz
+	pos_ned_fused[0] = mat_data(nominal_state)[0];  //px
+	pos_ned_fused[1] = mat_data(nominal_state)[1];  //py
+	pos_ned_fused[2] = mat_data(nominal_state)[2];  //pz
+	vel_ned_fused[0] = mat_data(nominal_state)[3];  //vx
+	vel_ned_fused[1] = mat_data(nominal_state)[4];  //vy
+	vel_ned_fused[2] = mat_data(nominal_state)[5];  //vz
 	attitude->q[0] = mat_data(nominal_state)[6];    //q0
 	attitude->q[1] = mat_data(nominal_state)[7];    //q1
 	attitude->q[2] = mat_data(nominal_state)[8];    //q2

@@ -23,12 +23,16 @@
 
 #define INS_LOOP_PERIOD 0.0025f //400Hz
 
+/* estimation of the attitude */
 attitude_t attitude;
 
-float pos_raw[3];
-float vel_raw[3];
-float pos_fused[3];
-float vel_fused[3];
+/* raw position and velocity */
+float pos_raw_ned[3];
+float vel_raw_ned[3];
+
+/* fused position and velocity */
+float pos_fused_ned[3];
+float vel_fused_ned[3];
 
 void ins_init(void)
 {
@@ -42,13 +46,13 @@ void ins_decoupled_state_estimation(void)
 	ahrs_estimate(&attitude);
 
 	/* decoupled position state estimation with complementary filter */
-	ins_complementary_filter_estimate(pos_raw, vel_raw, pos_fused, vel_fused);
+	ins_complementary_filter_estimate(pos_raw_ned, vel_raw_ned, pos_fused_ned, vel_fused_ned);
 }
 
 void ins_full_state_estimation(void)
 {
 	/* full state estimation with eskf */
-	ins_eskf_estimate(&attitude, pos_raw, vel_raw, pos_fused, vel_fused);
+	ins_eskf_estimate(&attitude, pos_raw_ned, vel_raw_ned, pos_fused_ned, vel_fused_ned);
 
 	/* estimate attitude state only if ins_eskf is not ready */
 	if(ins_eskf_is_stable() == false) {
@@ -88,99 +92,94 @@ void ins_state_estimate(void)
 	ins_led_state_update();
 }
 
-/* raw position getters */
-void ins_get_raw_position(float *pos)
+void ins_get_raw_position_enu(float *pos)
 {
-	pos[0] = pos_raw[0];
-	pos[1] = pos_raw[1];
-	pos[2] = pos_raw[2];
+	pos[0] =  pos_raw_ned[1];
+	pos[1] =  pos_raw_ned[0];
+	pos[2] = -pos_raw_ned[2];
 }
 
-float ins_get_raw_position_x(void)
+float ins_get_raw_position_enu_x(void)
 {
-	return pos_raw[0];
+	return pos_raw_ned[1];
 }
 
-float ins_get_raw_position_y(void)
+float ins_get_raw_position_enu_y(void)
 {
-	return pos_raw[1];
+	return pos_raw_ned[0];
 }
 
-float ins_get_raw_position_z(void)
+float ins_get_raw_position_enu_z(void)
 {
-	return pos_raw[2];
+	return -pos_raw_ned[2];
 }
 
-/* raw velocity getters */
-void ins_get_raw_velocity(float *vel)
+void ins_get_raw_velocity_enu(float *vel)
 {
-	vel[0] = vel_raw[0];
-	vel[1] = vel_raw[1];
-	vel[2] = vel_raw[2];
+	vel[0] = vel_raw_ned[1];
+	vel[1] = vel_raw_ned[0];
+	vel[2] = -vel_raw_ned[2];
 }
 
-float ins_get_raw_velocity_x(void)
+float ins_get_raw_velocity_enu_x(void)
 {
-	return vel_raw[0];
+	return vel_raw_ned[1];
 }
 
-float ins_get_raw_velocity_y(void)
+float ins_get_raw_velocity_enu_y(void)
 {
-	return vel_raw[1];
+	return vel_raw_ned[0];
 }
 
-float ins_get_raw_velocity_z(void)
+float ins_get_raw_velocity_enu_z(void)
 {
-	return vel_raw[2];
+	return -vel_raw_ned[2];
 }
 
-/* ins fused position getters */
-void ins_get_fused_position(float *pos)
+void ins_get_fused_position_enu(float *pos)
 {
-	pos[0] = pos_fused[0];
-	pos[1] = pos_fused[1];
-	pos[2] = pos_fused[2];
+	pos[0] =  pos_fused_ned[1];
+	pos[1] =  pos_fused_ned[0];
+	pos[2] = -pos_fused_ned[2];
 }
 
-float ins_get_fused_position_x(void)
+float ins_get_fused_position_enu_x(void)
 {
-	return pos_fused[0];
+	return pos_fused_ned[1];
 }
 
-float ins_get_fused_position_y(void)
+float ins_get_fused_position_enu_y(void)
 {
-	return pos_fused[1];
+	return pos_fused_ned[0];
 }
 
-float ins_get_fused_position_z(void)
+float ins_get_fused_position_enu_z(void)
 {
-	return pos_fused[2];
+	return -pos_fused_ned[2];
 }
 
-/* ins fused velocity getters */
-void ins_get_fused_velocity(float *vel)
+void ins_get_fused_velocity_enu(float *vel)
 {
-	vel[0] = vel_fused[0];
-	vel[1] = vel_fused[1];
-	vel[2] = vel_fused[2];
+	vel[0] =  vel_fused_ned[1];
+	vel[1] =  vel_fused_ned[0];
+	vel[2] = -vel_fused_ned[2];
 }
 
-float ins_get_fused_velocity_x(void)
+float ins_get_fused_velocity_enu_x(void)
 {
-	return vel_fused[0];
+	return vel_fused_ned[1];
 }
 
-float ins_get_fused_velocity_y(void)
+float ins_get_fused_velocity_enu_y(void)
 {
-	return vel_fused[1];
+	return vel_fused_ned[0];
 }
 
-float ins_get_fused_velocity_z(void)
+float ins_get_fused_velocity_enu_z(void)
 {
-	return vel_fused[2];
+	return -vel_fused_ned[2];
 }
 
-/* ins ahrs attitude getters */
 void ins_ahrs_get_attitude_euler_angles(float *roll, float *pitch, float *yaw)
 {
 	*roll = attitude.roll;

@@ -18,7 +18,7 @@ bool gps_home_is_set(void);
 void set_home_longitude_latitude(int32_t longitude, int32_t latitude, float height_msl);
 void get_home_longitude_latitude(int32_t *longitude, int32_t *latitude);
 
-void longitude_latitude_to_enu(float *pos_enu, int32_t _longitude,
+void longitude_latitude_to_ned(float *pos_ned, int32_t _longitude,
                                int32_t _latitude, float height_msl);
 
 #endif

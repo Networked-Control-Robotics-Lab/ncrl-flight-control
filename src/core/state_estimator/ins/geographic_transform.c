@@ -52,29 +52,29 @@ void geographic_to_ecef_coordinate_transform(double *pos_ecef, double sin_lambda
 #endif
 }
 
-void ecef_to_enu_coordinate_transform(float *pos_enu, double *pos_ecef, double sin_lambda,
+void ecef_to_ned_coordinate_transform(float *pos_ned, double *pos_ecef, double sin_lambda,
                                       double cos_lambda, double sin_phi, double cos_phi,
                                       float height_msl)
 
 {
-	double r11 = -sin_lambda;
-	double r12 = cos_lambda;
-	double r13 = 0;
-	double r21 = -cos_lambda * sin_phi;
-	double r22 = -sin_lambda * sin_phi;
-	double r23 = cos_phi;
-	//double r31 = cos_lambda * cos_phi;
-	//double r32 = sin_lambda * cos_phi;
-	//double r33 = sin_phi;
+	double r11 = -sin_phi * cos_lambda;
+	double r12 = -sin_lambda;
+	double r13 = -cos_phi * cos_lambda;
+	double r21 = -sin_phi * sin_lambda;
+	double r22 = cos_lambda;
+	double r23 = -cos_phi * sin_lambda;
+	//double r31 = cos_phi;
+	//double r32 = 0;
+	//double r33 = -sin_phi;
 
 	double dx = pos_ecef[0] - gps_home.home_ecef[0];
 	double dy = pos_ecef[1] - gps_home.home_ecef[1];
 	double dz = pos_ecef[2] - gps_home.home_ecef[2];
 
-	pos_enu[0] = (float)((r11 * dx) + (r12 * dy) + (r13 * dz));
-	pos_enu[1] = (float)((r21 * dx) + (r22 * dy) + (r23 * dz));
-	//pos_enu[2] = (float)((r31 * dx) + (r32 * dy) + (r33 * dz));
-	pos_enu[2] = (float)height_msl;
+	pos_ned[0] = (float)((r11 * dx) + (r12 * dy) + (r13 * dz));
+	pos_ned[1] = (float)((r21 * dx) + (r22 * dy) + (r23 * dz));
+	//pos_ned[2] = (float)((r31 * dx) + (r32 * dy) + (r33 * dz));
+	pos_ned[2] = (float)height_msl;
 }
 
 void set_home_longitude_latitude(int32_t _longitude, int32_t _latitude, float height_msl)
@@ -102,7 +102,7 @@ void se_gps_home_longitude_latitude(int32_t *longitude, int32_t *latitude)
 	*latitude = gps_home.home_latitude;
 }
 
-void longitude_latitude_to_enu(float *pos_enu, int32_t _longitude,
+void longitude_latitude_to_ned(float *pos_ned, int32_t _longitude,
                                int32_t _latitude, float height_msl)
 {
 	double longitude = (double)_longitude * 1e-7;
@@ -117,6 +117,6 @@ void longitude_latitude_to_enu(float *pos_enu, int32_t _longitude,
 	geographic_to_ecef_coordinate_transform(pos_ecef, sin_lambda, cos_lambda,
 	                                        sin_phi, cos_phi, height_msl);
 
-	ecef_to_enu_coordinate_transform(pos_enu, pos_ecef, sin_lambda, cos_lambda,
+	ecef_to_ned_coordinate_transform(pos_ned, pos_ecef, sin_lambda, cos_lambda,
 	                                 sin_phi, cos_phi, height_msl);
 }
