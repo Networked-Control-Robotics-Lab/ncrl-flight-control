@@ -20,6 +20,7 @@
 #include "ins_eskf.h"
 #include "autopilot.h"
 #include "vio.h"
+#include "eskf_ahrs.h"
 
 #define INS_LOOP_PERIOD 0.0025f //400Hz
 
@@ -40,7 +41,7 @@ void ins_init(void)
 	ins_eskf_init(INS_LOOP_PERIOD);
 }
 
-void ins_decoupled_state_estimation(void)
+void ins_state_decoupled_estimation(void)
 {
 	/* decoupled orientation state estimation */
 	ahrs_estimate(&attitude);
@@ -54,9 +55,13 @@ void ins_full_state_estimation(void)
 	/* full state estimation with eskf */
 	ins_eskf_estimate(&attitude, pos_raw_ned, vel_raw_ned, pos_fused_ned, vel_fused_ned);
 
-	/* estimate attitude state only if ins_eskf is not ready */
-	if(ins_eskf_is_stable() == false) {
-		ahrs_estimate(&attitude);
+	if(ins_eskf_is_stable() == true) {
+		/* synchronize attitude state of ins with ahrs */
+		set_ahrs_eskf_quaternion(attitude.q);
+	} else {
+		/* position state is not fully observable, only estimate the orientation
+		 * state with ahrs  */
+		ahrs_estimate(&attitude); //TODO: restrict ahrs algorithm to eskf only
 	}
 }
 
@@ -84,7 +89,7 @@ static void ins_led_state_update(void)
 void ins_state_estimate(void)
 {
 #if (SELECT_INS == INS_COMPLEMENTARY_FILTER)
-	ins_decoupled_state_estimation();
+	ins_state_decoupled_estimation();
 #elif (SELECT_INS == INS_ESKF)
 	ins_full_state_estimation();
 #endif

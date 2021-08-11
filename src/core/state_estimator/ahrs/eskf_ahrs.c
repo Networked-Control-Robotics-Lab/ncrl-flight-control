@@ -172,6 +172,11 @@ void eskf_ahrs_init(float dt)
 	mat_data(x_nominal)[3] *= -1;
 }
 
+void set_ahrs_eskf_quaternion(float *q_new)
+{
+	quaternion_copy(&mat_data(x_nominal)[0], q_new);
+}
+
 void eskf_ahrs_predict(float *gyro)
 {
 	/* update nominal state (quaternion integration) */
