@@ -141,8 +141,8 @@ float ins_get_raw_position_enu_z(void)
 
 void ins_get_raw_velocity_enu(float *vel)
 {
-	vel[0] = vel_raw_ned[1];
-	vel[1] = vel_raw_ned[0];
+	vel[0] =  vel_raw_ned[1];
+	vel[1] =  vel_raw_ned[0];
 	vel[2] = -vel_raw_ned[2];
 }
 

@@ -58,13 +58,13 @@ void ecef_to_ned_coordinate_transform(float *pos_ned, double *pos_ecef, double s
 
 {
 	double r11 = -sin_phi * cos_lambda;
-	double r12 = -sin_lambda;
-	double r13 = -cos_phi * cos_lambda;
-	double r21 = -sin_phi * sin_lambda;
+	double r12 = -sin_phi * sin_lambda;
+	double r13 = cos_phi;
+	double r21 = -sin_lambda;
 	double r22 = cos_lambda;
-	double r23 = -cos_phi * sin_lambda;
-	//double r31 = cos_phi;
-	//double r32 = 0;
+	double r23 = 0;
+	//double r31 = -cos_phi * cos_lambda;
+	//double r32 = -cos_phi * sin_lambda;
 	//double r33 = -sin_phi;
 
 	double dx = pos_ecef[0] - gps_home.home_ecef[0];
