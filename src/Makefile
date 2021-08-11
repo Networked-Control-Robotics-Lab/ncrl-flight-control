@@ -73,7 +73,7 @@ SRC+=./core/main.c \
 	./core/state_estimator/ahrs/eskf_ahrs.c \
 	./core/state_estimator/ahrs/optitrack_ahrs.c \
 	./core/state_estimator/ins/ins_comp_filter.c \
-	./core/state_estimator/ins/geographic_transform_util.c \
+	./core/state_estimator/ins/geographic_transform.c \
 	./core/state_estimator/ins/ins.c \
 	./core/state_estimator/ins/ins_eskf.c \
 	./core/state_estimator/ins/ins_sensor_sync.c \
