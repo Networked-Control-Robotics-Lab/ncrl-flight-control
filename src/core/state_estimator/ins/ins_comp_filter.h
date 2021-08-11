@@ -2,6 +2,7 @@
 #define __INS_COMP_FILTER_H__
 
 void ins_comp_filter_init(float _dt);
+void set_ins_complementary_filter_state(float *pos_ned, float *vel_ned);
 bool ins_complementary_filter_ready();
 void ins_complementary_filter_estimate(float *pos_ned_raw, float *vel_ned_raw,
                                        float *pos_ned_fused, float *vel_ned_fused);

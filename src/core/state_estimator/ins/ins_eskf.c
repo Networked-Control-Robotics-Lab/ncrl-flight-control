@@ -91,6 +91,23 @@ float dt;
 float half_dt;
 float half_dt_squared;
 
+void ins_eskf_reset_process_covariance_matrix(void)
+{
+	/* initialize P matrix */
+	matrix_reset(mat_data(_P_post), 9, 9);
+	P_post(0, 0) = ESKF_RESCALE(5.0f); //Var(px)
+	P_post(1, 1) = ESKF_RESCALE(5.0f); //Var(py)
+	P_post(2, 2) = ESKF_RESCALE(5.0f); //Var(pz)
+	P_post(3, 3) = ESKF_RESCALE(5.0f); //Var(vx)
+	P_post(4, 4) = ESKF_RESCALE(5.0f); //Var(vy)
+	P_post(5, 5) = ESKF_RESCALE(5.0f); //Var(vz)
+	P_post(6, 6) = ESKF_RESCALE(5.0f); //Var(theta_x)
+	P_post(7, 7) = ESKF_RESCALE(5.0f); //Var(theta_y)
+	P_post(8, 8) = ESKF_RESCALE(5.0f); //Var(theta_z)
+
+	memcpy(mat_data(_P_prior), mat_data(_P_post), sizeof(float) * 9 * 9);
+}
+
 void ins_eskf_init(float _dt)
 {
 	dt = _dt;
@@ -150,6 +167,9 @@ void ins_eskf_init(float _dt)
 
 	matrix_reset(mat_data(error_state), 9, 1);
 
+	/* initialize error-state process covariance matrix */
+	ins_eskf_reset_process_covariance_matrix();
+
 	/* initialize _Q_i matrix */
 	matrix_reset(mat_data(_Q_i), 6, 6);
 	Q_i(0, 0) = ESKF_RESCALE(1e-5); //Var(ax)
@@ -158,18 +178,6 @@ void ins_eskf_init(float _dt)
 	Q_i(3, 3) = ESKF_RESCALE(1e-5); //Var(wx)
 	Q_i(4, 4) = ESKF_RESCALE(1e-5); //Var(wy)
 	Q_i(5, 5) = ESKF_RESCALE(1e-5); //Var(wz)
-
-	/* initialize P matrix */
-	matrix_reset(mat_data(_P_post), 9, 9);
-	P_post(0, 0) = ESKF_RESCALE(5.0f); //Var(px)
-	P_post(1, 1) = ESKF_RESCALE(5.0f); //Var(py)
-	P_post(2, 2) = ESKF_RESCALE(5.0f); //Var(pz)
-	P_post(3, 3) = ESKF_RESCALE(5.0f); //Var(vx)
-	P_post(4, 4) = ESKF_RESCALE(5.0f); //Var(vy)
-	P_post(5, 5) = ESKF_RESCALE(5.0f); //Var(vz)
-	P_post(6, 6) = ESKF_RESCALE(5.0f); //Var(theta_x)
-	P_post(7, 7) = ESKF_RESCALE(5.0f); //Var(theta_y)
-	P_post(8, 8) = ESKF_RESCALE(5.0f); //Var(theta_z)
 
 	/* initialize V_accel matrix */
 	matrix_reset(mat_data(_V_accel), 3, 3);
@@ -1503,7 +1511,7 @@ void ins_eskf_get_attitude_quaternion(float *q_out)
 	quaternion_conj(mat_data(nominal_state), q_out);
 }
 
-bool ins_eskf_estimate(attitude_t *attitude,
+void ins_eskf_estimate(attitude_t *attitude,
                        float *pos_ned_raw, float *vel_ned_raw,
                        float *pos_ned_fused, float *vel_ned_fused)
 {
@@ -1522,8 +1530,9 @@ bool ins_eskf_estimate(attitude_t *attitude,
 
 	bool sensor_all_ready = gps_ready && compass_ready && height_ready;
 
+	/* we can't do full state estimation if sensors are not all ready */
 	if(sensor_all_ready == false) {
-		return false;
+		return;
 	}
 
 	/* prepare imu data */
@@ -1652,8 +1661,6 @@ bool ins_eskf_estimate(attitude_t *attitude,
 	attitude->yaw = rad_to_deg(euler.yaw);
 
 	quat_to_rotation_matrix(attitude->q, attitude->R_b2i, attitude->R_i2b);
-
-	return true;
 }
 
 void send_ins_eskf1_covariance_matrix_debug_message(debug_msg_t *payload)

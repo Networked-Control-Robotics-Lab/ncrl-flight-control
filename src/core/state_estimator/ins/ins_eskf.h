@@ -17,9 +17,10 @@ typedef struct {
 	float gps_time_last;
 } ins_eskf_t;
 
+void ins_eskf_reset_process_covariance_matrix(void);
 void ins_eskf_init(float dt);
 bool ins_eskf_is_stable(void);
-bool ins_eskf_estimate(attitude_t *attitude,
+void ins_eskf_estimate(attitude_t *attitude,
                        float *pos_ned_raw, float *vel_ned_raw,
                        float *pos_ned_fused, float *vel_ned_fused);
 

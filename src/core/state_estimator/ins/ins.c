@@ -35,6 +35,9 @@ float vel_raw_ned[3];
 float pos_fused_ned[3];
 float vel_fused_ned[3];
 
+/* ins_eskf convergence status */
+bool eskf_status_last = false;
+
 void ins_init(void)
 {
 	ins_comp_filter_init(INS_LOOP_PERIOD);
@@ -55,12 +58,30 @@ void ins_full_state_estimation(void)
 	/* full state estimation with eskf */
 	ins_eskf_estimate(&attitude, pos_raw_ned, vel_raw_ned, pos_fused_ned, vel_fused_ned);
 
-	if(ins_eskf_is_stable() == true) {
+	/* check convergence of the ins_eskf */
+	bool eskf_status = ins_eskf_is_stable();
+
+	/* reset process covariance matrix if ins_eskf is suspended */
+	if(eskf_status_last == true && eskf_status == false) {
+		ins_eskf_reset_process_covariance_matrix();
+	}
+	eskf_status_last = eskf_status;
+
+	/* if sensor signal lost causes the full state estimation impossible, we
+	 * estimate the state independently */
+	if(eskf_status == true) {
 		/* synchronize ins_eskf quaternion state with ahrs_eskf */
 		set_ahrs_eskf_quaternion(attitude.q);
+
+		/* synchronize ins_eskf position state with complementary filter */
+		set_ins_complementary_filter_state(pos_fused_ned, vel_fused_ned);
 	} else {
 		/* ins is not ready, execute ahrs algorithm to estimate the attitude */
 		ahrs_estimate(&attitude); //TODO: restrict ahrs algorithm to eskf only
+
+		/* estimate height with complementary filter if height info is available */
+		//ins_complementary_filter_estimate(pos_raw_ned, vel_raw_ned,
+		//                                  pos_fused_ned, vel_fused_ned);
 	}
 }
 

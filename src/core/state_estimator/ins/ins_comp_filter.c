@@ -47,6 +47,16 @@ void ins_comp_filter_init(float _dt)
 	//weight_vel[2] = 0.05f; //weight of using barometer velocity
 }
 
+void set_ins_complementary_filter_state(float *pos_ned, float *vel_ned)
+{
+	pos_last[0] = pos_ned[0];
+	pos_last[1] = pos_ned[1];
+	pos_last[2] = pos_ned[2];
+	vel_last[0] = vel_ned[0];
+	vel_last[1] = vel_ned[1];
+	vel_last[2] = vel_ned[2];
+}
+
 /* estimate position and velocity using complementary filter */
 void ins_comp_filter_predict(float *pos_ned_out, float *vel_ned_out,
                              bool gps_available, bool height_available)
@@ -136,14 +146,14 @@ bool ins_complementary_filter_ready(void)
 	bool gps_ready = is_gps_available();
 	bool compass_ready = is_compass_available();
 #if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
-	bool height_sensor_ready = is_barometer_available();
+	bool height_ready = is_barometer_available();
 #elif (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_RANGEFINDER)
-	bool height_sensor_ready = rangefinder_available();
+	bool height_ready = rangefinder_available();
 #else
-	bool height_sensor_ready = false;
+	bool height_ready = false;
 #endif
 
-	return gps_ready && compass_ready && height_sensor_ready;
+	return gps_ready && compass_ready && height_ready;
 }
 
 void ins_complementary_filter_estimate(float *pos_ned_raw, float *vel_ned_raw,
@@ -152,11 +162,11 @@ void ins_complementary_filter_estimate(float *pos_ned_raw, float *vel_ned_raw,
 	/* check sensor status */
 	bool gps_compass_ready = is_gps_available() && is_compass_available();
 #if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
-	bool height_sensor_ready = is_barometer_available();
+	bool height_ready = is_barometer_available();
 #elif (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_RANGEFINDER)
-	bool height_sensor_ready = rangefinder_available();
+	bool height_ready = rangefinder_available();
 #else
-	bool height_sensor_ready = false;
+	bool height_ready = false;
 #endif
 
 	int32_t longitude, latitude;
@@ -165,7 +175,7 @@ void ins_complementary_filter_estimate(float *pos_ned_raw, float *vel_ned_raw,
 
 	/* predict position and velocity with kinematics equations (400Hz) */
 	ins_comp_filter_predict(pos_ned_fused, vel_ned_fused,
-	                        gps_compass_ready, height_sensor_ready);
+	                        gps_compass_ready, height_ready);
 
 #if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
 	/* height correction (barometer) */
