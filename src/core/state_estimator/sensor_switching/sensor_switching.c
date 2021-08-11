@@ -87,7 +87,7 @@ static void switch_gnss_ins_to_global_vio(void)
 #if (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_OPTITRACK)
 	optitrack_get_position_enu(p_gnss_ins);
 #else
-	ins_get_fused_position(p_gnss_ins);
+	ins_get_fused_position_enu(p_gnss_ins);
 #endif
 
 	/* calculate translation */
@@ -225,7 +225,7 @@ static void switch_global_vio_to_gnss_ins(void)
 #if (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_OPTITRACK)
 	optitrack_get_position_enu(p_gnss_ins);
 #else
-	ins_get_fused_position(p_gnss_ins);
+	ins_get_fused_position_enu(p_gnss_ins);
 #endif
 
 	/* calculate translation */
