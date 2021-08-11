@@ -80,8 +80,8 @@ void ins_full_state_estimation(void)
 		ahrs_estimate(&attitude); //TODO: restrict ahrs algorithm to eskf only
 
 		/* estimate height with complementary filter if height info is available */
-		//ins_complementary_filter_estimate(pos_raw_ned, vel_raw_ned,
-		//                                  pos_fused_ned, vel_fused_ned);
+		ins_complementary_filter_estimate(pos_raw_ned, vel_raw_ned,
+		                                  pos_fused_ned, vel_fused_ned);
 	}
 }
 

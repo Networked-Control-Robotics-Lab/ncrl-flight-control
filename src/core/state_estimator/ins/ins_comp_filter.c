@@ -190,7 +190,7 @@ void ins_complementary_filter_estimate(float *pos_ned_raw, float *vel_ned_raw,
 		vel_ned_raw[2] = -barometer_height_rate;
 
 		//run barometer correction (~50Hz)
-		ins_comp_filter_height_correct(barometer_height, barometer_height_rate,
+		ins_comp_filter_height_correct(pos_ned_raw[2], vel_ned_raw[2],
 		                               pos_ned_fused, vel_ned_fused);
 	}
 #elif (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_RANGEFINDER)
@@ -207,7 +207,7 @@ void ins_complementary_filter_estimate(float *pos_ned_raw, float *vel_ned_raw,
 		vel_ned_raw[2] = -rangefinder_height_rate;
 
 		//run rangefinder correction (~40Hz)
-		ins_comp_filter_height_correct(rangefinder_height, rangefinder_height_rate,
+		ins_comp_filter_height_correct(pos_ned_raw[2], vel_ned_raw[2],
 		                               pos_ned_fused, vel_ned_fused);
 	}
 #endif
