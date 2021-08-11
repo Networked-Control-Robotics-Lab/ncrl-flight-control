@@ -56,11 +56,10 @@ void ins_full_state_estimation(void)
 	ins_eskf_estimate(&attitude, pos_raw_ned, vel_raw_ned, pos_fused_ned, vel_fused_ned);
 
 	if(ins_eskf_is_stable() == true) {
-		/* synchronize attitude state of ins with ahrs */
+		/* synchronize ins_eskf quaternion state with ahrs_eskf */
 		set_ahrs_eskf_quaternion(attitude.q);
 	} else {
-		/* position state is not fully observable, only estimate the orientation
-		 * state with ahrs  */
+		/* ins is not ready, execute ahrs algorithm to estimate the attitude */
 		ahrs_estimate(&attitude); //TODO: restrict ahrs algorithm to eskf only
 	}
 }
