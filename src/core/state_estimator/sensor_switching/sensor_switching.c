@@ -11,6 +11,7 @@
 #include "proj_config.h"
 #include "system_state.h"
 #include "optitrack.h"
+#include "ins_eskf.h"
 
 #define ENABLE_SENSOR_SWITCHING 0
 
@@ -272,7 +273,7 @@ void navigation_manager_handler(void)
 #if (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_OPTITRACK)
 	bool gnss_ins_ready = optitrack_available(); //switch between vio and optitrack
 #else
-	bool gnss_ins_ready = eskf_ins_is_stable();  //switch between vio and gnss/ins
+	bool gnss_ins_ready = ins_eskf_is_stable();  //switch between vio and gnss/ins
 #endif
 	bool vio_ready = vio_available();
 

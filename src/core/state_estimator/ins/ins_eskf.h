@@ -1,6 +1,8 @@
 #ifndef __INS_ESKF_H__
 #define __INS_ESKF_H__
 
+#include "ahrs.h"
+
 typedef struct {
 	float mag_correct_freq;
 	float mag_time_last;
