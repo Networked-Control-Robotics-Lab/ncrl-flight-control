@@ -3,6 +3,7 @@
 #include "arm_math.h"
 #include "matrix.h"
 #include "se3_math.h"
+#include "geographic_transform_util.h"
 
 /*================================================================*
  * ellipsoid model of earth.                                      *
@@ -11,7 +12,7 @@
  *================================================================*/
 #define EQUATORIAL_RADIUS 6378137       //[m], earth semi-major length (AE)
 #define POLAR_RADIUS      6356752       //[m], earth semi-minor length (AP)
-#define AP_SQ_DIV_AE_SQ   0.9933055218  //(AP^2)/(AE^2)
+#define AP_SQ_DIV_AE_SQ   0.9933055218  //(AP^2) / (AE^2)
 #define ECCENTRICITY      0.00669447819 //e^2 = 1 - (AP^2)/(AE^2)
 
 /*==========================*
@@ -19,84 +20,43 @@
  *==========================*/
 #define AVERAGE_EARTH_RADIUS 6371000.0f //[m]
 
-int32_t home_longitude_s32 = 0;
-int32_t home_latitude_s32 = 0;
+/*====================*
+ * select earth model *
+ *====================*/
+#define EARTH_MODEL_SPHERE    0
+#define EARTH_MODEL_ELLIPSOID 1
+#define SELECT_EARTH_MODEL EARTH_MODEL_ELLIPSOID
 
-double home_longitude = 0.0f;
-double home_latitude = 0.0f;
-
-double home_ecef_x = 0.0f;
-double home_ecef_y = 0.0f;
-double home_ecef_z = 0.0f;
-
-bool home_is_set = false;
+gps_home_t gps_home;
 
 bool gps_home_is_set(void)
 {
-	return home_is_set;
+	return gps_home.home_is_set;
 }
 
-void set_home_longitude_latitude(int32_t _longitude, int32_t _latitude, float height_msl)
+void geographic_to_ecef_coordinate_transform(double *pos_ecef, double sin_lambda,
+                double cos_lambda, double sin_phi,
+                double cos_phi, float height_msl)
 {
-	home_longitude_s32 = _longitude;
-	home_latitude_s32 = _latitude;
-
-	double longitude = (double)_longitude * 1e-7;
-	double latitude = (double)_latitude * 1e-7;
-
-	home_longitude = longitude;
-	home_latitude = latitude;
-
-	double sin_lambda = sinl(deg_to_rad(longitude));
-	double cos_lambda = cosl(deg_to_rad(longitude));
-	double sin_phi = sinl(deg_to_rad(latitude));
-	double cos_phi = cosl(deg_to_rad(latitude));
-
-#if 1   /* ellipsoid */
+#if (SELECT_EARTH_MODEL == EARTH_MODEL_ELLIPSOID)
+	/* ellipsoid earth model */
 	double N = EQUATORIAL_RADIUS / sqrtl(1 - (ECCENTRICITY * sin_phi * sin_phi));
-
-	home_ecef_x = (N + height_msl) * cos_phi * cos_lambda;
-	home_ecef_y = (N + height_msl) * cos_phi * sin_lambda;
-	home_ecef_z = (N * AP_SQ_DIV_AE_SQ + height_msl) * sin_phi;
-#else   /* sphere */
-	home_ecef_x = (height_msl + AVERAGE_EARTH_RADIUS) * cos_phi * cos_lambda;
-	home_ecef_y = (height_msl + AVERAGE_EARTH_RADIUS) * cos_phi * sin_lambda;
-	home_ecef_z = (height_msl + AVERAGE_EARTH_RADIUS) * sin_phi;
+	pos_ecef[0] = (N + height_msl) * cos_phi * cos_lambda;
+	pos_ecef[1] = (N + height_msl) * cos_phi * sin_lambda;
+	pos_ecef[2] = (N * AP_SQ_DIV_AE_SQ + height_msl) * sin_phi;
+#else
+	/* sphere earth model */
+	pos_ecef[0] = (height_msl + AVERAGE_EARTH_RADIUS) * cos_phi * cos_lambda;
+	pos_ecef[1] = (height_msl + AVERAGE_EARTH_RADIUS) * cos_phi * sin_lambda;
+	pos_ecef[2] = (height_msl + AVERAGE_EARTH_RADIUS) * sin_phi;
 #endif
-
-	home_is_set = true;
 }
 
-void get_home_longitude_latitude(int32_t *longitude, int32_t *latitude)
+void ecef_to_enu_coordinate_transform(float *pos_enu, double *pos_ecef, double sin_lambda,
+                                      double cos_lambda, double sin_phi, double cos_phi,
+                                      float height_msl)
+
 {
-	*longitude = home_longitude;
-	*latitude = home_latitude;
-}
-
-void longitude_latitude_to_enu(int32_t _longitude, int32_t _latitude, float height_msl,
-                               float *x_enu, float *y_enu, float *z_enu)
-{
-	double longitude = (double)_longitude * 1e-7;
-	double latitude = (double)_latitude * 1e-7;
-
-	double sin_lambda = sinl(deg_to_rad(longitude));
-	double cos_lambda = cosl(deg_to_rad(longitude));
-	double sin_phi = sinl(deg_to_rad(latitude));
-	double cos_phi = cosl(deg_to_rad(latitude));
-
-	/* convert geodatic coordinates to earth center earth fixed frame (ecef) */
-#if 1   /* ellipsoid */
-	double N = EQUATORIAL_RADIUS / sqrtl(1 - (ECCENTRICITY * sin_phi * sin_phi));
-	double ecef_now_x = (N + height_msl) * cos_phi * cos_lambda;
-	double ecef_now_y = (N + height_msl) * cos_phi * sin_lambda;
-	double ecef_now_z = (N * AP_SQ_DIV_AE_SQ + height_msl) * sin_phi;
-#else   /* sphere */
-	double ecef_now_x = (height_msl + AVERAGE_EARTH_RADIUS) * cos_phi * cos_lambda;
-	double ecef_now_y = (height_msl + AVERAGE_EARTH_RADIUS) * cos_phi * sin_lambda;
-	double ecef_now_z = (height_msl + AVERAGE_EARTH_RADIUS) * sin_phi;
-#endif
-
-	/* convert position from earth center earth fixed frame to east north up frame */
 	double r11 = -sin_lambda;
 	double r12 = cos_lambda;
 	double r13 = 0;
@@ -107,12 +67,56 @@ void longitude_latitude_to_enu(int32_t _longitude, int32_t _latitude, float heig
 	//double r32 = sin_lambda * cos_phi;
 	//double r33 = sin_phi;
 
-	double dx = ecef_now_x - home_ecef_x;
-	double dy = ecef_now_y - home_ecef_y;
-	double dz = ecef_now_z - home_ecef_z;
+	double dx = pos_ecef[0] - gps_home.home_ecef[0];
+	double dy = pos_ecef[1] - gps_home.home_ecef[1];
+	double dz = pos_ecef[2] - gps_home.home_ecef[2];
 
-	*x_enu = (float)((r11 * dx) + (r12 * dy) + (r13 * dz));
-	*y_enu = (float)((r21 * dx) + (r22 * dy) + (r23 * dz));
-	*z_enu = height_msl; //barometer of height sensor
-	//*z_enu = (float)((r31 * dx) + (r32 * dy) + (r33 * dz)); //gps
+	pos_enu[0] = (float)((r11 * dx) + (r12 * dy) + (r13 * dz));
+	pos_enu[1] = (float)((r21 * dx) + (r22 * dy) + (r23 * dz));
+	//pos_enu[2] = (float)((r31 * dx) + (r32 * dy) + (r33 * dz));
+	pos_enu[2] = (float)height_msl;
+}
+
+void set_home_longitude_latitude(int32_t _longitude, int32_t _latitude, float height_msl)
+{
+	gps_home.home_longitude_s32 = _longitude;
+	gps_home.home_latitude_s32 = _latitude;
+
+	gps_home.home_longitude = (double)_longitude * 1e-7;
+	gps_home.home_latitude = (double)_latitude * 1e-7;
+
+	double sin_lambda = sinl(deg_to_rad(gps_home.home_longitude));
+	double cos_lambda = cosl(deg_to_rad(gps_home.home_longitude));
+	double sin_phi = sinl(deg_to_rad(gps_home.home_latitude));
+	double cos_phi = cosl(deg_to_rad(gps_home.home_latitude));
+
+	geographic_to_ecef_coordinate_transform(gps_home.home_ecef, sin_lambda,cos_lambda,
+	                                        sin_phi, cos_phi, height_msl);
+
+	gps_home.home_is_set = true;
+}
+
+void se_gps_home_longitude_latitude(int32_t *longitude, int32_t *latitude)
+{
+	*longitude = gps_home.home_longitude;
+	*latitude = gps_home.home_latitude;
+}
+
+void longitude_latitude_to_enu(float *pos_enu, int32_t _longitude,
+                               int32_t _latitude, float height_msl)
+{
+	double longitude = (double)_longitude * 1e-7;
+	double latitude = (double)_latitude * 1e-7;
+
+	double sin_lambda = sinl(deg_to_rad(longitude));
+	double cos_lambda = cosl(deg_to_rad(longitude));
+	double sin_phi = sinl(deg_to_rad(latitude));
+	double cos_phi = cosl(deg_to_rad(latitude));
+
+	double pos_ecef[3];
+	geographic_to_ecef_coordinate_transform(pos_ecef, sin_lambda, cos_lambda,
+	                                        sin_phi, cos_phi, height_msl);
+
+	ecef_to_enu_coordinate_transform(pos_enu, pos_ecef, sin_lambda, cos_lambda,
+	                                 sin_phi, cos_phi, height_msl);
 }

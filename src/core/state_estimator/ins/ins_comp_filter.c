@@ -216,14 +216,10 @@ void ins_complementary_filter_estimate(float *pos_enu_raw, float *vel_enu_raw,
 
 		/* convert gps data from geographic coordinate system to
 		 * enu frame */
-		float dummy_z;
-		longitude_latitude_to_enu(
-		        longitude, latitude, 0,
-		        &pos_enu_raw[0], &pos_enu_raw[1], &dummy_z);
+		longitude_latitude_to_enu(pos_enu_raw, longitude, latitude, 0);
 
 		if(gps_home_is_set() == false) {
-			set_home_longitude_latitude(
-			        longitude, latitude, 0/*barometer_height*/); //XXX
+			set_home_longitude_latitude(longitude, latitude, 0/*barometer_height*/); //XXX
 		}
 
 		/* convert gps velocity from ned frame to enu frame */

@@ -1610,7 +1610,7 @@ bool ins_eskf_estimate(attitude_t *attitude,
 	}
 #endif
 
-	/* gps correction (5Hz) */
+	/* gps correction (10Hz) */
 	bool recvd_gps = ins_gps_sync_buffer_available();
 	if(recvd_gps == true) {
 		/* get gps data from sync buffer */
@@ -1620,16 +1620,11 @@ bool ins_eskf_estimate(attitude_t *attitude,
 		ins_gps_sync_buffer_pop(&longitude, &latitude, &gps_msl_height,
 		                        &gps_ned_vx, &gps_ned_vy, &gps_ned_vz);
 
-		/* convert gps data from geographic coordinate system to
-		 * enu frame */
-		float dummy_z;
-		longitude_latitude_to_enu(
-		        longitude, latitude, 0,
-		        &pos_enu_raw[0], &pos_enu_raw[1], &dummy_z);
+		/* convert gps data from geographic coordinate system to enu frame */
+		longitude_latitude_to_enu(pos_enu_raw, longitude, latitude, 0);
 
 		if(gps_home_is_set() == false) {
-			set_home_longitude_latitude(
-			        longitude, latitude, 0/*barometer_height*/); //XXX
+			set_home_longitude_latitude(longitude, latitude, 0/*barometer_height*/); //XXX
 		}
 
 		/* convert gps velocity from ned frame to enu frame */
