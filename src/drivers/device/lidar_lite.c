@@ -185,12 +185,14 @@ void lidar_lite_read_sensor(void)
 	float cos_theta = (q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3]);
 	lidar_lite.height_raw = (float)lidar_dist_buf * cos_theta * 1e-2;
 
+#if 0
 	/* fault detection of lidar spike */
 	float ins_pz = get_enu_position_z();
 	if(fabs(ins_pz - lidar_lite.height_raw) > 1.0f) {
 		return;
 		//TODO: hangle the extreme change of the terrain
 	}
+#endif
 
 #if 0   /* median filter */
 	/* filter is ready */
