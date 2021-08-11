@@ -36,7 +36,7 @@ void ins_init(void)
 	ins_eskf_init(INS_LOOP_PERIOD);
 }
 
-static void ins_decoupled_state_estimation(void)
+void ins_decoupled_state_estimation(void)
 {
 	/* decoupled orientation state estimation */
 	ahrs_estimate(&attitude);
@@ -45,14 +45,14 @@ static void ins_decoupled_state_estimation(void)
 	ins_complementary_filter_estimate(pos_raw, vel_raw, pos_fused, vel_fused);
 }
 
-static void ins_full_state_estimation(void)
+void ins_full_state_estimation(void)
 {
 	/* full state estimation with eskf */
 	ins_eskf_estimate(&attitude, pos_raw, vel_raw, pos_fused, vel_fused);
 
-	/* call decoupled state estimation if eskf is not ready */
+	/* estimate attitude state only if ins_eskf is not ready */
 	if(ins_eskf_is_stable() == false) {
-		ins_decoupled_state_estimation();
+		ahrs_estimate(&attitude);
 	}
 }
 
