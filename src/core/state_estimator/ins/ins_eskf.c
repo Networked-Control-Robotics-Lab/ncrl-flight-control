@@ -21,6 +21,7 @@
 #include "ins_eskf.h"
 
 #define ESKF_RESCALE(number) (number * 1e7) //to improve the numerical stability
+#define ESKF_CONVERGENCE_NORM (25e-3)
 
 #define R(r, c)                  _R.pData[(r * 3) + c]
 #define Rt(r, c)                 _Rt.pData[(r * 3) + c]
@@ -248,7 +249,7 @@ bool ins_eskf_is_stable(void)
 
 	bool sensor_all_ready = gps_ready && compass_ready && height_ready;
 
-	if(sensor_all_ready && ins_eskf_get_covariance_matrix_norm() < 5e-1) {
+	if(sensor_all_ready && ins_eskf_get_covariance_matrix_norm() < ESKF_CONVERGENCE_NORM) {
 		return true;
 	} else {
 		return false;
