@@ -11,7 +11,7 @@
 #include "ncrl_mavlink.h"
 #include "ins_sensor_sync.h"
 
-#define GPS_ACC_TOLERANT 1.0 //[m]
+#define GPS_ACC_TOLERANT 1.5 //[m]
 
 #define UBX_SYNC_C1 0xb5
 #define UBX_SYNC_C2 0x62

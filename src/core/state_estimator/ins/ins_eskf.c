@@ -21,7 +21,7 @@
 #include "ins_eskf.h"
 
 #define ESKF_RESCALE(number) (number * 1e7) //to improve the numerical stability
-#define ESKF_CONVERGENCE_NORM (25e-3)
+#define ESKF_CONVERGENCE_NORM (5e-1)
 
 #define R(r, c)                  _R.pData[(r * 3) + c]
 #define Rt(r, c)                 _Rt.pData[(r * 3) + c]
