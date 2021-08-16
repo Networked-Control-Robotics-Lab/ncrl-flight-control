@@ -19,6 +19,7 @@ typedef struct {
 
 void ins_eskf_reset_process_covariance_matrix(void);
 void ins_eskf_init(float dt);
+float ins_eskf_get_covariance_matrix_norm(void);
 bool ins_eskf_is_stable(void);
 void ins_eskf_estimate(attitude_t *attitude,
                        float *pos_ned_raw, float *vel_ned_raw,

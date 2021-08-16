@@ -644,6 +644,20 @@ class serial_plotter_class:
                 self.create_curve('yaw', 'yellow')
                 self.show_subplot()
 
+        elif (message_id == 37):
+          	plt.subplot(211)
+        	plt.ylabel('GPS h_acc')
+        	plt.ylim([-1, 30])
+        	self.create_curve('h_acc', 'blue')
+                self.show_subplot()
+
+                plt.subplot(212)
+        	plt.ylabel('ESKF P norm')
+        	plt.ylim([-1, 5])
+        	self.create_curve('P norm', 'blue')
+                self.show_subplot()
+
+
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \
 		interval=0, blit=True)

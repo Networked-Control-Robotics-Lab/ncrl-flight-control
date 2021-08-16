@@ -15,6 +15,7 @@
 #include "vio.h"
 #include "se3_math.h"
 #include "quaternion.h"
+#include "ins_eskf.h"
 
 void send_alt_est_debug_message(debug_msg_t *payload)
 {
@@ -200,4 +201,18 @@ void send_optitrack_vio_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_float(&euler_vio.roll, payload);
 	pack_debug_debug_message_float(&euler_vio.pitch, payload);
 	pack_debug_debug_message_float(&euler_vio.yaw, payload);
+}
+
+void send_gnss_ins_cov_norm_debug_message(debug_msg_t *payload)
+{
+	float h_acc, v_acc;
+	get_gps_position_uncertainty(&h_acc, &v_acc);
+	float eskf_cov_norm = ins_eskf_get_covariance_matrix_norm();
+
+	/* convert unit from [mm] to [m] */
+	h_acc *= 0.001;
+
+	pack_debug_debug_message_header(payload, MESSAGE_ID_ESKF_COV_NORM);
+	pack_debug_debug_message_float(&h_acc, payload);
+	pack_debug_debug_message_float(&eskf_cov_norm, payload);
 }
