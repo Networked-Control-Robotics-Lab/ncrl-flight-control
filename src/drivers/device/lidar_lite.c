@@ -179,6 +179,12 @@ void lidar_lite_read_sensor(void)
 		return;
 	}
 
+	/* fault detection: spike */
+	if(lidar_dist_buf > 350) {
+		//XXX: haven't find the reason causing this error
+		return;
+	}
+
 	/* calculate hegiht from lidar lite distance */
 	float q[4];
 	get_attitude_quaternion(q);
