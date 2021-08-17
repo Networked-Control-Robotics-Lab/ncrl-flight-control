@@ -8,7 +8,9 @@
 #include "gps.h"
 #include "compass.h"
 #include "ins.h"
+#include "ins_eskf.h"
 #include "optitrack.h"
+#include "proj_config.h"
 
 vio_t vio;
 
@@ -37,12 +39,12 @@ void vio_calculate_frame_alignment(void)
 	optitrack_get_quaternion(q_gnss_ins);   //we get q from b to i here
 #else
 	/* align with gnss/ins */
-	float p_fnss_ins_enu[3]; //FIXME
-	ins_get_fused_position(p_gnss_ins_enu);       //we get position under the i frame
-	ins_ahrs_get_attitude_quaternion(q_gnss_ins); //we get q from b to i here
-	p_fnss_ins[0] =  p_fnss_ins_enu[1];
-	p_fnss_ins[1] =  p_fnss_ins_enu[0];
-	p_fnss_ins[2] = -p_fnss_ins_enu[2];
+	float p_gnss_ins_enu[3]; //FIXME
+	ins_get_fused_position_enu(p_gnss_ins_enu);   //we get position under the i frame
+	ins_eskf_get_attitude_quaternion(q_gnss_ins); //we get q from b to i here
+	p_gnss_ins[0] =  p_gnss_ins_enu[1];
+	p_gnss_ins[1] =  p_gnss_ins_enu[0];
+	p_gnss_ins[2] = -p_gnss_ins_enu[2];
 #endif
 	/* get position and quaternion from local vio */
 	float p_local_vio[3], q_local_vio[4], q_local_vio_conj[4];

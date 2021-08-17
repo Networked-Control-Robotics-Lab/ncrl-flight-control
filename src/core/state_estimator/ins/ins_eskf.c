@@ -1506,10 +1506,10 @@ void ins_eskf_rangefinder_correct(float pz_rangefinder, float vz_rangefinder)
 
 void ins_eskf_get_attitude_quaternion(float *q_out)
 {
-	/* return the conjugated quaternion since we use opposite convention compared to the paper.
-	 * paper: quaternion of earth frame to body-fixed frame
-	 * us: quaternion of body-fixed frame to earth frame */
-	quaternion_conj(mat_data(nominal_state), q_out);
+	q_out[0] = mat_data(nominal_state)[6];
+	q_out[1] = mat_data(nominal_state)[7];
+	q_out[2] = mat_data(nominal_state)[8];
+	q_out[3] = mat_data(nominal_state)[9];
 }
 
 void ins_eskf_estimate(attitude_t *attitude,
