@@ -25,7 +25,9 @@ void ins_eskf_estimate(attitude_t *attitude,
                        float *pos_ned_raw, float *vel_ned_raw,
                        float *pos_ned_fused, float *vel_ned_fused);
 
-void ins_eskf_get_attitude_quaternion(float *q_out);
+void ins_eskf_get_attitude_quaternion(float *q);
+void ins_eskf_get_position_ned(float *pos);
+void ins_eskf_get_velocity_ned(float *vel);
 
 void send_ins_eskf1_covariance_matrix_debug_message(debug_msg_t *payload);
 void send_ins_eskf_correct_freq_debug_message(debug_msg_t *payload);

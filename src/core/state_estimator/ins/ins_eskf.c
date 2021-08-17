@@ -1504,12 +1504,26 @@ void ins_eskf_rangefinder_correct(float pz_rangefinder, float vz_rangefinder)
 	mat_data(nominal_state)[5] += mat_data(error_state)[5];
 }
 
-void ins_eskf_get_attitude_quaternion(float *q_out)
+void ins_eskf_get_attitude_quaternion(float *q)
 {
-	q_out[0] = mat_data(nominal_state)[6];
-	q_out[1] = mat_data(nominal_state)[7];
-	q_out[2] = mat_data(nominal_state)[8];
-	q_out[3] = mat_data(nominal_state)[9];
+	q[0] = mat_data(nominal_state)[6];
+	q[1] = mat_data(nominal_state)[7];
+	q[2] = mat_data(nominal_state)[8];
+	q[3] = mat_data(nominal_state)[9];
+}
+
+void ins_eskf_get_position_ned(float *pos)
+{
+	pos[0] = mat_data(nominal_state)[0];
+	pos[1] = mat_data(nominal_state)[1];
+	pos[2] = mat_data(nominal_state)[2];
+}
+
+void ins_eskf_get_velocity_ned(float *vel)
+{
+	vel[0] = mat_data(nominal_state)[3];
+	vel[1] = mat_data(nominal_state)[4];
+	vel[2] = mat_data(nominal_state)[5];
 }
 
 void ins_eskf_estimate(attitude_t *attitude,
