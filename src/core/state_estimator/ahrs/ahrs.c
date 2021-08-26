@@ -30,6 +30,7 @@ extern SemaphoreHandle_t flight_ctrl_semphr;
 madgwick_t madgwick_ahrs;
 
 bool use_compass;
+bool compass_init;
 volatile bool mag_error;
 
 /* debugging */
@@ -42,11 +43,8 @@ struct {
 void ahrs_init(void)
 {
 	complementary_ahrs_init(0.0025);
-
 	madgwick_init(&madgwick_ahrs, 400, 0.13);
-
 	eskf_ahrs_init(0.0025);
-
 	optitrack_ahrs_init(0.0025);
 
 	switch(SELECT_HEADING_SENSOR) {
@@ -58,6 +56,8 @@ void ahrs_init(void)
 	default:
 		use_compass = false;
 	}
+
+	compass_init = false;
 }
 
 void init_ahrs_quaternion_with_accel_and_compass(float *q_ahrs)
@@ -293,10 +293,58 @@ bool ahrs_compass_quality_test(float *mag_new)
 	return compass_is_stable;
 }
 
+void ahrs_complementary_filter_estimate(float *q, float *gravity, float *gyro_rad,
+                                        float *mag, bool fuse_mag)
+{
+	if(fuse_mag == true) {
+		/* fuse gyroscope, accelerometer and magnetometer */
+		ahrs_marg_complementary_filter_estimate(q, gravity, gyro_rad, mag);
+	} else {
+		/* fuse gyroscope and accelerometer */
+		ahrs_imu_complementary_filter_estimate(q, gravity, gyro_rad);
+	}
+}
+
+void ahrs_madgwick_filter_estimate(float *q, float *gravity, float *gyro_rad,
+                                   float *mag, bool fuse_mag)
+{
+	if(fuse_mag == true) {
+		/* fuse gyroscope, accelerometer and magnetometer */
+		madgwick_margs_ahrs(&madgwick_ahrs, gravity, gyro_rad, mag);
+	} else {
+		/* fuse gyroscope and accelerometer */
+		madgwick_imu_ahrs(&madgwick_ahrs, gravity, gyro_rad);
+	}
+	quaternion_copy(q, madgwick_ahrs.q);
+}
+
+void ahrs_eskf_estimate(float *q, float *gravity, float *gyro_rad,
+                        float *mag, bool fuse_mag)
+{
+	/* update */
+	eskf_ahrs_predict(gyro_rad);
+
+	/* accelerometer correction */
+	eskf_ahrs_accelerometer_correct(gravity);
+
+	/* magnetometer correction */
+	if(fuse_mag == true) {
+		eskf_ahrs_magnetometer_correct(mag);
+	}
+
+	/* retrieve estimation result from eskf */
+	get_eskf_attitude_quaternion(q);
+}
+
+void ahrs_optitrack_estimate(float *q, float *gravity, float *gyro_rad,
+                             float *mag, bool fuse_mag)
+{
+	/* fuse optitrack and gyroscope */
+	ahrs_optitrack_imu_fuse_estimate(q, gyro_rad);
+}
+
 void ahrs_estimate(attitude_t *attitude)
 {
-	static bool compass_init = false;
-
 	float accel[3];
 	float gyro[3];
 	float mag[3];
@@ -305,13 +353,20 @@ void ahrs_estimate(attitude_t *attitude)
 	get_accel_lpf(accel);
 	get_gyro_lpf(gyro);
 
-	/* note that acceleromter senses the negative gravity acceleration (normal force)
-	 * a_imu = (R(phi, theta, psi) * a_translation) - (R(phi, theta, psi) * g) */
+	/* ----------------------------------------------------- *
+	 * accelerometer sensor model:                           *
+	 * a_imu = (R_i2b * a_translation) - (R_i2b * g)         *
+	 * ----------------------------------------------------- *
+	 * assuming a_translation = 0, measurment of the gravity *
+	 * in the body-fixed frame can be obtained from:         *
+	 * a_gravity = -a_imu = (R_i2b * g)                      *
+	 * ----------------------------------------------------- */
 	float gravity[3];
 	gravity[0] = -accel[0];
 	gravity[1] = -accel[1];
 	gravity[2] = -accel[2];
 
+	/* convert gyroscope measurement unit from [deg/s] to [rad/s] */
 	float gyro_rad[3];
 	gyro_rad[0] = deg_to_rad(gyro[0]);
 	gyro_rad[1] = deg_to_rad(gyro[1]);
@@ -320,54 +375,43 @@ void ahrs_estimate(attitude_t *attitude)
 	/* check compass data is availabe or not */
 	bool recvd_compass = ins_compass_sync_buffer_available();
 	if(recvd_compass == true) {
-		/* pop compass data from ins sync buffer (update and read with 50Hz) */
+		/* pop compass data from ins sync buffer */
 		ins_compass_sync_buffer_pop(mag);
 
+		/* compass quality checker initialization */
 		if(compass_init == false) {
 			float mag_raw[3];
 			get_compass_raw(mag_raw);
-			//convert_magnetic_field_to_quat(mag_raw, attitude->q);
 			compass_init = true;
 		}
 
 		/* check compass quality */
 		if(ahrs_compass_quality_test(mag) == true) {
-			//good quality, apply calibration
+			/* quality is fine, apply undistortion */
 			compass_undistortion(mag);
 			mag_error = false;
 		} else {
+			/* error detected */
 			mag_error = true;
 		}
 	}
 
+	/* magnetometer fusion is enabled only if new measurement is received,
+	 * no error detected and heading sensor soruce is set as compass */
+	bool fuse_mag = (mag_error == false) && (recvd_compass == true) &&
+	                (get_heading_sensor() == HEADING_FUSION_USE_COMPASS);
+
 #if (SELECT_AHRS == AHRS_COMPLEMENTARY_FILTER)
-	if(mag_error == false && recvd_compass == true) {
-		ahrs_marg_complementary_filter_estimate(attitude->q, gravity, gyro_rad, mag);
-	} else {
-		ahrs_imu_complementary_filter_estimate(attitude->q, gravity, gyro_rad);
-	}
+	ahrs_complementary_filter_estimate(attitude->q, gravity, gyro_rad, mag, fuse_mag);
 #elif (SELECT_AHRS == AHRS_MADGWICK_FILTER)
-	if(mag_error == false && recvd_compass == true) {
-		madgwick_margs_ahrs(&madgwick_ahrs, gravity, gyro_rad, mag);
-	} else {
-		madgwick_imu_ahrs(&madgwick_ahrs, gravity, gyro_rad);
-	}
-	quaternion_copy(attitude->q, madgwick_ahrs.q);
+	ahrs_madgwick_filter_estimate(attitude->q, gravity, gyro_rad, mag, fuse_mag);
 #elif (SELECT_AHRS == AHRS_ESKF)
-	eskf_ahrs_predict(gyro_rad);
-	eskf_ahrs_accelerometer_correct(gravity);
-
-	if(mag_error == false && recvd_compass == true) {
-		eskf_ahrs_magnetometer_correct(mag);
-	}
-
-	get_eskf_attitude_quaternion(attitude->q);
+	ahrs_eskf_estimate(attitude->q, gravity, gyro_rad, mag, fuse_mag);
 #elif (SELECT_AHRS == AHRS_OPTITRACK)
-	ahrs_optitrack_imu_fuse_estimate(attitude->q, gyro_rad);
-	(void)gravity; //suppress the unused variable warning
+	ahrs_optitrack_estimate(attitude->q, gravity, gyro_rad, mag, fuse_mag);
 #endif
 
-	/* direct heading alignment with external navigation systems */
+	/* heading realignment */
 	switch(get_heading_sensor()) {
 	case HEADING_FUSION_USE_OPTITRACK: {
 		float q_optitrack[4];
@@ -389,12 +433,14 @@ void ahrs_estimate(attitude_t *attitude)
 	}
 	}
 
+	/* convert quaternion to euler angles */
 	euler_t euler;
 	quat_to_euler(attitude->q, &euler);
 	attitude->roll = rad_to_deg(euler.roll);
 	attitude->pitch = rad_to_deg(euler.pitch);
 	attitude->yaw = rad_to_deg(euler.yaw);
 
+	/* convert quaternion to rotation matrix */
 	quat_to_rotation_matrix(attitude->q, attitude->R_b2i, attitude->R_i2b);
 }
 
