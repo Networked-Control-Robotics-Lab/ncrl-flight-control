@@ -653,7 +653,7 @@ class serial_plotter_class:
 
                 plt.subplot(212)
         	plt.ylabel('ESKF P norm')
-        	plt.ylim([-1, 5])
+        	plt.ylim([0, 50])
         	self.create_curve('P norm', 'blue')
                 self.show_subplot()
 
