@@ -168,6 +168,8 @@ void send_optitrack_vio_debug_message(debug_msg_t *payload)
 	float p_optitrack[3], q_optitrack[4];
 	optitrack_get_position_enu(p_optitrack);
 	optitrack_get_quaternion(q_optitrack);
+	//ins_get_fused_position_enu(p_optitrack);
+	//ins_eskf_get_attitude_quaternion(q_optitrack);
 
 	/* get position and quaternion from vio */
 	float p_vio[3], q_vio[4];
