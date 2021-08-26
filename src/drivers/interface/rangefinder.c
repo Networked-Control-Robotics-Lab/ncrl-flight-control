@@ -6,7 +6,6 @@ bool rangefinder_available(void)
 	return lidar_lite_available();
 }
 
-
 float rangefinder_get_distance(void)
 {
 	return lidar_lite_get_distance();
