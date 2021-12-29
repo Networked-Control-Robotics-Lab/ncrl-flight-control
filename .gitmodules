@@ -1,0 +1,3 @@
+[submodule "tools/multicomm/QGC/MAVLINK Broker/c_library_v2"]
+	path = tools/multicomm/QGC/MAVLINK Broker/c_library_v2
+	url = git@github.com:mavlink/c_library_v2.git
