@@ -20,7 +20,7 @@ If the driver is set, you can see Mobile Setting on Network Panel.
     <img width="300" src="./assets/network_panel-8.png">
 </div>
 
-If the driver is not set. It need to install "usb-modeswitch" then reboot.
+If the driver is not set. It needs to install "usb-modeswitch" then reboot.
 
     $ sudo apt-get update -y
     $ sudo apt-get install -y usb-modeswitch
