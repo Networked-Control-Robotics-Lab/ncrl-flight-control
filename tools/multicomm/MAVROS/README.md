@@ -1,5 +1,10 @@
 # Running MAVROS across multiple machines
 
+<div>
+    <img width="300" src="./assets/MAVROS.png">
+</div>
+
+
 ## Overview
 * Setup VPN and then connect GSC and all UAV on.
 
