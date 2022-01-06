@@ -1,7 +1,7 @@
 # Running MAVROS across multiple machines
 
 <div>
-    <img width="500" src="./assets/MAVROS.png">
+    <img width="900" src="./assets/MAVROS.png">
 </div>
 
 
