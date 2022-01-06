@@ -4,7 +4,7 @@
 * Run up mavlink-router to rout mavlink message to GSC host from UAVs
 * Run QGC on GCS host to connect local port which UAVs send to
 <div>
-    <img width="500" src="./assets/QGC.png">
+    <img width="900" src="./assets/QGC.png">
 </div>
 ## Install mavlink router
 [mavlink-router official repo](https://github.com/mavlink-router/mavlink-router#cli-parameters)
