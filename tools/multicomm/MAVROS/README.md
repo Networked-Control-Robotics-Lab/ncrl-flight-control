@@ -10,9 +10,9 @@
 
 * All UAV must be configured to use the same GSC as master, via ROS_MASTER_URI.
 
-* There must be complete, bi-directional connectivity between all pairs of machines, on all ports (see ROS/NetworkSetup).
+* There must be complete, bi-directional connectivity between all pairs of machines, on all ports (see [ROS/NetworkSetup](http://wiki.ros.org/ROS/NetworkSetup)).
 
-* Each machine must advertise itself by a name that all other machines can resolve (see ROS/NetworkSetup).
+* Each machine must advertise itself by a name that all other machines can resolve (see [ROS/NetworkSetup](http://wiki.ros.org/ROS/NetworkSetup)).
 
 ## Setup
 ### Name resolution
