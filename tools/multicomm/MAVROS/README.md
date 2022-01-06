@@ -23,19 +23,19 @@ This is the name that is returned by the command hostname.
 If a machine reports a hostname that is not addressable by other machines, then you need to set either the ROS_IP or ROS_HOSTNAME environment variables.
 
 #### Example
-Continuing the example of gcs and uav1, say we want to bring in a third machine. The new machine, named uav2, uses a DHCP address, say 10.0.0.3, and other machines cannot resolve the hostname uav2 into an IP address (this should not happen on a properly configured DHCP-managed network, but it is a common problem).
+Continuing the example of gcs and uav1, say we want to bring in a third machine. The new machine, named uav2, uses a VPN address, say 10.0.0.3, and other machines cannot resolve the hostname uav2 into an IP address (this should not happen on a properly configured DHCP-managed network, but it is a common problem).
 
 In this situation, neither gcs nor uav1 are able to ping uav2 by name, and so they would not be able to contact nodes that advertise themselves as running on uav2. The fix is to set ROS_IP in the environment before starting a node on uav2:
 ```shell
 ssh 10.0.0.3 # We can't ssh to uav2 by name
-export ROS_IP=10.0.0.3 # Correct the fact that uav2's address can't be resolved
+export ROS_IP=10.0.0.3 # Correct the fact that uav2's VPN address can't be resolved
 export ROS_MASTER_URI=http://10.0.0.1:11311
 <start a node here>
 ```
 A similar problem can occur if a machine's name is resolvable, but the machine doesn't know its own name. Say uav2 can be properly resolved into 10.0.0.3, but running hostname on uav2 returns localhost. Then you should set ROS_HOSTNAME:
 ```shell
 ssh uav2 # We can ssh to uav2 by name
-export ROS_IP=10.0.0.3 # Correct the fact that uav2's address can't be resolved
+export ROS_IP=10.0.0.3 # Correct the fact that uav2's VPN address can't be resolved
 export ROS_HOSTNAME=uav2 # Correct the fact that uav2 doesn't know its name
 export ROS_MASTER_URI=http://10.0.0.1:11311
 <start a node here>add prefix in mavros
