@@ -1,6 +1,6 @@
 # Access QGroundControl with marvlink broker
 <div>
-    <img width="600" src="./assets/BROCKER.png">
+    <img width="900" src="./assets/BROCKER.png">
 </div>
 
 ## Overview
