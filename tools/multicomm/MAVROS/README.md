@@ -14,6 +14,8 @@
 
 * Each machine must advertise itself by a name that all other machines can resolve (see [ROS/NetworkSetup](http://wiki.ros.org/ROS/NetworkSetup)).
 
+* (Optional) Add custom messages on MAVROS, please refer https://docs.px4.io/master/en/ros/mavros_custom_messages.html
+
 ## Setup
 ### Name resolution
 When a ROS node advertises a topic, it provides a hostname:port combination (a URI) that other nodes will contact when they want to subscribe to that topic.
