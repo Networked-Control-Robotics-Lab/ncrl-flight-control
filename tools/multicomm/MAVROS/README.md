@@ -8,7 +8,9 @@
 ## Overview
 * Setup VPN and then connect GSC and all UAV on.
 
-  Note: Maybe a kernel space VPN server like Wireguard is a choise. https://www.snbforums.com/threads/disabling-openvpn-encryption-auth-completely.57177/
+  Note: Maybe a kernel space VPN server like Wireguard is a free choise. https://www.snbforums.com/threads/disabling-openvpn-encryption-auth-completely.57177/ .
+        Or charged VPN service https://www.cyberciti.biz/faq/ubuntu-20-04-set-up-wireguard-vpn-server/, if need more performance. 
+  
 
 * All UAV must be configured to use the same GSC as master, via ROS_MASTER_URI.
 
