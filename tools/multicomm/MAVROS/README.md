@@ -113,6 +113,10 @@ Check with *rostopic list*:
     <img width="300" src="./assets/topic_graph.png">
 </div>
 
+### Appendix
+    
+    * Monitoring STATUS FOR MASTER CONNECTION: https://answers.ros.org/question/202369/how-to-handle-disconnectionreconnection-to-the-ros-master/
+
 
 
 
