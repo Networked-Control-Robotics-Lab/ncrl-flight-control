@@ -8,6 +8,8 @@
 ## Overview
 * Setup VPN and then connect GSC and all UAV on.
 
+  Note: Maybe a kernel space VPN server like Wireguard is a choise. https://www.snbforums.com/threads/disabling-openvpn-encryption-auth-completely.57177/
+
 * All UAV must be configured to use the same GSC as master, via ROS_MASTER_URI.
 
 * There must be complete, bi-directional connectivity between all pairs of machines, on all ports (see [ROS/NetworkSetup](http://wiki.ros.org/ROS/NetworkSetup)).
