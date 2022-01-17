@@ -8,9 +8,7 @@
 ## Overview
 * Setup VPN and then connect GSC and all UAV on.
 
-  Note: Maybe a kernel space VPN server like Wireguard is a free choise. https://www.snbforums.com/threads/disabling-openvpn-encryption-auth-completely.57177/ .
-        Or charged VPN service https://www.cyberciti.biz/faq/ubuntu-20-04-set-up-wireguard-vpn-server/, if need more performance. 
-  
+  Note: Maybe a kernel space VPN server like OpenVPN and Wireguard are free choises. https://www.snbforums.com/threads/disabling-openvpn-encryption-auth-completely.57177/. Or charged VPN service https://www.cyberciti.biz/faq/ubuntu-20-04-set-up-wireguard-vpn-server/, if need more performance. 
 
 * All UAV must be configured to use the same GSC as master, via ROS_MASTER_URI.
 
@@ -21,6 +19,25 @@
 * (Optional) Add custom messages on MAVROS, please refer https://docs.px4.io/master/en/ros/mavros_custom_messages.html
 
 ## Setup
+
+### VPN
+Here is the sample for OpenVPN as Client.
+
+```shell
+# Install OpenVPN Client https://openvpn.net/cloud-docs/openvpn-3-client-for-linux/
+sudo apt install apt-transport-https
+sudo wget https://swupdate.openvpn.net/repos/openvpn-repo-pkg-key.pub
+sudo apt-key add openvpn-repo-pkg-key.pub
+sudo wget -O /etc/apt/sources.list.d/openvpn3.list https://swupdate.openvpn.net/community/openvpn3/repos/openvpn3-$DISTRO.list # bionic
+sudo apt update
+sudo apt install openvpn3
+
+# Connect OpenVPN Server
+
+openvpn3 session-start --config ${CONFIGURATION_FILE}
+
+```
+
 ### Name resolution
 When a ROS node advertises a topic, it provides a hostname:port combination (a URI) that other nodes will contact when they want to subscribe to that topic.
 It is important that the hostname that a node provides can be used by all other nodes to contact it. The ROS client libraries use the name that the machine reports to be its hostname.
@@ -49,6 +66,7 @@ export ROS_MASTER_URI=http://10.0.0.1:11311
 <div>
     <img width="300" src="./assets/ros_env.png">
 </div>
+
 ### Configuring /etc/hosts
 Another option is to add entries to your /etc/hosts file so that the machines can find each other. The hosts file tells each machine how to convert specific names into an IP address.
 
@@ -60,10 +78,14 @@ Following is a sample /etc/hosts file:
            10.0.0.2		uav1
            10.0.0.3		uav2
 ```
+
 ### Add prefix of topic for multiple nodes in mavros
 
 Because all UAVs need to communicate with GCS, we need to run mavros up for each UVAs. But we should set a unique mavros group name for each UAVs.
 Open the px4.launch, and then add <group ns="{GROUP_NAME}">...</group>
+    
+    $ roscd mavros/launch
+
 ```xml
 <?xml version="1.0"?>
 <launch>
@@ -85,28 +107,29 @@ Open the px4.launch, and then add <group ns="{GROUP_NAME}">...</group>
     </group>
 </launch>
 ```
+
 <div>
     <img width="300" src="./assets/px4_config.png">
 </div>
 Let's run mavros up!
 
-On GCP node:
+On GCP MASTER Node:
 
     $ roscore
 <div>
     <img width="300" src="./assets/run_master.png">
 </div>
 
-On UAV nodes:
+On UAV Nodes:
 
-    $ roslaunch mavros px4.launch
+    $ roslaunch mavros px4.launch fcu_url:=/dev/ttyUSB0:115200
 
 <div>
     <img width="300" src="./assets/run_mavros.png">
     <img width="300" src="./assets/run_uav.png">
 </div>
 
-Check with *rostopic list*:
+Check with *rostopic list* on MASTER Node:
 
 <div>
     <img width="300" src="./assets/topic_list.png">
