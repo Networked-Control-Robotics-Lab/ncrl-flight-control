@@ -79,7 +79,7 @@ Following is a sample /etc/hosts file:
            10.0.0.3		uav2
 ```
 
-### Add prefix of topic for multiple nodes in mavros
+### (Optional)Add prefix of topic for multiple nodes in mavros
 
 Because all UAVs need to communicate with GCS, we need to run mavros up for each UVAs. But we should set a unique mavros group name for each UAVs.
 Open the px4.launch, and then add <group ns="{GROUP_NAME}">...</group>
@@ -122,7 +122,9 @@ On GCP MASTER Node:
 
 On UAV Nodes:
 
-    $ roslaunch mavros px4.launch fcu_url:=/dev/ttyUSB0:115200
+    $ roslaunch mavros px4.launch fcu_url:=/dev/ttyUSB0:115200 mavros_ns:=uav1 tgt_system:=1
+    $ # Or, controled by QGC at the same time.
+    $ roslaunch mavros px4.launch fcu_url:=/dev/ttyUSB0:115200 gcs_url:=udp://:14556@{QGC_IP}:14550
 
 <div>
     <img width="300" src="./assets/run_mavros.png">
