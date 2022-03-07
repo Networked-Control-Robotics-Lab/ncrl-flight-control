@@ -10,14 +10,14 @@ from collections import deque
 from datetime import datetime
 
 ser = serial.Serial(
-    port='/dev/ttyUSB1',\
+    port='/dev/ttyUSB2',\
     baudrate=115200,\
     parity=serial.PARITY_NONE,\
     stopbits=serial.STOPBITS_ONE,\
     bytesize=serial.EIGHTBITS,\
     timeout=100)
 
-save_csv = False
+save_csv = True
 csv_file = 'serial_log.csv'
 
 if save_csv == True:
@@ -553,6 +553,31 @@ class serial_plotter_class:
         	self.create_curve('h_acc', 'blue')
                 self.create_curve('v_acc', 'red')
                 self.show_subplot()
+
+
+        elif (message_id == 34):
+          	plt.subplot(311)
+        	plt.ylabel('attitude error [deg]')
+        	plt.ylim([-200, 200])
+        	self.create_curve('roll', 'red')
+                self.create_curve('pitch', 'blue')
+        	self.create_curve('yaw', 'green')
+        	self.show_subplot()
+
+         	plt.subplot(312)
+        	plt.ylabel('attitude rate error [deg/s]')
+        	plt.ylim([-200, 200])
+        	self.create_curve('wx', 'red')
+                self.create_curve('wy', 'blue')
+        	self.create_curve('wz', 'green')
+        	self.show_subplot()
+ 
+                plt.subplot(313)
+                plt.ylabel('theta')
+        	plt.ylim([-0.1, 0.1])
+        	self.create_curve('x', 'red')
+                self.create_curve('y', 'blue')
+        	self.show_subplot()
 
 
     def show_graph(self):
