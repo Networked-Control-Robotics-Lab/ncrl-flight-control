@@ -19,7 +19,7 @@
 #define BAROMETER_PRESCALER_RELOAD       4     //100Hz
 
 extern SemaphoreHandle_t flight_ctl_semphr;
-
+int counter = 0;
 void timer12_init(void)
 {
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM12, ENABLE);
@@ -102,11 +102,10 @@ void TIM3_IRQHandler(void)
 #if (ENABLE_MAGNETOMETER == 1)
 	static int compass_cnt = COMPASS_PRESCALER_RELOAD;
 #endif
-
-	/* trigger ms5611 driver task (400Hz) */
 	if(TIM_GetITStatus(TIM3, TIM_IT_Update) == SET) {
 		BaseType_t higher_priority_task_woken = pdFALSE;
-
+			GPIO_ToggleBits(GPIOE,GPIO_Pin_12);
+			GPIO_ToggleBits(GPIOE,GPIO_Pin_14);
 #if (ENABLE_BAROMETER == 1)
 		/* barometer */
 		barometer_cnt--;
