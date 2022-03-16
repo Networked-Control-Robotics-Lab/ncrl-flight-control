@@ -80,7 +80,7 @@ void TIM8_BRK_TIM12_IRQHandler(void)
 		flight_ctrl_cnt--;
 		if(flight_ctrl_cnt == 0) {
 			flight_ctrl_cnt = FLIGHT_CTL_PRESCALER_RELOAD;
-			flight_ctrl_semaphore_handler();
+			//flight_ctrl_semaphore_handler();
 		}
 
 #if 1

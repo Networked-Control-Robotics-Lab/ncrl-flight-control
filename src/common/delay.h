@@ -8,5 +8,6 @@
 
 void blocked_delay_ms(uint32_t ms);
 void sys_timer_blocked_delay_ms(float delay_ms);
+void sys_timer_blocked_delay_tick_ms(uint32_t delay_ms);
 
 #endif
