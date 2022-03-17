@@ -36,7 +36,8 @@ float get_sys_time_s(void)
 	return sys_tim.time_s + sys_tim.tick_s;
 }
 
-uint32_t get_sys_tick_ms(void){
+uint32_t get_sys_tick_ms(void)
+{
 	return sys_tim.tick_ms;
 }
 

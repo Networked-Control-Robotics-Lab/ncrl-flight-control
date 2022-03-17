@@ -104,8 +104,8 @@ void TIM3_IRQHandler(void)
 #endif
 	if(TIM_GetITStatus(TIM3, TIM_IT_Update) == SET) {
 		BaseType_t higher_priority_task_woken = pdFALSE;
-			GPIO_ToggleBits(GPIOE,GPIO_Pin_12);
-			GPIO_ToggleBits(GPIOE,GPIO_Pin_14);
+		GPIO_ToggleBits(GPIOE,GPIO_Pin_12);
+		GPIO_ToggleBits(GPIOE,GPIO_Pin_14);
 #if (ENABLE_BAROMETER == 1)
 		/* barometer */
 		barometer_cnt--;
