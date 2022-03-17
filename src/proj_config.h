@@ -68,6 +68,11 @@
 /* barometer sensor option */
 #define ENABLE_BAROMETER       0
 
+/* rgb light option */
+#define RGB_USE_GPIO       0
+#define RGB_USE_NCP5623C   1
+#define RGB_USE RGB_USE_NCP5623C
+
 /*=======================================================*
  * sensor source settings for state estimation algorithm *
  *=======================================================*/
