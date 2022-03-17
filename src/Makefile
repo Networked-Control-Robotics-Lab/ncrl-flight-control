@@ -131,6 +131,7 @@ SRC+=./drivers/periph/uart.c \
 	./drivers/periph/sw_i2c.c \
 	./drivers/periph/flash.c \
 	./drivers/periph/crc.c \
+	./drivers/periph/i2c.c \
 	./drivers/device/mpu6500.c \
 	./drivers/device/ms5611.c \
 	./drivers/device/sbus_radio.c \
@@ -138,9 +139,10 @@ SRC+=./drivers/periph/uart.c \
 	./drivers/device/optitrack.c \
 	./drivers/device/sys_time.c \
 	./drivers/device/ist8310.c \
-	./drivers/device/led.c \
 	./drivers/device/ublox_m8n.c \
 	./drivers/device/vins_mono.c \
+	./drivers/device/ncp5623c.c \
+	./drivers/interface/led.c \
 	./drivers/interface/imu.c \
 	./drivers/interface/barometer.c \
 	./drivers/interface/compass.c \
