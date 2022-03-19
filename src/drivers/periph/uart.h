@@ -5,6 +5,10 @@
 #include <stdbool.h>
 #include "stm32f4xx_conf.h"
 
+typedef struct {
+	char c;
+} uart_c_t;
+
 void uart1_init(int baudrate);
 void uart3_init(int baudrate);
 void uart4_init(int baudrate);

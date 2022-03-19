@@ -12,13 +12,11 @@
 #include "vins_mono.h"
 #include "ublox_m8n.h"
 #include "proj_config.h"
+#include "uart.h"
 
 #define UART1_QUEUE_SIZE 100
 #define UART3_QUEUE_SIZE 500
 
-typedef struct {
-	char c;
-} uart_c_t;
 
 SemaphoreHandle_t uart1_tx_semphr;
 SemaphoreHandle_t uart3_tx_semphr;
