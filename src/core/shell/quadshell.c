@@ -11,13 +11,21 @@ void shell_reset_struct(struct shell_struct *shell);
 char shell_getc(void)
 {
 	char c;
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 	while(uart1_getc(&c, portMAX_DELAY) == false);
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+	while(uart2_getc(&c, portMAX_DELAY) == false);
+#endif
 	return c;
 }
 
 void shell_puts(char *s)
 {
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 	usart_puts(USART1, s, strlen(s));
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+	uart2_puts( s, strlen(s));
+#endif
 }
 
 static void shell_ctrl_c_handler(struct shell_struct *shell)

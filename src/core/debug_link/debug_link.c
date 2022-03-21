@@ -3,6 +3,7 @@
 #include "stm32f4xx.h"
 #include "uart.h"
 #include "debug_link.h"
+#include "proj_config.h"
 
 void pack_debug_debug_message_header(debug_msg_t *payload, int message_id)
 {
@@ -39,7 +40,13 @@ void send_onboard_data(uint8_t *payload, int payload_count)
 	payload[payload_count] = checksum;
 	payload_count++;
 
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 	uart1_puts((char *)payload, payload_count);
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+	uart2_puts((char *)payload, payload_count);
+#else
+
+#endif
 }
 
 void send_general_float_debug_message(float val, debug_msg_t *payload)

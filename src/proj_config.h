@@ -8,6 +8,11 @@
 #define UAV_TYPE_QUADROTOR 0
 #define SELECT_UAV_TYPE UAV_TYPE_QUADROTOR
 
+/* uav hardware */
+#define UAV_HARDWARE_AVILON 0
+#define UAV_HARDWARE_PIXHAWK2_4_6 1
+#define UAV_HARDWARE UAV_HARDWARE_PIXHAWK2_4_6
+
 /*===========================*
  * telemetry system settings *
  *===========================*/
@@ -19,7 +24,7 @@
 /* telemetry debug channel protocols */
 #define TELEM_SHELL      0
 #define TELEM_DEBUG_LINK 1
-#define SELECT_DEBUG_TELEM TELEM_SHELL
+#define SELECT_DEBUG_TELEM TELEM_DEBUG_LINK
 
 /* debug link message publish rate */
 #define DEBUG_LINK_PUBLISH_20Hz  0 //recommanded for wireless communication

@@ -15,14 +15,17 @@
 #include "uart.h"
 
 #define UART1_QUEUE_SIZE 100
+#define UART2_QUEUE_SIZE 100
 #define UART3_QUEUE_SIZE 500
 
 
 SemaphoreHandle_t uart1_tx_semphr;
+SemaphoreHandle_t uart2_tx_semphr;
 SemaphoreHandle_t uart3_tx_semphr;
 SemaphoreHandle_t uart7_tx_semphr;
 
 QueueHandle_t uart1_rx_queue;
+QueueHandle_t uart2_rx_queue;
 QueueHandle_t uart3_rx_queue;
 
 /*
@@ -76,6 +79,59 @@ void uart1_init(int baudrate)
 	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = UART1_RX_ISR_PRIORITY;
 	NVIC_Init(&NVIC_InitStruct);
 	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+}
+
+/*
+ * <uart2>
+ * usage: log (debug link ,debug shell)
+ * tx: gpio_pin_d5 (dma1 channel4 stream6)
+ * rx: gpio_pin_d6 (dma1 channel4 stream5)
+ */
+void uart2_init(int baudrate)
+{
+	uart2_tx_semphr = xSemaphoreCreateBinary();
+	uart2_rx_queue = xQueueCreate(UART2_QUEUE_SIZE, sizeof(uart_c_t));
+
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
+
+	GPIO_PinAFConfig(GPIOD, GPIO_PinSource5, GPIO_AF_USART2);
+	GPIO_PinAFConfig(GPIOD, GPIO_PinSource6, GPIO_AF_USART2);
+
+	GPIO_InitTypeDef GPIO_InitStruct = {
+		.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_6,
+		.GPIO_Mode = GPIO_Mode_AF,
+		.GPIO_Speed = GPIO_Speed_50MHz,
+		.GPIO_OType = GPIO_OType_PP,
+		.GPIO_PuPd = GPIO_PuPd_UP
+	};
+	GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+	USART_InitTypeDef USART_InitStruct = {
+		.USART_BaudRate = baudrate,
+		.USART_Mode = USART_Mode_Rx | USART_Mode_Tx,
+		.USART_WordLength = USART_WordLength_8b,
+		.USART_StopBits = USART_StopBits_1,
+		.USART_Parity = USART_Parity_No
+	};
+	USART_Init(USART2, &USART_InitStruct);
+	USART_Cmd(USART2, ENABLE);
+	USART_ClearFlag(USART2, USART_FLAG_TC);
+
+	NVIC_InitTypeDef NVIC_InitStruct = {
+		.NVIC_IRQChannel = DMA1_Stream6_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = UART2_TX_ISR_PRIORITY,
+		.NVIC_IRQChannelSubPriority = 0,
+		.NVIC_IRQChannelCmd = ENABLE
+	};
+	NVIC_Init(&NVIC_InitStruct);
+	DMA_ITConfig(DMA1_Stream6, DMA_IT_TC, ENABLE);
+
+	NVIC_InitStruct.NVIC_IRQChannel = USART2_IRQn;
+	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = UART2_RX_ISR_PRIORITY;
+	NVIC_Init(&NVIC_InitStruct);
+	USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
 }
 
 /*
@@ -323,6 +379,36 @@ void uart1_puts(char *s, int size)
 	xSemaphoreTake(uart1_tx_semphr, portMAX_DELAY);
 }
 
+void uart2_puts(char *s, int size)
+{
+	//uart2 tx: dma1 channel4 stream6
+	DMA_ClearFlag(DMA1_Stream6, DMA_FLAG_TCIF6);
+
+	DMA_InitTypeDef DMA_InitStructure = {
+		.DMA_BufferSize = (uint32_t)size,
+		.DMA_FIFOMode = DMA_FIFOMode_Disable,
+		.DMA_FIFOThreshold = DMA_FIFOThreshold_Full,
+		.DMA_MemoryBurst = DMA_MemoryBurst_Single,
+		.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte,
+		.DMA_MemoryInc = DMA_MemoryInc_Enable,
+		.DMA_Mode = DMA_Mode_Normal,
+		.DMA_PeripheralBaseAddr = (uint32_t)(&USART2->DR),
+		.DMA_PeripheralBurst = DMA_PeripheralBurst_Single,
+		.DMA_PeripheralInc = DMA_PeripheralInc_Disable,
+		.DMA_Priority = DMA_Priority_Medium,
+		.DMA_Channel = DMA_Channel_4,
+		.DMA_DIR = DMA_DIR_MemoryToPeripheral,
+		.DMA_Memory0BaseAddr = (uint32_t)s
+	};
+	DMA_Init(DMA1_Stream6, &DMA_InitStructure);
+
+	//send data from memory to uart data register
+	DMA_Cmd(DMA1_Stream6, ENABLE);
+	USART_DMACmd(USART2, USART_DMAReq_Tx, ENABLE);
+
+	xSemaphoreTake(uart2_tx_semphr, portMAX_DELAY);
+}
+
 void uart3_puts(char *s, int size)
 {
 	//uart3 tx: dma1 channel4 stream3
@@ -438,6 +524,16 @@ bool uart1_getc(char *c, long sleep_ticks)
 	}
 }
 
+bool uart2_getc(char *c, long sleep_ticks)
+{
+	uart_c_t recpt_c;
+	if(xQueueReceive(uart2_rx_queue, &recpt_c, sleep_ticks) == pdFALSE) {
+		return false;
+	} else {
+		*c = recpt_c.c;
+		return true;
+	}
+}
 bool uart3_getc(char *c, long sleep_ticks)
 {
 	uart_c_t recpt_c;
@@ -473,6 +569,18 @@ void DMA1_Stream3_IRQHandler(void)
 	}
 }
 
+void DMA1_Stream6_IRQHandler(void)
+{
+	/* uart2 tx dma */
+	if(DMA_GetITStatus(DMA1_Stream6, DMA_IT_TCIF6) == SET) {
+		DMA_ClearITPendingBit(DMA1_Stream6, DMA_IT_TCIF6);
+
+		BaseType_t higher_priority_task_woken = pdFALSE;
+		xSemaphoreGiveFromISR(uart2_tx_semphr, &higher_priority_task_woken);
+		portEND_SWITCHING_ISR(higher_priority_task_woken);
+	}
+}
+
 void DMA2_Stream7_IRQHandler(void)
 {
 	/* uart1 tx dma */
@@ -498,6 +606,18 @@ void USART1_IRQHandler(void)
 	}
 }
 
+void USART2_IRQHandler(void)
+{
+	if(USART_GetITStatus(USART2, USART_IT_RXNE) == SET) {
+		uart_c_t uart_queue_item;
+		uart_queue_item.c = USART_ReceiveData(USART2);
+		USART2->SR;
+
+		BaseType_t higher_priority_task_woken = pdFALSE;
+		xQueueSendToBackFromISR(uart2_rx_queue, &uart_queue_item, &higher_priority_task_woken);
+		portEND_SWITCHING_ISR(higher_priority_task_woken)
+	}
+}
 void USART3_IRQHandler(void)
 {
 	if(USART_GetITStatus(USART3, USART_IT_RXNE) == SET) {
