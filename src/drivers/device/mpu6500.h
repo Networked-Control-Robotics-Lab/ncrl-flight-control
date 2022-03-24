@@ -6,9 +6,15 @@
 #include "stm32f4xx_conf.h"
 #include "spi.h"
 #include "imu.h"
+#include "proj_config.h"
 
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 #define mpu6500_chip_select() GPIO_ResetBits(GPIOA, GPIO_Pin_4)
 #define mpu6500_chip_deselect() GPIO_SetBits(GPIOA, GPIO_Pin_4)
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+#define mpu6500_chip_select() GPIO_ResetBits(GPIOC, GPIO_Pin_2)
+#define mpu6500_chip_deselect() GPIO_SetBits(GPIOC, GPIO_Pin_2)
+#endif
 
 #define MPU6500_SMPLRT_DIV 0x19
 #define MPU6500_CONFIG 0x1A

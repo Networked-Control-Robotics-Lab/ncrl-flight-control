@@ -12,7 +12,7 @@
 #include "sys_param.h"
 #include "common_list.h"
 #include "led.h"
-
+#include "proj_config.h"
 #define IMU_CALIB_SAMPLE_CNT 1000
 
 mpu6500_t mpu6500 = {
@@ -61,6 +61,8 @@ static void mpu6500_reset()
 {
 	mpu6500_write_byte(MPU6500_PWR_MGMT_1, 0x80);
 	blocked_delay_ms(100);
+	mpu6500_write_byte(MPU6500_PWR_MGMT_1, 0x00);
+	blocked_delay_ms(100);
 }
 
 static void mpu6500_bias_calc(int16_t *gyro, int16_t *accel)
@@ -96,8 +98,11 @@ bool mpu6500_calibration_not_finished(void)
 
 void mpu6500_init(void)
 {
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 	while((mpu6500_read_who_am_i() != 0x70));
-
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+	while((mpu6500_read_who_am_i() != 0x68));
+#endif
 	mpu6500_reset();
 
 	switch(mpu6500.accel_fs) {
@@ -169,10 +174,12 @@ void mpu6500_init(void)
 	mpu6500_write_byte(MPU6500_CONFIG, GYRO_DLPF_BANDWIDTH_20Hz);
 	blocked_delay_ms(100);
 
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 	//acceleromter update rate = 1KHz, low pass filter bandwitdh = 20Hz
 	mpu6500_write_byte(MPU6500_ACCEL_CONFIG2, ACCEL_DLPF_BANDWIDTH_20Hz);
 	blocked_delay_ms(100);
 
+#endif
 	//enable data ready interrupt
 	mpu6500_write_byte(MPU6500_INT_ENABLE, 0x01);
 	blocked_delay_ms(100);
@@ -181,7 +188,6 @@ void mpu6500_init(void)
 	lpf_first_order_init(&mpu6500_lpf_gain, 0.001, 25);
 
 	lpf_second_order_init(&mpu6500_lpf2, 1000.0f, 40.0f);
-
 	while(mpu6500.init_finished == false);
 }
 
@@ -242,7 +248,6 @@ void mpu6500_temp_convert_to_scale(int16_t *temp_unscaled, float *temp_scaled)
 void mpu6500_int_handler(void)
 {
 	uint8_t buffer[14];
-
 	/* read sensor datas via spi */
 	mpu6500_chip_select();
 	spi_read_write(SPI1, MPU6500_ACCEL_XOUT_H | 0x80);
