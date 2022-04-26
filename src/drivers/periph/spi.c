@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include "stm32f4xx_conf.h"
+#include "proj_config.h"
 
 SemaphoreHandle_t spi3_tx_semphr;
 SemaphoreHandle_t spi3_rx_semphr;
@@ -8,15 +9,27 @@ uint8_t spi3_tx_buf;
 uint8_t spi3_rx_buf;
 
 /* <spi1>
+ * << in avilon >>
  * usage: mpu6500 (imu)
  * cs: gpio_pin_a_4
+ * sck: gpio_pin_a_5
+ * miso: gpio_pin_a_6
+ * mosi: gpio_pin_a_7
+ * << in pixhawk 2.4.6 >>
+ * usage: mpu6000 (imu)
+ * cs: gpio_pin_c_2
  * sck: gpio_pin_a_5
  * miso: gpio_pin_a_6
  * mosi: gpio_pin_a_7
  */
 void spi1_init(void)
 {
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);	
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6) 
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);	
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);	
+#endif
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
 
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource5, GPIO_AF_SPI1);
@@ -33,10 +46,18 @@ void spi1_init(void)
 	GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 	/* Chip select pin */
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
 	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_4;
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6) 
+	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_2;
+#endif
 	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;
 	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
 	GPIO_Init(GPIOA, &GPIO_InitStruct);
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6) 
+	GPIO_Init(GPIOC, &GPIO_InitStruct);
+#endif
 
 	SPI_InitTypeDef SPI_InitStruct = {
 		.SPI_Direction = SPI_Direction_2Lines_FullDuplex,
