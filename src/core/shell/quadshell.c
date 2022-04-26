@@ -5,6 +5,7 @@
 #include "uart.h"
 #include "quadshell.h"
 #include "delay.h"
+#include "proj_config.h"
 
 void shell_reset_struct(struct shell_struct *shell);
 
