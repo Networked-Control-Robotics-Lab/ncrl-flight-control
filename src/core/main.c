@@ -7,6 +7,11 @@
 #include "ncp5623c.h"
 #include "i2c.h"
 #include "led.h"
+#include "flash.h"
+#include "crc.h"
+#include "spi.h"
+#include "exti.h"
+#include "imu.h"
 #include "string.h"
 #include "stm32f4xx_conf.h"
 #include "uart.h"
@@ -18,7 +23,7 @@
 void init_GPIOE()
 {
 	GPIO_InitTypeDef GPIO_InitStruct = {
-		.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_14,
+		.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_14 |GPIO_Pin_3,
 		.GPIO_Mode = GPIO_Mode_OUT,
 		.GPIO_Speed = GPIO_Speed_50MHz,
 		.GPIO_OType =GPIO_OType_PP,
@@ -30,13 +35,42 @@ void init_GPIOE()
 	GPIO_Init(GPIOE, &GPIO_InitStruct);
 }
 
+void init_GPIOC()
+{
+	GPIO_InitTypeDef GPIO_InitStruct = {
+		.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_13 |GPIO_Pin_15,
+		.GPIO_Mode = GPIO_Mode_OUT,
+		.GPIO_Speed = GPIO_Speed_50MHz,
+		.GPIO_OType =GPIO_OType_PP,
+		.GPIO_PuPd = GPIO_PuPd_DOWN
+	};
+
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+
+	GPIO_Init(GPIOC, &GPIO_InitStruct);
+}
+
+void init_GPIOD()
+{
+	GPIO_InitTypeDef GPIO_InitStruct = {
+		.GPIO_Pin = GPIO_Pin_7,
+		.GPIO_Mode = GPIO_Mode_OUT,
+		.GPIO_Speed = GPIO_Speed_50MHz,
+		.GPIO_OType =GPIO_OType_PP,
+		.GPIO_PuPd = GPIO_PuPd_DOWN
+	};
+
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
+
+	GPIO_Init(GPIOD, &GPIO_InitStruct);
+}
 void task1(void *param)
 {
 	int flag = 0;
-	//char a[20] = "hello\r\n";
+	
+	imu_init();
+	
 	while(1) {
-		//uart2_puts(a,strlen(a));
-		//sprintf(a,"%d:hello\r\n",flag);
 		if (flag == 0) {
 			set_rgb_led_service_motor_lock_flag(true);
 		} else if (flag == 1) {
@@ -55,14 +89,31 @@ int main()
 {
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 
+	/* driver initialization */
+	flash_init();
+	crc_init();
+	/* rgb led */
 	Init_I2C();
+	init_GPIOC();
+	init_GPIOD();
 	init_GPIOE();
+	GPIO_SetBits(GPIOE, GPIO_Pin_3);	//VDD_3V3_SENSORS_EN
+	GPIO_SetBits(GPIOC, GPIO_Pin_2);	//MPU_CS
+	GPIO_SetBits(GPIOC, GPIO_Pin_13);	//GYRO_CS
+	GPIO_SetBits(GPIOC, GPIO_Pin_15);	//ACCEL_MAG_CS
+	GPIO_SetBits(GPIOD, GPIO_Pin_7);	//BARO_CS
+
 	uart2_init(115200);
+	spi1_init();       //imu
+	
 	timer12_init();
 	timer3_init();
+	
+	exti15_init();     //imu ext interrupt
 	enable_rgb_led_service();
 	//sys_timer_blocked_delay_tick_ms(50);
 	blocked_delay_ms(50);
+	
 	xTaskCreate(task1, "task1", 1024, NULL, tskIDLE_PRIORITY + 2, NULL);
 
 
