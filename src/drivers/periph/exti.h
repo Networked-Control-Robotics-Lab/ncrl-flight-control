@@ -3,4 +3,5 @@
 
 void exti10_init(void);
 
+void exti15_init(void);
 #endif
