@@ -112,6 +112,8 @@ int main()
 	exti15_init();     //imu ext interrupt
 	enable_rgb_led_service();
 	//sys_timer_blocked_delay_tick_ms(50);
+	//s.bus
+	uart6_init(100000);	//s.bus
 	blocked_delay_ms(50);
 	
 	xTaskCreate(task1, "task1", 1024, NULL, tskIDLE_PRIORITY + 2, NULL);
