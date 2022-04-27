@@ -234,7 +234,11 @@ void uart4_init(int baudrate)
  * usage: cam
  * tx: gpio_pin_c6 (dma2 channel5 stream6)
  * rx: gpio_pin_c7 (dma2 channel5 stream2)
+ * usage: s.bus
+ * tx: gpio_pin_c6 (dma2 channel5 stream6)
+ * rx: gpio_pin_c7 (dma2 channel5 stream2)
  */
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 void uart6_init(int baudrate)
 {
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
@@ -274,6 +278,46 @@ void uart6_init(int baudrate)
 
 	USART_ITConfig(USART6, USART_IT_RXNE, ENABLE);
 }
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+void uart6_init(int baudrate)
+{
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART6, ENABLE);
+
+	GPIO_PinAFConfig(GPIOC, GPIO_PinSource6, GPIO_AF_USART6);
+	GPIO_PinAFConfig(GPIOC, GPIO_PinSource7, GPIO_AF_USART6);
+
+	GPIO_InitTypeDef GPIO_InitStruct = {
+		.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7,
+		.GPIO_Mode = GPIO_Mode_AF,
+		.GPIO_Speed = GPIO_Speed_50MHz,
+		.GPIO_OType = GPIO_OType_PP,
+		.GPIO_PuPd = GPIO_PuPd_UP
+	};
+	
+	GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+	USART_InitTypeDef USART_InitStruct = {
+		.USART_BaudRate = baudrate,
+		.USART_Mode = USART_Mode_Rx,
+		.USART_WordLength = USART_WordLength_8b,
+		.USART_StopBits = USART_StopBits_2,
+		.USART_Parity = USART_Parity_Even,
+		.USART_HardwareFlowControl = USART_HardwareFlowControl_None
+	};
+	USART_Init(USART6, &USART_InitStruct);
+	USART_Cmd(USART6, ENABLE);
+
+	NVIC_InitTypeDef NVIC_InitStruct = {
+		.NVIC_IRQChannel = USART6_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = SBUS_ISR_PRIORITY,
+		.NVIC_IRQChannelSubPriority = 0,
+		.NVIC_IRQChannelCmd = ENABLE
+	};
+	NVIC_Init(&NVIC_InitStruct);
+	USART_ITConfig(USART6, USART_IT_RXNE, ENABLE);
+}
+#endif
 
 /*
  * <uart7>
@@ -651,7 +695,11 @@ void USART6_IRQHandler(void)
 	if(USART_GetITStatus(USART6, USART_IT_RXNE) == SET) {
 		c = USART_ReceiveData(USART6);
 		USART6->SR;
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 		vins_mono_isr_handler(c);
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+		sbus_rc_isr_handler(c);
+#endif
 	}
 }
 

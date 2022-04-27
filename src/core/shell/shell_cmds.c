@@ -17,7 +17,7 @@
 #include "compass.h"
 #include "waypoint_following.h"
 #include "takeoff_landing.h"
-
+#include "proj_config.h"
 static bool parse_float_from_str(char *str, float *value)
 {
 	char *end_ptr = NULL;
@@ -427,7 +427,12 @@ void shell_cmd_radio(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int pa
 	shell_puts("press [q] to stop.\n\r");
 	char c = '\0';
 	while(1) {
+
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 		if(uart1_getc(&c, 0) == true) {
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+		if(uart2_getc(&c, 0) == true) {
+#endif
 			if(c == 'q') break;
 		}
 		debug_print_rc_info();
@@ -439,7 +444,11 @@ void shell_cmd_radio_raw(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], in
 	shell_puts("press [q] to stop.\n\r");
 	char c = '\0';
 	while(1) {
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 		if(uart1_getc(&c, 0) == true) {
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+		if(uart2_getc(&c, 0) == true) {
+#endif
 			if(c == 'q') break;
 		}
 		debug_print_rc_val();
@@ -456,7 +465,11 @@ void shell_cmd_accel(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int pa
 	shell_puts("press [q] to stop.\n\r");
 	char c = '\0';
 	while(1) {
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 		if(uart1_getc(&c, 0) == true) {
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+		if(uart2_getc(&c, 0) == true) {
+#endif
 			if(c == 'q') break;
 		}
 		debug_print_mpu6500_unscaled_lpf_accel();
@@ -641,7 +654,11 @@ void shell_cmd_compass(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int 
 
 	shell_puts("press [q] to stop.\n\r");
 	while(1) {
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 		if(uart1_getc(&c, 0) == true) {
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+		if(uart2_getc(&c, 0) == true) {
+#endif
 			if(c == 'q') break;
 		}
 

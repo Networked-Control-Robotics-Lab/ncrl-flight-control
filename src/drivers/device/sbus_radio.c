@@ -7,7 +7,7 @@
 #include "uart.h"
 #include "sbus_radio.h"
 #include "sys_time.h"
-
+#include "proj_config.h"
 void parse_sbus(uint8_t *raw_buff, uint16_t *rc_val);
 
 sbus_t sbus;
@@ -131,11 +131,19 @@ void debug_print_raw_sbus(void)
 	for(i = 0; i < 25; i++) {
 		char s[10] = {0};
 		sprintf(s, "%d,", sbus.buf[i]);
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 		uart1_puts(s, strlen(s));
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+		uart2_puts(s, strlen(s));
+#endif
 	}
 
 	char *s = "\n\r";
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 	uart1_puts(s, strlen(s));
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+	uart2_puts(s, strlen(s));
+#endif
 }
 
 void sbus_get_unscaled(uint16_t *rc_val)
@@ -167,7 +175,11 @@ void debug_print_rc_val(void)
 	char s[100] = {0};
 	sprintf(s, "ch1:%d, ch2:%d ch3:%d, ch4:%d, ch5:%d, ch6:%d, ch7:%d\n\r",
 	        sbus.rc_val[0], sbus.rc_val[1], sbus.rc_val[2], sbus.rc_val[3], sbus.rc_val[4], sbus.rc_val[5], sbus.rc_val[6]);
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 	uart1_puts(s, strlen(s));
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+	uart2_puts(s, strlen(s));
+#endif
 	blocked_delay_ms(100);
 }
 
@@ -212,6 +224,10 @@ void debug_print_rc_info(void)
 	sprintf(s, "%s%s%s roll:%lf,pitch:%lf,yaw:%lf,throttle:%lf\n\r",
 	        safety_s, auto_flight_s, aux1_mode_s, rc.roll, rc.pitch, rc.yaw, rc.throttle);
 
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 	uart1_puts(s, strlen(s));
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+	uart2_puts(s, strlen(s));
+#endif
 	blocked_delay_ms(100);
 }
