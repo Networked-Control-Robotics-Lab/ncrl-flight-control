@@ -17,9 +17,12 @@
 #include "uart.h"
 #include <stdio.h>
 #include "debug_link.h"
-#include "debug_link_task.h"
+
 #include "shell_task.h"
 #include "led_task.h"
+#include "mavlink_task.h"
+#include "flight_ctrl_task.h"
+#include "debug_link_task.h"
 
 void init_GPIOE()
 {
@@ -109,6 +112,8 @@ int main()
 	uart2_init(115200);//telem
 	spi1_init();       //imu
 	
+	uart3_init(115200); //mavlink
+	
 	timer12_init();
 	timer3_init();
 	
@@ -119,9 +124,19 @@ int main()
 	uart6_init(100000);	//s.bus
 	blocked_delay_ms(50);
 	
-	xTaskCreate(task1, "task1", 1024, NULL, tskIDLE_PRIORITY + 2, NULL);
+	//xTaskCreate(task1, "task1", 1024, NULL, tskIDLE_PRIORITY + 2, NULL);
 
+	/* led task */
 	rgb_led_register_task( "rgb_led_task", 512, tskIDLE_PRIORITY + 2);
+	
+	/* flight controller task (highest priority) */
+	flight_controller_register_task("flight controller", 4096, tskIDLE_PRIORITY + 6);
+	
+	/* main telemetry tasks */
+#if (SELECT_TELEM == TELEM_MAVLINK)
+	mavlink_tx_register_task("mavlink publisher", 1024, tskIDLE_PRIORITY + 3);
+	mavlink_rx_register_task("mavlink receiver", 2048, tskIDLE_PRIORITY + 3);
+#endif
 	/* debug telemetry tasks */
 #if (SELECT_DEBUG_TELEM == TELEM_DEBUG_LINK)
 	debug_link_register_task("debug_link", 512, tskIDLE_PRIORITY + 3);
