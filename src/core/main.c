@@ -85,6 +85,7 @@ void task1(void *param)
 		freertos_task_delay(500); //XXX: 20Hz
 	}
 }
+
 int main()
 {
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
@@ -94,6 +95,7 @@ int main()
 	crc_init();
 	/* rgb led */
 	Init_I2C();
+	
 	init_GPIOC();
 	init_GPIOD();
 	init_GPIOE();
@@ -103,7 +105,7 @@ int main()
 	GPIO_SetBits(GPIOC, GPIO_Pin_15);	//ACCEL_MAG_CS
 	GPIO_SetBits(GPIOD, GPIO_Pin_7);	//BARO_CS
 
-	uart2_init(115200);
+	uart2_init(115200);//telem
 	spi1_init();       //imu
 	
 	timer12_init();
@@ -118,7 +120,7 @@ int main()
 	
 	xTaskCreate(task1, "task1", 1024, NULL, tskIDLE_PRIORITY + 2, NULL);
 
-
+	rgb_led_register_task( "rgb_led_task", 512, tskIDLE_PRIORITY + 2);
 	/* debug telemetry tasks */
 #if (SELECT_DEBUG_TELEM == TELEM_DEBUG_LINK)
 	debug_link_register_task("debug_link", 512, tskIDLE_PRIORITY + 3);

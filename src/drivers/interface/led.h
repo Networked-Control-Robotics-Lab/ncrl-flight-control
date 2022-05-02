@@ -5,6 +5,7 @@
 #include "stm32f4xx.h"
 #include "gpio.h"
 
+SemaphoreHandle_t rgb_led_semphr;
 enum {
 	LED_OFF = 0,
 	LED_ON =  1
@@ -33,6 +34,11 @@ void rgb_led_init(void);
 void rgb_led_handler(void);
 
 void enable_rgb_led_service(void);
+
+void rgb_led_semaphore_handler(void);
+void task_rgb_led(void *param);
+void rgb_led_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,UBaseType_t priority);
+
 void set_rgb_led_service_motor_lock_flag(bool new_state);
 void set_rgb_led_service_sensor_error_flag(bool new_state);
 void set_rgb_led_service_navigation_on_flag(bool new_state);

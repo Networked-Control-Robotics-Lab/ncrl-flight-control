@@ -87,7 +87,8 @@ void TIM8_BRK_TIM12_IRQHandler(void)
 		led_ctrl_cnt--;
 		if(led_ctrl_cnt == 0) {
 			led_ctrl_cnt = LED_CTRL_PRESCALER_RELOAD;
-			rgb_led_handler();
+			rgb_led_semaphore_handler();
+			//rgb_led_handler();
 		}
 #endif
 	}
