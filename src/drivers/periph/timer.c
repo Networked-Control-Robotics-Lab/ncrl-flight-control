@@ -12,6 +12,7 @@
 #include "proj_config.h"
 #include "debug_link_task.h"
 #include "dummy_sensors.h"
+#include "led_task.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD      1000  //400Hz
 #define LED_CTRL_PRESCALER_RELOAD        16000 //25Hz

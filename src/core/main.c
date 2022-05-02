@@ -19,6 +19,7 @@
 #include "debug_link.h"
 #include "debug_link_task.h"
 #include "shell_task.h"
+#include "led_task.h"
 
 void init_GPIOE()
 {
