@@ -1,5 +1,8 @@
+#include <stdio.h>
+#include "string.h"
 #include <stm32f4xx.h>
 #include <stm32f4xx_gpio.h>
+#include "stm32f4xx_conf.h"
 #include <proj_config.h>
 #include <timer.h>
 #include <sys_time.h>
@@ -11,11 +14,9 @@
 #include "crc.h"
 #include "spi.h"
 #include "exti.h"
+#include "optitrack.h"
 #include "imu.h"
-#include "string.h"
-#include "stm32f4xx_conf.h"
 #include "uart.h"
-#include <stdio.h>
 #include "debug_link.h"
 
 #include "shell_task.h"
@@ -23,6 +24,18 @@
 #include "mavlink_task.h"
 #include "flight_ctrl_task.h"
 #include "debug_link_task.h"
+#include "calibration_task.h"
+
+#include "perf.h"
+#include "perf_list.h"
+#include "ins_sensor_sync.h"
+
+perf_t perf_list[] = {
+	DEF_PERF(PERF_AHRS_INS, "ahrs and ins")
+	DEF_PERF(PERF_CONTROLLER, "controller")
+	DEF_PERF(PERF_FLIGHT_CONTROL_LOOP, "flight control loop")
+	DEF_PERF(PERF_FLIGHT_CONTROL_TRIGGER_TIME, "flight control trigger time")
+};
 
 void init_GPIOE()
 {
@@ -92,14 +105,24 @@ void task1(void *param)
 
 int main()
 {
+	perf_init(perf_list, SIZE_OF_PERF_LIST(perf_list));
+	
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 
+	/* initialize sensor synchronization buffer */
+	ins_sync_buffer_init();
+	
 	/* driver initialization */
 	flash_init();
 	crc_init();
-	/* rgb led */
+	/* rgb led */	
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
+	led_init();
+	ext_switch_init();
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6) 
 	Init_I2C();
-	
+#endif
+
 	init_GPIOC();
 	init_GPIOD();
 	init_GPIOE();
@@ -109,19 +132,28 @@ int main()
 	GPIO_SetBits(GPIOC, GPIO_Pin_15);	//ACCEL_MAG_CS
 	GPIO_SetBits(GPIOD, GPIO_Pin_7);	//BARO_CS
 
-	uart2_init(115200);//telem
-	spi1_init();       //imu
-	
 	uart3_init(115200); //mavlink
+	uart2_init(115200);	//telem	
+	uart6_init(100000);	//s.bus
 	
+#if (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_GPS)
+	uart7_init(38400); //gps
+	ublox_m8n_init();
+#elif (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_OPTITRACK)
+//	uart7_init(115200);
+	optitrack_init(UAV_DEFAULT_ID); //setup tracker id for this MAV
+#endif
+
 	timer12_init();
 	timer3_init();
 	
 	exti15_init();     //imu ext interrupt
+	spi1_init();       //imu
+
 	enable_rgb_led_service();
+
 	//sys_timer_blocked_delay_tick_ms(50);
 	//s.bus
-	uart6_init(100000);	//s.bus
 	blocked_delay_ms(50);
 	
 	//xTaskCreate(task1, "task1", 1024, NULL, tskIDLE_PRIORITY + 2, NULL);
@@ -144,6 +176,11 @@ int main()
 	shell_register_task("shell", 1024, tskIDLE_PRIORITY + 3);
 #endif
 
+	/* sensor calibration task
+	 * inactivated by default, awakened by shell or ground station */
+	calibration_register_task("calibration", 1024, tskIDLE_PRIORITY + 2);
+
+	/* start freertos scheduler */
 	vTaskStartScheduler();
 
 	while(1) {
