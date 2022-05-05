@@ -7,6 +7,8 @@
 #include "sys_time.h"
 #include "proj_config.h"
 
+#define BLINK_SPEED 2
+
 led_t led_r;
 led_t led_g;
 led_t led_b;
@@ -15,6 +17,8 @@ rgb_led_service_t rgb_led_service;
 
 void rgb_led_init(void)
 {
+	rgb_led_service.blink_cnt = 0;
+	rgb_led_service.blink_enabled = false;
 #if (RGB_USE == RGB_USE_GPIO)
 	led_r.gpio_group = GPIOA;
 	led_r.pin_num = GPIO_Pin_2;
@@ -53,6 +57,21 @@ void enable_rgb_led_service(void)
 
 void config_rgb_mode(void)
 {
+	if(rgb_led_service.flags.imu_calibration_finished == false){
+		led_r.state = LED_ON;
+		led_b.state = LED_ON;
+		led_g.state = LED_OFF;
+		rgb_led_service.blink_enabled = true;
+		return;	
+	}
+	else if(rgb_led_service.flags.rc_protection == true){
+		led_r.state = LED_ON;
+		led_b.state = LED_OFF;
+		led_g.state = LED_OFF;
+		rgb_led_service.blink_enabled = true;
+		return;	
+	}
+	rgb_led_service.blink_enabled = false;
 	if(rgb_led_service.flags.navigation_on == true) {
 		/* green on */
 		led_g.state = LED_ON;
@@ -97,6 +116,18 @@ void set_rgb_led_service_navigation_on_flag(bool new_state)
 	config_rgb_mode();
 }
 
+void set_rgb_led_service_rc_protection_flag(bool new_state)
+{
+	rgb_led_service.flags.rc_protection = new_state;
+	config_rgb_mode();
+}
+
+void set_rgb_led_service_imu_calibration_finished_flag(bool new_state)
+{
+	rgb_led_service.flags.imu_calibration_finished = new_state;
+	config_rgb_mode();
+}
+
 #if (RGB_USE == RGB_USE_GPIO)
 void led_control(led_t *led)
 {
@@ -125,17 +156,45 @@ void led_control(led_t *led_r,led_t *led_g,led_t *led_b)
 	rgb_light(r,g,b);
 }
 #endif
+
 void rgb_led_handler(void)
 {
 	if(rgb_led_service.service_enabled == false) {
 		return;
 	}
+	static bool toggle = true;
 
+	if(rgb_led_service.blink_enabled == false) {
 #if (RGB_USE == RGB_USE_GPIO)
-	led_control(&led_r);
-	led_control(&led_g);
-	led_control(&led_b);
+		led_control(&led_r);
+		led_control(&led_g);
+		led_control(&led_b);
 #elif (RGB_USE == RGB_USE_NCP5623C)
-	led_control(&led_r,&led_g,&led_b);
+		led_control(&led_r,&led_g,&led_b);
 #endif
+	}
+	else {
+		if(toggle == true){
+#if (RGB_USE == RGB_USE_GPIO)
+			led_control(&led_r);
+			led_control(&led_g);
+			led_control(&led_b);
+#elif (RGB_USE == RGB_USE_NCP5623C)
+			led_control(&led_r,&led_g,&led_b);
+#endif
+		}
+		else{
+#if (RGB_USE == RGB_USE_GPIO)
+			led_off(LED_R);
+			led_off(LED_G);
+			led_off(LED_B);
+#elif (RGB_USE == RGB_USE_NCP5623C)
+			rgb_light(0,0,0);
+#endif
+		}
+		rgb_led_service.blink_cnt++;
+		rgb_led_service.blink_cnt %= BLINK_SPEED;
+		if(rgb_led_service.blink_cnt==0)toggle = (!toggle);
+	}
+
 }

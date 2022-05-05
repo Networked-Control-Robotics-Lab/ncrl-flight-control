@@ -21,7 +21,11 @@ typedef struct {
 typedef struct {
 	bool service_enabled;
 
+	int blink_cnt;
+	bool blink_enabled;
+
 	struct {
+		bool imu_calibration_finished;
 		bool rc_protection;
 		bool motor_lock;
 		bool sensor_error;
@@ -37,5 +41,7 @@ void enable_rgb_led_service(void);
 void set_rgb_led_service_motor_lock_flag(bool new_state);
 void set_rgb_led_service_sensor_error_flag(bool new_state);
 void set_rgb_led_service_navigation_on_flag(bool new_state);
+void set_rgb_led_service_rc_protection_flag(bool new_state);
+void set_rgb_led_service_imu_calibration_finished_flag(bool new_state);
 
 #endif
