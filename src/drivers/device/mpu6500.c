@@ -267,6 +267,8 @@ void mpu6500_int_handler(void)
 	buffer[13] = spi_read_write(SPI1, 0xff);
 
 	/* composite sensor data */
+
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
 	mpu6500.accel_unscaled[0] = -(((int16_t)buffer[0] << 8) | (int16_t)buffer[1]);
 	mpu6500.accel_unscaled[1] = -(((int16_t)buffer[2] << 8) | (int16_t)buffer[3]);
 	mpu6500.accel_unscaled[2] = +((int16_t)buffer[4] << 8) | (int16_t)buffer[5];
@@ -274,6 +276,15 @@ void mpu6500_int_handler(void)
 	mpu6500.gyro_unscaled[0] = -(((int16_t)buffer[8] << 8) | (int16_t)buffer[9]);
 	mpu6500.gyro_unscaled[1] = -(((int16_t)buffer[10] << 8) | (int16_t)buffer[11]);
 	mpu6500.gyro_unscaled[2] = +((int16_t)buffer[12] << 8) | (int16_t)buffer[13];
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6) 
+	mpu6500.accel_unscaled[1] = -(((int16_t)buffer[0] << 8) | (int16_t)buffer[1]);
+	mpu6500.accel_unscaled[0] = +(((int16_t)buffer[2] << 8) | (int16_t)buffer[3]);
+	mpu6500.accel_unscaled[2] = +((int16_t)buffer[4] << 8) | (int16_t)buffer[5];
+	mpu6500.temp_unscaled = ((int16_t)buffer[6] << 8) | (int16_t)buffer[7];
+	mpu6500.gyro_unscaled[1] = -(((int16_t)buffer[8] << 8) | (int16_t)buffer[9]);
+	mpu6500.gyro_unscaled[0] = +(((int16_t)buffer[10] << 8) | (int16_t)buffer[11]);
+	mpu6500.gyro_unscaled[2] = +((int16_t)buffer[12] << 8) | (int16_t)buffer[13];
+#endif
 	mpu6500_chip_deselect();
 
 	if(mpu6500.init_finished == false) {
