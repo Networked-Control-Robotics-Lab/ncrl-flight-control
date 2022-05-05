@@ -59,10 +59,12 @@ void rc_safety_protection(void)
 	float time_last = 0.0f;
 	float time_current = 0.0f;
 
+	set_rgb_led_service_rc_protection_flag(true);
+	/*
 	led_off(LED_R);
 	led_off(LED_G);
 	led_off(LED_B);
-
+	*/
 	do {
 		time_current = get_sys_time_ms();
 		if(time_current - time_last > 100.0f) {
@@ -78,6 +80,7 @@ void rc_safety_protection(void)
 		//force to leave the loop if user triggered the motor thrust testing
 		if(is_motor_force_testing_triggered() == true) return;
 	} while(rc_safety_check(&rc) == 1);
+	set_rgb_led_service_rc_protection_flag(false);
 }
 
 void rc_yaw_setpoint_handler(float *desired_yaw, float rc_yaw_cmd, float dt)
@@ -108,11 +111,15 @@ void task_flight_ctrl(void *param)
 	/* imu calibration (triggered by qgroundcontrol) */
 	while(imu_calibration_not_finished() == true) {
 		/* led: purple */
+		/*
 		led_on(LED_R);
 		led_off(LED_G);
 		led_on(LED_B);
+		*/
+		set_rgb_led_service_imu_calibration_finished_flag(false);
 		freertos_task_delay(2.5);
 	}
+	set_rgb_led_service_imu_calibration_finished_flag(true);
 
 	/* blocked until user reset remote controller to safe position */
 	rc_safety_protection();
@@ -147,10 +154,9 @@ void task_flight_ctrl(void *param)
 	ins_init();
 
 	/* from now on, led control task will be taken by rgb_led_service driver */
-	enable_rgb_led_service();
+	//enable_rgb_led_service();
 
 	float desired_yaw = 0.0f;
-
 	/* flight control loop */
 	while(1) {
 		perf_start(PERF_FLIGHT_CONTROL_TRIGGER_TIME);

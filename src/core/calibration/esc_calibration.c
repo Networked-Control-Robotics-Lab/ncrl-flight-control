@@ -29,10 +29,12 @@ void esc_range_calibration(void)
 	 * 2.after the calibration you should shut down the power and reset
 	 * the system before flying. */
 
+	set_rgb_led_service_imu_calibration_finished_flag(false);
+	/*
 	led_on(LED_R);
 	led_off(LED_G);
 	led_on(LED_B);
-
+	*/
 	radio_t rc;
 	float calib_signal = 0.0f;
 
