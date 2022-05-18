@@ -16,6 +16,7 @@
 #include "exti.h"
 #include "optitrack.h"
 #include "imu.h"
+#include "pwm.h"
 #include "uart.h"
 #include "debug_link.h"
 
@@ -81,27 +82,6 @@ void init_GPIOD()
 
 	GPIO_Init(GPIOD, &GPIO_InitStruct);
 }
-void task1(void *param)
-{
-	int flag = 0;
-	
-	imu_init();
-	
-	while(1) {
-		if (flag == 0) {
-			set_rgb_led_service_motor_lock_flag(true);
-		} else if (flag == 1) {
-			set_rgb_led_service_navigation_on_flag(true);
-		} else if (flag == 2) {
-			set_rgb_led_service_motor_lock_flag(false);
-		} else if (flag == 3) {
-			set_rgb_led_service_navigation_on_flag(false);
-		}
-		flag ++;
-		flag %= 4;
-		freertos_task_delay(500); //XXX: 20Hz
-	}
-}
 
 int main()
 {
@@ -136,11 +116,14 @@ int main()
 	uart2_init(115200);	//telem	
 	uart6_init(100000);	//s.bus
 	
+	pwm_timer1_init(); //motor
+	pwm_timer4_init(); //motor
+
 #if (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_GPS)
 	uart7_init(38400); //gps
 	ublox_m8n_init();
 #elif (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_OPTITRACK)
-//	uart7_init(115200);
+	uart4_init(115200);
 	optitrack_init(UAV_DEFAULT_ID); //setup tracker id for this MAV
 #endif
 
@@ -156,8 +139,6 @@ int main()
 	//s.bus
 	blocked_delay_ms(50);
 	
-	//xTaskCreate(task1, "task1", 1024, NULL, tskIDLE_PRIORITY + 2, NULL);
-
 	/* led task */
 	rgb_led_register_task( "rgb_led_task", 512, tskIDLE_PRIORITY + 2);
 	
