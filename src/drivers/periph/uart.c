@@ -22,6 +22,7 @@
 SemaphoreHandle_t uart1_tx_semphr;
 SemaphoreHandle_t uart2_tx_semphr;
 SemaphoreHandle_t uart3_tx_semphr;
+SemaphoreHandle_t uart4_tx_semphr;
 SemaphoreHandle_t uart7_tx_semphr;
 
 QueueHandle_t uart1_rx_queue;
@@ -189,9 +190,17 @@ void uart3_init(int baudrate)
 
 /*
  * <uart4>
+
+ * <avilon>
  * usage: s-bus
  * rx: gpio_pin_c11
+
+ * <pixhawk 2.4.6>
+ * usage: optitrak/gps
+ * tx: gpio_pin_a0
+ * rx: gpio_pin_a1
  */
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
 void uart4_init(int baudrate)
 {
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
@@ -228,6 +237,55 @@ void uart4_init(int baudrate)
 	NVIC_Init(&NVIC_InitStruct);
 	USART_ITConfig(UART4, USART_IT_RXNE, ENABLE);
 }
+
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6) 
+void uart4_init(int baudrate)
+{
+	uart4_tx_semphr = xSemaphoreCreateBinary();
+
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART4, ENABLE);
+
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource0, GPIO_AF_UART4);
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource1, GPIO_AF_UART4);
+
+	GPIO_InitTypeDef GPIO_InitStruct = {
+		.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1,
+		.GPIO_Mode = GPIO_Mode_AF,
+		.GPIO_Speed = GPIO_Speed_50MHz,
+		.GPIO_OType = GPIO_OType_PP,
+		.GPIO_PuPd = GPIO_PuPd_UP
+	};
+	GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+	USART_InitTypeDef USART_InitStruct = {
+		.USART_BaudRate = baudrate,
+		.USART_Mode = USART_Mode_Rx | USART_Mode_Tx,
+		.USART_WordLength = USART_WordLength_8b,
+		.USART_StopBits = USART_StopBits_1,
+		.USART_Parity = USART_Parity_No
+	};
+	USART_Init(UART4, &USART_InitStruct);
+	USART_Cmd(UART4, ENABLE);
+	USART_ClearFlag(UART4, USART_FLAG_TC);
+
+	NVIC_InitTypeDef NVIC_InitStruct = {
+		.NVIC_IRQChannel = DMA1_Stream4_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = GPS_UART_TX_ISR,
+		.NVIC_IRQChannelSubPriority = 0,
+		.NVIC_IRQChannelCmd = ENABLE
+	};
+	NVIC_Init(&NVIC_InitStruct);
+	DMA_ITConfig(DMA1_Stream4, DMA_IT_TC, ENABLE);
+
+	NVIC_InitStruct.NVIC_IRQChannel = UART4_IRQn;
+	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = GPS_OPTITRACK_UART_ISR;
+	NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStruct);
+	USART_ITConfig(UART4, USART_IT_RXNE, ENABLE);
+}
+#endif
 
 /*
  * <uart6>
@@ -685,7 +743,13 @@ void UART4_IRQHandler(void)
 		c = USART_ReceiveData(UART4);
 		UART4->SR;
 
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 		sbus_rc_isr_handler(c);
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6) && (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_GPS)
+		ublox_m8n_isr_handler(c);
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6) && (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_OPTITRACK)
+		optitrack_isr_handler(c);
+#endif
 	}
 }
 
