@@ -24,6 +24,9 @@
 #define LED_G GPIOA, GPIO_Pin_0
 #define LED_B GPIOA, GPIO_Pin_3
 
+void init_GPIOC();
+void init_GPIOD();
+void init_GPIOE();
 void led_init();
 void ext_switch_init(void);
 
