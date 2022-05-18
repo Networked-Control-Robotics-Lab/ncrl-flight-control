@@ -24,11 +24,11 @@ uint8_t spi3_rx_buf;
  */
 void spi1_init(void)
 {
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);	
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6) 
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);	
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);	
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
 #endif
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
 
@@ -46,16 +46,16 @@ void spi1_init(void)
 	GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 	/* Chip select pin */
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_4;
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6) 
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
 	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_2;
 #endif
 	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;
 	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 	GPIO_Init(GPIOA, &GPIO_InitStruct);
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6) 
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
 	GPIO_Init(GPIOC, &GPIO_InitStruct);
 #endif
 

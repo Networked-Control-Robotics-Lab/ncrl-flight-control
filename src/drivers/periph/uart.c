@@ -200,7 +200,7 @@ void uart3_init(int baudrate)
  * tx: gpio_pin_a0
  * rx: gpio_pin_a1
  */
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 void uart4_init(int baudrate)
 {
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
@@ -238,7 +238,7 @@ void uart4_init(int baudrate)
 	USART_ITConfig(UART4, USART_IT_RXNE, ENABLE);
 }
 
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6) 
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
 void uart4_init(int baudrate)
 {
 	uart4_tx_semphr = xSemaphoreCreateBinary();
@@ -352,7 +352,7 @@ void uart6_init(int baudrate)
 		.GPIO_OType = GPIO_OType_PP,
 		.GPIO_PuPd = GPIO_PuPd_UP
 	};
-	
+
 	GPIO_Init(GPIOC, &GPIO_InitStruct);
 
 	USART_InitTypeDef USART_InitStruct = {

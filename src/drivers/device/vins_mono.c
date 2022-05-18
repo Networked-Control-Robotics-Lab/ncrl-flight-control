@@ -245,15 +245,15 @@ void vins_mono_camera_trigger_20hz(void)
 	static int counter = 0;
 
 	if(counter < 2) {
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 		gpio_on(MOTOR8);
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6) 
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
 		gpio_on(MOTOR6);
 #endif
 	} else {
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 		gpio_off(MOTOR8);
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6) 
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
 		gpio_off(MOTOR6);
 #endif
 	}

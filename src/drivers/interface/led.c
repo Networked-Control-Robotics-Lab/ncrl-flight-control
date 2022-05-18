@@ -57,19 +57,18 @@ void enable_rgb_led_service(void)
 
 void config_rgb_mode(void)
 {
-	if(rgb_led_service.flags.imu_calibration_finished == false){
+	if(rgb_led_service.flags.imu_calibration_finished == false) {
 		led_r.state = LED_ON;
 		led_b.state = LED_ON;
 		led_g.state = LED_OFF;
 		rgb_led_service.blink_enabled = true;
-		return;	
-	}
-	else if(rgb_led_service.flags.rc_protection == true){
+		return;
+	} else if(rgb_led_service.flags.rc_protection == true) {
 		led_r.state = LED_ON;
 		led_b.state = LED_OFF;
 		led_g.state = LED_OFF;
 		rgb_led_service.blink_enabled = true;
-		return;	
+		return;
 	}
 	rgb_led_service.blink_enabled = false;
 	if(rgb_led_service.flags.navigation_on == true) {
@@ -172,9 +171,8 @@ void rgb_led_handler(void)
 #elif (RGB_USE == RGB_USE_NCP5623C)
 		led_control(&led_r,&led_g,&led_b);
 #endif
-	}
-	else {
-		if(toggle == true){
+	} else {
+		if(toggle == true) {
 #if (RGB_USE == RGB_USE_GPIO)
 			led_control(&led_r);
 			led_control(&led_g);
@@ -182,8 +180,7 @@ void rgb_led_handler(void)
 #elif (RGB_USE == RGB_USE_NCP5623C)
 			led_control(&led_r,&led_g,&led_b);
 #endif
-		}
-		else{
+		} else {
 #if (RGB_USE == RGB_USE_GPIO)
 			led_off(LED_R);
 			led_off(LED_G);

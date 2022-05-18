@@ -86,20 +86,20 @@ void init_GPIOD()
 int main()
 {
 	perf_init(perf_list, SIZE_OF_PERF_LIST(perf_list));
-	
+
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 
 	/* initialize sensor synchronization buffer */
 	ins_sync_buffer_init();
-	
+
 	/* driver initialization */
 	flash_init();
 	crc_init();
-	/* rgb led */	
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
+	/* rgb led */
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 	led_init();
 	ext_switch_init();
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6) 
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
 	Init_I2C();
 #endif
 
@@ -113,9 +113,9 @@ int main()
 	GPIO_SetBits(GPIOD, GPIO_Pin_7);	//BARO_CS
 
 	uart3_init(115200); //mavlink
-	uart2_init(115200);	//telem	
+	uart2_init(115200);	//telem
 	uart6_init(100000);	//s.bus
-	
+
 	pwm_timer1_init(); //motor
 	pwm_timer4_init(); //motor
 
@@ -129,7 +129,7 @@ int main()
 
 	timer12_init();
 	timer3_init();
-	
+
 	exti15_init();     //imu ext interrupt
 	spi1_init();       //imu
 
@@ -138,13 +138,13 @@ int main()
 	//sys_timer_blocked_delay_tick_ms(50);
 	//s.bus
 	blocked_delay_ms(50);
-	
+
 	/* led task */
 	rgb_led_register_task( "rgb_led_task", 512, tskIDLE_PRIORITY + 2);
-	
+
 	/* flight controller task (highest priority) */
 	flight_controller_register_task("flight controller", 4096, tskIDLE_PRIORITY + 6);
-	
+
 	/* main telemetry tasks */
 #if (SELECT_TELEM == TELEM_MAVLINK)
 	mavlink_tx_register_task("mavlink publisher", 1024, tskIDLE_PRIORITY + 3);

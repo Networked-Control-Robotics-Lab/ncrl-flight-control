@@ -48,7 +48,7 @@ void esc_range_calibration(void)
 		set_motor_value(MOTOR3, calib_signal);
 		set_motor_value(MOTOR4, calib_signal);
 		set_motor_value(MOTOR5, calib_signal);
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 		set_motor_value(MOTOR6, calib_signal);
 #endif
 		freertos_task_delay(1);

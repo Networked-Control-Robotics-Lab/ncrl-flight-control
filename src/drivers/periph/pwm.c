@@ -1,7 +1,7 @@
 #include "stm32f4xx.h"
 #include "proj_config.h"
 
-/* 
+/*
  * << avilon >>
  * m1: pd12 (timer4 channel1)
  * m2: pd13 (timer4 channel2)
@@ -26,7 +26,7 @@ void pwm_timer1_init(void)
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
 
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 	GPIO_PinAFConfig(GPIOE, GPIO_PinSource13, GPIO_AF_TIM1);
 	GPIO_PinAFConfig(GPIOE, GPIO_PinSource14, GPIO_AF_TIM1);
 #elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
@@ -36,7 +36,7 @@ void pwm_timer1_init(void)
 	GPIO_PinAFConfig(GPIOE, GPIO_PinSource14, GPIO_AF_TIM1);
 #endif
 	GPIO_InitTypeDef GPIO_InitStruct = {
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 		.GPIO_Pin =  GPIO_Pin_11 | GPIO_Pin_13 | GPIO_Pin_14,
 #elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
 		.GPIO_Pin =  GPIO_Pin_9 | GPIO_Pin_11 | GPIO_Pin_13 | GPIO_Pin_14,
@@ -49,7 +49,7 @@ void pwm_timer1_init(void)
 
 	GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 	/* motor8: vins mono camera triggering (gpio mode) */
 	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_9;
 	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;
@@ -72,7 +72,7 @@ void pwm_timer1_init(void)
 		.TIM_Pulse = 0,
 	};
 
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 	//TIM_OC1Init(TIM1, &TIM_OCInitStruct); //motor8: vins mono camera triggering
 	//TIM_OC2Init(TIM1, &TIM_OCInitStruct);
 	TIM_OC3Init(TIM1, &TIM_OCInitStruct);
@@ -94,7 +94,7 @@ void pwm_timer4_init(void)
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
 
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 	GPIO_PinAFConfig(GPIOD, GPIO_PinSource12, GPIO_AF_TIM4);
 	GPIO_PinAFConfig(GPIOD, GPIO_PinSource13, GPIO_AF_TIM4);
 	GPIO_PinAFConfig(GPIOD, GPIO_PinSource14, GPIO_AF_TIM4);
@@ -105,7 +105,7 @@ void pwm_timer4_init(void)
 #endif
 
 	GPIO_InitTypeDef GPIO_InitStruct = {
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 		.GPIO_Pin =  GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15,
 #elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
 		.GPIO_Pin =  GPIO_Pin_13,
@@ -118,7 +118,7 @@ void pwm_timer4_init(void)
 
 	GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-#if (UAV_HARDWARE ==  UAV_HARDWARE_PIXHAWK2_4_6) 
+#if (UAV_HARDWARE ==  UAV_HARDWARE_PIXHAWK2_4_6)
 	/* motor6: vins mono camera triggering (gpio mode) */
 	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_14;
 	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;
@@ -141,7 +141,7 @@ void pwm_timer4_init(void)
 		.TIM_Pulse = 0,
 	};
 
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 	TIM_OC1Init(TIM4, &TIM_OCInitStruct);
 	TIM_OC2Init(TIM4, &TIM_OCInitStruct);
 	TIM_OC3Init(TIM4, &TIM_OCInitStruct);
