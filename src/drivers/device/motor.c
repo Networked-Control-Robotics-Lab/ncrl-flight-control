@@ -54,7 +54,9 @@ void motor_init(void)
 	set_motor_pwm_pulse(MOTOR3, MOTOR_PULSE_MIN);
 	set_motor_pwm_pulse(MOTOR4, MOTOR_PULSE_MIN);
 	set_motor_pwm_pulse(MOTOR5, MOTOR_PULSE_MIN);
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
 	set_motor_pwm_pulse(MOTOR6, MOTOR_PULSE_MIN);
+#endif
 	blocked_delay_ms(100);
 }
 
@@ -65,7 +67,9 @@ void motor_halt(void)
 	set_motor_pwm_pulse(MOTOR3, MOTOR_PULSE_MIN);
 	set_motor_pwm_pulse(MOTOR4, MOTOR_PULSE_MIN);
 	set_motor_pwm_pulse(MOTOR5, MOTOR_PULSE_MIN);
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
 	set_motor_pwm_pulse(MOTOR6, MOTOR_PULSE_MIN);
+#endif
 }
 
 void motor_thrust_test(float ch1_motor_percentage)
