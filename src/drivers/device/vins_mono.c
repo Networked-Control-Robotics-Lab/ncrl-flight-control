@@ -11,6 +11,7 @@
 #include "vins_mono.h"
 #include "sys_time.h"
 #include "debug_link.h"
+#include <proj_config.h>
 
 #define VINS_MONO_IMU_MSG_SIZE 27
 #define VINS_MONO_CHECKSUM_INIT_VAL 19
@@ -244,9 +245,17 @@ void vins_mono_camera_trigger_20hz(void)
 	static int counter = 0;
 
 	if(counter < 2) {
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
 		gpio_on(MOTOR8);
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6) 
+		gpio_on(MOTOR6);
+#endif
 	} else {
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
 		gpio_off(MOTOR8);
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6) 
+		gpio_off(MOTOR6);
+#endif
 	}
 
 	counter = (counter + 1) % 20;
