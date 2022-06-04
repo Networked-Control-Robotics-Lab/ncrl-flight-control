@@ -47,6 +47,7 @@ void set_reversible_motor_value(volatile uint32_t *motor, float percentage)
 	*motor = (uint32_t)pwm_val;
 }
 
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 void motor_init(void)
 {
 	set_motor_pwm_pulse(MOTOR1, MOTOR_PULSE_MIN);
@@ -54,12 +55,22 @@ void motor_init(void)
 	set_motor_pwm_pulse(MOTOR3, MOTOR_PULSE_MIN);
 	set_motor_pwm_pulse(MOTOR4, MOTOR_PULSE_MIN);
 	set_motor_pwm_pulse(MOTOR5, MOTOR_PULSE_MIN);
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 	set_motor_pwm_pulse(MOTOR6, MOTOR_PULSE_MIN);
-#endif
 	blocked_delay_ms(100);
 }
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+void motor_init(void)
+{
+	set_motor_pwm_pulse(MOTOR1, MOTOR_PULSE_MIN);
+	set_motor_pwm_pulse(MOTOR2, MOTOR_PULSE_MIN);
+	set_motor_pwm_pulse(MOTOR3, MOTOR_PULSE_MIN);
+	set_motor_pwm_pulse(MOTOR4, MOTOR_PULSE_MIN);
+	set_motor_pwm_pulse(MOTOR5, MOTOR_PULSE_MIN);
+	blocked_delay_ms(100);
+}
+#endif
 
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 void motor_halt(void)
 {
 	set_motor_pwm_pulse(MOTOR1, MOTOR_PULSE_MIN);
@@ -67,10 +78,18 @@ void motor_halt(void)
 	set_motor_pwm_pulse(MOTOR3, MOTOR_PULSE_MIN);
 	set_motor_pwm_pulse(MOTOR4, MOTOR_PULSE_MIN);
 	set_motor_pwm_pulse(MOTOR5, MOTOR_PULSE_MIN);
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 	set_motor_pwm_pulse(MOTOR6, MOTOR_PULSE_MIN);
-#endif
 }
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+void motor_halt(void)
+{
+	set_motor_pwm_pulse(MOTOR1, MOTOR_PULSE_MIN);
+	set_motor_pwm_pulse(MOTOR2, MOTOR_PULSE_MIN);
+	set_motor_pwm_pulse(MOTOR3, MOTOR_PULSE_MIN);
+	set_motor_pwm_pulse(MOTOR4, MOTOR_PULSE_MIN);
+	set_motor_pwm_pulse(MOTOR5, MOTOR_PULSE_MIN);
+}
+#endif
 
 void motor_thrust_test(float ch1_motor_percentage)
 {

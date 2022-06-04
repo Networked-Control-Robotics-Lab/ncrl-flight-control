@@ -41,7 +41,6 @@ bool vins_mono_available(void)
 	return true;
 }
 
-#define VINS_MONO_CHECKSUM_INIT_VAL 19
 static uint8_t generate_vins_mono_checksum_byte(uint8_t *payload, int payload_cnt)
 {
 	uint8_t result = VINS_MONO_CHECKSUM_INIT_VAL;
@@ -235,6 +234,8 @@ void vins_mono_send_imu_200hz(void)
 	}
 }
 
+
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 void vins_mono_camera_trigger_20hz(void)
 {
 	/* to generate the camera trigger pulse:
@@ -245,21 +246,32 @@ void vins_mono_camera_trigger_20hz(void)
 	static int counter = 0;
 
 	if(counter < 2) {
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 		gpio_on(MOTOR8);
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
-		gpio_on(MOTOR6);
-#endif
 	} else {
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 		gpio_off(MOTOR8);
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
-		gpio_off(MOTOR6);
-#endif
 	}
 
 	counter = (counter + 1) % 20;
 }
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+void vins_mono_camera_trigger_20hz(void)
+{
+	/* to generate the camera trigger pulse:
+	 * (1/20Hz) / (1/400Hz) = 20 (flight control loop is 20x faster than what we need)
+	 * 10% on:  20 * 0.1 = 2times
+	 * 90% off: 20 * 0.9 = 18times*/
+
+	static int counter = 0;
+
+	if(counter < 2) {
+		gpio_on(MOTOR6);
+	} else {
+		gpio_off(MOTOR6);
+	}
+
+	counter = (counter + 1) % 20;
+}
+#endif
 
 void send_vins_mono_position_debug_message(debug_msg_t *payload)
 {
