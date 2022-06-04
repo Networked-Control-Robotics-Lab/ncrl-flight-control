@@ -39,7 +39,6 @@ perf_t perf_list[] = {
 	DEF_PERF(PERF_FLIGHT_CONTROL_TRIGGER_TIME, "flight control trigger time")
 };
 
-
 int main()
 {
 	perf_init(perf_list, SIZE_OF_PERF_LIST(perf_list));
@@ -57,7 +56,7 @@ int main()
 	led_init();
 	ext_switch_init();
 #elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
-	Init_I2C();
+	i2c2_init();
 #endif
 
 // init chip selectors gpio
@@ -148,7 +147,7 @@ int main()
 #endif
 
 	timer3_init();
-	
+
 	/* led task */
 	rgb_led_register_task( "rgb_led_task", 512, tskIDLE_PRIORITY + 2);
 
