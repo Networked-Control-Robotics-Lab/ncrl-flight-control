@@ -22,6 +22,10 @@ LDFLAGS+=-Wl,--start-group -lm -Wl,--end-group
 
 SRC=
 
+-include ./drivers/makefiles/board_common.mk
+-include ./drivers/makefiles/px4.mk
+-include ./drivers/makefiles/board_v1.mk
+
 SRC+=./platform/system_stm32f4xx.c
 
 SRC+=lib/CMSIS/DSP_Lib/Source/CommonTables/arm_common_tables.c \
@@ -122,18 +126,7 @@ SRC+=./common/delay.c \
 	./common/hash.c \
 	./common/ellipsoid_least_square.c
 
-SRC+=./drivers/periph/uart.c \
-	./drivers/periph/spi.c \
-	./drivers/periph/pwm.c \
-	./drivers/periph/timer.c \
-	./drivers/periph/isr.c \
-	./drivers/periph/exti.c \
-	./drivers/periph/gpio.c \
-	./drivers/periph/sw_i2c.c \
-	./drivers/periph/flash.c \
-	./drivers/periph/crc.c \
-	./drivers/periph/i2c.c \
-	./drivers/device/mpu6500.c \
+SRC+=./drivers/device/mpu6500.c \
 	./drivers/device/ms5611.c \
 	./drivers/device/sbus_radio.c \
 	./drivers/device/motor.c \
@@ -172,7 +165,6 @@ CFLAGS+=-I./core/param
 CFLAGS+=-I./core/radio_events
 CFLAGS+=-I./core/calibration
 CFLAGS+=-I./common
-CFLAGS+=-I./drivers/periph
 CFLAGS+=-I./drivers/device
 CFLAGS+=-I./drivers/interface
 CFLAGS+=-I./lib/CMSIS
