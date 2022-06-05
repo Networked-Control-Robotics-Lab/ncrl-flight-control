@@ -36,6 +36,7 @@ void exti15_init(void)
 	};
 	NVIC_Init(&NVIC_InitStruct);
 }
+
 void EXTI15_10_IRQHandler(void)
 {
 	if(EXTI_GetITStatus(EXTI_Line15) == SET) {

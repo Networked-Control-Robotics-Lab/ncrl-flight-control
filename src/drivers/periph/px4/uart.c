@@ -17,9 +17,10 @@
 #define UART2_QUEUE_SIZE 100
 #define UART3_QUEUE_SIZE 500
 
-/* TODO: vins-mono data receiver is not implemented!
- * should place `vins_mono_isr_handler(c);` in uart1 or uart7 isr handler */
+/* TODO: vins-mono uart tx driver is not implemented!
+ * place `vins_mono_isr_handler(c);` in uart1 or uart7 isr handler */
 
+/* TODO: vins-mono uart rx driver is not implemented! */
 void vins_mono_puts(char *s, int size)
 {
 	//XXX: this is a dummy function

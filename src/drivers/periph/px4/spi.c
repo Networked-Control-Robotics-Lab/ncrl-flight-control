@@ -2,6 +2,8 @@
 #include "stm32f4xx_conf.h"
 #include "proj_config.h"
 
+//TODO: porting of ms5611 is not completed
+
 SemaphoreHandle_t spi3_tx_semphr;
 SemaphoreHandle_t spi3_rx_semphr;
 
@@ -17,12 +19,8 @@ uint8_t spi3_rx_buf;
  */
 void spi1_init(void)
 {
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
-#endif
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
 
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource5, GPIO_AF_SPI1);
@@ -38,19 +36,11 @@ void spi1_init(void)
 	};
 	GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-	/* Chip select pin */
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
-	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_4;
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+	/* chip selection pin */
 	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_2;
-#endif
 	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;
 	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
-	GPIO_Init(GPIOA, &GPIO_InitStruct);
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
 	GPIO_Init(GPIOC, &GPIO_InitStruct);
-#endif
 
 	SPI_InitTypeDef SPI_InitStruct = {
 		.SPI_Direction = SPI_Direction_2Lines_FullDuplex,
@@ -68,6 +58,7 @@ void spi1_init(void)
 	SPI_Cmd(SPI1, ENABLE);
 }
 
+#if 0
 /* <spi3>
  * usage: ms5611 (barometer)
  * cs: gpio_pin_a_15
@@ -128,15 +119,6 @@ void spi3_init(void)
 	SPI_Cmd(SPI3, ENABLE);
 }
 
-uint8_t spi_read_write(SPI_TypeDef *spi_channel, uint8_t data)
-{
-	while(SPI_I2S_GetFlagStatus(spi_channel, SPI_FLAG_TXE) == RESET);
-	SPI_I2S_SendData(spi_channel, data);
-
-	while(SPI_I2S_GetFlagStatus(spi_channel, SPI_FLAG_RXNE) == RESET);
-	return SPI_I2S_ReceiveData(spi_channel);
-}
-
 void SPI3_IRQHandler(void)
 {
 	BaseType_t higher_priority_task_woken = pdFALSE;
@@ -167,4 +149,14 @@ uint8_t spi3_read_write(uint8_t data)
 	xSemaphoreTake(spi3_rx_semphr, portMAX_DELAY);
 
 	return spi3_rx_buf;
+}
+#endif
+
+uint8_t spi_read_write(SPI_TypeDef *spi_channel, uint8_t data)
+{
+	while(SPI_I2S_GetFlagStatus(spi_channel, SPI_FLAG_TXE) == RESET);
+	SPI_I2S_SendData(spi_channel, data);
+
+	while(SPI_I2S_GetFlagStatus(spi_channel, SPI_FLAG_RXNE) == RESET);
+	return SPI_I2S_ReceiveData(spi_channel);
 }

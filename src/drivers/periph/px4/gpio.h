@@ -6,6 +6,7 @@
 
 #define EXT_SW GPIOB, GPIO_Pin_14
 
+//TODO: refactor this code
 #if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
 #define MOTOR8 GPIOE, GPIO_Pin_9
 #elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6) 
@@ -24,10 +25,6 @@
 #define LED_G GPIOA, GPIO_Pin_0
 #define LED_B GPIOA, GPIO_Pin_3
 
-void init_GPIOC();
-void init_GPIOD();
-void init_GPIOE();
-void led_init();
-void ext_switch_init(void);
+void px4_board_gpio_config(void);
 
 #endif

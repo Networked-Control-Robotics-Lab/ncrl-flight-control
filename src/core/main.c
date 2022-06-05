@@ -61,14 +61,7 @@ int main()
 
 // init chip selectors gpio
 #if (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
-	init_GPIOC();
-	init_GPIOD();
-	init_GPIOE();
-	GPIO_SetBits(GPIOE, GPIO_Pin_3);	//VDD_3V3_SENSORS_EN
-	GPIO_SetBits(GPIOC, GPIO_Pin_2);	//MPU_CS
-	GPIO_SetBits(GPIOC, GPIO_Pin_13);	//GYRO_CS
-	GPIO_SetBits(GPIOC, GPIO_Pin_15);	//ACCEL_MAG_CS
-	GPIO_SetBits(GPIOD, GPIO_Pin_7);	//BARO_CS
+	px4_board_gpio_config();
 #endif
 
 
