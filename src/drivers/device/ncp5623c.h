@@ -4,5 +4,6 @@
 
 #define RGB_PERCENTAGE_MAX 100.0f
 
-void rgb_light(float red,float green,float blue); //percentage of r,g,b
+void ncp5623c_led_control(float red, float green, float blue); //percentage of r, g, b
+
 #endif

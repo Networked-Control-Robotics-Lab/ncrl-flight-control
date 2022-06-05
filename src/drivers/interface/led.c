@@ -19,20 +19,6 @@ void rgb_led_init(void)
 {
 	rgb_led_service.blink_cnt = 0;
 	rgb_led_service.blink_enabled = false;
-#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
-	led_r.gpio_group = GPIOA;
-	led_r.pin_num = GPIO_Pin_2;
-	led_r.state = LED_OFF;
-
-	led_g.gpio_group = GPIOA;
-	led_g.pin_num = GPIO_Pin_0;
-	led_g.state = LED_OFF;
-
-	led_b.gpio_group = GPIOA;
-	led_b.pin_num = GPIO_Pin_3;
-	led_b.state = LED_OFF;
-
-#elif (SELECT_BOARD == BOARD_PX4_V246)
 
 	led_r.gpio_group = GPIOA;
 	led_r.pin_num = GPIO_Pin_2;
@@ -45,8 +31,6 @@ void rgb_led_init(void)
 	led_b.gpio_group = GPIOA;
 	led_b.pin_num = GPIO_Pin_3;
 	led_b.state = LED_OFF;
-
-#endif
 }
 
 void enable_rgb_led_service(void)
@@ -128,31 +112,46 @@ void set_rgb_led_service_imu_calibration_finished_flag(bool new_state)
 }
 
 #if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
-void led_control(led_t *led)
+void led_control(led_t *led_r, led_t *led_g, led_t *led_b)
 {
-	if(led->state == LED_ON) {
-		GPIO_SetBits(led->gpio_group, led->pin_num);
+	if(led_r->state == LED_ON) {
+		GPIO_SetBits(led_r->gpio_group, led_r->pin_num);
 	} else {
-		GPIO_ResetBits(led->gpio_group, led->pin_num);
+		GPIO_ResetBits(led_r->gpio_group, led_r->pin_num);
+	}
+
+	if(led_g->state == LED_ON) {
+		GPIO_SetBits(led_g->gpio_group, led_g->pin_num);
+	} else {
+		GPIO_ResetBits(led_g->gpio_group, led_g->pin_num);
+	}
+
+	if(led_b->state == LED_ON) {
+		GPIO_SetBits(led_b->gpio_group, led_b->pin_num);
+	} else {
+		GPIO_ResetBits(led_b->gpio_group, led_b->pin_num);
 	}
 }
-
 #elif (SELECT_BOARD == BOARD_PX4_V246)
 void led_control(led_t *led_r,led_t *led_g,led_t *led_b)
 {
 	float r = 0;
 	float g = 0;
 	float b = 0;
+
 	if(led_r->state == LED_ON) {
 		r = 100.0f;
 	}
+
 	if(led_g->state == LED_ON) {
 		g = 100.0f;
 	}
+
 	if(led_b->state == LED_ON) {
 		b = 100.0f;
 	}
-	rgb_light(r,g,b);
+
+	ncp5623c_led_control(r,g,b);
 }
 #endif
 
@@ -161,32 +160,21 @@ void rgb_led_handler(void)
 	if(rgb_led_service.service_enabled == false) {
 		return;
 	}
+
 	static bool toggle = true;
 
 	if(rgb_led_service.blink_enabled == false) {
-#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
-		led_control(&led_r);
-		led_control(&led_g);
-		led_control(&led_b);
-#elif (SELECT_BOARD == BOARD_PX4_V246)
-		led_control(&led_r,&led_g,&led_b);
-#endif
+		led_control(&led_r, &led_g, &led_b);
 	} else {
 		if(toggle == true) {
-#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
-			led_control(&led_r);
-			led_control(&led_g);
-			led_control(&led_b);
-#elif (SELECT_BOARD == BOARD_PX4_V246)
-			led_control(&led_r,&led_g,&led_b);
-#endif
+			led_control(&led_r, &led_g, &led_b);
 		} else {
 #if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
 			led_off(LED_R);
 			led_off(LED_G);
 			led_off(LED_B);
 #elif (SELECT_BOARD == BOARD_PX4_V246)
-			rgb_light(0,0,0);
+			ncp5623c_led_control(0, 0, 0);
 #endif
 		}
 		rgb_led_service.blink_cnt++;

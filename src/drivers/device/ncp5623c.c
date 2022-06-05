@@ -3,7 +3,7 @@
 
 #define NCP5623C_I2C_TIMEOUT 50
 
-void rgb_light(float red, float green, float blue)
+void ncp5623c_led_control(float red, float green, float blue)
 {
 	uint32_t timeout = NCP5623C_I2C_TIMEOUT;
 
