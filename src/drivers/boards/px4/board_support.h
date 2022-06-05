@@ -38,4 +38,7 @@
 
 void board_init(void);
 
+void camera_trigger_gpio_on(void);
+void camera_trigger_gpio_off(void);
+
 #endif

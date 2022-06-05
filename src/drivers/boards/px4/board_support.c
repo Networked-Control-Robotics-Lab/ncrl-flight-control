@@ -17,6 +17,7 @@
 #include "pwm.h"
 #include "uart.h"
 #include "ncp5623c.h"
+#include "board_support.h"
 
 void board_init(void)
 {
@@ -68,4 +69,14 @@ void board_init(void)
 
 	/* led driver task */
 	ncp5623c_driver_register_task("led driver task", 512, tskIDLE_PRIORITY + 2);
+}
+
+void camera_trigger_gpio_on(void)
+{
+	gpio_on(MOTOR6);
+}
+
+void camera_trigger_gpio_off(void)
+{
+	gpio_off(MOTOR6);
 }

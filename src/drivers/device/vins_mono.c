@@ -177,7 +177,6 @@ float vins_mono_read_vel_z()
 	return(vins_mono.vel_raw[2]);
 }
 
-
 void send_vins_mono_imu_msg(void)
 {
 	/*+------------+----------+---------+---------+---------+--------+--------+--------+----------+
@@ -235,8 +234,6 @@ void vins_mono_send_imu_200hz(void)
 	}
 }
 
-
-#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
 void vins_mono_camera_trigger_20hz(void)
 {
 	/* to generate the camera trigger pulse:
@@ -247,32 +244,13 @@ void vins_mono_camera_trigger_20hz(void)
 	static int counter = 0;
 
 	if(counter < 2) {
-		gpio_on(MOTOR8);
+		camera_trigger_gpio_on();
 	} else {
-		gpio_off(MOTOR8);
+		camera_trigger_gpio_off();
 	}
 
 	counter = (counter + 1) % 20;
 }
-#elif (SELECT_BOARD == BOARD_PX4_V246)
-void vins_mono_camera_trigger_20hz(void)
-{
-	/* to generate the camera trigger pulse:
-	 * (1/20Hz) / (1/400Hz) = 20 (flight control loop is 20x faster than what we need)
-	 * 10% on:  20 * 0.1 = 2times
-	 * 90% off: 20 * 0.9 = 18times*/
-
-	static int counter = 0;
-
-	if(counter < 2) {
-		gpio_on(MOTOR6);
-	} else {
-		gpio_off(MOTOR6);
-	}
-
-	counter = (counter + 1) % 20;
-}
-#endif
 
 void send_vins_mono_position_debug_message(debug_msg_t *payload)
 {

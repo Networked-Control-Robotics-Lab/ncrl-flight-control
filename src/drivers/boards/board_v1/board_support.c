@@ -17,6 +17,7 @@
 #include "uart.h"
 #include "vins_mono.h"
 #include "ublox_m8n.h"
+#include "board_support.h"
 
 void board_init(void)
 {
@@ -63,4 +64,14 @@ void board_init(void)
 #endif
 
 	timer3_init();
+}
+
+void camera_trigger_gpio_on(void)
+{
+        gpio_on(MOTOR8);
+}
+
+void camera_trigger_gpio_off(void)
+{
+        gpio_off(MOTOR8);
 }
