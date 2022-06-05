@@ -2,7 +2,7 @@
 #include "sbus_radio.h"
 #include "led.h"
 #include "delay.h"
-#include "board_support.h"
+#include "board_porting.h"
 
 float do_esc_calib = false;
 

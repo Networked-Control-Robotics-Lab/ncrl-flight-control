@@ -24,7 +24,8 @@ SRC+=$(PROJ_ROOT)/drivers/device/ncp5623c.c \
 	$(PROJ_ROOT)/drivers/device/led.c
 
 #porting of the board
-SRC+=$(PROJ_ROOT)/drivers/boards/px4/board_support.c \
+SRC+=$(PROJ_ROOT)/drivers/boards/px4/board_init.c \
+	$(PROJ_ROOT)/drivers/boards/px4/board_porting.c \
 	$(PROJ_ROOT)/drivers/boards/px4/system_stm32f4xx.c
 
 CFLAGS+=-I$(PROJ_ROOT)/drivers/periph/px4

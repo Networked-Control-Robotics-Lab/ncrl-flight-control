@@ -35,7 +35,7 @@
 #include "ins_sensor_sync.h"
 #include "led.h"
 #include "attitude_state.h"
-#include "board_support.h"
+#include "board_porting.h"
 
 #define FLIGHT_CTL_PRESCALER_RELOAD 10
 

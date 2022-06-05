@@ -2,7 +2,7 @@
 #include "delay.h"
 #include "motor.h"
 #include "bound.h"
-#include "board_support.h"
+#include "board_porting.h"
 
 void set_motor_pwm_pulse(volatile uint32_t *motor, uint16_t pulse)
 {
@@ -47,50 +47,6 @@ void set_reversible_motor_value(volatile uint32_t *motor, float percentage)
 
 	*motor = (uint32_t)pwm_val;
 }
-
-#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
-void motor_init(void)
-{
-	set_motor_pwm_pulse(MOTOR1, MOTOR_PULSE_MIN);
-	set_motor_pwm_pulse(MOTOR2, MOTOR_PULSE_MIN);
-	set_motor_pwm_pulse(MOTOR3, MOTOR_PULSE_MIN);
-	set_motor_pwm_pulse(MOTOR4, MOTOR_PULSE_MIN);
-	set_motor_pwm_pulse(MOTOR5, MOTOR_PULSE_MIN);
-	set_motor_pwm_pulse(MOTOR6, MOTOR_PULSE_MIN);
-	blocked_delay_ms(100);
-}
-#elif (SELECT_BOARD == BOARD_PX4_V246)
-void motor_init(void)
-{
-	set_motor_pwm_pulse(MOTOR1, MOTOR_PULSE_MIN);
-	set_motor_pwm_pulse(MOTOR2, MOTOR_PULSE_MIN);
-	set_motor_pwm_pulse(MOTOR3, MOTOR_PULSE_MIN);
-	set_motor_pwm_pulse(MOTOR4, MOTOR_PULSE_MIN);
-	set_motor_pwm_pulse(MOTOR5, MOTOR_PULSE_MIN);
-	blocked_delay_ms(100);
-}
-#endif
-
-#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
-void motor_halt(void)
-{
-	set_motor_pwm_pulse(MOTOR1, MOTOR_PULSE_MIN);
-	set_motor_pwm_pulse(MOTOR2, MOTOR_PULSE_MIN);
-	set_motor_pwm_pulse(MOTOR3, MOTOR_PULSE_MIN);
-	set_motor_pwm_pulse(MOTOR4, MOTOR_PULSE_MIN);
-	set_motor_pwm_pulse(MOTOR5, MOTOR_PULSE_MIN);
-	set_motor_pwm_pulse(MOTOR6, MOTOR_PULSE_MIN);
-}
-#elif (SELECT_BOARD == BOARD_PX4_V246)
-void motor_halt(void)
-{
-	set_motor_pwm_pulse(MOTOR1, MOTOR_PULSE_MIN);
-	set_motor_pwm_pulse(MOTOR2, MOTOR_PULSE_MIN);
-	set_motor_pwm_pulse(MOTOR3, MOTOR_PULSE_MIN);
-	set_motor_pwm_pulse(MOTOR4, MOTOR_PULSE_MIN);
-	set_motor_pwm_pulse(MOTOR5, MOTOR_PULSE_MIN);
-}
-#endif
 
 void motor_thrust_test(float ch1_motor_percentage)
 {

@@ -13,7 +13,7 @@
 #include "common_list.h"
 #include "led.h"
 #include "proj_config.h"
-#include "board_support.h"
+#include "board_porting.h"
 
 #define IMU_CALIB_SAMPLE_CNT 1000
 

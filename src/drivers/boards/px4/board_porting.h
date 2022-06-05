@@ -1,5 +1,5 @@
-#ifndef __BOARD_SUPPORT_H__
-#define __BOARD_SUPPORT_H__
+#ifndef __BOARD_PORTING_H__
+#define __BOARD_PORTING_H__
 
 #include "uart.h"
 #include "spi.h"
@@ -37,6 +37,9 @@
 #define led_toggle  ncp5623c_led_toggle
 
 void board_init(void);
+
+void motor_init(void);
+void motor_halt(void);
 
 void camera_trigger_gpio_on(void);
 void camera_trigger_gpio_off(void);

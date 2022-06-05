@@ -22,7 +22,8 @@ SRC+=$(PROJ_ROOT)/drivers/device/mpu6500.c \
 	$(PROJ_ROOT)/drivers/device/led.c
 
 #porting of the board
-SRC+=$(PROJ_ROOT)/drivers/boards/board_v1/board_support.c \
+SRC+=$(PROJ_ROOT)/drivers/boards/board_v1/board_init.c \
+	$(PROJ_ROOT)/drivers/boards/board_v1/board_porting.c \
 	$(PROJ_ROOT)/drivers/boards/board_v1/system_stm32f4xx.c
 
 CFLAGS+=-I$(PROJ_ROOT)/drivers/periph/board_v1

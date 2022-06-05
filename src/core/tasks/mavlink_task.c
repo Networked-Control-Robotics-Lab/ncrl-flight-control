@@ -12,7 +12,7 @@
 #include "delay.h"
 #include "uart.h"
 #include "autopilot.h"
-#include "board_support.h"
+#include "board_porting.h"
 
 #define MAVLINK_QUEUE_SIZE 10
 

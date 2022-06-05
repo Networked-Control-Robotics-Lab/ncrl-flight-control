@@ -5,7 +5,7 @@
 #include "sys_time.h"
 #include "led.h"
 #include "esc_calibration.h"
-#include "board_support.h"
+#include "board_porting.h"
 
 void multirotor_free_fall_rc(radio_t *rc);
 

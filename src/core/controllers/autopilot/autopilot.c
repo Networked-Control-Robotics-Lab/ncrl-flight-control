@@ -13,7 +13,7 @@
 #include "takeoff_landing.h"
 #include "waypoint_following.h"
 #include "position_state.h"
-#include "board_support.h"
+#include "board_porting.h"
 
 autopilot_t autopilot;
 

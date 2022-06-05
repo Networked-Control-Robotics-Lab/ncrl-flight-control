@@ -6,7 +6,7 @@
 #include "quadshell.h"
 #include "delay.h"
 #include "proj_config.h"
-#include "board_support.h"
+#include "board_porting.h"
 
 void shell_reset_struct(struct shell_struct *shell);
 

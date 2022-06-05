@@ -18,7 +18,7 @@
 #include "waypoint_following.h"
 #include "takeoff_landing.h"
 #include "proj_config.h"
-#include "board_support.h"
+#include "board_porting.h"
 
 static bool parse_float_from_str(char *str, float *value)
 {

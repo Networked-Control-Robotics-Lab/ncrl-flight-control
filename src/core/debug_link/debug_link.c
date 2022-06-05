@@ -4,7 +4,7 @@
 #include "uart.h"
 #include "debug_link.h"
 #include "proj_config.h"
-#include "board_support.h"
+#include "board_porting.h"
 
 void pack_debug_debug_message_header(debug_msg_t *payload, int message_id)
 {

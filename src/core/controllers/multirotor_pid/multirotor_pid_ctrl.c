@@ -32,7 +32,7 @@
 #include "autopilot.h"
 #include "waypoint_following.h"
 #include "fence.h"
-#include "board_support.h"
+#include "board_porting.h"
 
 pid_control_t pid_roll;
 pid_control_t pid_pitch;

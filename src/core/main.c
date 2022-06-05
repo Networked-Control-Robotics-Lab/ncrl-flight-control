@@ -16,7 +16,8 @@
 #include "perf.h"
 #include "perf_list.h"
 #include "ins_sensor_sync.h"
-#include "board_support.h"
+#include "board_init.h"
+#include "board_porting.h"
 
 perf_t perf_list[] = {
 	DEF_PERF(PERF_AHRS_INS, "ahrs and ins")

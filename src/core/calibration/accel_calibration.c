@@ -12,7 +12,7 @@
 #include "common_list.h"
 #include "calibration_task.h"
 #include "uart.h"
-#include "board_support.h"
+#include "board_porting.h"
 
 #define ACCEL_CALIB_SAMPLING_TIMES 2000
 

@@ -7,7 +7,7 @@
 #include "sbus_radio.h"
 #include "sys_time.h"
 #include "proj_config.h"
-#include "board_support.h"
+#include "board_porting.h"
 
 void parse_sbus(uint8_t *raw_buff, uint16_t *rc_val);
 

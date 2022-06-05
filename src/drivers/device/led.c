@@ -6,7 +6,7 @@
 #include "ncp5623c.h"
 #include "sys_time.h"
 #include "proj_config.h"
-#include "board_support.h"
+#include "board_porting.h"
 
 rgb_service_t rgb_service;
 

@@ -3,7 +3,7 @@
 #include "stm32f4xx_conf.h"
 #include "uart.h"
 #include "sys_time.h"
-#include "board_support.h"
+#include "board_porting.h"
 
 sys_time_t sys_tim;
 

@@ -13,7 +13,7 @@
 #include "sys_time.h"
 #include "barometer.h"
 #include "ins_sensor_sync.h"
-#include "board_support.h"
+#include "board_porting.h"
 
 #define POW2(x) ((x) * (x))
 #define MBAR_TO_PASCAL(press) (press * 100.0f)
