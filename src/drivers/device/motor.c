@@ -2,6 +2,7 @@
 #include "delay.h"
 #include "motor.h"
 #include "bound.h"
+#include "board_support.h"
 
 void set_motor_pwm_pulse(volatile uint32_t *motor, uint16_t pulse)
 {

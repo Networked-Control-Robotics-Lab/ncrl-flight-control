@@ -4,11 +4,6 @@
 #include "stm32f4xx.h"
 #include <proj_config.h>
 
-#define EXT_SW GPIOB, GPIO_Pin_14
-
-//TODO: refactor this code
-#define MOTOR6 GPIOD, GPIO_Pin_14
-
 #define gpio_toggle(pin)  GPIO_ToggleBits(pin)
 #define gpio_on(pin)  GPIO_SetBits(pin)
 #define gpio_off(pin)  GPIO_ResetBits(pin)
