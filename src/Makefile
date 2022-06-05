@@ -128,16 +128,7 @@ SRC+=./common/delay.c \
 	./common/hash.c \
 	./common/ellipsoid_least_square.c
 
-SRC+=./drivers/device/mpu6500.c \
-	./drivers/device/ms5611.c \
-	./drivers/device/sbus_radio.c \
-	./drivers/device/motor.c \
-	./drivers/device/optitrack.c \
-	./drivers/device/sys_time.c \
-	./drivers/device/ist8310.c \
-	./drivers/device/ublox_m8n.c \
-	./drivers/device/vins_mono.c \
-	./drivers/interface/led.c \
+SRC+=./drivers/interface/led.c \
 	./drivers/interface/imu.c \
 	./drivers/interface/barometer.c \
 	./drivers/interface/compass.c \

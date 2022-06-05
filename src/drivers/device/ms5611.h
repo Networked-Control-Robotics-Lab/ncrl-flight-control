@@ -24,9 +24,6 @@
 #define MS5611_OSR2048_DELAY   4
 #define MS5611_OSR4096_DELAY  10
 
-#define ms5611_chip_select() GPIO_ResetBits(GPIOA, GPIO_Pin_15)
-#define ms5611_chip_deselect() GPIO_SetBits(GPIOA, GPIO_Pin_15)
-
 typedef struct {
 	uint32_t c1, c2, c3, c4, c5, c6; //internal calibration datas of ms5611
 

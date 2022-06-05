@@ -13,6 +13,7 @@
 #include "sys_time.h"
 #include "barometer.h"
 #include "ins_sensor_sync.h"
+#include "board_support.h"
 
 #define POW2(x) ((x) * (x))
 #define MBAR_TO_PASCAL(press) (press * 100.0f)
@@ -28,9 +29,9 @@ bool ms5611_available(void)
 
 void ms5611_reset(void)
 {
-	ms5611_chip_select();
-	spi_read_write(SPI3, 0x1e);
-	ms5611_chip_deselect();
+	barometer_spi_chip_select();
+	barometer_spi_read_write(0x1e);
+	barometer_spi_chip_deselect();
 
 	blocked_delay_ms(100);
 }
@@ -39,44 +40,44 @@ void ms5611_read_uint16(uint8_t address, uint32_t *data)
 {
 	uint8_t byte1, byte2;
 
-	ms5611_chip_select();
-	spi_read_write(SPI3, address);
-	byte1 = spi_read_write(SPI3, 0x00);
-	byte2 = spi_read_write(SPI3, 0x00);
+	barometer_spi_chip_select();
+	barometer_spi_read_write(address);
+	byte1 = barometer_spi_read_write(0x00);
+	byte2 = barometer_spi_read_write(0x00);
 	*data = ((uint32_t)byte1 << 8) | (uint32_t)byte2;
-	ms5611_chip_deselect();
+	barometer_spi_chip_deselect();
 }
 
 void ms5611_read_int24_addr(uint8_t address)
 {
-	ms5611_chip_select();
-	spi_read_write(SPI3, address);
-	ms5611_chip_deselect();
+	barometer_spi_chip_select();
+	barometer_spi_read_write(address);
+	barometer_spi_chip_deselect();
 }
 
 void ms5611_read_int24_data(int32_t *data)
 {
 	uint8_t byte1, byte2, byte3;
 
-	ms5611_chip_select();
-	spi_read_write(SPI3, 0x00);
-	byte1 = spi_read_write(SPI3, 0x00);
-	byte2 = spi_read_write(SPI3, 0x00);
-	byte3 = spi_read_write(SPI3, 0x00);
+	barometer_spi_chip_select();
+	barometer_spi_read_write(0x00);
+	byte1 = barometer_spi_read_write(0x00);
+	byte2 = barometer_spi_read_write(0x00);
+	byte3 = barometer_spi_read_write(0x00);
 	*data = ((int32_t)byte1 << 16) | ((int32_t)byte2 << 8) | (int32_t)byte3;
-	ms5611_chip_deselect();
+	barometer_spi_chip_deselect();
 }
 
 void ms5611_read_prom(void)
 {
-	ms5611_chip_select();
+	barometer_spi_chip_select();
 	ms5611_read_uint16(0xa2, &ms5611.c1);
 	ms5611_read_uint16(0xa4, &ms5611.c2);
 	ms5611_read_uint16(0xa6, &ms5611.c3);
 	ms5611_read_uint16(0xa8, &ms5611.c4);
 	ms5611_read_uint16(0xaa, &ms5611.c5);
 	ms5611_read_uint16(0xac, &ms5611.c6);
-	ms5611_chip_deselect();
+	barometer_spi_chip_deselect();
 }
 
 void ms5611_init(void)

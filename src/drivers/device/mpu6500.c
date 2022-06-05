@@ -35,20 +35,20 @@ static uint8_t mpu6500_read_byte(uint8_t address)
 {
 	uint8_t read;
 
-	mpu6500_chip_select();
-	spi_read_write(SPI1, address | 0x80);
-	read = spi_read_write(SPI1, 0xff);
-	mpu6500_chip_deselect();
+	imu_spi_chip_select();
+	imu_spi_read_write(address | 0x80);
+	read = imu_spi_read_write(0xff);
+	imu_spi_chip_deselect();
 
 	return read;
 }
 
 static void mpu6500_write_byte(uint8_t address, uint8_t data)
 {
-	mpu6500_chip_select();
-	spi_read_write(SPI1, address);
-	spi_read_write(SPI1, data);
-	mpu6500_chip_deselect();
+	imu_spi_chip_select();
+	imu_spi_read_write(address);
+	imu_spi_read_write(data);
+	imu_spi_chip_deselect();
 }
 
 static uint8_t mpu6500_read_who_am_i()
@@ -337,22 +337,22 @@ void mpu6500_int_handler(void)
 	uint8_t buffer[14];
 
 	/* read sensor datas via spi */
-	mpu6500_chip_select();
-	spi_read_write(SPI1, MPU6500_ACCEL_XOUT_H | 0x80);
-	buffer[0] = spi_read_write(SPI1, 0xff);
-	buffer[1] = spi_read_write(SPI1, 0xff);
-	buffer[2] = spi_read_write(SPI1, 0xff);
-	buffer[3] = spi_read_write(SPI1, 0xff);
-	buffer[4] = spi_read_write(SPI1, 0xff);
-	buffer[5] = spi_read_write(SPI1, 0xff);
-	buffer[6] = spi_read_write(SPI1, 0xff);
-	buffer[7] = spi_read_write(SPI1, 0xff);
-	buffer[8] = spi_read_write(SPI1, 0xff);
-	buffer[9] = spi_read_write(SPI1, 0xff);
-	buffer[10] = spi_read_write(SPI1, 0xff);
-	buffer[11] = spi_read_write(SPI1, 0xff);
-	buffer[12] = spi_read_write(SPI1, 0xff);
-	buffer[13] = spi_read_write(SPI1, 0xff);
+	imu_spi_chip_select();
+	imu_spi_read_write(MPU6500_ACCEL_XOUT_H | 0x80);
+	buffer[0] = imu_spi_read_write(0xff);
+	buffer[1] = imu_spi_read_write(0xff);
+	buffer[2] = imu_spi_read_write(0xff);
+	buffer[3] = imu_spi_read_write(0xff);
+	buffer[4] = imu_spi_read_write(0xff);
+	buffer[5] = imu_spi_read_write(0xff);
+	buffer[6] = imu_spi_read_write(0xff);
+	buffer[7] = imu_spi_read_write(0xff);
+	buffer[8] = imu_spi_read_write(0xff);
+	buffer[9] = imu_spi_read_write(0xff);
+	buffer[10] = imu_spi_read_write(0xff);
+	buffer[11] = imu_spi_read_write(0xff);
+	buffer[12] = imu_spi_read_write(0xff);
+	buffer[13] = imu_spi_read_write(0xff);
 
 	/* composite sensor data */
 	mpu6500.accel_unscaled[0] = -(((int16_t)buffer[0] << 8) | (int16_t)buffer[1]);
@@ -362,7 +362,7 @@ void mpu6500_int_handler(void)
 	mpu6500.gyro_unscaled[0] = -(((int16_t)buffer[8] << 8) | (int16_t)buffer[9]);
 	mpu6500.gyro_unscaled[1] = -(((int16_t)buffer[10] << 8) | (int16_t)buffer[11]);
 	mpu6500.gyro_unscaled[2] = +((int16_t)buffer[12] << 8) | (int16_t)buffer[13];
-	mpu6500_chip_deselect();
+	imu_spi_chip_deselect();
 
 	if(mpu6500.init_finished == false) {
 		mpu6500_bias_calc(mpu6500.gyro_unscaled, mpu6500.accel_unscaled);
@@ -397,25 +397,24 @@ void mpu6500_int_handler(void)
 {
 	uint8_t buffer[14];
 	/* read sensor datas via spi */
-	mpu6500_chip_select();
-	spi_read_write(SPI1, MPU6500_ACCEL_XOUT_H | 0x80);
-	buffer[0] = spi_read_write(SPI1, 0xff);
-	buffer[1] = spi_read_write(SPI1, 0xff);
-	buffer[2] = spi_read_write(SPI1, 0xff);
-	buffer[3] = spi_read_write(SPI1, 0xff);
-	buffer[4] = spi_read_write(SPI1, 0xff);
-	buffer[5] = spi_read_write(SPI1, 0xff);
-	buffer[6] = spi_read_write(SPI1, 0xff);
-	buffer[7] = spi_read_write(SPI1, 0xff);
-	buffer[8] = spi_read_write(SPI1, 0xff);
-	buffer[9] = spi_read_write(SPI1, 0xff);
-	buffer[10] = spi_read_write(SPI1, 0xff);
-	buffer[11] = spi_read_write(SPI1, 0xff);
-	buffer[12] = spi_read_write(SPI1, 0xff);
-	buffer[13] = spi_read_write(SPI1, 0xff);
+	imu_spi_chip_select();
+	imu_spi_read_write(MPU6500_ACCEL_XOUT_H | 0x80);
+	buffer[0] = imu_spi_read_write(0xff);
+	buffer[1] = imu_spi_read_write(0xff);
+	buffer[2] = imu_spi_read_write(0xff);
+	buffer[3] = imu_spi_read_write(0xff);
+	buffer[4] = imu_spi_read_write(0xff);
+	buffer[5] = imu_spi_read_write(0xff);
+	buffer[6] = imu_spi_read_write(0xff);
+	buffer[7] = imu_spi_read_write(0xff);
+	buffer[8] = imu_spi_read_write(0xff);
+	buffer[9] = imu_spi_read_write(0xff);
+	buffer[10] = imu_spi_read_write(0xff);
+	buffer[11] = imu_spi_read_write(0xff);
+	buffer[12] = imu_spi_read_write(0xff);
+	buffer[13] = imu_spi_read_write(0xff);
 
 	/* composite sensor data */
-
 	mpu6500.accel_unscaled[1] = -(((int16_t)buffer[0] << 8) | (int16_t)buffer[1]);
 	mpu6500.accel_unscaled[0] = +(((int16_t)buffer[2] << 8) | (int16_t)buffer[3]);
 	mpu6500.accel_unscaled[2] = +((int16_t)buffer[4] << 8) | (int16_t)buffer[5];
@@ -423,7 +422,7 @@ void mpu6500_int_handler(void)
 	mpu6500.gyro_unscaled[1] = -(((int16_t)buffer[8] << 8) | (int16_t)buffer[9]);
 	mpu6500.gyro_unscaled[0] = +(((int16_t)buffer[10] << 8) | (int16_t)buffer[11]);
 	mpu6500.gyro_unscaled[2] = +((int16_t)buffer[12] << 8) | (int16_t)buffer[13];
-	mpu6500_chip_deselect();
+	imu_spi_chip_deselect();
 
 	if(mpu6500.init_finished == false) {
 		mpu6500_bias_calc(mpu6500.gyro_unscaled, mpu6500.accel_unscaled);

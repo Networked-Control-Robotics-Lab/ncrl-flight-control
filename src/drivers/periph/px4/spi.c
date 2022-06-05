@@ -2,10 +2,7 @@
 #include "stm32f4xx_conf.h"
 #include "proj_config.h"
 
-//TODO: porting of ms5611 is not completed
-
-SemaphoreHandle_t spi3_tx_semphr;
-SemaphoreHandle_t spi3_rx_semphr;
+//TODO: porting of ms5611 is not complete
 
 uint8_t spi3_tx_buf;
 uint8_t spi3_rx_buf;
@@ -58,7 +55,6 @@ void spi1_init(void)
 	SPI_Cmd(SPI1, ENABLE);
 }
 
-#if 0
 /* <spi3>
  * usage: ms5611 (barometer)
  * cs: gpio_pin_a_15
@@ -68,9 +64,7 @@ void spi1_init(void)
  */
 void spi3_init(void)
 {
-	spi3_tx_semphr = xSemaphoreCreateBinary();
-	spi3_rx_semphr = xSemaphoreCreateBinary();
-
+#if 0
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI3, ENABLE);
@@ -108,40 +102,8 @@ void spi3_init(void)
 	SPI_Init(SPI3, &SPI_InitStruct);
 
 	SPI_Cmd(SPI3, ENABLE);
-}
-
-void SPI3_IRQHandler(void)
-{
-	BaseType_t higher_priority_task_woken = pdFALSE;
-
-	if(SPI_GetITStatus(SPI3, SPI_I2S_IT_TXE) == SET) {
-		SPI_I2S_SendData(SPI3, spi3_tx_buf);
-		SPI_I2S_ITConfig(SPI3, SPI_I2S_IT_TXE, DISABLE);
-		xSemaphoreGiveFromISR(spi3_tx_semphr, &higher_priority_task_woken);
-	}
-
-	if(SPI_GetITStatus(SPI3, SPI_I2S_IT_RXNE) == SET) {
-		spi3_rx_buf = SPI_I2S_ReceiveData(SPI3);
-		SPI_I2S_ITConfig(SPI3, SPI_I2S_IT_RXNE, DISABLE);
-		xSemaphoreGiveFromISR(spi3_rx_semphr, &higher_priority_task_woken);
-	}
-
-	portEND_SWITCHING_ISR(higher_priority_task_woken);
-}
-
-uint8_t spi3_read_write(uint8_t data)
-{
-	spi3_tx_buf = data;
-
-	SPI_I2S_ITConfig(SPI3, SPI_I2S_IT_TXE, ENABLE);
-	xSemaphoreTake(spi3_tx_semphr, portMAX_DELAY);
-
-	SPI_I2S_ITConfig(SPI3, SPI_I2S_IT_RXNE, ENABLE);
-	xSemaphoreTake(spi3_rx_semphr, portMAX_DELAY);
-
-	return spi3_rx_buf;
-}
 #endif
+}
 
 uint8_t spi_read_write(SPI_TypeDef *spi_channel, uint8_t data)
 {
@@ -150,4 +112,46 @@ uint8_t spi_read_write(SPI_TypeDef *spi_channel, uint8_t data)
 
 	while(SPI_I2S_GetFlagStatus(spi_channel, SPI_FLAG_RXNE) == RESET);
 	return SPI_I2S_ReceiveData(spi_channel);
+}
+
+uint8_t spi1_read_write(uint8_t data)
+{
+	while(SPI_I2S_GetFlagStatus(SPI1, SPI_FLAG_TXE) == RESET);
+	SPI_I2S_SendData(SPI1, data);
+
+	while(SPI_I2S_GetFlagStatus(SPI1, SPI_FLAG_RXNE) == RESET);
+	return SPI_I2S_ReceiveData(SPI1);
+}
+
+uint8_t spi3_read_write(uint8_t data)
+{
+#if 0
+	return spi_read_write(SPI3, data);
+#else
+	return 0;
+#endif
+}
+
+void spi1_chip_select(void)
+{
+	GPIO_ResetBits(GPIOC, GPIO_Pin_2);
+}
+
+void spi1_chip_deselect(void)
+{
+	GPIO_SetBits(GPIOC, GPIO_Pin_2);
+}
+
+void spi3_chip_select(void)
+{
+#if 0
+	GPIO_ResetBits(GPIOA, GPIO_Pin_15);
+#endif
+}
+
+void spi3_chip_deselect(void)
+{
+#if 0
+	GPIO_SetBits(GPIOA, GPIO_Pin_15);
+#endif
 }
