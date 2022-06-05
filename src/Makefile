@@ -1,4 +1,4 @@
-EXECUTABLE=ncrl_fc.elf
+EXECUTABLE=firmware.elf
 
 CC=arm-none-eabi-gcc
 OBJCOPY=arm-none-eabi-objcopy
