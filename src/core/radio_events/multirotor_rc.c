@@ -5,6 +5,7 @@
 #include "sys_time.h"
 #include "led.h"
 #include "esc_calibration.h"
+#include "board_support.h"
 
 void multirotor_free_fall_rc(radio_t *rc);
 
@@ -59,7 +60,7 @@ void rc_wait_unlock_geasture(void)
 
 		time_current = get_sys_time_ms();
 		if(time_current - time_last > 100.0f) {
-			led_toggle(LED_R);
+			led_control(true, false, false); //r=1, g=0, b=0 (red)
 			time_last = time_current;
 		}
 

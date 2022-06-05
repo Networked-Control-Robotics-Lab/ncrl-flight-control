@@ -96,7 +96,6 @@ SRC+=./core/main.c \
 	./core/controllers/autopilot/takeoff_landing.c \
 	./core/controllers/autopilot/fence.c \
 	./core/tasks/flight_ctrl_task.c \
-	./core/tasks/led_task.c \
 	./core/tasks/mavlink_task.c \
 	./core/tasks/debug_link_task.c \
 	./core/tasks/shell_task.c \
@@ -128,8 +127,7 @@ SRC+=./common/delay.c \
 	./common/hash.c \
 	./common/ellipsoid_least_square.c
 
-SRC+=./drivers/interface/led.c \
-	./drivers/interface/imu.c \
+SRC+=./drivers/interface/imu.c \
 	./drivers/interface/barometer.c \
 	./drivers/interface/compass.c \
 	./drivers/interface/gps.c

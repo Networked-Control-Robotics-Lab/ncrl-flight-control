@@ -3,6 +3,7 @@
 
 #include "uart.h"
 #include "spi.h"
+#include "gpio.h"
 
 /* function ports */
 #define mavlink_puts    uart3_puts
@@ -22,6 +23,9 @@
 #define barometer_spi_read_write    spi3_read_write
 #define barometer_spi_chip_select   spi3_chip_select
 #define barometer_spi_chip_deselect spi3_chip_deselect
+
+#define led_control gpio_led_control
+#define led_toggle  gpio_led_toggle
 
 void board_init(void);
 

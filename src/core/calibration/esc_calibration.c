@@ -2,6 +2,7 @@
 #include "sbus_radio.h"
 #include "led.h"
 #include "delay.h"
+#include "board_support.h"
 
 float do_esc_calib = false;
 
@@ -29,12 +30,8 @@ void esc_range_calibration(void)
 	 * 2.after the calibration you should shut down the power and reset
 	 * the system before flying. */
 
-	set_rgb_led_service_imu_calibration_finished_flag(false);
-	/*
-	led_on(LED_R);
-	led_off(LED_G);
-	led_on(LED_B);
-	*/
+	led_control(true, false, true); //r=1, g=0, b=1 (purple)
+
 	radio_t rc;
 	float calib_signal = 0.0f;
 
@@ -86,9 +83,7 @@ void motor_force_testing(void)
 	 * since this function is dangerous, the testing loop will never be
 	 * end until you turn off the power */
 
-	led_on(LED_R);
-	led_off(LED_G);
-	led_on(LED_B);
+	led_control(true, false, true); //r=1, g=0, b=1 (purple)
 
 	while(1) {
 		set_motor_value(MOTOR1, force_testing_percentage);

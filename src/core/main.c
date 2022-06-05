@@ -9,7 +9,6 @@
 #include "led.h"
 #include "debug_link.h"
 #include "shell_task.h"
-#include "led_task.h"
 #include "mavlink_task.h"
 #include "flight_ctrl_task.h"
 #include "debug_link_task.h"
@@ -37,11 +36,6 @@ int main(void)
 
 	/* driver initialization */
 	board_init();
-
-	enable_rgb_led_service(); //XXX: conflict with board_v1
-
-	/* led task */
-	rgb_led_register_task( "rgb_led_task", 512, tskIDLE_PRIORITY + 2); //XXX: pack as driver
 
 	/* flight controller task (highest priority) */
 	flight_controller_register_task("flight controller", 4096, tskIDLE_PRIORITY + 6);

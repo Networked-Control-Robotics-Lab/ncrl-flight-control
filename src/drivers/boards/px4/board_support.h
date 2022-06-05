@@ -3,6 +3,7 @@
 
 #include "uart.h"
 #include "spi.h"
+#include "ncp5623c.h"
 
 /* function ports */
 #define mavlink_puts    uart3_puts
@@ -22,6 +23,9 @@
 #define barometer_spi_read_write    spi3_read_write //XXX: barometer's porting is not complete
 #define barometer_spi_chip_select   spi3_chip_select
 #define barometer_spi_chip_deselect spi3_chip_deselect
+
+#define led_control ncp5623c_led_control
+#define led_toggle  ncp5623c_led_toggle
 
 void board_init(void);
 

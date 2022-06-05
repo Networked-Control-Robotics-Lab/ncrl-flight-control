@@ -65,4 +65,7 @@ void board_init(void)
 #endif
 
 	timer3_init();
+
+	/* led driver task */
+	ncp5623c_driver_register_task("led driver task", 512, tskIDLE_PRIORITY + 2);
 }
