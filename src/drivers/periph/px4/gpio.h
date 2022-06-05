@@ -7,11 +7,7 @@
 #define EXT_SW GPIOB, GPIO_Pin_14
 
 //TODO: refactor this code
-#if (SELECT_BOARD == BOARD_PROTOTYPE_V1) 
-	#define MOTOR8 GPIOE, GPIO_Pin_9
-#elif (SELECT_BOARD == BOARD_PX4_V246) 
-	#define MOTOR6 GPIOD, GPIO_Pin_14
-#endif
+#define MOTOR6 GPIOD, GPIO_Pin_14
 
 #define gpio_toggle(pin)  GPIO_ToggleBits(pin)
 #define gpio_on(pin)  GPIO_SetBits(pin)
