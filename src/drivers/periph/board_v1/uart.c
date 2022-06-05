@@ -67,7 +67,7 @@ void uart1_init(int baudrate)
 
 	NVIC_InitTypeDef NVIC_InitStruct = {
 		.NVIC_IRQChannel = DMA2_Stream7_IRQn,
-		.NVIC_IRQChannelPreemptionPriority = UART1_TX_ISR_PRIORITY,
+		.NVIC_IRQChannelPreemptionPriority = DEBUG_LINK_UART_PRIORITY,
 		.NVIC_IRQChannelSubPriority = 0,
 		.NVIC_IRQChannelCmd = ENABLE
 	};
@@ -75,7 +75,7 @@ void uart1_init(int baudrate)
 	DMA_ITConfig(DMA2_Stream7, DMA_IT_TC, ENABLE);
 
 	NVIC_InitStruct.NVIC_IRQChannel = USART1_IRQn;
-	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = UART1_RX_ISR_PRIORITY;
+	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = DEBUG_LINK_UART_PRIORITY;
 	NVIC_Init(&NVIC_InitStruct);
 	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
 }
@@ -120,7 +120,7 @@ void uart3_init(int baudrate)
 
 	NVIC_InitTypeDef NVIC_InitStruct = {
 		.NVIC_IRQChannel = DMA1_Stream3_IRQn,
-		.NVIC_IRQChannelPreemptionPriority = UART3_TX_ISR_PRIORITY,
+		.NVIC_IRQChannelPreemptionPriority = MAVLINK_UART_PRIORITY,
 		.NVIC_IRQChannelSubPriority = 0,
 		.NVIC_IRQChannelCmd = ENABLE
 	};
@@ -128,7 +128,7 @@ void uart3_init(int baudrate)
 	DMA_ITConfig(DMA1_Stream3, DMA_IT_TC, ENABLE);
 
 	NVIC_InitStruct.NVIC_IRQChannel = USART3_IRQn;
-	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = UART3_RX_ISR_PRIORITY;
+	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = MAVLINK_UART_PRIORITY;
 	NVIC_Init(&NVIC_InitStruct);
 	USART_ITConfig(USART3, USART_IT_RXNE, ENABLE);
 }
@@ -167,7 +167,7 @@ void uart4_init(int baudrate)
 
 	NVIC_InitTypeDef NVIC_InitStruct = {
 		.NVIC_IRQChannel = UART4_IRQn,
-		.NVIC_IRQChannelPreemptionPriority = SBUS_ISR_PRIORITY,
+		.NVIC_IRQChannelPreemptionPriority = SBUS_UART_PRIORITY,
 		.NVIC_IRQChannelSubPriority = 0,
 		.NVIC_IRQChannelCmd = ENABLE
 	};
@@ -212,7 +212,7 @@ void uart6_init(int baudrate)
 
 	NVIC_InitTypeDef NVIC_InitStruct = {
 		.NVIC_IRQChannel = USART6_IRQn,
-		.NVIC_IRQChannelPreemptionPriority = UART6_RX_ISR_PRIORITY,
+		.NVIC_IRQChannelPreemptionPriority = SLAM_UART_PRIORITY,
 		.NVIC_IRQChannelSubPriority = 0,
 		.NVIC_IRQChannelCmd = ENABLE
 	};
@@ -260,7 +260,7 @@ void uart7_init(int baudrate)
 
 	NVIC_InitTypeDef NVIC_InitStruct = {
 		.NVIC_IRQChannel = DMA1_Stream1_IRQn,
-		.NVIC_IRQChannelPreemptionPriority = GPS_UART_TX_ISR,
+		.NVIC_IRQChannelPreemptionPriority = GPS_VICON_UART_PRIORITY,
 		.NVIC_IRQChannelSubPriority = 0,
 		.NVIC_IRQChannelCmd = ENABLE
 	};
@@ -268,7 +268,7 @@ void uart7_init(int baudrate)
 	DMA_ITConfig(DMA1_Stream1, DMA_IT_TC, ENABLE);
 
 	NVIC_InitStruct.NVIC_IRQChannel = UART7_IRQn;
-	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = GPS_OPTITRACK_UART_ISR;
+	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = GPS_VICON_UART_PRIORITY;
 	NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStruct);
 	USART_ITConfig(UART7, USART_IT_RXNE, ENABLE);

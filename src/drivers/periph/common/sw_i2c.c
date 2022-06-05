@@ -67,7 +67,7 @@ void sw_i2c_init(void)
 
 	NVIC_InitTypeDef NVIC_InitStruct = {
 		.NVIC_IRQChannel = TIM2_IRQn,
-		.NVIC_IRQChannelPreemptionPriority = SW_I2C_TIMER_ISR_PRIORITY,
+		.NVIC_IRQChannelPreemptionPriority = SW_I2C_TIMER_PRIORITY,
 		.NVIC_IRQChannelSubPriority = 0,
 		.NVIC_IRQChannelCmd = ENABLE
 	};

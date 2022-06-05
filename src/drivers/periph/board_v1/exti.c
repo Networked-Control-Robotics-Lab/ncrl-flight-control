@@ -29,7 +29,7 @@ void exti10_init(void)
 
 	NVIC_InitTypeDef NVIC_InitStruct = {
 		.NVIC_IRQChannel = EXTI15_10_IRQn,
-		.NVIC_IRQChannelPreemptionPriority = IMU_EXTI_ISR_PRIORITY,
+		.NVIC_IRQChannelPreemptionPriority = IMU_EXTI_PRIORITY,
 		.NVIC_IRQChannelSubPriority = 0,
 		.NVIC_IRQChannelCmd = ENABLE,
 	};

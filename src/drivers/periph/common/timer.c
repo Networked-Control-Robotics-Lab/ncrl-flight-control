@@ -14,7 +14,7 @@
 #include "dummy_sensors.h"
 #include "led_task.h"
 
-#define FLIGHT_CTL_PRESCALER_RELOAD      1000  //400Hz
+#define FLIGHT_CTRL_PRESCALER_RELOAD     1000  //400Hz
 #define LED_CTRL_PRESCALER_RELOAD        16000 //25Hz
 #define COMPASS_PRESCALER_RELOAD         8     //50Hz
 #define BAROMETER_PRESCALER_RELOAD       4     //100Hz
@@ -35,7 +35,7 @@ void timer12_init(void)
 
 	NVIC_InitTypeDef NVIC_InitStruct = {
 		.NVIC_IRQChannel = TIM8_BRK_TIM12_IRQn,
-		.NVIC_IRQChannelPreemptionPriority = SYS_TIMER_ISR_PRIORITY,
+		.NVIC_IRQChannelPreemptionPriority = SYS_TIMER_PRIORITY,
 		.NVIC_IRQChannelCmd = ENABLE
 	};
 	NVIC_Init(&NVIC_InitStruct);
@@ -58,7 +58,7 @@ void timer3_init(void)
 
 	NVIC_InitTypeDef NVIC_InitStruct = {
 		.NVIC_IRQChannel = TIM3_IRQn,
-		.NVIC_IRQChannelPreemptionPriority = BAROMETER_ISR_PRIORITY,
+		.NVIC_IRQChannelPreemptionPriority = BAROMETER_PRIORITY,
 		.NVIC_IRQChannelCmd = ENABLE
 	};
 	NVIC_Init(&NVIC_InitStruct);
@@ -70,7 +70,7 @@ void timer3_init(void)
 
 void TIM8_BRK_TIM12_IRQHandler(void)
 {
-	static int flight_ctrl_cnt = FLIGHT_CTL_PRESCALER_RELOAD;
+	static int flight_ctrl_cnt = FLIGHT_CTRL_PRESCALER_RELOAD;
 	static int led_ctrl_cnt = LED_CTRL_PRESCALER_RELOAD;
 
 	if(TIM_GetITStatus(TIM12, TIM_IT_Update) == SET) {
@@ -80,7 +80,7 @@ void TIM8_BRK_TIM12_IRQHandler(void)
 
 		flight_ctrl_cnt--;
 		if(flight_ctrl_cnt == 0) {
-			flight_ctrl_cnt = FLIGHT_CTL_PRESCALER_RELOAD;
+			flight_ctrl_cnt = FLIGHT_CTRL_PRESCALER_RELOAD;
 			flight_ctrl_semaphore_handler();
 		}
 

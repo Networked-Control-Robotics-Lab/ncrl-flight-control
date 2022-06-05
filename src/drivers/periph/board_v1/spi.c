@@ -83,7 +83,7 @@ void spi3_init(void)
 	};
 	GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-	/* Chip select pin */
+	/* chip selection pin */
 	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_15;
 	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;
 	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
@@ -102,15 +102,6 @@ void spi3_init(void)
 	};
 	SPI_Init(SPI3, &SPI_InitStruct);
 
-#if 0
-	NVIC_InitTypeDef NVIC_InitStruct = {
-		.NVIC_IRQChannel = SPI3_IRQn,
-		.NVIC_IRQChannelPreemptionPriority = BAROMETER_ISR_PRIORITY,
-		.NVIC_IRQChannelSubPriority = 0,
-		.NVIC_IRQChannelCmd = ENABLE
-	};
-	NVIC_Init(&NVIC_InitStruct);
-#endif
 	SPI_Cmd(SPI3, ENABLE);
 }
 
