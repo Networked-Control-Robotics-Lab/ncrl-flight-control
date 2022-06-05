@@ -22,13 +22,13 @@ LDFLAGS+=-Wl,--start-group -lm -Wl,--end-group
 
 SRC=
 
--include ./drivers/makefiles/board_common.mk
+-include ./drivers/boards/board_common.mk
 
 #=================#
 # board selection #
 #=================#
--include ./drivers/makefiles/px4.mk       #use px4 2.4.6 board
-#-include ./drivers/makefiles/board_v1.mk #use prototyope board v1
+-include ./drivers/boards/px4.mk       #use px4 2.4.6 board
+#-include ./drivers/boards/board_v1.mk #use prototyope board v1
 
 SRC+=./platform/system_stm32f4xx.c
 
