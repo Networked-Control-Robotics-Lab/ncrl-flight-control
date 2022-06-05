@@ -30,8 +30,6 @@ SRC=
 -include ./drivers/boards/px4.mk       #use px4 2.4.6 board
 #-include ./drivers/boards/board_v1.mk #use prototyope board v1
 
-SRC+=./platform/system_stm32f4xx.c
-
 SRC+=lib/CMSIS/DSP_Lib/Source/CommonTables/arm_common_tables.c \
 	lib/CMSIS/DSP_Lib/Source/FastMathFunctions/arm_cos_f32.c \
 	lib/CMSIS/DSP_Lib/Source/FastMathFunctions/arm_sin_f32.c \
