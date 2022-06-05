@@ -38,7 +38,7 @@ int main(void)
 	/* driver initialization */
 	board_init();
 
-	enable_rgb_led_service(); //XXX: conflict with board_v1	
+	enable_rgb_led_service(); //XXX: conflict with board_v1
 
 	/* led task */
 	rgb_led_register_task( "rgb_led_task", 512, tskIDLE_PRIORITY + 2); //XXX: pack as driver

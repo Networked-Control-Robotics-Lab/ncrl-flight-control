@@ -1,5 +1,7 @@
 PROJ_ROOT := $(dir $(lastword $(MAKEFILE_LIST)))/../..
 
+CFLAGS+=-DUAV_HARDWARE=UAV_HARDWARE_AVILON
+
 SRC+=$(PROJ_ROOT)/drivers/periph/board_v1/uart.c \
 	$(PROJ_ROOT)/drivers/periph/board_v1/spi.c \
 	$(PROJ_ROOT)/drivers/periph/board_v1/pwm.c \

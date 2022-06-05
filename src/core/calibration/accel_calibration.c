@@ -12,6 +12,7 @@
 #include "common_list.h"
 #include "calibration_task.h"
 #include "uart.h"
+#include "board_support.h"
 
 #define ACCEL_CALIB_SAMPLING_TIMES 2000
 
@@ -389,7 +390,7 @@ void shell_accel_calibration_handler(void)
 
 	/* acceleromter scale calibration */
 	while(1) {
-		if(uart2_getc(&c, 0) == true) {
+		if(debug_link_getc(&c, 0) == true) {
 			if(c == 'q') return;
 		}
 
@@ -514,7 +515,7 @@ void shell_accel_calibration_handler(void)
 	shell_puts("press enter to start level horizon calibration\n\r");
 
 	while(1) {
-		if(uart2_getc(&c, 0) == true) {
+		if(debug_link_getc(&c, 0) == true) {
 			if(c == 13) break;
 		}
 	}

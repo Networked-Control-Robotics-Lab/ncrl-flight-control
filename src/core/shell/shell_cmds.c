@@ -18,6 +18,8 @@
 #include "waypoint_following.h"
 #include "takeoff_landing.h"
 #include "proj_config.h"
+#include "board_support.h"
+
 static bool parse_float_from_str(char *str, float *value)
 {
 	char *end_ptr = NULL;
@@ -428,52 +430,44 @@ void shell_cmd_radio(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int pa
 	char c = '\0';
 	while(1) {
 
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
-		if(uart1_getc(&c, 0) == true) {
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
-		if(uart2_getc(&c, 0) == true) {
-#endif
+		if(debug_link_getc(&c, 0) == true) {
 			if(c == 'q') break;
 		}
 		debug_print_rc_info();
 	}
 }
 
-void shell_cmd_radio_raw(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt) {
+void shell_cmd_radio_raw(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
 	shell_puts("press [q] to stop.\n\r");
 	char c = '\0';
 	while(1) {
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
-		if(uart1_getc(&c, 0) == true) {
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
-		if(uart2_getc(&c, 0) == true) {
-#endif
+		if(debug_link_getc(&c, 0) == true) {
 			if(c == 'q') break;
 		}
 		debug_print_rc_val();
 	}
 }
 
-void shell_cmd_accel_calib(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt) {
+void shell_cmd_accel_calib(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
 	shell_accel_calibration_handler();
 }
 
-void shell_cmd_accel(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt) {
+void shell_cmd_accel(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
 	shell_puts("press [q] to stop.\n\r");
 	char c = '\0';
 	while(1) {
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
-		if(uart1_getc(&c, 0) == true) {
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
-		if(uart2_getc(&c, 0) == true) {
-#endif
+		if(debug_link_getc(&c, 0) == true) {
 			if(c == 'q') break;
 		}
 		debug_print_mpu6500_unscaled_lpf_accel();
 	}
 }
 
-void shell_cmd_perf(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt) {
+void shell_cmd_perf(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
 	char s[100];
 	shell_puts("performance analysis:\n\r---------------------\n\r");
 
@@ -500,7 +494,8 @@ void shell_cmd_perf(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 	shell_puts(s);
 }
 
-static void param_list_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX]) {
+static void param_list_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
+{
 	char s[100];
 
 	int i;
@@ -578,7 +573,8 @@ static void param_list_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LE
 
 }
 
-static void param_save_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX]) {
+static void param_save_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
+{
 	int retval = save_param_list_to_flash();
 
 	switch(retval) {
@@ -597,7 +593,8 @@ static void param_save_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LE
 	}
 }
 
-static void param_load_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX]) {
+static void param_load_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX])
+{
 	int retval = load_param_list_from_flash();
 
 	switch(retval) {
@@ -613,7 +610,8 @@ static void param_load_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LE
 	}
 }
 
-void shell_cmd_param(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt) {
+void shell_cmd_param(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
 	if(param_cnt == 2) {
 		if(strcmp(param_list[1], "list") == 0) {
 			param_list_cmd_handler(param_list);
@@ -632,7 +630,8 @@ void shell_cmd_param(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int pa
 
 }
 
-void shell_cmd_compass(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt) {
+void shell_cmd_compass(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
 	if(is_compass_available() == false) {
 		shell_puts("compass not presents!\n\r");
 	}
@@ -645,11 +644,7 @@ void shell_cmd_compass(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int 
 
 	shell_puts("press [q] to stop.\n\r");
 	while(1) {
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
-		if(uart1_getc(&c, 0) == true) {
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
-		if(uart2_getc(&c, 0) == true) {
-#endif
+		if(debug_link_getc(&c, 0) == true) {
 			if(c == 'q') break;
 		}
 
@@ -664,7 +659,8 @@ void shell_cmd_compass(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int 
 	}
 }
 
-void shell_cmd_motor_calib(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt) {
+void shell_cmd_motor_calib(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
 	char user_agree[CMD_LEN_MAX];
 	struct shell_struct shell;
 	shell_init_struct(&shell, "confirm motor calibration command [y/n]: ", user_agree);
@@ -679,7 +675,8 @@ void shell_cmd_motor_calib(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], 
 	}
 }
 
-void shell_cmd_motor_test(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt) {
+void shell_cmd_motor_test(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
 	char user_agree[CMD_LEN_MAX];
 	struct shell_struct shell;
 	shell_init_struct(&shell, "confirm motor thrust testing command [y/n]: ", user_agree);

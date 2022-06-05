@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-
 #include "stm32f4xx_conf.h"
 #include "delay.h"
 #include "bound.h"
@@ -8,6 +7,8 @@
 #include "sbus_radio.h"
 #include "sys_time.h"
 #include "proj_config.h"
+#include "board_support.h"
+
 void parse_sbus(uint8_t *raw_buff, uint16_t *rc_val);
 
 sbus_t sbus;
@@ -125,33 +126,18 @@ int rc_safety_check(radio_t *rc)
 	return 0;
 }
 
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 void debug_print_raw_sbus(void)
 {
 	int i;
 	for(i = 0; i < 25; i++) {
 		char s[10] = {0};
 		sprintf(s, "%d,", sbus.buf[i]);
-		uart1_puts(s, strlen(s));
+		debug_link_puts(s, strlen(s));
 	}
 
 	char *s = "\n\r";
-	uart1_puts(s, strlen(s));
+	debug_link_puts(s, strlen(s));
 }
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
-void debug_print_raw_sbus(void)
-{
-	int i;
-	for(i = 0; i < 25; i++) {
-		char s[10] = {0};
-		sprintf(s, "%d,", sbus.buf[i]);
-		uart2_puts(s, strlen(s));
-	}
-
-	char *s = "\n\r";
-	uart2_puts(s, strlen(s));
-}
-#endif
 
 void sbus_get_unscaled(uint16_t *rc_val)
 {
@@ -176,29 +162,16 @@ void sbus_get_unscaled(uint16_t *rc_val)
 	rc_val[18] = 0;
 }
 
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 void debug_print_rc_val(void)
 {
 	/* debug message */
 	char s[100] = {0};
 	sprintf(s, "ch1:%d, ch2:%d ch3:%d, ch4:%d, ch5:%d, ch6:%d, ch7:%d\n\r",
 	        sbus.rc_val[0], sbus.rc_val[1], sbus.rc_val[2], sbus.rc_val[3], sbus.rc_val[4], sbus.rc_val[5], sbus.rc_val[6]);
-	uart1_puts(s, strlen(s));
+	debug_link_puts(s, strlen(s));
 	blocked_delay_ms(100);
 }
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
-void debug_print_rc_val(void)
-{
-	/* debug message */
-	char s[100] = {0};
-	sprintf(s, "ch1:%d, ch2:%d ch3:%d, ch4:%d, ch5:%d, ch6:%d, ch7:%d\n\r",
-	        sbus.rc_val[0], sbus.rc_val[1], sbus.rc_val[2], sbus.rc_val[3], sbus.rc_val[4], sbus.rc_val[5], sbus.rc_val[6]);
-	uart2_puts(s, strlen(s));
-	blocked_delay_ms(100);
-}
-#endif
 
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 void debug_print_rc_info(void)
 {
 	radio_t rc;
@@ -240,52 +213,6 @@ void debug_print_rc_info(void)
 	sprintf(s, "%s%s%s roll:%lf,pitch:%lf,yaw:%lf,throttle:%lf\n\r",
 	        safety_s, auto_flight_s, aux1_mode_s, rc.roll, rc.pitch, rc.yaw, rc.throttle);
 
-	uart1_puts(s, strlen(s));
+	debug_link_puts(s, strlen(s));
 	blocked_delay_ms(100);
 }
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
-void debug_print_rc_info(void)
-{
-	radio_t rc;
-	sbus_rc_read(&rc);
-
-	char s[300] = {0};
-
-	char *safety_s = 0;
-	char *safety_armed_s = "[armed]";
-	char *safety_disarmed_s = "[disarmed]";
-
-	char *auto_flight_s = 0;
-	char *auto_flight_enabled_s = "[auto-flight]";
-	char *auto_flight_disabled_s = "[manual-flight]";
-
-	char *aux1_mode_s = 0;
-	char *aux1_mode1_s = "[aux1 mode1]";
-	char *aux1_mode2_s = "[aux1 mode2]";
-	char *aux1_mode3_s = "[aux1 mode3]";
-
-	if(rc.safety == true) safety_s = safety_armed_s;
-	else safety_s = safety_disarmed_s;
-
-	if(rc.auto_flight == true) auto_flight_s = auto_flight_enabled_s;
-	else auto_flight_s = auto_flight_disabled_s;
-
-	switch(rc.aux1_mode) {
-	case RC_AUX_MODE1:
-		aux1_mode_s = aux1_mode1_s;
-		break;
-	case RC_AUX_MODE2:
-		aux1_mode_s = aux1_mode2_s;
-		break;
-	case RC_AUX_MODE3:
-		aux1_mode_s = aux1_mode3_s;
-		break;
-	}
-
-	sprintf(s, "%s%s%s roll:%lf,pitch:%lf,yaw:%lf,throttle:%lf\n\r",
-	        safety_s, auto_flight_s, aux1_mode_s, rc.roll, rc.pitch, rc.yaw, rc.throttle);
-
-	uart2_puts(s, strlen(s));
-	blocked_delay_ms(100);
-}
-#endif

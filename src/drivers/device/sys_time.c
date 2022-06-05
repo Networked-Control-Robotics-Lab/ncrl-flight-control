@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <string.h>
-
 #include "stm32f4xx_conf.h"
 #include "uart.h"
 #include "sys_time.h"
+#include "board_support.h"
 
 sys_time_t sys_tim;
 
@@ -46,5 +46,5 @@ void debug_print_sys_tim(void)
 	char s[100] = {0};
 	sprintf(s, "sys_tim_sec: %f, sys_time_ms: %f\n\r",
 	        get_sys_time_s(), get_sys_time_ms());
-	uart2_puts(s, strlen(s));
+	debug_link_puts(s, strlen(s));
 }

@@ -12,6 +12,7 @@
 #include "delay.h"
 #include "uart.h"
 #include "autopilot.h"
+#include "board_support.h"
 
 #define MAVLINK_QUEUE_SIZE 10
 
@@ -119,7 +120,7 @@ void mavlink_rx_task(void *param)
 		mavlink_status_t mavlink_recpt_status;
 
 		/* receive mavlink message */
-		if(uart3_getc(&c, portMAX_DELAY) == true) {
+		if(mavlink_getc(&c, portMAX_DELAY) == true) {
 			received_mavlink_msg =
 			        mavlink_parse_char(MAVLINK_COMM_1, (uint8_t)c, &mavlink_recpt_msg, &mavlink_recpt_status);
 		}

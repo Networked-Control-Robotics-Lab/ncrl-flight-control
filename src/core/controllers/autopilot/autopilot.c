@@ -13,6 +13,7 @@
 #include "takeoff_landing.h"
 #include "waypoint_following.h"
 #include "position_state.h"
+#include "board_support.h"
 
 autopilot_t autopilot;
 
@@ -244,7 +245,7 @@ void autopilot_guidance_handler(float *curr_pos_enu, float *curr_vel_enu)
 void debug_print_waypoint_list(void)
 {
 	char *prompt = "waypoint list:\n\r";
-	uart2_puts(prompt, strlen(prompt));
+	debug_link_puts(prompt, strlen(prompt));
 
 	char s[200] = {0};
 	int i;
@@ -253,7 +254,7 @@ void debug_print_waypoint_list(void)
 		        i, autopilot.waypoints[i].pos[0], autopilot.waypoints[i].pos[1],
 		        autopilot.waypoints[i].pos[2], autopilot.waypoints[i].heading,
 		        autopilot.waypoints[i].halt_time_sec, autopilot.waypoints[i].touch_radius);
-		uart2_puts(s, strlen(s));
+		debug_link_puts(s, strlen(s));
 	}
 }
 
@@ -261,7 +262,7 @@ void debug_print_waypoint_status(void)
 {
 	if(autopilot.mode != AUTOPILOT_WAIT_NEXT_WAYPOINT_MODE && autopilot.mode != AUTOPILOT_FOLLOW_WAYPOINT_MODE) {
 		char *no_executing_s = "autopilot off, no executing waypoint mission.\n\r";
-		uart2_puts(no_executing_s, strlen(no_executing_s));
+		debug_link_puts(no_executing_s, strlen(no_executing_s));
 		return;
 	}
 
@@ -276,6 +277,6 @@ void debug_print_waypoint_status(void)
 	        autopilot.waypoints[curr_waypoint_num].heading,
 	        autopilot.waypoints[curr_waypoint_num].halt_time_sec,
 	        autopilot.waypoints[curr_waypoint_num].touch_radius * 0.01);
-	uart2_puts(s, strlen(s));
+	debug_link_puts(s, strlen(s));
 	freertos_task_delay(1);
 }

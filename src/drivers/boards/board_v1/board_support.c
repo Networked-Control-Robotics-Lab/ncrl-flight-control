@@ -6,7 +6,6 @@
 #include "sys_time.h"
 #include "delay.h"
 #include "gpio.h"
-#include "i2c.h"
 #include "led.h"
 #include "flash.h"
 #include "crc.h"

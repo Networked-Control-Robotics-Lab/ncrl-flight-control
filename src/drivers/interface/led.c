@@ -19,7 +19,7 @@ void rgb_led_init(void)
 {
 	rgb_led_service.blink_cnt = 0;
 	rgb_led_service.blink_enabled = false;
-#if (RGB_USE == RGB_USE_GPIO)
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 	led_r.gpio_group = GPIOA;
 	led_r.pin_num = GPIO_Pin_2;
 	led_r.state = LED_OFF;
@@ -32,7 +32,7 @@ void rgb_led_init(void)
 	led_b.pin_num = GPIO_Pin_3;
 	led_b.state = LED_OFF;
 
-#elif (RGB_USE == RGB_USE_NCP5623C)
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
 
 	led_r.gpio_group = GPIOA;
 	led_r.pin_num = GPIO_Pin_2;
@@ -127,7 +127,7 @@ void set_rgb_led_service_imu_calibration_finished_flag(bool new_state)
 	config_rgb_mode();
 }
 
-#if (RGB_USE == RGB_USE_GPIO)
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 void led_control(led_t *led)
 {
 	if(led->state == LED_ON) {
@@ -137,7 +137,7 @@ void led_control(led_t *led)
 	}
 }
 
-#elif (RGB_USE == RGB_USE_NCP5623C)
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
 void led_control(led_t *led_r,led_t *led_g,led_t *led_b)
 {
 	float r = 0;
@@ -164,28 +164,28 @@ void rgb_led_handler(void)
 	static bool toggle = true;
 
 	if(rgb_led_service.blink_enabled == false) {
-#if (RGB_USE == RGB_USE_GPIO)
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 		led_control(&led_r);
 		led_control(&led_g);
 		led_control(&led_b);
-#elif (RGB_USE == RGB_USE_NCP5623C)
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
 		led_control(&led_r,&led_g,&led_b);
 #endif
 	} else {
 		if(toggle == true) {
-#if (RGB_USE == RGB_USE_GPIO)
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 			led_control(&led_r);
 			led_control(&led_g);
 			led_control(&led_b);
-#elif (RGB_USE == RGB_USE_NCP5623C)
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
 			led_control(&led_r,&led_g,&led_b);
 #endif
 		} else {
-#if (RGB_USE == RGB_USE_GPIO)
+#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
 			led_off(LED_R);
 			led_off(LED_G);
 			led_off(LED_B);
-#elif (RGB_USE == RGB_USE_NCP5623C)
+#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
 			rgb_light(0,0,0);
 #endif
 		}

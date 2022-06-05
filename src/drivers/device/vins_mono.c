@@ -11,7 +11,8 @@
 #include "vins_mono.h"
 #include "sys_time.h"
 #include "debug_link.h"
-#include <proj_config.h>
+#include "proj_config.h"
+#include "board_support.h"
 
 #define VINS_MONO_IMU_MSG_SIZE 27
 #define VINS_MONO_CHECKSUM_INIT_VAL 19

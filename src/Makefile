@@ -139,7 +139,6 @@ SRC+=./drivers/device/mpu6500.c \
 	./drivers/device/ist8310.c \
 	./drivers/device/ublox_m8n.c \
 	./drivers/device/vins_mono.c \
-	./drivers/device/ncp5623c.c \
 	./drivers/interface/led.c \
 	./drivers/interface/imu.c \
 	./drivers/interface/barometer.c \

@@ -8,10 +8,9 @@
 #define UAV_TYPE_QUADROTOR 0
 #define SELECT_UAV_TYPE UAV_TYPE_QUADROTOR
 
-/* uav hardware */
-#define UAV_HARDWARE_AVILON 0
+/* flight control board (automatically set by makefile) */
+#define UAV_HARDWARE_AVILON       0
 #define UAV_HARDWARE_PIXHAWK2_4_6 1
-#define UAV_HARDWARE UAV_HARDWARE_PIXHAWK2_4_6
 
 /*===========================*
  * telemetry system settings *
@@ -72,11 +71,6 @@
 
 /* barometer sensor option */
 #define ENABLE_BAROMETER       0
-
-/* rgb light option */
-#define RGB_USE_GPIO       0
-#define RGB_USE_NCP5623C   1
-#define RGB_USE RGB_USE_NCP5623C
 
 /*=======================================================*
  * sensor source settings for state estimation algorithm *

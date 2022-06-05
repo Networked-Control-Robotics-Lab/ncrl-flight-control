@@ -13,6 +13,8 @@
 #include "common_list.h"
 #include "led.h"
 #include "proj_config.h"
+#include "board_support.h"
+
 #define IMU_CALIB_SAMPLE_CNT 1000
 
 mpu6500_t mpu6500 = {
@@ -507,7 +509,7 @@ void debug_print_mpu6500_accel(void)
 	sprintf(s, "[accel] x:%4d, y:%4d, z:%4d\n\r", mpu6500.accel_unscaled[0],
 	        mpu6500.accel_unscaled[1], mpu6500.accel_unscaled[2]);
 
-	uart2_puts(s, strlen(s));
+	debug_link_puts(s, strlen(s));
 	blocked_delay_ms(100);
 }
 
@@ -518,6 +520,6 @@ void debug_print_mpu6500_unscaled_lpf_accel(void)
 	sprintf(s, "[accel] x:%4.0f, y:%4.0f, z:%4.0f\n\r", mpu6500.accel_unscaled_lpf[0],
 	        mpu6500.accel_unscaled_lpf[1], mpu6500.accel_unscaled_lpf[2]);
 
-	uart2_puts(s, strlen(s));
+	debug_link_puts(s, strlen(s));
 	blocked_delay_ms(100);
 }
