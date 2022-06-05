@@ -9,13 +9,6 @@ uint8_t spi3_tx_buf;
 uint8_t spi3_rx_buf;
 
 /* <spi1>
- * << in avilon >>
- * usage: mpu6500 (imu)
- * cs: gpio_pin_a_4
- * sck: gpio_pin_a_5
- * miso: gpio_pin_a_6
- * mosi: gpio_pin_a_7
- * << in pixhawk 2.4.6 >>
  * usage: mpu6000 (imu)
  * cs: gpio_pin_c_2
  * sck: gpio_pin_a_5
