@@ -16,7 +16,7 @@ CFLAGS+=-D USE_STDPERIPH_DRIVER \
 	-D __FPU_PRESENT=1 \
 	#-D __FPU_USED=1
 
-CFLAGS+=-Wl,-T,./platform/stm32f427vi_flash.ld
+CFLAGS+=-Wl,-T,./drivers/boards/common/stm32f427vi_flash.ld
 
 LDFLAGS+=-Wl,--start-group -lm -Wl,--end-group
 
@@ -144,7 +144,7 @@ SRC+=./drivers/device/mpu6500.c \
 	./drivers/interface/gps.c
 
 CFLAGS+=-I./
-CFLAGS+=-I./platform
+CFLAGS+=-I./drivers/boards/common
 CFLAGS+=-I./core
 CFLAGS+=-I./core/filters
 CFLAGS+=-I./core/state_estimator
@@ -180,8 +180,8 @@ CFLAGS+=-I./lib/mavlink_v2/ncrl_mavlink
 OBJS=$(SRC:.c=.o)
 DEPEND=$(SRC:.c=.d)
 
-STARTUP=./platform/startup_stm32f427.s
-STARTUP_OBJ=./platform/startup_stm32f427.s
+STARTUP=./drivers/boards/common/startup_stm32f427.s
+STARTUP_OBJ=./drivers/boards/common/startup_stm32f427.s
 
 all:$(EXECUTABLE)
 
