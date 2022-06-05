@@ -13,6 +13,8 @@
 
 //#define vins_mono_puts  uart_puts
 
+#define gps_puts        uart4_puts
+
 #define imu_spi_read_write    spi1_read_write
 #define imu_spi_chip_select   spi1_chip_select
 #define imu_spi_chip_deselect spi1_chip_deselect

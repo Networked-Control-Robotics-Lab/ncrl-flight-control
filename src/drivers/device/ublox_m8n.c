@@ -10,6 +10,7 @@
 #include "../../lib/mavlink_v2/ncrl_mavlink/mavlink.h"
 #include "ncrl_mavlink.h"
 #include "ins_sensor_sync.h"
+#include "board_support.h"
 
 #define UBX_SYNC_C1 0xb5
 #define UBX_SYNC_C2 0x62
@@ -72,7 +73,7 @@ bool ublox_available(void)
 
 void ublox_command_send(uint8_t *cmd, int size)
 {
-	usart_puts(UART7, (char *)cmd, size);
+	gps_puts((char *)cmd, size);
 	blocked_delay_ms(100);
 }
 

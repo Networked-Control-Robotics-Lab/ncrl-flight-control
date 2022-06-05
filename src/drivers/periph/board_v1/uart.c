@@ -401,6 +401,7 @@ void uart6_puts(char *s, int size)
 
 void uart7_puts(char *s, int size)
 {
+#if 0
 	//uart7 tx: dma1 channel5 stream1
 	DMA_ClearFlag(DMA1_Stream1, DMA_FLAG_TCIF5);
 
@@ -427,6 +428,9 @@ void uart7_puts(char *s, int size)
 	USART_DMACmd(UART7, USART_DMAReq_Tx, ENABLE);
 
 	xSemaphoreTake(uart7_tx_semphr, portMAX_DELAY);
+#else
+	usart_puts(UART7, s, size);
+#endif
 }
 
 bool uart1_getc(char *c, long sleep_ticks)

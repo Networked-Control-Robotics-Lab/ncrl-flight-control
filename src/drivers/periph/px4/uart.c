@@ -339,6 +339,11 @@ void uart3_puts(char *s, int size)
 	xSemaphoreTake(uart3_tx_semphr, portMAX_DELAY);
 }
 
+void uart4_puts(char *s, int size)
+{
+	usart_puts(UART4, s, size);
+}
+
 #if 0
 //specially designed puts function of uart6 for vins-mono
 void uart6_puts(char *s, int size)
