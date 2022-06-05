@@ -7,9 +7,9 @@
 #define EXT_SW GPIOB, GPIO_Pin_14
 
 //TODO: refactor this code
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON) 
+#if (SELECT_BOARD == BOARD_PROTOTYPE_V1) 
 #define MOTOR8 GPIOE, GPIO_Pin_9
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6) 
+#elif (SELECT_BOARD == BOARD_PX4_V246) 
 #define MOTOR6 GPIOD, GPIO_Pin_14
 #endif
 

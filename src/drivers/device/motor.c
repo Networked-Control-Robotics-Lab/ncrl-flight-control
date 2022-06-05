@@ -47,7 +47,7 @@ void set_reversible_motor_value(volatile uint32_t *motor, float percentage)
 	*motor = (uint32_t)pwm_val;
 }
 
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
+#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
 void motor_init(void)
 {
 	set_motor_pwm_pulse(MOTOR1, MOTOR_PULSE_MIN);
@@ -58,7 +58,7 @@ void motor_init(void)
 	set_motor_pwm_pulse(MOTOR6, MOTOR_PULSE_MIN);
 	blocked_delay_ms(100);
 }
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+#elif (SELECT_BOARD == BOARD_PX4_V246)
 void motor_init(void)
 {
 	set_motor_pwm_pulse(MOTOR1, MOTOR_PULSE_MIN);
@@ -70,7 +70,7 @@ void motor_init(void)
 }
 #endif
 
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
+#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
 void motor_halt(void)
 {
 	set_motor_pwm_pulse(MOTOR1, MOTOR_PULSE_MIN);
@@ -80,7 +80,7 @@ void motor_halt(void)
 	set_motor_pwm_pulse(MOTOR5, MOTOR_PULSE_MIN);
 	set_motor_pwm_pulse(MOTOR6, MOTOR_PULSE_MIN);
 }
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+#elif (SELECT_BOARD == BOARD_PX4_V246)
 void motor_halt(void)
 {
 	set_motor_pwm_pulse(MOTOR1, MOTOR_PULSE_MIN);

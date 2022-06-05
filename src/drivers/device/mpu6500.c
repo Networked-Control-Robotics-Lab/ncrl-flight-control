@@ -97,7 +97,7 @@ bool mpu6500_calibration_not_finished(void)
 
 }
 
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
+#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
 void mpu6500_init(void)
 {
 	while((mpu6500_read_who_am_i() != 0x70));
@@ -188,7 +188,7 @@ void mpu6500_init(void)
 
 	while(mpu6500.init_finished == false);
 }
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+#elif (SELECT_BOARD == BOARD_PX4_V246)
 /* XXX: actually using mpu6000 here */
 void mpu6500_init(void)
 {
@@ -331,7 +331,7 @@ void mpu6500_temp_convert_to_scale(int16_t *temp_unscaled, float *temp_scaled)
 	*temp_scaled = *temp_unscaled * MPU6500T_85degC + 21.0f;
 }
 
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
+#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
 void mpu6500_int_handler(void)
 {
 	uint8_t buffer[14];
@@ -392,7 +392,7 @@ void mpu6500_int_handler(void)
 	mpu6500.gyro_lpf[1] = mpu6500.gyro_raw[1];
 	mpu6500.gyro_lpf[2] = mpu6500.gyro_raw[2];
 }
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+#elif (SELECT_BOARD == BOARD_PX4_V246)
 void mpu6500_int_handler(void)
 {
 	uint8_t buffer[14];

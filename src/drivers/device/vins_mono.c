@@ -236,7 +236,7 @@ void vins_mono_send_imu_200hz(void)
 }
 
 
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
+#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
 void vins_mono_camera_trigger_20hz(void)
 {
 	/* to generate the camera trigger pulse:
@@ -254,7 +254,7 @@ void vins_mono_camera_trigger_20hz(void)
 
 	counter = (counter + 1) % 20;
 }
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+#elif (SELECT_BOARD == BOARD_PX4_V246)
 void vins_mono_camera_trigger_20hz(void)
 {
 	/* to generate the camera trigger pulse:

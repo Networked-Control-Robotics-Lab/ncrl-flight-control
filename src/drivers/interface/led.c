@@ -19,7 +19,7 @@ void rgb_led_init(void)
 {
 	rgb_led_service.blink_cnt = 0;
 	rgb_led_service.blink_enabled = false;
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
+#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
 	led_r.gpio_group = GPIOA;
 	led_r.pin_num = GPIO_Pin_2;
 	led_r.state = LED_OFF;
@@ -32,7 +32,7 @@ void rgb_led_init(void)
 	led_b.pin_num = GPIO_Pin_3;
 	led_b.state = LED_OFF;
 
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+#elif (SELECT_BOARD == BOARD_PX4_V246)
 
 	led_r.gpio_group = GPIOA;
 	led_r.pin_num = GPIO_Pin_2;
@@ -127,7 +127,7 @@ void set_rgb_led_service_imu_calibration_finished_flag(bool new_state)
 	config_rgb_mode();
 }
 
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
+#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
 void led_control(led_t *led)
 {
 	if(led->state == LED_ON) {
@@ -137,7 +137,7 @@ void led_control(led_t *led)
 	}
 }
 
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+#elif (SELECT_BOARD == BOARD_PX4_V246)
 void led_control(led_t *led_r,led_t *led_g,led_t *led_b)
 {
 	float r = 0;
@@ -164,28 +164,28 @@ void rgb_led_handler(void)
 	static bool toggle = true;
 
 	if(rgb_led_service.blink_enabled == false) {
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
+#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
 		led_control(&led_r);
 		led_control(&led_g);
 		led_control(&led_b);
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+#elif (SELECT_BOARD == BOARD_PX4_V246)
 		led_control(&led_r,&led_g,&led_b);
 #endif
 	} else {
 		if(toggle == true) {
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
+#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
 			led_control(&led_r);
 			led_control(&led_g);
 			led_control(&led_b);
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+#elif (SELECT_BOARD == BOARD_PX4_V246)
 			led_control(&led_r,&led_g,&led_b);
 #endif
 		} else {
-#if (UAV_HARDWARE == UAV_HARDWARE_AVILON)
+#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
 			led_off(LED_R);
 			led_off(LED_G);
 			led_off(LED_B);
-#elif (UAV_HARDWARE == UAV_HARDWARE_PIXHAWK2_4_6)
+#elif (SELECT_BOARD == BOARD_PX4_V246)
 			rgb_light(0,0,0);
 #endif
 		}

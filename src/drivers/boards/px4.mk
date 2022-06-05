@@ -1,6 +1,6 @@
 PROJ_ROOT := $(dir $(lastword $(MAKEFILE_LIST)))/../..
 
-CFLAGS+=-DUAV_HARDWARE=UAV_HARDWARE_PIXHAWK2_4_6
+CFLAGS+=-DSELECT_BOARD=BOARD_PX4_V246
 
 SRC+=$(PROJ_ROOT)/drivers/periph/px4/uart.c \
 	$(PROJ_ROOT)/drivers/periph/px4/spi.c \
