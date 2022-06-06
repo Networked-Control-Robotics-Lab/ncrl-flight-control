@@ -51,8 +51,6 @@ void board_init(void)
 	spi1_init();       //imu
 	blocked_delay_ms(50);
 
-	blocked_delay_ms(50);
-
 #if (ENABLE_MAGNETOMETER == 1)
 	/* compass (ist8310) */
 	//sw_i2c_init();
