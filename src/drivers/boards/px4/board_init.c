@@ -49,6 +49,7 @@ void board_init(void)
 	pwm_timer4_init(); //motor
 	exti15_init();     //imu ext interrupt
 	spi1_init();       //imu
+
 	blocked_delay_ms(50);
 
 #if (ENABLE_MAGNETOMETER == 1)
