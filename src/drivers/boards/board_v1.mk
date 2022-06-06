@@ -1,6 +1,9 @@
 PROJ_ROOT := $(dir $(lastword $(MAKEFILE_LIST)))/../..
 
-CFLAGS+=-DSELECT_BOARD=BOARD_PROTOTYPE_V1
+#prototype board v1
+
+CFLAGS+=-DSELECT_BOARD=BOARD_PROTOTYPE_V1 \
+	-DSELECT_MPU_IMU=USE_MPU6500
 
 #peripherial driver implementation for this board
 SRC+=$(PROJ_ROOT)/drivers/periph/board_v1/uart.c \

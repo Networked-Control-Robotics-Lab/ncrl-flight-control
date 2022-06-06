@@ -9,8 +9,8 @@
 #define SELECT_UAV_TYPE UAV_TYPE_QUADROTOR
 
 /* flight control board (automatically set by makefile) */
-#define BOARD_PROTOTYPE_V1 0
-#define BOARD_PX4_V246     1
+#define BOARD_PROTOTYPE_V1 1
+#define BOARD_PX4_V246     2
 
 /*===========================*
  * telemetry system settings *

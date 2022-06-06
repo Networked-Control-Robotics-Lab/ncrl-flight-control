@@ -1,6 +1,9 @@
+#pixhawk 2.4.6 board
+
 PROJ_ROOT := $(dir $(lastword $(MAKEFILE_LIST)))/../..
 
-CFLAGS+=-DSELECT_BOARD=BOARD_PX4_V246 #pixhawk 2.4.6
+CFLAGS+=-DSELECT_BOARD=BOARD_PX4_V246 \
+	-DSELECT_MPU_IMU=USE_MPU6000
 
 #peripherial driver implementation for this board
 SRC+=$(PROJ_ROOT)/drivers/periph/px4/uart.c \

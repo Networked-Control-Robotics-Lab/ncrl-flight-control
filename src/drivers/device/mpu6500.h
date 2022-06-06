@@ -8,6 +8,10 @@
 #include "imu.h"
 #include "proj_config.h"
 
+/* driver mode */
+#define USE_MPU6500 1
+#define USE_MPU6000 2
+
 #define MPU6500_SMPLRT_DIV 0x19
 #define MPU6500_CONFIG 0x1A
 #define MPU6500_GYRO_CONFIG 0x1B
