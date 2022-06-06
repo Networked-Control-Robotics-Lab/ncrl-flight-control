@@ -40,14 +40,8 @@ void esc_range_calibration(void)
 
 		calib_signal = rc.throttle * 0.01f;
 
-		set_motor_value(MOTOR1, calib_signal);
-		set_motor_value(MOTOR2, calib_signal);
-		set_motor_value(MOTOR3, calib_signal);
-		set_motor_value(MOTOR4, calib_signal);
-		set_motor_value(MOTOR5, calib_signal);
-#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
-		set_motor_value(MOTOR6, calib_signal);
-#endif
+		set_all_motor_pwm_pulse(calib_signal);
+
 		freertos_task_delay(1);
 	}
 }
