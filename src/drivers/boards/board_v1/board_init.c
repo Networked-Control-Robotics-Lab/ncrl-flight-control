@@ -27,8 +27,6 @@
 #include "lidar_lite.h"
 #include "ins_sensor_sync.h"
 
-#define BAROMETER_PRESCALER_RELOAD 4 //100Hz
-
 void f4_sw_i2c_driver_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
                                     UBaseType_t priority);
 
