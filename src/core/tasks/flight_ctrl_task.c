@@ -64,7 +64,7 @@ void rc_safety_protection(void)
 	do {
 		time_current = get_sys_time_ms();
 		if(time_current - time_last > 100.0f) {
-			led_toggle(true, false, true); //red light blinking
+			led_toggle(true, false, false); //red light blinking
 			time_last = time_current;
 		}
 		sbus_rc_read(&rc);

@@ -57,7 +57,7 @@ void gpio_led_control(bool red_on, bool green_on, bool blue_on)
 		GPIO_ResetBits(LED_G);
 	}
 
-	if(green_on == true) {
+	if(blue_on == true) {
 		GPIO_SetBits(LED_B);
 	} else {
 		GPIO_ResetBits(LED_B);
@@ -74,7 +74,7 @@ void gpio_led_toggle(bool red_toggle, bool green_toggle, bool blue_toggle)
 		GPIO_ToggleBits(LED_G);
 	}
 
-	if(green_toggle == true) {
+	if(blue_toggle == true) {
 		GPIO_ToggleBits(LED_B);
 	}
 }
