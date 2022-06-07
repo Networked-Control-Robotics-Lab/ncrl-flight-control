@@ -37,12 +37,12 @@ void i2c2_init(void)
 	I2C_Cmd(I2C2,ENABLE);
 }
 
-int i2c_start(I2C_TypeDef* i2c, uint8_t address, uint8_t direction, uint32_t timeout)
+int i2c_start(I2C_TypeDef* i2c, uint8_t address, uint8_t direction, float timeout)
 {
 	/* wait until i2c is not busy anymore */
-	uint32_t start_tick = get_sys_tick_ms();
+	float start_time = get_sys_time_ms();
 	while(I2C_GetFlagStatus(i2c, I2C_FLAG_BUSY)) {
-		if((get_sys_tick_ms() - start_tick) > timeout  ) {
+		if((get_sys_time_ms() - start_time) > timeout) {
 			return 1;
 		}
 	};
@@ -52,7 +52,7 @@ int i2c_start(I2C_TypeDef* i2c, uint8_t address, uint8_t direction, uint32_t tim
 
 	/* wait for i2c ev5 --> slave has acknowledged start condition */
 	while(!I2C_CheckEvent(i2c, I2C_EVENT_MASTER_MODE_SELECT)) {
-		if((get_sys_tick_ms() - start_tick) > timeout) {
+		if((get_sys_time_ms() - start_time) > timeout) {
 			return 1;
 		}
 	};
@@ -64,13 +64,13 @@ int i2c_start(I2C_TypeDef* i2c, uint8_t address, uint8_t direction, uint32_t tim
 	   master receiver mode, depending on the transmission direction */
 	if(direction == I2C_Direction_Transmitter) {
 		while(!I2C_CheckEvent(i2c, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED)) {
-			if((get_sys_tick_ms() - start_tick) > timeout) {
+			if((get_sys_time_ms() - start_time) > timeout) {
 				return 1;
 			}
 		};
 	} else if(direction == I2C_Direction_Receiver) {
 		while(!I2C_CheckEvent(i2c, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED)) {
-			if((get_sys_tick_ms() - start_tick) > timeout) {
+			if((get_sys_time_ms() - start_time) > timeout) {
 				return 1;
 			}
 		};
@@ -78,14 +78,14 @@ int i2c_start(I2C_TypeDef* i2c, uint8_t address, uint8_t direction, uint32_t tim
 	return 0;
 }
 
-int i2c_write(I2C_TypeDef* i2c, uint8_t data, uint32_t timeout)
+int i2c_write(I2C_TypeDef* i2c, uint8_t data, float timeout)
 {
-	uint32_t start_tick = get_sys_tick_ms();
+	float start_time = get_sys_time_ms();
 	I2C_SendData(i2c, data);
 
 	/* wait until i2c byte transmission is complete */
 	while(!I2C_CheckEvent(i2c, I2C_EVENT_MASTER_BYTE_TRANSMITTED)) {
-		if((get_sys_tick_ms() - start_tick) > timeout) {
+		if((get_sys_time_ms() - start_time) > timeout) {
 			return 1;
 		}
 	};

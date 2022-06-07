@@ -69,6 +69,7 @@ SRC+=lib/FreeRTOS/Source/croutine.c \
 
 SRC+=./core/main.c \
 	./core/filters/lpf.c \
+	./core/filters/median_filter.c \
 	./core/state_estimator/misc/free_fall/free_fall.c \
 	./core/state_estimator/ahrs/ahrs.c \
 	./core/state_estimator/ahrs/comp_ahrs.c \
@@ -76,13 +77,13 @@ SRC+=./core/main.c \
 	./core/state_estimator/ahrs/eskf_ahrs.c \
 	./core/state_estimator/ahrs/optitrack_ahrs.c \
 	./core/state_estimator/ins/ins_comp_filter.c \
-	./core/state_estimator/ins/gps_to_enu.c \
+	./core/state_estimator/ins/geographic_transform.c \
 	./core/state_estimator/ins/ins.c \
 	./core/state_estimator/ins/ins_eskf.c \
 	./core/state_estimator/ins/ins_sensor_sync.c \
 	./core/state_estimator/ins/dummy_sensors.c \
-	./core/state_estimator/interface/attitude_state.c \
-	./core/state_estimator/interface/position_state.c \
+	./core/state_estimator/interface/system_state.c \
+	./core/state_estimator/sensor_switching/sensor_switching.c \
 	./core/controllers/multirotor_pid/multirotor_pid_ctrl.c \
 	./core/controllers/multirotor_pid/multirotor_pid_param.c \
 	./core/controllers/multirotor_geometry/multirotor_geometry_ctrl.c \
@@ -128,7 +129,9 @@ SRC+=./common/delay.c \
 SRC+=./drivers/interface/imu.c \
 	./drivers/interface/barometer.c \
 	./drivers/interface/compass.c \
-	./drivers/interface/gps.c
+	./drivers/interface/gps.c \
+	./drivers/interface/rangefinder.c \
+	./drivers/interface/vio.c
 
 CFLAGS+=-I./
 CFLAGS+=-I./drivers/boards/common
@@ -138,6 +141,7 @@ CFLAGS+=-I./core/state_estimator
 CFLAGS+=-I./core/state_estimator/ahrs
 CFLAGS+=-I./core/state_estimator/ins
 CFLAGS+=-I./core/state_estimator/interface
+CFLAGS+=-I./core/state_estimator/sensor_switching
 CFLAGS+=-I./core/state_estimator/misc/free_fall
 CFLAGS+=-I./core/controllers
 CFLAGS+=-I./core/controllers/multirotor_pid
@@ -211,8 +215,10 @@ gdbauto:
 astyle:
 	astyle -r --exclude=lib --style=linux --suffix=none --indent=tab=8  *.c *.h
 
+autopep8:
+	autopep8 -i ../tools/serial_plot.py
+
 size:
 	$(SIZE)  $(EXECUTABLE)
 
-.PHONY:all clean flash openocd gdbauto
-
+.PHONY: all clean flash openocd gdbauto autopep8 size

@@ -25,10 +25,9 @@
 #include "debug_link.h"
 #include "autopilot.h"
 #include "sys_param.h"
-#include "position_state.h"
+#include "system_state.h"
 #include "compass.h"
 #include "led.h"
-#include "attitude_state.h"
 #include "autopilot.h"
 #include "waypoint_following.h"
 #include "fence.h"
@@ -306,7 +305,7 @@ void rc_mode_change_handler_pid(radio_t *rc)
 	auto_flight_mode_last = rc->auto_flight;
 }
 
-void multirotor_pid_control(radio_t *rc, float *desired_heading)
+void multirotor_pid_control(radio_t *rc)
 {
 	rc_mode_change_handler_pid(rc);
 
@@ -334,7 +333,10 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 	altitude_control(pos_enu[2], vel_enu[2], &pid_alt_vel, &pid_alt);
 
 	/* guidance loop (autopilot) */
-	autopilot_guidance_handler(pos_enu, vel_enu);
+	autopilot_guidance_handler(rc, pos_enu, vel_enu);
+
+	/* get desired heading angle */
+	float desired_heading = autopilot_get_heading_setpoint();
 
 	/* feed position controller setpoint from autopilot (ned) */
 	float position_setpoint[3];
@@ -366,7 +368,7 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 	float final_roll_cmd;
 	float final_pitch_cmd;
 	if(pid_pos_x.enable == true && pid_pos_y.enable == true &&
-	    is_xy_position_info_available() == true) {
+	    is_xy_position_available() == true) {
 		/* attitude control signal from position-2d controller */
 		final_roll_cmd = +nav_ctl_roll_command;   //ned-y is contolled by roll
 		final_pitch_cmd = -nav_ctl_pitch_command; //ned-x is contolled by pitch
@@ -378,7 +380,7 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 
 	/* check if height sensor is present */
 	float throttle_cmd;
-	if(pid_alt_vel.enable == true && is_height_info_available()) {
+	if(pid_alt_vel.enable == true && is_height_available()) {
 		/* height autocontrolled */
 		throttle_cmd = pid_alt_vel.output;
 	} else {
@@ -392,18 +394,18 @@ void multirotor_pid_control(radio_t *rc, float *desired_heading)
 
 	//used if heading sensor is not present
 	yaw_rate_p_control(&pid_yaw_rate, -rc->yaw, gyro_lpf[2]);
-	yaw_pd_control(&pid_yaw, *desired_heading, attitude_yaw, gyro_lpf[2], 0.0025);
+	yaw_pd_control(&pid_yaw, desired_heading, attitude_yaw, gyro_lpf[2], 0.0025);
 
 	/* check if heading sensor is present */
 	float yaw_ctrl_output = pid_yaw.output;
-	if(is_compass_available() == false) {
+	if(is_heading_available() == false) {
 		/* yaw rate control only */
 		yaw_ctrl_output = pid_yaw_rate.output;
 	}
 
 	if(rc->safety == true) {
+		autopilot_assign_heading_target(attitude_yaw);
 		set_yaw_pd_setpoint(&pid_yaw, attitude_yaw);
-		*desired_heading = attitude_yaw;
 		set_rgb_led_service_motor_lock_flag(true);
 	} else {
 		set_rgb_led_service_motor_lock_flag(false);

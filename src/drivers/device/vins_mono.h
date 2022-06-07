@@ -1,17 +1,18 @@
 #ifndef __VINS_MONO_H__
 #define __VINS_MONO_H__
 
+#include "debug_link.h"
+
 #define VINS_MONO_SERIAL_MSG_SIZE 44
 
 typedef struct {
 	uint8_t id;
 
 	/* position [m] */
-	float pos[3];
+	float pos_enu[3];
 
-	/* velocity (numerical differentiation) [m/s] */
-	float vel_raw[3];
-	float vel_filtered[3];
+	/* velocity [m/s] */
+	float vel_enu[3];
 
 	/* orientation (quaternion) */
 	float q[4];
@@ -42,12 +43,28 @@ void vins_mono_camera_trigger_20hz(void);
 void vins_mono_update(void);
 bool vins_mono_available(void);
 
-float vins_mono_read_pos_x(void);
-float vins_mono_read_pos_y(void);
-float vins_mono_read_pos_z(void);
-float vins_mono_read_vel_x(void);
-float vins_mono_read_vel_y(void);
-float vins_mono_read_vel_z(void);
+/* vins_mono getters */
+void vins_mono_get_position_enu(float *pos);
+float vins_mono_get_position_enu_x(void);
+float vins_mono_get_position_enu_y(void);
+float vins_mono_get_position_enu_z(void);
+
+void vins_mono_get_velocity_enu(float *vel);
+float vins_mono_get_velocity_enu_x(void);
+float vins_mono_get_velocity_enu_y(void);
+float vins_mono_get_velocity_enu_z(void);
+
+void vins_mono_get_position_ned(float *pos);
+float vins_mono_get_position_ned_x(void);
+float vins_mono_get_position_ned_y(void);
+float vins_mono_get_position_ned_z(void);
+
+void vins_mono_get_velocity_ned(float *vel);
+float vins_mono_get_velocity_ned_x(void);
+float vins_mono_get_velocity_ned_y(void);
+float vins_mono_get_velocity_ned_z(void);
+
+void vins_mono_get_quaternion(float *q);
 
 /* vins-mono debug messages */
 void send_vins_mono_position_debug_message(debug_msg_t *payload);

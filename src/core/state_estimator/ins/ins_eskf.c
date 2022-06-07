@@ -7,41 +7,51 @@
 #include "quaternion.h"
 #include "ins_sensor_sync.h"
 #include "led.h"
-#include "gps_to_enu.h"
+#include "geographic_transform.h"
 #include "optitrack.h"
 #include "imu.h"
 #include "proj_config.h"
 #include "compass.h"
 #include "gps.h"
 #include "barometer.h"
-#include "position_state.h"
+#include "system_state.h"
 #include "vins_mono.h"
+#include "rangefinder.h"
+#include "sys_time.h"
+#include "ins_eskf.h"
 
 #define ESKF_RESCALE(number) (number * 1e7) //to improve the numerical stability
+#define ESKF_CONVERGENCE_NORM (5e-1)
 
-#define R(r, c)             _R.pData[(r * 3) + c]
-#define Rt(r, c)            _Rt.pData[(r * 3) + c]
-#define P_prior(r, c)       _P_prior.pData[(r * 9) + c]
-#define P_post(r, c)        _P_post.pData[(r * 9) + c]
-#define R_am_ab_dt(r, c)    _R_am_ab_dt.pData[(r * 3) + c]
-#define Rt_wm_wb_dt(r, c)   _Rt_wm_wb_dt.pData[(r * 3) + c]
-#define Q_i(r, c)           _Q_i.pData[(r * 6) + c]
-#define K_accel(r, c)       _K_accel.pData[(r * 3) + c]
-#define K_mag(r, c)         _K_mag.pData[(r * 3) + c]
-#define K_gps(r, c)         _K_gps.pData[(r * 4) + c]
-#define K_baro(r, c)        _K_baro.pData[(r * 2) + c]
-#define V_accel(r, c)       _V_accel.pData[(r * 3) + c]
-#define V_mag(r, c)         _V_mag.pData[(r * 3) + c]
-#define V_gps(r, c)         _V_gps.pData[(r * 4) + c]
-#define V_baro(r, c)        _V_baro.pData[(r * 2) + c]
-#define PHt_accel(r, c)     _PHt_accel.pData[(r * 3) + c]
-#define PHt_mag(r, c)       _PHt_mag.pData[(r * 3) + c]
-#define PHt_gps(r, c)       _PHt_gps.pData[(r * 4) + c]
-#define PHt_baro(r, c)      _PHt_baro.pData[(r * 2) + c]
-#define HPHt_V_accel(r, c)  _HPHt_V_accel.pData[(r * 3) + c]
-#define HPHt_V_mag(r, c)    _HPHt_V_mag.pData[(r * 3) + c]
-#define HPHt_V_gps(r, c)    _HPHt_V_gps.pData[(r * 4) + c]
-#define HPHt_V_baro(r, c)   _HPHt_V_baro.pData[(r * 2) + c]
+#define R(r, c)                  _R.pData[(r * 3) + c]
+#define Rt(r, c)                 _Rt.pData[(r * 3) + c]
+#define P_prior(r, c)            _P_prior.pData[(r * 9) + c]
+#define P_post(r, c)             _P_post.pData[(r * 9) + c]
+#define R_am_ab_dt(r, c)         _R_am_ab_dt.pData[(r * 3) + c]
+#define Rt_wm_wb_dt(r, c)        _Rt_wm_wb_dt.pData[(r * 3) + c]
+#define Q_i(r, c)                _Q_i.pData[(r * 6) + c]
+#define K_accel(r, c)            _K_accel.pData[(r * 3) + c]
+#define K_mag(r, c)              _K_mag.pData[(r * 3) + c]
+#define K_gps(r, c)              _K_gps.pData[(r * 4) + c]
+#define K_baro(r, c)             _K_baro.pData[(r * 2) + c]
+#define K_rangefinder(r, c)      _K_rangefinder.pData[(r * 2) + c]
+#define V_accel(r, c)            _V_accel.pData[(r * 3) + c]
+#define V_mag(r, c)              _V_mag.pData[(r * 3) + c]
+#define V_gps(r, c)              _V_gps.pData[(r * 4) + c]
+#define V_baro(r, c)             _V_baro.pData[(r * 2) + c]
+#define V_rangefinder(r, c)      _V_rangefinder.pData[(r * 2) + c]
+#define PHt_accel(r, c)          _PHt_accel.pData[(r * 3) + c]
+#define PHt_mag(r, c)            _PHt_mag.pData[(r * 3) + c]
+#define PHt_gps(r, c)            _PHt_gps.pData[(r * 4) + c]
+#define PHt_baro(r, c)           _PHt_baro.pData[(r * 2) + c]
+#define PHt_rangefinder(r, c)    _PHt_rangefinder.pData[(r * 2) + c]
+#define HPHt_V_accel(r, c)       _HPHt_V_accel.pData[(r * 3) + c]
+#define HPHt_V_mag(r, c)         _HPHt_V_mag.pData[(r * 3) + c]
+#define HPHt_V_gps(r, c)         _HPHt_V_gps.pData[(r * 4) + c]
+#define HPHt_V_baro(r, c)        _HPHt_V_baro.pData[(r * 2) + c]
+#define HPHt_V_rangefinder(r, c) _HPHt_V_rangefinder.pData[(r * 2) + c]
+
+ins_eskf_t ins_eskf;
 
 MAT_ALLOC(nominal_state, 10, 1);
 MAT_ALLOC(error_state, 9, 1);
@@ -50,6 +60,7 @@ MAT_ALLOC(_V_accel, 3, 3);
 MAT_ALLOC(_V_mag, 3, 3);
 MAT_ALLOC(_V_gps, 4, 4);
 MAT_ALLOC(_V_baro, 2, 2);
+MAT_ALLOC(_V_rangefinder, 2, 2);
 MAT_ALLOC(_P_prior, 9, 9);
 MAT_ALLOC(_P_post, 9, 9);
 MAT_ALLOC(_R, 3, 3);
@@ -60,24 +71,45 @@ MAT_ALLOC(_PHt_accel, 9, 3);
 MAT_ALLOC(_PHt_mag, 9, 3);
 MAT_ALLOC(_PHt_gps, 9, 4);
 MAT_ALLOC(_PHt_baro, 9, 2);
+MAT_ALLOC(_PHt_rangefinder, 9, 2);
 MAT_ALLOC(_HPHt_V_accel, 3, 3);
 MAT_ALLOC(_HPHt_V_mag, 3, 3);
 MAT_ALLOC(_HPHt_V_gps, 4, 4);
 MAT_ALLOC(_HPHt_V_baro, 2, 2);
+MAT_ALLOC(_HPHt_V_rangefinder, 2, 2);
 MAT_ALLOC(_HPHt_V_accel_inv, 3, 3);
 MAT_ALLOC(_HPHt_V_mag_inv, 3, 3);
 MAT_ALLOC(_HPHt_V_gps_inv, 4, 4);
 MAT_ALLOC(_HPHt_V_baro_inv, 2, 2);
+MAT_ALLOC(_HPHt_V_rangefinder_inv, 2, 2);
 MAT_ALLOC(_K_accel, 9, 3);
 MAT_ALLOC(_K_mag, 9, 3);
 MAT_ALLOC(_K_gps, 9, 4);
 MAT_ALLOC(_K_baro, 9, 2);
+MAT_ALLOC(_K_rangefinder, 9, 2);
 
 float dt;
 float half_dt;
 float half_dt_squared;
 
-void eskf_ins_init(float _dt)
+void ins_eskf_reset_process_covariance_matrix(void)
+{
+	/* initialize P matrix */
+	matrix_reset(mat_data(_P_post), 9, 9);
+	P_post(0, 0) = ESKF_RESCALE(5.0f); //Var(px)
+	P_post(1, 1) = ESKF_RESCALE(5.0f); //Var(py)
+	P_post(2, 2) = ESKF_RESCALE(5.0f); //Var(pz)
+	P_post(3, 3) = ESKF_RESCALE(5.0f); //Var(vx)
+	P_post(4, 4) = ESKF_RESCALE(5.0f); //Var(vy)
+	P_post(5, 5) = ESKF_RESCALE(5.0f); //Var(vz)
+	P_post(6, 6) = ESKF_RESCALE(5.0f); //Var(theta_x)
+	P_post(7, 7) = ESKF_RESCALE(5.0f); //Var(theta_y)
+	P_post(8, 8) = ESKF_RESCALE(5.0f); //Var(theta_z)
+
+	memcpy(mat_data(_P_prior), mat_data(_P_post), sizeof(float) * 9 * 9);
+}
+
+void ins_eskf_init(float _dt)
 {
 	dt = _dt;
 	half_dt = 0.5f * dt;
@@ -90,6 +122,7 @@ void eskf_ins_init(float _dt)
 	MAT_INIT(_V_mag, 3, 3);
 	MAT_INIT(_V_gps, 4, 4);
 	MAT_INIT(_V_baro, 2, 2);
+	MAT_INIT(_V_rangefinder, 2, 2);
 	MAT_INIT(_P_prior, 9, 9);
 	MAT_INIT(_P_post, 9, 9);
 	MAT_INIT(_R, 3, 3);
@@ -100,18 +133,22 @@ void eskf_ins_init(float _dt)
 	MAT_INIT(_PHt_mag, 9, 3);
 	MAT_INIT(_PHt_gps, 9, 4);
 	MAT_INIT(_PHt_baro, 9, 2);
+	MAT_INIT(_PHt_rangefinder, 9, 2);
 	MAT_INIT(_HPHt_V_accel, 3, 3);
 	MAT_INIT(_HPHt_V_mag, 3, 3);
 	MAT_INIT(_HPHt_V_gps, 4, 4);
 	MAT_INIT(_HPHt_V_baro, 2, 2);
+	MAT_INIT(_HPHt_V_rangefinder, 2, 2);
 	MAT_INIT(_HPHt_V_accel_inv, 3, 3);
 	MAT_INIT(_HPHt_V_mag_inv, 3, 3);
 	MAT_INIT(_HPHt_V_gps_inv, 4, 4);
 	MAT_INIT(_HPHt_V_baro_inv, 2, 2);
+	MAT_INIT(_HPHt_V_rangefinder_inv, 2, 2);
 	MAT_INIT(_K_accel, 9, 3);
 	MAT_INIT(_K_mag, 9, 3);
 	MAT_INIT(_K_gps, 9, 4);
 	MAT_INIT(_K_baro, 9, 2);
+	MAT_INIT(_K_rangefinder, 9, 2);
 
 	/* initialize the nominal state */
 	mat_data(nominal_state)[0] = 0.0f; //px
@@ -131,6 +168,9 @@ void eskf_ins_init(float _dt)
 
 	matrix_reset(mat_data(error_state), 9, 1);
 
+	/* initialize error-state process covariance matrix */
+	ins_eskf_reset_process_covariance_matrix();
+
 	/* initialize _Q_i matrix */
 	matrix_reset(mat_data(_Q_i), 6, 6);
 	Q_i(0, 0) = ESKF_RESCALE(1e-5); //Var(ax)
@@ -139,18 +179,6 @@ void eskf_ins_init(float _dt)
 	Q_i(3, 3) = ESKF_RESCALE(1e-5); //Var(wx)
 	Q_i(4, 4) = ESKF_RESCALE(1e-5); //Var(wy)
 	Q_i(5, 5) = ESKF_RESCALE(1e-5); //Var(wz)
-
-	/* initialize P matrix */
-	matrix_reset(mat_data(_P_post), 9, 9);
-	P_post(0, 0) = ESKF_RESCALE(5.0f); //Var(px)
-	P_post(1, 1) = ESKF_RESCALE(5.0f); //Var(py)
-	P_post(2, 2) = ESKF_RESCALE(5.0f); //Var(pz)
-	P_post(3, 3) = ESKF_RESCALE(5.0f); //Var(vx)
-	P_post(4, 4) = ESKF_RESCALE(5.0f); //Var(vy)
-	P_post(5, 5) = ESKF_RESCALE(5.0f); //Var(vz)
-	P_post(6, 6) = ESKF_RESCALE(5.0f); //Var(theta_x)
-	P_post(7, 7) = ESKF_RESCALE(5.0f); //Var(theta_y)
-	P_post(8, 8) = ESKF_RESCALE(5.0f); //Var(theta_z)
 
 	/* initialize V_accel matrix */
 	matrix_reset(mat_data(_V_accel), 3, 3);
@@ -166,8 +194,8 @@ void eskf_ins_init(float _dt)
 
 	/* initial V_gps matrix */
 	matrix_reset(mat_data(_V_gps), 4, 4);
-	V_gps(0, 0) = ESKF_RESCALE(2e-2); //Var(px)
-	V_gps(1, 1) = ESKF_RESCALE(2e-2); //Var(py)
+	V_gps(0, 0) = ESKF_RESCALE(1e-4); //Var(px)
+	V_gps(1, 1) = ESKF_RESCALE(1e-4); //Var(py)
 	V_gps(2, 2) = ESKF_RESCALE(1e-4); //Var(vx)
 	V_gps(3, 3) = ESKF_RESCALE(1e-4); //Var(vy)
 
@@ -176,18 +204,59 @@ void eskf_ins_init(float _dt)
 	V_baro(0, 0) = ESKF_RESCALE(1e-1); //Var(pz)
 	V_baro(1, 1) = ESKF_RESCALE(1e-1); //Var(vz)
 
+	/* initialize V_rangefinder matrix */
+	matrix_reset(mat_data(_V_rangefinder), 2, 2);
+	V_rangefinder(0, 0) = ESKF_RESCALE(2.5e-2); //Var(pz)
+	V_rangefinder(1, 1) = ESKF_RESCALE(2.5e-2); //Var(vz)
+
 	matrix_reset(mat_data(_PHt_accel), 9, 3);
 	matrix_reset(mat_data(_PHt_mag), 9, 3);
 	matrix_reset(mat_data(_PHt_gps), 9, 4);
 	matrix_reset(mat_data(_PHt_baro), 9, 2);
+	matrix_reset(mat_data(_PHt_rangefinder), 9, 2);
 
 	matrix_reset(mat_data(_HPHt_V_accel), 3, 3);
 	matrix_reset(mat_data(_HPHt_V_mag), 3, 3);
 	matrix_reset(mat_data(_HPHt_V_gps), 4, 4);
 	matrix_reset(mat_data(_HPHt_V_baro), 2, 2);
+	matrix_reset(mat_data(_HPHt_V_rangefinder), 2, 2);
 }
 
-void eskf_ins_predict(float *accel, float *gyro)
+float ins_eskf_get_covariance_matrix_norm(void)
+{
+	float norm = 0;
+
+	int i;
+	for(i = 0; i < 9; i++) {
+		norm += P_prior(i, i);
+	}
+
+	return norm * 1e-7;
+}
+
+bool ins_eskf_is_stable(void)
+{
+	/* TODO: refactor this code */
+	bool gps_ready = is_gps_available();
+	bool compass_ready = is_compass_available();
+#if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
+	bool height_ready = is_barometer_available();
+#elif (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_RANGEFINDER)
+	bool height_ready = rangefinder_available();
+#else
+	bool height_ready = false;
+#endif
+
+	bool sensor_all_ready = gps_ready && compass_ready && height_ready;
+
+	if(sensor_all_ready && ins_eskf_get_covariance_matrix_norm() < ESKF_CONVERGENCE_NORM) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+void ins_eskf_predict(float *accel, float *gyro)
 {
 	/* input variables (ned frame) */
 	float accel_b_x = accel[0];
@@ -198,19 +267,13 @@ void eskf_ins_predict(float *accel, float *gyro)
 	float gyro_b_z = gyro[2];
 
 	/* body-frame to inertial-frame conversion */
-	float accel_i_ned[3] = {0};
-	accel_i_ned[0] = R(0, 0) * accel_b_x + R(0, 1) * accel_b_y + R(0, 2) * accel_b_z;
-	accel_i_ned[1] = R(1, 0) * accel_b_x + R(1, 1) * accel_b_y + R(1, 2) * accel_b_z;
-	accel_i_ned[2] = R(2, 0) * accel_b_x + R(2, 1) * accel_b_y + R(2, 2) * accel_b_z;
+	float accel_i[3] = {0};
+	accel_i[0] = R(0, 0) * accel_b_x + R(0, 1) * accel_b_y + R(0, 2) * accel_b_z;
+	accel_i[1] = R(1, 0) * accel_b_x + R(1, 1) * accel_b_y + R(1, 2) * accel_b_z;
+	accel_i[2] = R(2, 0) * accel_b_x + R(2, 1) * accel_b_y + R(2, 2) * accel_b_z;
 
 	/* gravity compensation */
-	accel_i_ned[2] += 9.78f;
-
-	//ned to enu conversion
-	float accel_i[3];
-	accel_i[0] =  accel_i_ned[1];
-	accel_i[1] =  accel_i_ned[0];
-	accel_i[2] = -accel_i_ned[2];
+	accel_i[2] += 9.78f;
 
 	/*======================*
 	 * nominal state update *
@@ -441,7 +504,7 @@ void eskf_ins_predict(float *accel, float *gyro)
 	quat_to_rotation_matrix(q, mat_data(_R), mat_data(_Rt));
 }
 
-void eskf_ins_accelerometer_correct(float *accel)
+void ins_eskf_accelerometer_correct(float *accel)
 {
 	float accel_sum_squared = (accel[0])*(accel[0]) + (accel[1])*(accel[1]) +
 	                          (accel[2])*(accel[2]) + (accel[3])*(accel[3]);
@@ -679,7 +742,7 @@ void eskf_ins_accelerometer_correct(float *accel)
 	quat_to_rotation_matrix(q, mat_data(_R), mat_data(_Rt));
 }
 
-void eskf_ins_magnetometer_correct(float *mag)
+void ins_eskf_magnetometer_correct(float *mag)
 {
 	float mag_sum_squared = (mag[0])*(mag[0]) + (mag[1])*(mag[1]) +
 	                        (mag[2])*(mag[2]) + (mag[3])*(mag[3]);
@@ -946,13 +1009,13 @@ void eskf_ins_magnetometer_correct(float *mag)
 	quat_to_rotation_matrix(q, mat_data(_R), mat_data(_Rt));
 }
 
-void eskf_ins_gps_correct(float px_enu, float py_enu,
-                          float vx_enu, float vy_enu)
+void ins_eskf_gps_correct(float px_ned, float py_ned,
+                          float vx_ned, float vy_ned)
 {
-	float px_gps = px_enu;
-	float py_gps = py_enu;
-	float vx_gps = vx_enu;
-	float vy_gps = vy_enu;
+	float px_gps = px_ned;
+	float py_gps = py_ned;
+	float vx_gps = vx_ned;
+	float vy_gps = vy_ned;
 	float px = mat_data(nominal_state)[0];
 	float py = mat_data(nominal_state)[1];
 	float vx = mat_data(nominal_state)[3];
@@ -1140,7 +1203,7 @@ void eskf_ins_gps_correct(float px_enu, float py_enu,
 	mat_data(nominal_state)[4] += mat_data(error_state)[4];
 }
 
-void eskf_ins_barometer_correct(float barometer_z, float barometer_vz)
+void ins_eskf_barometer_correct(float barometer_z, float barometer_vz)
 {
 	float pz_baro = barometer_z;
 	float vz_baro = barometer_vz;
@@ -1280,6 +1343,156 @@ void eskf_ins_barometer_correct(float barometer_z, float barometer_vz)
 		P_post(8, 5) = P_post(5, 8);
 		P_post(8, 6) = P_post(6, 8);
 		P_post(8, 7) = P_post(7, 8);
+		P_post(8, 8) = P_prior(8,8)-K_rangefinder(8,0)*P_prior(2,8)-K_rangefinder(8,1)*P_prior(5,8);
+	}
+
+	/* P_post becoms the P_prior of other measurement's correction */
+	memcpy(mat_data(_P_prior), mat_data(_P_post), sizeof(float) * 9 * 9);
+
+	/* error state injection */
+	mat_data(nominal_state)[2] += mat_data(error_state)[2];
+	mat_data(nominal_state)[5] += mat_data(error_state)[5];
+}
+
+
+void ins_eskf_rangefinder_correct(float pz_rangefinder, float vz_rangefinder)
+{
+	float pz = mat_data(nominal_state)[2];
+	float vz = mat_data(nominal_state)[5];
+
+	/* codeblock for preventing nameing conflict */
+	{
+		/* calculate P * Ht */
+		PHt_rangefinder(0, 0) = P_prior(0,2);
+		PHt_rangefinder(0, 1) = P_prior(0,5);
+		PHt_rangefinder(1, 0) = P_prior(1,2);
+		PHt_rangefinder(1, 1) = P_prior(1,5);
+		PHt_rangefinder(2, 0) = P_prior(2,2);
+		PHt_rangefinder(2, 1) = P_prior(2,5);
+		PHt_rangefinder(3, 0) = P_prior(3,2);
+		PHt_rangefinder(3, 1) = P_prior(3,5);
+		PHt_rangefinder(4, 0) = P_prior(4,2);
+		PHt_rangefinder(4, 1) = P_prior(4,5);
+		PHt_rangefinder(5, 0) = P_prior(5,2);
+		PHt_rangefinder(5, 1) = P_prior(5,5);
+		PHt_rangefinder(6, 0) = P_prior(6,2);
+		PHt_rangefinder(6, 1) = P_prior(6,5);
+		PHt_rangefinder(7, 0) = P_prior(7,2);
+		PHt_rangefinder(7, 1) = P_prior(7,5);
+		PHt_rangefinder(8, 0) = P_prior(8,2);
+		PHt_rangefinder(8, 1) = P_prior(8,5);
+	}
+
+	/* codeblock for preventing nameing conflict */
+	{
+		/* calculate (H * P * Ht) + V */
+		HPHt_V_rangefinder(0, 0) = PHt_rangefinder(2,0)+V_rangefinder(0,0);
+		HPHt_V_rangefinder(0, 1) = PHt_rangefinder(2,1);
+		HPHt_V_rangefinder(1, 0) = PHt_rangefinder(5,0);
+		HPHt_V_rangefinder(1, 1) = PHt_rangefinder(5,1)+V_rangefinder(1,1);
+	}
+
+	/* calculate kalman gain */
+	//K = P * Ht * inv(H*P*Ht + V)
+	MAT_INV(&_HPHt_V_rangefinder, &_HPHt_V_rangefinder_inv);
+	MAT_MULT(&_PHt_rangefinder, &_HPHt_V_rangefinder_inv, &_K_rangefinder);
+
+	/* codeblock for preventing nameing conflict */
+	{
+		/* calculate error state residual */
+		float c0 = vz-vz_rangefinder;
+		float c1 = pz-pz_rangefinder;
+
+		mat_data(error_state)[2] = -K_rangefinder(2,0)*c1-K_rangefinder(2,1)*c0;
+		mat_data(error_state)[5] = -K_rangefinder(5,0)*c1-K_rangefinder(5,1)*c0;
+	}
+
+	/* codeblock for preventing nameing conflict */
+	{
+		/* calculate a posteriori process covariance matrix */
+		float c0 = K_rangefinder(5,1)-1.0;
+		float c1 = K_rangefinder(2,0)-1.0;
+
+		P_post(0, 0) = P_prior(0,0)-K_rangefinder(0,0)*P_prior(2,0)-K_rangefinder(0,1)*P_prior(5,0);
+		P_post(0, 1) = P_prior(0,1)-K_rangefinder(0,0)*P_prior(2,1)-K_rangefinder(0,1)*P_prior(5,1);
+		P_post(0, 2) = P_prior(0,2)-K_rangefinder(0,0)*P_prior(2,2)-K_rangefinder(0,1)*P_prior(5,2);
+		P_post(0, 3) = P_prior(0,3)-K_rangefinder(0,0)*P_prior(2,3)-K_rangefinder(0,1)*P_prior(5,3);
+		P_post(0, 4) = P_prior(0,4)-K_rangefinder(0,0)*P_prior(2,4)-K_rangefinder(0,1)*P_prior(5,4);
+		P_post(0, 5) = P_prior(0,5)-K_rangefinder(0,0)*P_prior(2,5)-K_rangefinder(0,1)*P_prior(5,5);
+		P_post(0, 6) = P_prior(0,6)-K_rangefinder(0,0)*P_prior(2,6)-K_rangefinder(0,1)*P_prior(5,6);
+		P_post(0, 7) = P_prior(0,7)-K_rangefinder(0,0)*P_prior(2,7)-K_rangefinder(0,1)*P_prior(5,7);
+		P_post(0, 8) = P_prior(0,8)-K_rangefinder(0,0)*P_prior(2,8)-K_rangefinder(0,1)*P_prior(5,8);
+		P_post(1, 0) = P_post(0, 1);
+		P_post(1, 1) = P_prior(1,1)-K_rangefinder(1,0)*P_prior(2,1)-K_rangefinder(1,1)*P_prior(5,1);
+		P_post(1, 2) = P_prior(1,2)-K_rangefinder(1,0)*P_prior(2,2)-K_rangefinder(1,1)*P_prior(5,2);
+		P_post(1, 3) = P_prior(1,3)-K_rangefinder(1,0)*P_prior(2,3)-K_rangefinder(1,1)*P_prior(5,3);
+		P_post(1, 4) = P_prior(1,4)-K_rangefinder(1,0)*P_prior(2,4)-K_rangefinder(1,1)*P_prior(5,4);
+		P_post(1, 5) = P_prior(1,5)-K_rangefinder(1,0)*P_prior(2,5)-K_rangefinder(1,1)*P_prior(5,5);
+		P_post(1, 6) = P_prior(1,6)-K_rangefinder(1,0)*P_prior(2,6)-K_rangefinder(1,1)*P_prior(5,6);
+		P_post(1, 7) = P_prior(1,7)-K_rangefinder(1,0)*P_prior(2,7)-K_rangefinder(1,1)*P_prior(5,7);
+		P_post(1, 8) = P_prior(1,8)-K_rangefinder(1,0)*P_prior(2,8)-K_rangefinder(1,1)*P_prior(5,8);
+		P_post(2, 0) = P_post(0, 2);
+		P_post(2, 1) = P_post(1, 2);
+		P_post(2, 2) = -P_prior(2,2)*c1-K_rangefinder(2,1)*P_prior(5,2);
+		P_post(2, 3) = -P_prior(2,3)*c1-K_rangefinder(2,1)*P_prior(5,3);
+		P_post(2, 4) = -P_prior(2,4)*c1-K_rangefinder(2,1)*P_prior(5,4);
+		P_post(2, 5) = -P_prior(2,5)*c1-K_rangefinder(2,1)*P_prior(5,5);
+		P_post(2, 6) = -P_prior(2,6)*c1-K_rangefinder(2,1)*P_prior(5,6);
+		P_post(2, 7) = -P_prior(2,7)*c1-K_rangefinder(2,1)*P_prior(5,7);
+		P_post(2, 8) = -P_prior(2,8)*c1-K_rangefinder(2,1)*P_prior(5,8);
+		P_post(3, 0) = P_post(0, 3);
+		P_post(3, 1) = P_post(1, 3);
+		P_post(3, 2) = P_post(2, 3);
+		P_post(3, 3) = P_prior(3,3)-K_rangefinder(3,0)*P_prior(2,3)-K_rangefinder(3,1)*P_prior(5,3);
+		P_post(3, 4) = P_prior(3,4)-K_rangefinder(3,0)*P_prior(2,4)-K_rangefinder(3,1)*P_prior(5,4);
+		P_post(3, 5) = P_prior(3,5)-K_rangefinder(3,0)*P_prior(2,5)-K_rangefinder(3,1)*P_prior(5,5);
+		P_post(3, 6) = P_prior(3,6)-K_rangefinder(3,0)*P_prior(2,6)-K_rangefinder(3,1)*P_prior(5,6);
+		P_post(3, 7) = P_prior(3,7)-K_rangefinder(3,0)*P_prior(2,7)-K_rangefinder(3,1)*P_prior(5,7);
+		P_post(3, 8) = P_prior(3,8)-K_rangefinder(3,0)*P_prior(2,8)-K_rangefinder(3,1)*P_prior(5,8);
+		P_post(4, 0) = P_post(0, 4);
+		P_post(4, 1) = P_post(1, 4);
+		P_post(4, 2) = P_post(2, 4);
+		P_post(4, 3) = P_post(3, 4);
+		P_post(4, 4) = P_prior(4,4)-K_rangefinder(4,0)*P_prior(2,4)-K_rangefinder(4,1)*P_prior(5,4);
+		P_post(4, 5) = P_prior(4,5)-K_rangefinder(4,0)*P_prior(2,5)-K_rangefinder(4,1)*P_prior(5,5);
+		P_post(4, 6) = P_prior(4,6)-K_rangefinder(4,0)*P_prior(2,6)-K_rangefinder(4,1)*P_prior(5,6);
+		P_post(4, 7) = P_prior(4,7)-K_rangefinder(4,0)*P_prior(2,7)-K_rangefinder(4,1)*P_prior(5,7);
+		P_post(4, 8) = P_prior(4,8)-K_rangefinder(4,0)*P_prior(2,8)-K_rangefinder(4,1)*P_prior(5,8);
+		P_post(5, 0) = P_post(0, 5);
+		P_post(5, 1) = P_post(1, 5);
+		P_post(5, 2) = P_post(2, 5);
+		P_post(5, 3) = P_post(3, 5);
+		P_post(5, 4) = P_post(4, 5);
+		P_post(5, 5) = -P_prior(5,5)*c0-K_rangefinder(5,0)*P_prior(2,5);
+		P_post(5, 6) = -P_prior(5,6)*c0-K_rangefinder(5,0)*P_prior(2,6);
+		P_post(5, 7) = -P_prior(5,7)*c0-K_rangefinder(5,0)*P_prior(2,7);
+		P_post(5, 8) = -P_prior(5,8)*c0-K_rangefinder(5,0)*P_prior(2,8);
+		P_post(6, 0) = P_post(0, 6);
+		P_post(6, 1) = P_post(1, 6);
+		P_post(6, 2) = P_post(2, 6);
+		P_post(6, 3) = P_post(3, 6);
+		P_post(6, 4) = P_post(4, 6);
+		P_post(6, 5) = P_post(5, 6);
+		P_post(6, 6) = P_prior(6,6)-K_rangefinder(6,0)*P_prior(2,6)-K_rangefinder(6,1)*P_prior(5,6);
+		P_post(6, 7) = P_prior(6,7)-K_rangefinder(6,0)*P_prior(2,7)-K_rangefinder(6,1)*P_prior(5,7);
+		P_post(6, 8) = P_prior(6,8)-K_rangefinder(6,0)*P_prior(2,8)-K_rangefinder(6,1)*P_prior(5,8);
+		P_post(7, 0) = P_post(0, 7);
+		P_post(7, 1) = P_post(1, 7);
+		P_post(7, 2) = P_post(2, 7);
+		P_post(7, 3) = P_post(3, 7);
+		P_post(7, 4) = P_post(4, 7);
+		P_post(7, 5) = P_post(5, 7);
+		P_post(7, 6) = P_post(6, 7);
+		P_post(7, 7) = P_prior(7,7)-K_rangefinder(7,0)*P_prior(2,7)-K_rangefinder(7,1)*P_prior(5,7);
+		P_post(7, 8) = P_prior(7,8)-K_rangefinder(7,0)*P_prior(2,8)-K_rangefinder(7,1)*P_prior(5,8);
+		P_post(8, 0) = P_post(0, 8);
+		P_post(8, 1) = P_post(1, 8);
+		P_post(8, 2) = P_post(2, 8);
+		P_post(8, 3) = P_post(3, 8);
+		P_post(8, 4) = P_post(4, 8);
+		P_post(8, 5) = P_post(5, 8);
+		P_post(8, 6) = P_post(6, 8);
+		P_post(8, 7) = P_post(7, 8);
 		P_post(8, 8) = P_prior(8,8)-K_baro(8,0)*P_prior(2,8)-K_baro(8,1)*P_prior(5,8);
 	}
 
@@ -1291,52 +1504,55 @@ void eskf_ins_barometer_correct(float barometer_z, float barometer_vz)
 	mat_data(nominal_state)[5] += mat_data(error_state)[5];
 }
 
-void get_eskf_ins_attitude_quaternion(float *q_out)
+void ins_eskf_get_attitude_quaternion(float *q)
 {
-	/* return the conjugated quaternion since we use opposite convention compared to the paper.
-	 * paper: quaternion of earth frame to body-fixed frame
-	 * us: quaternion of body-fixed frame to earth frame */
-	quaternion_conj(mat_data(nominal_state), q_out);
+	q[0] = mat_data(nominal_state)[6];
+	q[1] = mat_data(nominal_state)[7];
+	q[2] = mat_data(nominal_state)[8];
+	q[3] = mat_data(nominal_state)[9];
 }
 
-bool ins_eskf_estimate(attitude_t *attitude,
-                       float *pos_enu_raw, float *vel_enu_raw,
-                       float *pos_enu_fused, float *vel_enu_fused)
+void ins_eskf_get_position_ned(float *pos)
 {
-#if (SELECT_POSITION_SENSOR == POSITION_FUSION_USE_OPTITRACK)
-	set_rgb_led_service_navigation_on_flag(optitrack_available());
-	return false;
-#elif (SELECT_POSITION_SENSOR == POSITION_FUSION_USE_VINS_MONO)
-	set_rgb_led_service_navigation_on_flag(vins_mono_available());
-	return false;
-#endif
+	pos[0] = mat_data(nominal_state)[0];
+	pos[1] = mat_data(nominal_state)[1];
+	pos[2] = mat_data(nominal_state)[2];
+}
+
+void ins_eskf_get_velocity_ned(float *vel)
+{
+	vel[0] = mat_data(nominal_state)[3];
+	vel[1] = mat_data(nominal_state)[4];
+	vel[2] = mat_data(nominal_state)[5];
+}
+
+void ins_eskf_estimate(attitude_t *attitude,
+                       float *pos_ned_raw, float *vel_ned_raw,
+                       float *pos_ned_fused, float *vel_ned_fused)
+{
+	float curr_time, elapsed_time;
 
 	/* check sensor status */
 	bool gps_ready = is_gps_available();
 	bool compass_ready = is_compass_available();
-	bool barometer_ready = is_barometer_available();
+#if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
+	bool height_ready = is_barometer_available();
+#elif (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_RANGEFINDER)
+	bool height_ready = rangefinder_available();
+#else
+	bool height_ready = false;
+#endif
 
-	bool sensor_all_ready = gps_ready && compass_ready && barometer_ready;
+	bool sensor_all_ready = gps_ready && compass_ready && height_ready;
 
+	/* we can't do full state estimation if sensors are not all ready */
 	if(sensor_all_ready == false) {
-		return false;
+		return;
 	}
 
-	/* change led state to indicate the sensor status */
-	set_rgb_led_service_navigation_on_flag(sensor_all_ready);
-
-	/* variables of sensor readings */
+	/* prepare imu data */
 	float accel[3];
 	float gyro[3], gyro_rad[3];
-	float mag[3];
-	float longitude, latitude, gps_msl_height;
-	float gps_ned_vx, gps_ned_vy, gps_ned_vz;
-	float barometer_height, barometer_height_rate;
-
-	bool recvd_compass = ins_compass_sync_buffer_available();
-	bool recvd_barometer = ins_barometer_sync_buffer_available();
-	bool recvd_gps = ins_gps_sync_buffer_available();
-
 	get_accel_lpf(accel);
 	get_gyro_lpf(gyro);
 	gyro_rad[0] = deg_to_rad(gyro[0]);
@@ -1344,68 +1560,110 @@ bool ins_eskf_estimate(attitude_t *attitude,
 	gyro_rad[2] = deg_to_rad(gyro[2]);
 
 	/* eskf prediction (400Hz) */
-	eskf_ins_predict(accel, gyro_rad);
+	ins_eskf_predict(accel, gyro_rad);
 
 	/* accelerometer (gravity) correction for attitude states (400Hz) */
-	eskf_ins_accelerometer_correct(accel);
+	ins_eskf_accelerometer_correct(accel);
 
-	/* compass correction (50Hz)*/
+	/* compass correction (40Hz)*/
 	static bool compass_init = false;
+	bool recvd_compass = ins_compass_sync_buffer_available();
 	if(recvd_compass == true) {
+		/* get megnetometer data from sync buffer */
+		float mag[3];
 		ins_compass_sync_buffer_pop(mag);
 
 		if(compass_init == false) {
 			compass_init = true;
 		} else {
 			if(ahrs_compass_quality_test(mag) == true) {
-				eskf_ins_magnetometer_correct(mag);
+				ins_eskf_magnetometer_correct(mag);
 			}
 		}
+
+		/* calculate correct frequency */
+		curr_time = get_sys_time_s();
+		elapsed_time = curr_time - ins_eskf.mag_time_last;
+		ins_eskf.mag_correct_freq = 1.0f / elapsed_time;
+		ins_eskf.mag_time_last = curr_time;
 	}
 
-	/* barometer correction (50Hz) */
+#if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
+	/* barometer correction (40Hz) */
+	bool recvd_barometer = ins_barometer_sync_buffer_available();
 	if(recvd_barometer == true) {
 		/* get barometer data from sync buffer */
+		float barometer_height, barometer_height_rate;
 		ins_barometer_sync_buffer_pop(&barometer_height,
 		                              &barometer_height_rate);
-		pos_enu_raw[2] = barometer_height;
-		vel_enu_raw[2] = barometer_height_rate;
+		pos_ned_raw[2] = -barometer_height;
+		vel_ned_raw[2] = -barometer_height_rate;
 
-		eskf_ins_barometer_correct(pos_enu_raw[2], vel_enu_raw[2]);
+		ins_eskf_barometer_correct(pos_ned_raw[2], vel_ned_raw[2]);
+
+		/* calculate correct frequency */
+		curr_time = get_sys_time_s();
+		elapsed_time = curr_time - ins_eskf.baro_time_last;
+		ins_eskf.baro_correct_freq = 1.0f / elapsed_time;
+		ins_eskf.baro_time_last = curr_time;
 	}
+#elif (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_RANGEFINDER)
+	/* rangefinder correction (50Hz) */
+	bool recvd_rangefinder = ins_rangefinder_sync_buffer_available();
+	if(recvd_rangefinder == true) {
+		/* get barometer data from sync buffer */
+		float rangefinder_height, rangefinder_height_rate;
+		ins_rangefinder_sync_buffer_pop(&rangefinder_height,
+		                                &rangefinder_height_rate);
+		pos_ned_raw[2] = -rangefinder_height;
+		vel_ned_raw[2] = -rangefinder_height_rate;
 
-	/* gps correction (5Hz) */
+		ins_eskf_rangefinder_correct(pos_ned_raw[2], vel_ned_raw[2]);
+
+		/* calculate correct frequency */
+		curr_time = get_sys_time_s();
+		elapsed_time = curr_time - ins_eskf.rangefinder_time_last;
+		ins_eskf.rangefinder_correct_freq = 1.0f / elapsed_time;
+		ins_eskf.rangefinder_time_last = curr_time;
+	}
+#endif
+
+	/* gps correction (10Hz) */
+	bool recvd_gps = ins_gps_sync_buffer_available();
 	if(recvd_gps == true) {
 		/* get gps data from sync buffer */
+		int32_t longitude, latitude;
+		float gps_msl_height;
+		float gps_ned_vx, gps_ned_vy, gps_ned_vz;
 		ins_gps_sync_buffer_pop(&longitude, &latitude, &gps_msl_height,
 		                        &gps_ned_vx, &gps_ned_vy, &gps_ned_vz);
 
-		/* convert gps data from geographic coordinate system to
-		 * enu frame */
-		float dummy_z;
-		longitude_latitude_to_enu(
-		        longitude, latitude, 0,
-		        &pos_enu_raw[0], &pos_enu_raw[1], &dummy_z);
+		/* convert gps data from geographic coordinate system to ned frame */
+		longitude_latitude_to_ned(pos_ned_raw, longitude, latitude, 0);
 
 		if(gps_home_is_set() == false) {
-			set_home_longitude_latitude(
-			        longitude, latitude, barometer_height);
+			set_home_longitude_latitude(longitude, latitude, 0/*barometer_height*/); //XXX
 		}
 
-		/* convert gps velocity from ned frame to enu frame */
-		vel_enu_raw[0] = gps_ned_vy; //x_enu = y_ned
-		vel_enu_raw[1] = gps_ned_vx; //y_enu = x_ned
+		vel_ned_raw[0] = gps_ned_vx;
+		vel_ned_raw[1] = gps_ned_vy;
 
-		eskf_ins_gps_correct(pos_enu_raw[0], pos_enu_raw[1],
-		                     vel_enu_raw[0], vel_enu_raw[1]);
+		ins_eskf_gps_correct(pos_ned_raw[0], pos_ned_raw[1],
+		                     vel_ned_raw[0], vel_ned_raw[1]);
+
+		/* calculate correct frequency */
+		curr_time = get_sys_time_s();
+		elapsed_time = curr_time - ins_eskf.gps_time_last;
+		ins_eskf.gps_correct_freq = 1.0f / elapsed_time;
+		ins_eskf.gps_time_last = curr_time;
 	}
 
-	pos_enu_fused[0] = mat_data(nominal_state)[0];  //px
-	pos_enu_fused[1] = mat_data(nominal_state)[1];  //py
-	pos_enu_fused[2] = mat_data(nominal_state)[2];  //pz
-	vel_enu_fused[0] = mat_data(nominal_state)[3];  //vx
-	vel_enu_fused[1] = mat_data(nominal_state)[4];  //vy
-	vel_enu_fused[2] = mat_data(nominal_state)[5];  //vz
+	pos_ned_fused[0] = mat_data(nominal_state)[0];  //px
+	pos_ned_fused[1] = mat_data(nominal_state)[1];  //py
+	pos_ned_fused[2] = mat_data(nominal_state)[2];  //pz
+	vel_ned_fused[0] = mat_data(nominal_state)[3];  //vx
+	vel_ned_fused[1] = mat_data(nominal_state)[4];  //vy
+	vel_ned_fused[2] = mat_data(nominal_state)[5];  //vz
 	attitude->q[0] = mat_data(nominal_state)[6];    //q0
 	attitude->q[1] = mat_data(nominal_state)[7];    //q1
 	attitude->q[2] = mat_data(nominal_state)[8];    //q2
@@ -1418,8 +1676,6 @@ bool ins_eskf_estimate(attitude_t *attitude,
 	attitude->yaw = rad_to_deg(euler.yaw);
 
 	quat_to_rotation_matrix(attitude->q, attitude->R_b2i, attitude->R_i2b);
-
-	return true;
 }
 
 void send_ins_eskf1_covariance_matrix_debug_message(debug_msg_t *payload)
@@ -1447,4 +1703,13 @@ void send_ins_eskf1_covariance_matrix_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_float(&p66, payload);
 	pack_debug_debug_message_float(&p77, payload);
 	pack_debug_debug_message_float(&p88, payload);
+}
+
+void send_ins_eskf_correct_freq_debug_message(debug_msg_t *payload)
+{
+	pack_debug_debug_message_header(payload, MESSAGE_ID_INS_ESKF_CORRECT_FREQ);
+	pack_debug_debug_message_float(&ins_eskf.mag_correct_freq, payload);
+	pack_debug_debug_message_float(&ins_eskf.baro_correct_freq, payload);
+	pack_debug_debug_message_float(&ins_eskf.rangefinder_correct_freq, payload);
+	pack_debug_debug_message_float(&ins_eskf.gps_correct_freq, payload);
 }

@@ -12,13 +12,10 @@
 #include "proj_config.h"
 #include "debug_link_task.h"
 #include "dummy_sensors.h"
+#include "board_init.h"
 
-#define FLIGHT_CTRL_PRESCALER_RELOAD     1000  //400Hz
-#define LED_CTRL_PRESCALER_RELOAD        16000 //25Hz
-#define COMPASS_PRESCALER_RELOAD         8     //50Hz
-#define BAROMETER_PRESCALER_RELOAD       4     //100Hz
-
-extern SemaphoreHandle_t flight_ctl_semphr;
+#define FLIGHT_CTRL_PRESCALER_RELOAD 1000  //400Hz
+#define LED_CTRL_PRESCALER_RELOAD    16000 //25Hz
 
 void timer12_init(void)
 {
@@ -47,7 +44,7 @@ void timer3_init(void)
 {
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
 
-	/* 90MHz / (225000 * 10) = 400Hz */
+	/* 90MHz / (22500 * 10) = 400Hz */
 	TIM_TimeBaseInitTypeDef TimeBaseInitStruct = {
 		.TIM_Period = 22500 - 1,
 		.TIM_Prescaler = 10 - 1,
@@ -83,47 +80,22 @@ void TIM8_BRK_TIM12_IRQHandler(void)
 			flight_ctrl_semaphore_handler();
 		}
 
-#if 1
 		led_ctrl_cnt--;
 		if(led_ctrl_cnt == 0) {
 			led_ctrl_cnt = LED_CTRL_PRESCALER_RELOAD;
 			rgb_led_handler();
 		}
-#endif
 	}
 }
 
 void TIM3_IRQHandler(void)
 {
-#if (ENABLE_BAROMETER == 1)
-	static int barometer_cnt = BAROMETER_PRESCALER_RELOAD;
-#endif
-
-#if (ENABLE_MAGNETOMETER == 1)
-	static int compass_cnt = COMPASS_PRESCALER_RELOAD;
-#endif
+	/* timer3 for scheduling sensor measurements */
 	if(TIM_GetITStatus(TIM3, TIM_IT_Update) == SET) {
 		BaseType_t higher_priority_task_woken = pdFALSE;
-#if (ENABLE_BAROMETER == 1)
-		/* barometer */
-		barometer_cnt--;
-		if(barometer_cnt == 0) {
-			barometer_cnt = BAROMETER_PRESCALER_RELOAD;
-			ms5611_driver_handler(&higher_priority_task_woken);
-		}
-#endif
 
-#if (ENABLE_MAGNETOMETER == 1)
-		/* compass */
-		compass_cnt--;
-		if(compass_cnt == 0) {
-			compass_cnt = COMPASS_PRESCALER_RELOAD;
-			ist8310_semaphore_handler(&higher_priority_task_woken);
-		}
-#endif
+		ms5611_driver_trigger_handler();
 
-		/* disable the sensors in proj_config.h and uncomment the following
-		 * line */
 		//dummy_sensors_update_isr_handler(&higher_priority_task_woken);
 
 		TIM_ClearITPendingBit(TIM3, TIM_IT_Update);

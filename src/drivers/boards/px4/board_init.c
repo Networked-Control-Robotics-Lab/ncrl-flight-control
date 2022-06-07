@@ -23,7 +23,7 @@ void board_init(void)
 {
 	/* driver initialization */
 	flash_init();
-	crc_init();
+	_crc_init();
 	px4_board_gpio_config();
 	i2c2_init();        //rgb controller
 	uart3_init(115200); //mavlink

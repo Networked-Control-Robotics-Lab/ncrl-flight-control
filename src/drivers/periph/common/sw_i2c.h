@@ -5,8 +5,8 @@
 #include <stdbool.h>
 #include "coroutine.h"
 
-#define SW_I2C_COROUTINE_DELAY(delay_ms) \
-	sw_i2c_coroutine_delay_start(delay_ms); \
+#define SW_I2C_COROUTINE_DELAY(delay_tick) \
+	sw_i2c_coroutine_delay_start(delay_tick); \
 	CR_YIELD(); \
 	if(!sw_i2c_coroutine_delay_times_up()) {CR_RETURN;}
 

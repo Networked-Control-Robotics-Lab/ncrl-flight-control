@@ -12,6 +12,8 @@
 #include "ins_sensor_sync.h"
 #include "board_porting.h"
 
+#define GPS_ACC_TOLERANT 1.5 //[m]
+
 #define UBX_SYNC_C1 0xb5
 #define UBX_SYNC_C2 0x62
 
@@ -45,8 +47,8 @@ uint8_t ubx_2g_mode_set[] = {0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x0
                              0x01, 0x00, 0x3C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x85, 0x2A
                             };
-uint8_t ubx_utc_time_set[] = {0xB5, 0x62, 0x06, 0x08, 0x06, 0x00, 0xC8, 0x00, 0x01,
-                              0x00, 0x00, 0x00, 0xDD, 0x68
+uint8_t ubx_cfg_rate_set[] = {0xB5, 0x62, 0x06, 0x08, 0x06, 0x00, 0x64, 0x00, 0x01,
+                              0x00, 0x01, 0x00, 0x7A, 0x12
                              };
 uint8_t ubx_save_rom_cmd[] = {0xB5, 0x62, 0x06, 0x09, 0x0D, 0x00, 0x00, 0x00, 0x00,
                               0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -63,12 +65,26 @@ ublox_t ublox;
 
 bool ublox_available(void)
 {
-	//timeout if no gps data available more than 1000ms
+	/* timeout if no gps data available more than 1000ms */
 	float current_time = get_sys_time_s();
 	if((current_time - ublox.last_read_time) > 1.0) {
 		return false;
 	}
-	return true;
+
+	float h_acc = ublox.h_acc * 1e-3;
+	//float v_acc = ublox.v_acc * 1e-3;
+
+	/* accuracy range check */
+	if(ublox.h_acc < 0 || ublox.v_acc < 0) {
+		return false;
+	}
+
+	float _3d_acc = h_acc*h_acc;
+	if(_3d_acc < (GPS_ACC_TOLERANT * GPS_ACC_TOLERANT)) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 void ublox_command_send(uint8_t *cmd, int size)
@@ -96,12 +112,10 @@ void ublox_m8n_init(void)
 	ublox_command_send(ubx_nmea_gxgsv_set, UBX_NMEA_GXGSV_SET_LEN);
 	ublox_command_send(ubx_nmea_gxrmc_set, UBX_NMEA_GXRMC_SET_LEN);
 	ublox_command_send(ubx_nmea_gxvtg_set, UBX_NMEA_GXVTG_SET_LEN);
+	ublox_command_send(ubx_cfg_rate_set, UBX_CFG_RATE_SET_LEN);
 
 	/* set dynamic range to 2g  */
 	ublox_command_send(ubx_2g_mode_set, UBX_2G_MODE_SET_LEN);
-
-	/* use UTC time */
-	ublox_command_send(ubx_utc_time_set, UBX_UTC_TIME_SET_LEN);
 
 	/* save configurations to rom */
 	//ublox_command_send(ubx_save_rom_cmd, UBX_SAVE_ROM_CMD_LEN);
@@ -113,13 +127,6 @@ void ublox_m8n_get_longitude_latitude_height_s32(int32_t *longitude, int32_t *la
 	*longitude = ublox.longitude;   //[deg/1e7]
 	*latitude = ublox.latitude;     //[deg/1e7]
 	*height_msl = ublox.height_msl; //[mm]
-}
-
-void ublox_m8n_get_longitude_latitude_height(float *longitude, float *latitude, float *height_msl)
-{
-	*longitude = (float)ublox.longitude * 1e-7;   //[deg]
-	*latitude = (float)ublox.latitude * 1e-7;     //[deg]
-	*height_msl = (float)ublox.height_msl * 1e-3; //[m]
 }
 
 void ublox_m8n_get_velocity_ned(float *vx, float *vy, float *vz)
@@ -246,16 +253,14 @@ void ublox_decode_nav_pvt_msg(void)
 	memcpy(&ublox.num_sv, (ublox_payload_addr + 23), sizeof(uint8_t));
 	memcpy(&ublox.pdop, (ublox_payload_addr + 76), sizeof(uint16_t));
 
-	/* push gps data to ins sync buffer if satellite number >= 6 and
-	 * fix mode = 3D fix mode */
-	if((ublox.num_sv >= 6) && (ublox.fix_type == 3)) {
-		/* set ublox state to be available */
-		float curr_time = get_sys_time_s();
-		ublox.update_freq = 1.0f / (curr_time - ublox.last_read_time);
-		ublox.last_read_time = curr_time;
+	float curr_time = get_sys_time_s();
+	ublox.update_freq = 1.0f / (curr_time - ublox.last_read_time);
+	ublox.last_read_time = curr_time;
 
-		float longitude = ublox.longitude * 1e-7;
-		float latitude = ublox.latitude * 1e-7;
+	if(ublox_available() == true) {
+		/* push gps data into the ins sync buffer */
+		int32_t longitude = ublox.longitude;
+		int32_t latitude = ublox.latitude;
 		float height_msl = ublox.height_msl * 1e2;
 		float vel_n = ublox.vel_n * 1e-3;
 		float vel_e = ublox.vel_e * 1e-3;

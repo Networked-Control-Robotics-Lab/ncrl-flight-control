@@ -11,11 +11,6 @@ void get_gps_longitude_latitude_height_s32(int32_t *longitude, int32_t *latitude
 	ublox_m8n_get_longitude_latitude_height_s32(longitude, latitude, height_msl);
 }
 
-void get_gps_longitude_latitude_height(float *longitude, float *latitude, float *height)
-{
-	ublox_m8n_get_longitude_latitude_height(longitude, latitude, height);
-}
-
 void get_gps_velocity_ned(float *vx, float *vy, float *vz)
 {
 	ublox_m8n_get_velocity_ned(vx, vy, vz);

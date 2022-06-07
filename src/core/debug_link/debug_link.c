@@ -18,6 +18,12 @@ void pack_debug_debug_message_float(float *data_float, debug_msg_t *payload)
 	payload->len += sizeof(float);
 }
 
+void pack_debug_debug_message_int32(int32_t *data_int32, debug_msg_t *payload)
+{
+	memcpy((uint8_t *)&payload->s + payload->len, (uint8_t *)data_int32, sizeof(int32_t));
+	payload->len += sizeof(float);
+}
+
 static uint8_t generate_debug_debug_message_checksum(uint8_t *payload, int payload_count)
 {
 	uint8_t result = 0;

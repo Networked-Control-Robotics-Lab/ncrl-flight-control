@@ -35,7 +35,11 @@ enum {
 	MESSAGE_ID_VINS_MONO_POSITION = 30,
 	MESSAGE_ID_VINS_MONO_QUATERNION = 31,
 	MESSAGE_ID_VINS_MONO_VELOCITY = 32,
-	MESSAGE_ID_GPS_ACCURACY = 33
+	MESSAGE_ID_GPS_ACCURACY = 33,
+	MESSAGE_ID_RANGEFINDER = 34,
+	MESSAGE_ID_INS_ESKF_CORRECT_FREQ = 35,
+	MESSAGE_ID_OPTITRACK_VIO = 36,
+	MESSAGE_ID_ESKF_COV_NORM = 37
 } MESSAGE_ID;
 
 typedef struct {
@@ -45,6 +49,7 @@ typedef struct {
 
 void pack_debug_debug_message_header(debug_msg_t *payload, int message_id);
 void pack_debug_debug_message_float(float *data_float, debug_msg_t *payload);
+void pack_debug_debug_message_int32(int32_t *data_int32, debug_msg_t *payload);
 
 void send_onboard_data(uint8_t *payload, int payload_count);
 

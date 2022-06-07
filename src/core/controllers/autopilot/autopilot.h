@@ -1,7 +1,9 @@
 #ifndef __AUTOPILOT_H__
 #define __AUTOPILOT_H__
 
+#include <stdint.h>
 #include <stdbool.h>
+#include "sbus_radio.h"
 
 #define TRAJ_WP_MAX_NUM 50
 
@@ -10,6 +12,8 @@ enum {
 	AUTOPILOT_MANUAL_FLIGHT_MODE,
 	/* hovering at a waypoint */
 	AUTOPILOT_HOVERING_MODE,
+	/* fly to a given position */
+	AUTOPILOT_GOTO_MODE,
 	/* follow the waypoint list to fly */
 	AUTOPILOT_FOLLOW_WAYPOINT_MODE,
 	/* hovering at current waypoint for some time before traveling to next one */
@@ -65,7 +69,6 @@ struct waypoint_t {
 	float pos[3];        //[m]
 	float heading;       //[deg]
 	float halt_time_sec; //[s]
-	float touch_radius;  //[m]
 
 	/* compatible with mavlink design */
 	int32_t latitude;  //[deg], scaled by 1/1e7
@@ -92,7 +95,16 @@ typedef struct {
 		float height;
 	} geo_fence;
 
-	/* auto-takeoff and landing */
+	/* autopilot datas and flags */
+	float period; //executing period
+	int mode;
+	bool halt_flag;
+	bool loop_mission;
+	bool armed;
+	bool motor_locked;
+	float waypoint_touch_radius;
+	
+	/* 1. auto-takeoff and landing */
 	bool land_avaliable;
 	float landing_speed;
 	float landing_accept_height_upper;
@@ -101,21 +113,21 @@ typedef struct {
 	float takeoff_height;
 	float tracking_speed;
 
-	/* autopilot datas and flags */
-	float period; //executing period
-	int mode;
-	bool halt_flag;
-	bool loop_mission;
-	bool armed;
-	bool motor_locked;
+	/* 2. goto mission */
+	struct {
+		float pos[3];  //[m]
+		float vel[3];  //[m/s]
+		float heading; //[deg]
+		bool change_height;
+	} goto_target;
 
-	/* waypoint mission datas */
+	/* 3. waypoint mission */
 	struct waypoint_t waypoints[TRAJ_WP_MAX_NUM]; //waypoint list (enu frame)
 	int curr_waypoint;       //index of current waypoint to track
 	int waypoint_num;        //total waypoint numbers
 	int waypoint_wait_timer; //used for delay between waypoints
 
-	/* trajectory following datas */
+	/* 4. trajectory mission */
 	struct trajectory_segment_t trajectory_segments[TRAJ_WP_MAX_NUM]; //trajectory list
 	float trajectory_update_time;
 	float traj_start_time;
@@ -136,11 +148,15 @@ bool autopilot_is_armed(void);
 void autopilot_lock_motor(void);
 void autopilot_unlock_motor(void);
 
+void autopilot_assign_heading_target(float heading);
+void autopilot_assign_pos_target(float x, float y, float z);
 void autopilot_assign_pos_target_x(float x);
 void autopilot_assign_pos_target_y(float y);
 void autopilot_assign_pos_target_z(float z);
-void autopilot_assign_pos_target(float x, float y, float z);
 void autopilot_assign_vel_target(float vx, float vy, float vz);
+void autopilot_assign_vel_target_x(float vx);
+void autopilot_assign_vel_target_y(float vy);
+void autopilot_assign_vel_target_z(float vz);
 void autopilot_assign_zero_vel_target(void);
 void autopilot_assign_acc_feedforward(float ax, float ay, float az);
 void autopilot_assign_zero_acc_feedforward(void);
@@ -150,11 +166,18 @@ void autopilot_set_armed(void);
 void autopilot_set_disarmed(void);
 
 int autopilot_get_mode(void);
+float autopilot_get_heading_setpoint(void);
 void autopilot_get_pos_setpoint(float *pos_set);
+float autopilot_get_pos_setpoint_x(void);
+float autopilot_get_pos_setpoint_y(void);
+float autopilot_get_pos_setpoint_z(void);
 void autopilot_get_vel_setpoint(float *vel_set);
+float autopilot_get_vel_setpoint_x(void);
+float autopilot_get_vel_setpoint_y(void);
+float autopilot_get_vel_setpoint_z(void);
 void autopilot_get_accel_feedforward(float *accel_ff);
 
-void autopilot_guidance_handler(float *curr_pos_enu, float *curr_vel_enu);
+void autopilot_guidance_handler(radio_t *rc, float *curr_pos_enu, float *curr_vel_enu);
 
 void debug_print_waypoint_list(void);
 void debug_print_waypoint_status(void);

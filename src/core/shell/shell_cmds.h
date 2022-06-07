@@ -20,5 +20,6 @@ void shell_cmd_param(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int pa
 void shell_cmd_compass(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt);
 void shell_cmd_motor_calib(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt);
 void shell_cmd_motor_test(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt);
+void shell_cmd_mavlink_debug(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt);
 
 #endif

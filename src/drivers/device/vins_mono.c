@@ -13,6 +13,7 @@
 #include "debug_link.h"
 #include "proj_config.h"
 #include "board_porting.h"
+#include "quaternion.h"
 
 #define VINS_MONO_IMU_MSG_SIZE 27
 #define VINS_MONO_CHECKSUM_INIT_VAL 19
@@ -111,31 +112,26 @@ int vins_mono_serial_decoder(uint8_t *buf)
 
 	vins_mono.time_now = get_sys_time_ms();
 
-	float q_enu[4];
-
 	/* decode position (enu frame) */
-	memcpy(&vins_mono.pos[0], &buf[3], sizeof(float));
-	memcpy(&vins_mono.pos[1], &buf[7], sizeof(float));
-	memcpy(&vins_mono.pos[2], &buf[11], sizeof(float));
+	memcpy(&vins_mono.pos_enu[0], &buf[3], sizeof(float));
+	memcpy(&vins_mono.pos_enu[1], &buf[7], sizeof(float));
+	memcpy(&vins_mono.pos_enu[2], &buf[11], sizeof(float));
 
 	/* decode velocity (enu frame) */
-	memcpy(&vins_mono.vel_raw[0], &buf[15], sizeof(float));
-	memcpy(&vins_mono.vel_raw[1], &buf[19], sizeof(float));
-	memcpy(&vins_mono.vel_raw[2], &buf[23], sizeof(float));
+	memcpy(&vins_mono.vel_enu[0], &buf[15], sizeof(float));
+	memcpy(&vins_mono.vel_enu[1], &buf[19], sizeof(float));
+	memcpy(&vins_mono.vel_enu[2], &buf[23], sizeof(float));
 
 	/* decode quaternion (ned frame) */
+	float q_enu[4];
 	memcpy(&q_enu[0], &buf[27], sizeof(float));
 	memcpy(&q_enu[1], &buf[31], sizeof(float));
 	memcpy(&q_enu[2], &buf[35], sizeof(float));
 	memcpy(&q_enu[3], &buf[39], sizeof(float));
-	vins_mono.q[0] = q_enu[0];
-	vins_mono.q[1] = q_enu[2];
-	vins_mono.q[2] = q_enu[1];
+	vins_mono.q[0] =  q_enu[0];
+	vins_mono.q[1] =  q_enu[2];
+	vins_mono.q[2] =  q_enu[1];
 	vins_mono.q[3] = -q_enu[3];
-
-	vins_mono.vel_filtered[0] = vins_mono.vel_raw[0];
-	vins_mono.vel_filtered[1] = vins_mono.vel_raw[1];
-	vins_mono.vel_filtered[2] = vins_mono.vel_raw[2];
 
 	/* calculate update rate */
 	float received_period = (vins_mono.time_now - vins_mono.time_last) * 0.001;
@@ -147,34 +143,100 @@ int vins_mono_serial_decoder(uint8_t *buf)
 	return 0;
 }
 
-float vins_mono_read_pos_x()
+void vins_mono_get_position_enu(float *pos)
 {
-	return(vins_mono.pos[0]);
+	pos[0] = vins_mono.pos_enu[0];
+	pos[1] = vins_mono.pos_enu[1];
+	pos[2] = vins_mono.pos_enu[2];
 }
 
-float vins_mono_read_pos_y()
+float vins_mono_get_position_enu_x(void)
 {
-	return(vins_mono.pos[1]);
+	return vins_mono.pos_enu[0];
 }
 
-float vins_mono_read_pos_z()
+float vins_mono_get_position_enu_y(void)
 {
-	return(vins_mono.pos[2]);
+	return vins_mono.pos_enu[1];
 }
 
-float vins_mono_read_vel_x()
+float vins_mono_get_position_enu_z(void)
 {
-	return(vins_mono.vel_raw[0]);
+	return vins_mono.pos_enu[2];
 }
 
-float vins_mono_read_vel_y()
+void vins_mono_get_velocity_enu(float *vel)
 {
-	return(vins_mono.vel_raw[1]);
+	vel[0] = vins_mono.vel_enu[0];
+	vel[1] = vins_mono.vel_enu[1];
+	vel[2] = vins_mono.vel_enu[2];
 }
 
-float vins_mono_read_vel_z()
+float vins_mono_get_velocity_enu_x(void)
 {
-	return(vins_mono.vel_raw[2]);
+	return vins_mono.vel_enu[0];
+}
+
+float vins_mono_get_velocity_enu_y(void)
+{
+	return vins_mono.vel_enu[1];
+}
+
+float vins_mono_get_velocity_enu_z(void)
+{
+	return vins_mono.vel_enu[2];
+}
+
+void vins_mono_get_position_ned(float *pos)
+{
+	pos[0] =  vins_mono.pos_enu[1];
+	pos[1] =  vins_mono.pos_enu[0];
+	pos[2] = -vins_mono.pos_enu[2];
+}
+
+float vins_mono_get_position_ned_x(void)
+{
+	return vins_mono.pos_enu[1];
+}
+
+float vins_mono_get_position_ned_y(void)
+{
+	return vins_mono.pos_enu[0];
+}
+
+float vins_mono_get_position_ned_z(void)
+{
+	return -vins_mono.pos_enu[2];
+}
+
+void vins_mono_get_velocity_ned(float *vel)
+{
+	vel[0] =  vins_mono.vel_enu[1];
+	vel[1] =  vins_mono.vel_enu[0];
+	vel[2] = -vins_mono.vel_enu[2];
+}
+
+float vins_mono_get_velocity_ned_x(void)
+{
+	return vins_mono.vel_enu[1];
+}
+
+float vins_mono_get_velocity_ned_y(void)
+{
+	return vins_mono.vel_enu[0];
+}
+
+float vins_mono_get_velocity_ned_z(void)
+{
+	return -vins_mono.vel_enu[2];
+}
+
+void vins_mono_get_quaternion(float *q)
+{
+	q[0] = vins_mono.q[0];
+	q[1] = vins_mono.q[1];
+	q[2] = vins_mono.q[2];
+	q[3] = vins_mono.q[3];
 }
 
 void send_vins_mono_imu_msg(void)
@@ -254,9 +316,10 @@ void vins_mono_camera_trigger_20hz(void)
 
 void send_vins_mono_position_debug_message(debug_msg_t *payload)
 {
-	float px = vins_mono.pos[0] * 100.0f; //[cm]
-	float py = vins_mono.pos[1] * 100.0f; //[cm]
-	float pz = vins_mono.pos[2] * 100.0f; //[cm]
+	//unit: [cm]
+	float px = vins_mono.pos_enu[0] * 100.0f;
+	float py = vins_mono.pos_enu[1] * 100.0f;
+	float pz = vins_mono.pos_enu[2] * 100.0f;
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_VINS_MONO_POSITION);
 	pack_debug_debug_message_float(&px, payload);
@@ -275,12 +338,13 @@ void send_vins_mono_quaternion_debug_message(debug_msg_t *payload)
 
 void send_vins_mono_velocity_debug_message(debug_msg_t *payload)
 {
-	float vx_raw = vins_mono.vel_raw[0] * 100.0f; //[cm/s]
-	float vy_raw = vins_mono.vel_raw[1] * 100.0f; //[cm/s]
-	float vz_raw = vins_mono.vel_raw[2] * 100.0f; //[cm/s]
-	float vx_filtered = vins_mono.vel_filtered[0] * 100.0f; //[cm/s]
-	float vy_filtered = vins_mono.vel_filtered[1] * 100.0f; //[cm/s]
-	float vz_filtered = vins_mono.vel_filtered[2] * 100.0f; //[cm/s]
+	//unit: [cm/s]
+	float vx_raw = vins_mono.vel_enu[0] * 100.0f;
+	float vy_raw = vins_mono.vel_enu[1] * 100.0f;
+	float vz_raw = vins_mono.vel_enu[2] * 100.0f;
+	float vx_filtered = vins_mono.vel_enu[0] * 100.0f;
+	float vy_filtered = vins_mono.vel_enu[1] * 100.0f;
+	float vz_filtered = vins_mono.vel_enu[2] * 100.0f;
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_VINS_MONO_VELOCITY);
 	pack_debug_debug_message_float(&vx_raw, payload);

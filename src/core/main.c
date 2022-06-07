@@ -1,12 +1,11 @@
 #include <stdio.h>
 #include <string.h>
 #include "stm32f4xx.h"
-#include "stm32f4xx_gpio.h"
-#include "stm32f4xx_conf.h"
-#include "proj_config.h"
-#include "sys_time.h"
+#include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
+#include "freertos_config.h"
 #include "delay.h"
-#include "led.h"
 #include "debug_link.h"
 #include "shell_task.h"
 #include "mavlink_task.h"
@@ -18,6 +17,7 @@
 #include "ins_sensor_sync.h"
 #include "board_init.h"
 #include "board_porting.h"
+#include "calibration_task.h"
 
 perf_t perf_list[] = {
 	DEF_PERF(PERF_AHRS_INS, "ahrs and ins")

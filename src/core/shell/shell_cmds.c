@@ -19,6 +19,7 @@
 #include "takeoff_landing.h"
 #include "proj_config.h"
 #include "board_porting.h"
+#include "mavlink_task.h"
 
 static bool parse_float_from_str(char *str, float *value)
 {
@@ -44,7 +45,8 @@ void shell_cmd_help(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int par
 	          "motor_calib\n\r"
 	          "motor_test\n\r"
 	          "perf\n\r"
-	          "params\n\r";
+	          "params\n\r"
+	          "mavlink_debug\n\r";
 	shell_puts(s);
 }
 
@@ -190,7 +192,7 @@ void shell_cmd_fly(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int para
 	shell_cli(&shell);
 
 	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
-		int ret_val = autopilot_goto_waypoint_now(pos, change_z);
+		int ret_val = autopilot_goto_waypoint_now(0, pos, change_z);
 		if(ret_val == AUTOPILOT_WAYPOINT_OUT_OF_FENCE) {
 			shell_puts("failed, waypoint out of geo-fence!\n\r");
 		} else {
@@ -206,7 +208,6 @@ static void mission_add_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_L
 	float pos[3] = {0.0f, 0.0f, 0.0f};
 	float heading = 0.0f;
 	float stay_time_sec = 1.0f;
-	float radius = 0.0f;
 
 	if(parse_float_from_str(param_list[2], &pos[0]) == false) {
 		shell_puts("abort, bad arguments\n\r");
@@ -229,15 +230,10 @@ static void mission_add_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_L
 		shell_puts("abort, bad arguments\n\r");
 		return;
 	}
-	if(parse_float_from_str(param_list[7], &radius) == false) {
-		shell_puts("abort, bad arguments\n\r");
-		return;
-	}
 
 	char s[200] = {'\0'};
-	sprintf(s, "new waypoint: x=%.1fm, y=%.1fm, z=%.1fm, heading=%.1f, "
-	        "stay_time=%.1f, radius=%.1fm\n\r",
-	        pos[0], pos[1], pos[2], heading, stay_time_sec, radius);
+	sprintf(s, "new waypoint: x=%.1fm, y=%.1fm, z=%.1fm, heading=%.1f, stay_time=%.1fsec\n\r",
+	        pos[0], pos[1], pos[2], heading, stay_time_sec);
 	shell_puts(s);
 
 	char user_agree[CMD_LEN_MAX];
@@ -246,7 +242,7 @@ static void mission_add_cmd_handler(char param_list[PARAM_LIST_SIZE_MAX][PARAM_L
 	shell_cli(&shell);
 
 	if(strcmp(user_agree, "y") == 0 || strcmp(user_agree, "Y") == 0) {
-		int ret_val = autopilot_add_new_waypoint(pos, heading, stay_time_sec, radius);
+		int ret_val = autopilot_add_new_waypoint(pos, heading, stay_time_sec);
 		if(ret_val == AUTOPILOT_SET_SUCCEED) {
 			shell_puts("successfully added new waypoint.\n\r");
 		} else if(ret_val == AUTOPILOT_WAYPOINT_LIST_FULL) {
@@ -715,4 +711,29 @@ void shell_cmd_motor_test(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], i
 			}
 		}
 	}
+}
+
+void shell_cmd_mavlink_debug(char param_list[PARAM_LIST_SIZE_MAX][PARAM_LEN_MAX], int param_cnt)
+{
+	char s[150];
+
+	mavlink_rx_debug_enable();
+
+	shell_puts("press [q] to stop.\n\r");
+	char c = '\0';
+	while(1) {
+		if(debug_link_getc(&c, 0) == true) {
+			if(c == 'q') break;
+		}
+
+		int msg_id;
+		float recvd_time;
+
+		if(get_mavlink_reception_record(&msg_id, &recvd_time) == true) {
+			sprintf(s, "[%f] received message #%d.\n\r", recvd_time, msg_id);
+			shell_puts(s);
+		}
+	}
+
+	mavlink_rx_debug_disable();
 }

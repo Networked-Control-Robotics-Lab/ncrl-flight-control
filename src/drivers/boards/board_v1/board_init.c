@@ -1,3 +1,6 @@
+#include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
 #include "stm32f4xx.h"
 #include "stm32f4xx_gpio.h"
 #include "stm32f4xx_conf.h"
@@ -21,12 +24,19 @@
 #include "sw_i2c.h"
 #include "ist8310.h"
 #include "ms5611.h"
+#include "lidar_lite.h"
+#include "ins_sensor_sync.h"
+
+#define BAROMETER_PRESCALER_RELOAD 4 //100Hz
+
+void f4_sw_i2c_driver_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
+                                    UBaseType_t priority);
 
 void board_init(void)
 {
 	/* driver initialization */
 	flash_init();
-	crc_init();
+	_crc_init();
 	led_init();
 	ext_switch_init();
 	uart1_init(115200);
@@ -54,10 +64,9 @@ void board_init(void)
 
 	blocked_delay_ms(50);
 
-#if (ENABLE_MAGNETOMETER == 1)
-	/* compass (ist8310) */
+#if ((ENABLE_MAGNETOMETER != 0) || (ENABLE_RANGEFINDER != 0))
 	sw_i2c_init();
-	ist8310_register_task("compass driver", 512, tskIDLE_PRIORITY + 5);
+	f4_sw_i2c_driver_register_task("sw i2c driver", 512, tskIDLE_PRIORITY + 5);
 #endif
 
 #if (ENABLE_BAROMETER == 1)
@@ -67,4 +76,40 @@ void board_init(void)
 #endif
 
 	timer3_init();
+}
+
+/*================================*
+ * ist8310 and lidar lite support *
+ *================================*/
+void f4_sw_i2c_driver_task(void *param)
+{
+#if (ENABLE_MAGNETOMETER != 0)
+	ist8130_init();
+	freertos_task_delay(10);
+#endif
+
+#if (ENABLE_RANGEFINDER != 0)
+	lidar_lite_init();
+	freertos_task_delay(10);
+#endif
+
+	while(ins_sync_buffer_is_ready() == false);
+
+	while(1) {
+#if ((ENABLE_MAGNETOMETER != 0) && (ENABLE_RANGEFINDER != 0))
+		ist8310_read_sensor();
+		lidar_lite_read_sensor();
+		lidar_lite_read_sensor();
+#elif (ENABLE_MAGNETOMETER != 0)
+		ist8310_read_sensor();
+#elif (ENABLE_RANGEFINDER != 0)
+		lidar_lite_read_sensor();
+#endif
+	}
+}
+
+void f4_sw_i2c_driver_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
+                                    UBaseType_t priority)
+{
+	xTaskCreate(f4_sw_i2c_driver_task, task_name, stack_size, NULL, priority, NULL);
 }
