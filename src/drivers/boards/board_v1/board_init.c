@@ -18,6 +18,9 @@
 #include "vins_mono.h"
 #include "ublox_m8n.h"
 #include "board_porting.h"
+#include "sw_i2c.h"
+#include "ist8310.h"
+#include "ms5611.h"
 
 void board_init(void)
 {
