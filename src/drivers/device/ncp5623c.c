@@ -59,7 +59,7 @@ void ncp5623c_led_toggle(bool red_toggle, bool green_toggle, bool blue_toggle)
 
 void ncp5623c_write(float red, float green, float blue)
 {
-	uint32_t timeout = NCP5623C_I2C_TIMEOUT;
+	float timeout = NCP5623C_I2C_TIMEOUT;
 
 	i2c_start(I2C2, 0x39 << 1, I2C_Direction_Transmitter, timeout);
 	i2c_write(I2C2, 0x20 | 0x1f, timeout);
