@@ -267,6 +267,7 @@ void mpu6500_int_handler(void)
 	buffer[11] = imu_spi_read_write(0xff);
 	buffer[12] = imu_spi_read_write(0xff);
 	buffer[13] = imu_spi_read_write(0xff);
+	imu_spi_chip_deselect();
 
 	/* composite sensor data */
 #if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
