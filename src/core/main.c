@@ -18,6 +18,7 @@
 #include "board_init.h"
 #include "board_porting.h"
 #include "calibration_task.h"
+#include "led.h"
 
 perf_t perf_list[] = {
 	DEF_PERF(PERF_AHRS_INS, "ahrs and ins")
@@ -37,6 +38,9 @@ int main(void)
 
 	/* driver initialization */
 	board_init();
+
+	/* rgb led indicator service */
+	rgb_led_service_init();
 
 	/* flight controller task (highest priority) */
 	flight_controller_register_task("flight controller", 4096, tskIDLE_PRIORITY + 6);

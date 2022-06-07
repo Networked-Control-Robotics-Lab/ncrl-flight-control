@@ -212,20 +212,16 @@ void mpu6500_reset_bias(void)
 
 static void mpu6500_accel_apply_calibration(float *accel_scaled)
 {
-
 	accel_scaled[0] = ((float)accel_scaled[0] * mpu6500.accel_rescale_x) - mpu6500.accel_bias[0];
 	accel_scaled[1] = ((float)accel_scaled[1] * mpu6500.accel_rescale_y) - mpu6500.accel_bias[1];
 	accel_scaled[2] = ((float)accel_scaled[2] * mpu6500.accel_rescale_z) - mpu6500.accel_bias[2];
-
 }
 
 static void mpu6500_gyro_apply_calibration(int16_t *gyro_unscaled)
 {
-
 	gyro_unscaled[0] -= mpu6500.gyro_bias[0];
 	gyro_unscaled[1] -= mpu6500.gyro_bias[1];
 	gyro_unscaled[2] -= mpu6500.gyro_bias[2];
-
 }
 
 static void mpu6500_accel_convert_to_scale(int16_t *accel_unscaled, float *accel_scaled)

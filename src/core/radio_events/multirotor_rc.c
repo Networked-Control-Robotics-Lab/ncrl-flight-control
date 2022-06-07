@@ -88,20 +88,21 @@ void rc_wait_unlock_geasture(void)
 	float time_last = 0.0f;
 	float time_current = 0.0f;
 
+	set_rgb_led_service_motor_lock_flag(true);
+
 	while(1) {
 		sbus_rc_read(&rc);
 
 		time_current = get_sys_time_ms();
 		if(time_current - time_last > 100.0f) {
-			led_control(true, false, false); //r=1, g=0, b=0 (red)
 			time_last = time_current;
 		}
 
 		//force to leave the loop if user triggered the motor esc range calibration
-		if(is_esc_range_calibration_triggered() == true) return;
+		if(is_esc_range_calibration_triggered() == true) break;
 
 		//force to leave the loop if user triggered the motor thrust testing
-		if(is_motor_force_testing_triggered() == true) return;
+		if(is_motor_force_testing_triggered() == true) break;
 
 		if(rc.throttle < 5.0f && rc.pitch < -30.0f &&
 		    rc.yaw > +30.0f && rc.roll < -30.0f) {
@@ -110,6 +111,8 @@ void rc_wait_unlock_geasture(void)
 
 		vTaskDelay(1);
 	}
+
+	set_rgb_led_service_motor_lock_flag(false);
 }
 
 bool rc_unlock_geasture_handler(radio_t *rc, float *accel_lpf)

@@ -30,7 +30,7 @@ void esc_range_calibration(void)
 	 * 2.after the calibration you should shut down the power and reset
 	 * the system before flying. */
 
-	led_control(true, false, true); //r=1, g=0, b=1 (purple)
+	set_rgb_led_calibration_mode_flag(true);
 
 	radio_t rc;
 	float calib_signal = 0.0f;
@@ -77,7 +77,7 @@ void motor_force_testing(void)
 	 * since this function is dangerous, the testing loop will never be
 	 * end until you turn off the power */
 
-	led_control(true, false, true); //r=1, g=0, b=1 (purple)
+	set_rgb_led_calibration_mode_flag(true);
 
 	while(1) {
 		set_motor_value(MOTOR1, force_testing_percentage);

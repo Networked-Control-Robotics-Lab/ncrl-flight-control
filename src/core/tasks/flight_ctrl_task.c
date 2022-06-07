@@ -60,22 +60,23 @@ void rc_safety_protection(void)
 	float time_last = 0.0f;
 	float time_current = 0.0f;
 
-	led_control(false, false, false); //r=0, g=0, b=0
 	do {
 		time_current = get_sys_time_ms();
 		if(time_current - time_last > 100.0f) {
-			led_toggle(true, false, false); //red light blinking
+			set_rgb_led_rc_not_ready_flag(true);
 			time_last = time_current;
 		}
 		sbus_rc_read(&rc);
 		vTaskDelay(1);
 
 		//force to leave the loop if user triggered the motor esc range calibration
-		if(is_esc_range_calibration_triggered() == true) return;
+		if(is_esc_range_calibration_triggered() == true) break;
 
 		//force to leave the loop if user triggered the motor thrust testing
-		if(is_motor_force_testing_triggered() == true) return;
+		if(is_motor_force_testing_triggered() == true) break;
 	} while(rc_safety_check(&rc) == 1);
+
+	set_rgb_led_rc_not_ready_flag(false);
 }
 
 void task_flight_ctrl(void *param)
@@ -89,11 +90,12 @@ void task_flight_ctrl(void *param)
 	/* imu initialization */
 	imu_init();
 
-	/* imu calibration (triggered by qgroundcontrol) */
+	/* imu requires calibration before using */
 	while(imu_calibration_not_finished() == true) {
-		led_control(true, false, true); //r=1, g=0, b=1 (purple)
-		freertos_task_delay(2.5);
+		set_rgb_led_calibration_mode_flag(true);
+		vTaskDelay(1);
 	}
+	set_rgb_led_calibration_mode_flag(false);
 
 	/* blocked until user reset remote controller to safe position */
 	rc_safety_protection();
@@ -125,9 +127,6 @@ void task_flight_ctrl(void *param)
 	/* ahrs and ins initialization */
 	ahrs_init();
 	ins_init();
-
-	/* from now on, led control task will be taken by rgb_led_service driver */
-	enable_rgb_led_service();
 
 	/* flight control loop */
 	while(1) {
