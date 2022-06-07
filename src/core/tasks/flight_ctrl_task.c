@@ -60,10 +60,11 @@ void rc_safety_protection(void)
 	float time_last = 0.0f;
 	float time_current = 0.0f;
 
+	set_rgb_led_rc_not_ready_flag(true);
+
 	do {
 		time_current = get_sys_time_ms();
 		if(time_current - time_last > 100.0f) {
-			set_rgb_led_rc_not_ready_flag(true);
 			time_last = time_current;
 		}
 		sbus_rc_read(&rc);
@@ -91,8 +92,8 @@ void task_flight_ctrl(void *param)
 	imu_init();
 
 	/* imu requires calibration before using */
+	set_rgb_led_calibration_mode_flag(true);
 	while(imu_calibration_not_finished() == true) {
-		set_rgb_led_calibration_mode_flag(true);
 		vTaskDelay(1);
 	}
 	set_rgb_led_calibration_mode_flag(false);

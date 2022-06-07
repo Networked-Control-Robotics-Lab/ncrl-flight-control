@@ -35,9 +35,9 @@ void config_rgb_mode(void)
 		rgb_service.green_on = false;
 		rgb_service.blue_on = false;
 
-		rgb_service.blink_start_time = get_sys_time_ms();
+		rgb_service.blink_start_time = get_sys_time_s();
 		rgb_service.blink_enabled = true;
-		rgb_service.blink_wait_time = 2.5; //[ms]
+		rgb_service.blink_wait_time = 0.075; //[s]
 
 		return;
 	} else if(rgb_service.sensor_error == true) {
@@ -113,7 +113,7 @@ void rgb_led_handler(void)
 {
 	if(rgb_service.blink_enabled == true) {
 		/* calculate blink elapsed time */
-		float curr_time = get_sys_time_ms();
+		float curr_time = get_sys_time_s();
 		float blink_elapsed_time = curr_time - rgb_service.blink_start_time;
 
 		/* time's up, do toogle */
