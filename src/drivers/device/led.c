@@ -116,7 +116,7 @@ void rgb_led_handler(void)
 		float curr_time = get_sys_time_s();
 		float blink_elapsed_time = curr_time - rgb_service.blink_start_time;
 
-		/* time's up, do toogle */
+		/* time's up, do toggle */
 		if(blink_elapsed_time > rgb_service.blink_wait_time) {
 			led_toggle(rgb_service.red_on, rgb_service.green_on, rgb_service.blue_on);
 			rgb_service.blink_start_time = curr_time;
