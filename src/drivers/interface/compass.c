@@ -8,6 +8,7 @@
 #include "debug_link.h"
 #include "ahrs.h"
 #include "imu.h"
+#include "proj_config.h"
 
 void get_compass_raw(float *mag)
 {
@@ -26,7 +27,9 @@ bool is_compass_available(void)
 
 void compass_wait_until_stable(void)
 {
+#if (ENABLE_MAGNETOMETER != 0)
 	ist8310_wait_until_stable();
+#endif
 }
 
 float get_compass_update_rate(void)
