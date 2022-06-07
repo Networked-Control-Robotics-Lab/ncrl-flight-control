@@ -68,7 +68,7 @@ void ncp5623c_write(float red, float green, float blue)
 	i2c_write(I2C2, 0x70, timeout);
 	i2c_write(I2C2, 0x60 | ((uint8_t)((float)0x1f * green / 100.0f) & 0x1f), timeout);
 	i2c_write(I2C2, 0x70,timeout);
-	i2c_write(I2C2, 0x80 | ((uint8_t)((float)0x1f * blue / 100.0f ) & 0x1f), timeout);
+	i2c_write(I2C2, 0x80 | ((uint8_t)((float)0x1f * blue / 100.0f) & 0x1f), timeout);
 	i2c_stop(I2C2);
 }
 
