@@ -429,15 +429,15 @@ class serial_plotter_class:
             self.show_subplot()
 
             plt.subplot(427)
-            plt.ylabel('barometer height [m]')
+            plt.ylabel('height [m]')
             plt.ylim([-1.0, 5.0])
             self.create_curve('height', 'red')
             self.show_subplot()
 
             plt.subplot(428)
-            plt.ylabel('barometer velocity [m]')
+            plt.ylabel('height rate [m/s]')
             plt.ylim([-10.0, 10.0])
-            self.create_curve('velocity', 'red')
+            self.create_curve('height rate', 'red')
             self.show_subplot()
 
         elif (message_id == 19):
@@ -719,7 +719,7 @@ class serial_plotter_class:
         self.parse_field_float(buffer, 9)
         self.parse_field_int32(buffer, 10)
         self.parse_field_int32(buffer, 11)
-        self.parse_field_float(buffer, 12)
+        self.parse_field_int32(buffer, 12)
         self.parse_field_float(buffer, 13)
         self.parse_field_float(buffer, 14)
         self.parse_field_float(buffer, 15)
