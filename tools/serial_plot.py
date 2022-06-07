@@ -10,7 +10,7 @@ from collections import deque
 from datetime import datetime
 
 ser = serial.Serial(
-    port='/dev/ttyUSB1',
+    port='/dev/ttyUSB0',
     baudrate=115200,
     parity=serial.PARITY_NONE,
     stopbits=serial.STOPBITS_ONE,
@@ -676,17 +676,22 @@ class serial_plotter_class:
                 csv_token.write(',')
 
     def parse_field_float(self, buffer, i):
-        binary_data = ''.join(
-            [buffer[i * 4], buffer[i * 4 + 1], buffer[i * 4 + 2], buffer[i * 4 + 3]])
+        data1 = struct.pack("B", buffer[i*4])
+        data2 = struct.pack("B", buffer[i*4+1])
+        data3 = struct.pack("B", buffer[i*4+2])
+        data4 = struct.pack("B", buffer[i*4+3])
+        binary_data = data1 + data2 + data3 + data4
         float_data = np.asarray(struct.unpack("f", binary_data))
         self.serial_data[i].add(float_data)
-        self.recvd_datas.append(float_data)
         print("payload #%d: %f" % (i, float_data))
         return float_data
 
     def parse_field_int32(self, buffer, i):
-        binary_data = ''.join(
-            [buffer[i * 4], buffer[i * 4 + 1], buffer[i * 4 + 2], buffer[i * 4 + 3]])
+        data1 = struct.pack("B", buffer[i*4])
+        data2 = struct.pack("B", buffer[i*4+1])
+        data3 = struct.pack("B", buffer[i*4+2])
+        data4 = struct.pack("B", buffer[i*4+3])
+        binary_data = data1 + data2 + data3 + data4
         int32_data = np.asarray(struct.unpack("i", binary_data))
         self.serial_data[i].add(int32_data)
         self.recvd_datas.append(int32_data)
