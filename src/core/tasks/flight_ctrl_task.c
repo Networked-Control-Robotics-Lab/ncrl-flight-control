@@ -110,8 +110,7 @@ void task_flight_ctrl(void *param)
 	if(is_motor_force_testing_triggered() == true) {
 		/* since motor force calibration is dangerous, once the program entered
 		 * into the calibration process, it will never able to leave until the
-		 * user reboot the system
-		 */
+		 * user reboot the system */
 		motor_force_testing();
 	}
 

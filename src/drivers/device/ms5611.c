@@ -14,6 +14,7 @@
 #include "barometer.h"
 #include "ins_sensor_sync.h"
 #include "board_porting.h"
+#include "proj_config.h"
 
 #define POW2(x) ((x) * (x))
 #define MBAR_TO_PASCAL(press) (press * 100.0f)
@@ -252,6 +253,7 @@ void ms5611_driver_handler(BaseType_t *higher_priority_task_woken)
 	CR_END();
 }
 
+#define BAROMETER_PRESCALER_RELOAD 4 //100Hz
 void ms5611_driver_trigger_handler(void)
 {
 #if (ENABLE_BAROMETER != 0)
