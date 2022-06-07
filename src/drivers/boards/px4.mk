@@ -2,6 +2,8 @@
 
 PROJ_ROOT := $(dir $(lastword $(MAKEFILE_LIST)))/../..
 
+-include $(PROJ_ROOT)/drivers/boards/board_common.mk
+
 CFLAGS+=-DSELECT_BOARD=BOARD_PX4_V246 \
 	-DSELECT_MPU_IMU=USE_MPU6000
 

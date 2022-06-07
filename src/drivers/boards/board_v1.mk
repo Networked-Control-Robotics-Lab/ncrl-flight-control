@@ -1,5 +1,7 @@
 PROJ_ROOT := $(dir $(lastword $(MAKEFILE_LIST)))/../..
 
+-include $(PROJ_ROOT)/drivers/boards/board_common.mk
+
 #prototype board v1
 
 CFLAGS+=-DSELECT_BOARD=BOARD_PROTOTYPE_V1 \

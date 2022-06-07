@@ -22,8 +22,6 @@ LDFLAGS+=-Wl,--start-group -lm -Wl,--end-group
 
 SRC=
 
--include ./drivers/boards/board_common.mk
-
 #=================#
 # board selection #
 #=================#
