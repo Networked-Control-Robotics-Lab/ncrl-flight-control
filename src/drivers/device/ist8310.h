@@ -42,6 +42,7 @@ typedef struct {
 	int16_t mag_unscaled[3];
 	float mag_raw[3];
 	float mag_lpf[3];
+
 	float last_update_time;
 	float update_rate;
 
@@ -54,8 +55,6 @@ typedef struct {
 	float div_squared_semi_axis_size_x;
 	float div_squared_semi_axis_size_y;
 	float div_squared_semi_axis_size_z;
-
-	float last_read_time;
 } ist8310_t;
 
 void ist8130_init(void);

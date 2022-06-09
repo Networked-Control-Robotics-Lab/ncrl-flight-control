@@ -28,7 +28,7 @@ bool ist8310_available(void)
 {
 	//timeout if no data available more than 300ms
 	float current_time = get_sys_time_ms();
-	if((current_time - ist8310.last_read_time) > 300) {
+	if((current_time - ist8310.last_update_time) > 300) {
 		return false;
 	}
 	return true;
@@ -217,7 +217,7 @@ void ist8310_read_sensor(void)
 	/* update timer only if data is valid */
 	if(ist8310.mag_raw[0] != 0 || ist8310.mag_raw[1] != 0 || ist8310.mag_raw[2] != 0) {
 		ins_compass_sync_buffer_push(ist8310.mag_lpf);
-		ist8310.last_read_time = get_sys_time_ms();
+		ist8310.last_update_time = get_sys_time_ms();
 	}
 }
 
