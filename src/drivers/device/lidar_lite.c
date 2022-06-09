@@ -187,7 +187,7 @@ void lidar_lite_init(void)
 
 	/* reset lidar */
 	lidar_write_byte(LIDAR_ACQ_COMMAND_REG, 0x00);
-	freertos_task_delay(1000);
+	freertos_task_delay(100);
 
 	/* continuous reading mode */
 	lidar_write_byte(LIDAR_MEASURE_COUNT_REG, 0xff);
