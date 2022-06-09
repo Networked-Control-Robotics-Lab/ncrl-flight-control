@@ -177,6 +177,7 @@ void sw_i2c_start_handler(void)
 	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
 	i2c_state = SW_I2C_DO_NOTHING;
+	sw_i2c_timer_disable();
 
 	BaseType_t higher_priority_task_woken = pdFALSE;
 	xSemaphoreGiveFromISR(sw_i2c_semphr, &higher_priority_task_woken);
@@ -199,7 +200,6 @@ void sw_i2c_stop_handler(void)
 	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
 	i2c_state = SW_I2C_DO_NOTHING;
-
 	sw_i2c_timer_disable();
 
 	BaseType_t higher_priority_task_woken = pdFALSE;
@@ -223,6 +223,7 @@ void sw_i2c_ack_handler(void)
 	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
 	i2c_state = SW_I2C_DO_NOTHING;
+	sw_i2c_timer_disable();
 
 	BaseType_t higher_priority_task_woken = pdFALSE;
 	xSemaphoreGiveFromISR(sw_i2c_semphr, &higher_priority_task_woken);
@@ -245,6 +246,7 @@ void sw_i2c_nack_handler(void)
 	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
 	i2c_state = SW_I2C_DO_NOTHING;
+	sw_i2c_timer_disable();
 
 	BaseType_t higher_priority_task_woken = pdFALSE;
 	xSemaphoreGiveFromISR(sw_i2c_semphr, &higher_priority_task_woken);
@@ -275,6 +277,7 @@ void sw_i2c_byte_send_handler(void)
 		sw_i2c_scl_set_low();
 
 		i2c_state = SW_I2C_DO_NOTHING;
+		sw_i2c_timer_disable();
 
 		BaseType_t higher_priority_task_woken = pdFALSE;
 		xSemaphoreGiveFromISR(sw_i2c_semphr, &higher_priority_task_woken);
@@ -303,6 +306,7 @@ void sw_i2c_byte_receive_handler(void)
 		sw_i2c_scl_set_low();
 
 		i2c_state = SW_I2C_DO_NOTHING;
+		sw_i2c_timer_disable();
 
 		BaseType_t higher_priority_task_woken = pdFALSE;
 		xSemaphoreGiveFromISR(sw_i2c_semphr, &higher_priority_task_woken);
@@ -340,6 +344,7 @@ void sw_i2c_wait_ack_handler(void)
 	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
 	i2c_state = SW_I2C_DO_NOTHING;
+	sw_i2c_timer_disable();
 
 	BaseType_t higher_priority_task_woken = pdFALSE;
 	xSemaphoreGiveFromISR(sw_i2c_semphr, &higher_priority_task_woken);
@@ -388,6 +393,7 @@ void sw_i2c_stop(void)
 {
 	while(xSemaphoreTake(sw_i2c_semphr, portMAX_DELAY) != pdTRUE);
 
+	sw_i2c_timer_enable();
 	i2c_state = SW_I2C_STOP;
 }
 
@@ -395,6 +401,7 @@ void sw_i2c_ack(void)
 {
 	while(xSemaphoreTake(sw_i2c_semphr, portMAX_DELAY) != pdTRUE);
 
+	sw_i2c_timer_enable();
 	i2c_state = SW_I2C_ACK;
 }
 
@@ -402,6 +409,7 @@ void sw_i2c_nack(void)
 {
 	while(xSemaphoreTake(sw_i2c_semphr, portMAX_DELAY) != pdTRUE);
 
+	sw_i2c_timer_enable();
 	i2c_state = SW_I2C_NACK;
 }
 
@@ -409,6 +417,7 @@ void sw_i2c_wait_ack(void)
 {
 	while(xSemaphoreTake(sw_i2c_semphr, portMAX_DELAY) != pdTRUE);
 
+	sw_i2c_timer_enable();
 	i2c_state = SW_I2C_WAIT_ACK;
 }
 
@@ -420,6 +429,7 @@ uint8_t sw_i2c_read_byte(void)
 	sw_i2c_sda_set_high();
 
 	i2c_rw_bit_index = 0;
+	sw_i2c_timer_enable();
 	i2c_state = SW_I2C_RECEIVE_BYTE;
 
 	return sw_i2c_recpt_data;
@@ -434,6 +444,7 @@ void sw_i2c_send_byte(uint8_t data)
 
 	sw_i2c_config_sda_out();
 
+	sw_i2c_timer_enable();
 	i2c_state = SW_I2C_SEND_BYTE;
 }
 
