@@ -234,11 +234,11 @@ float ins_eskf_get_covariance_matrix_norm(void)
 	return norm * 1e-7;
 }
 
-bool ins_eskf_is_stable(void)
+bool ins_eskf_sensor_all_ready(void)
 {
-	/* TODO: refactor this code */
 	bool gps_ready = is_gps_available();
 	bool compass_ready = is_compass_available();
+
 #if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
 	bool height_ready = is_barometer_available();
 #elif (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_RANGEFINDER)
@@ -247,9 +247,15 @@ bool ins_eskf_is_stable(void)
 	bool height_ready = false;
 #endif
 
-	bool sensor_all_ready = gps_ready && compass_ready && height_ready;
+	return gps_ready && compass_ready && height_ready;
+}
 
-	if(sensor_all_ready && ins_eskf_get_covariance_matrix_norm() < ESKF_CONVERGENCE_NORM) {
+bool ins_eskf_is_stable(void)
+{
+	bool sensor_all_ready = ins_eskf_sensor_all_ready();
+	bool eskf_converged = ins_eskf_get_covariance_matrix_norm() < ESKF_CONVERGENCE_NORM;
+
+	if((sensor_all_ready == true) && (eskf_converged == true)) {
 		return true;
 	} else {
 		return false;
@@ -1531,21 +1537,8 @@ void ins_eskf_estimate(attitude_t *attitude,
 {
 	float curr_time, elapsed_time;
 
-	/* check sensor status */
-	bool gps_ready = is_gps_available();
-	bool compass_ready = is_compass_available();
-#if (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_BAROMETER)
-	bool height_ready = is_barometer_available();
-#elif (SELECT_HEIGHT_SENSOR == HEIGHT_FUSION_USE_RANGEFINDER)
-	bool height_ready = rangefinder_available();
-#else
-	bool height_ready = false;
-#endif
-
-	bool sensor_all_ready = gps_ready && compass_ready && height_ready;
-
 	/* we can't do full state estimation if sensors are not all ready */
-	if(sensor_all_ready == false) {
+	if(ins_eskf_sensor_all_ready() == false) {
 		return;
 	}
 
