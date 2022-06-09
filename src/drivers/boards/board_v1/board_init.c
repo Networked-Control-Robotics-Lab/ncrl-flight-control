@@ -94,16 +94,14 @@ void f4_sw_i2c_driver_task(void *param)
 	while(ins_sync_buffer_is_ready() == false);
 
 	while(1) {
-#if ((ENABLE_MAGNETOMETER != 0) && (ENABLE_RANGEFINDER != 0))
+#if (ENABLE_MAGNETOMETER != 0)
 		ist8310_read_sensor();
-		lidar_lite_read_sensor();
-		lidar_lite_read_sensor();
-#elif (ENABLE_MAGNETOMETER != 0)
-		ist8310_read_sensor();
-#elif (ENABLE_RANGEFINDER != 0)
+#endif
+
+#if (ENABLE_RANGEFINDER != 0)
 		lidar_lite_read_sensor();
 #endif
-		//taskYIELD();
+		taskYIELD();
 	}
 }
 

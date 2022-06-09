@@ -4,8 +4,8 @@ float median_filter(float *measurements, size_t size)
 {
 	/* bubble sort */
 	int i, j;
-	for (i = 0 ; i < size - 1; i++) {
-		for (j = 0 ; j < size - i - 1; j++) {
+	for (i = 0; i < size - 1; i++) {
+		for (j = 0; j < size - i - 1; j++) {
 			if (measurements[j] > measurements[j+1]) {
 				float tmp = measurements[j];
 				measurements[j] = measurements[j+1];
@@ -15,5 +15,5 @@ float median_filter(float *measurements, size_t size)
 	}
 
 	/* pick the median value */
-	return ((measurements[size / 2] + measurements[size / 2 - 1])) / 2;
+	return measurements[size / 2];
 }

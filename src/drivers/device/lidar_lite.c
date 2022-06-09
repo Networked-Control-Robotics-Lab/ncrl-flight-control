@@ -1,4 +1,5 @@
 #include <math.h>
+#include <string.h>
 #include "FreeRTOS.h"
 #include "task.h"
 #include "delay.h"
@@ -180,8 +181,8 @@ void lidar_write_byte(uint8_t addr, uint8_t data)
 void lidar_lite_init(void)
 {
 	/* numerical differentiation parameter initialization */
-	lidar_lite.prescaler = 5;
-	lidar_lite.dt = 0.025;
+	lidar_lite.prescaler = 4;
+	lidar_lite.dt = 0.025; //40Hz
 	lidar_lite.dt *= lidar_lite.prescaler;
 
 	/* reset lidar */
@@ -207,108 +208,65 @@ void lidar_lite_init(void)
 
 void lidar_lite_read_sensor(void)
 {
-	uint16_t lidar_dist_buf = 0;
-	//int8_t lidar_vel_buf = 0;
+	/* XXX: work around, lidar lite has bugs when connectinmg multiple i2c devices on a same line */
+	uint16_t dummy;
+	lidar_read_bytes(LIDAR_DISTANCE_REG, (uint8_t *)&dummy, 2);
 
-	/* sensor reading */
+	/* read distance */
+	uint16_t lidar_dist_buf = 0;
 	if(lidar_read_bytes(LIDAR_DISTANCE_REG, (uint8_t *)&lidar_dist_buf, 2)) {
 		/* failed to read datas */
 		return;
 	}
+
+	/* read velocity */
+	//int8_t lidar_vel_buf = 0;
 	//lidar_read_byte(LIDAR_VELOCITY_REG, (uint8_t *)&lidar_vel_buf);
-
-	/* handle communication failure of the i2c */
-	if(lidar_dist_buf == 0) {
-		return;
-	}
-
-	/* fault detection: very small measurement */
-	if(lidar_dist_buf < 10) {
-		//XXX: haven't find the reason causing this error
-		return;
-	}
-
-	/* fault detection: spike */
-	if(lidar_dist_buf > 350) {
-		//XXX: haven't find the reason causing this error
-		return;
-	}
 
 	/* calculate hegiht from lidar lite distance */
 	float q[4];
 	get_attitude_quaternion(q);
 	float cos_theta = (q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3]);
-	lidar_lite.height_raw = (float)lidar_dist_buf * cos_theta * 1e-2;
+	lidar_lite.height_raw = (float)lidar_dist_buf * cos_theta / 100.0f;
 
-#if 0
-	/* fault detection of lidar spike */
-	float ins_pz = get_enu_position_z();
-	if(fabs(ins_pz - lidar_lite.height_raw) > 1.0f) {
-		return;
-		//TODO: hangle the extreme change of the terrain
-	}
-#endif
+	/* median filter */
+	if(lidar_lite.med_filter_cnt == LIDAR_FILTER_SIZE) {
+		/* filter buffer is full, overwrite the oldest data */
+		lidar_lite.med_filter_buff[lidar_lite.med_filter_ptr] = lidar_lite.height_raw;
+		lidar_lite.med_filter_ptr = (lidar_lite.med_filter_ptr + 1) % LIDAR_FILTER_SIZE;
 
-#if 0   /* median filter */
-	/* filter is ready */
-	if(lidar_lite.median_filter_cnt == LIDAR_FILTER_SIZE) {
-		/* update the sliding window */
-		int i;
-		for(i = 0; i < (LIDAR_FILTER_SIZE - 1); i++) {
-			lidar_lite.sliding_window[i + 1] = lidar_lite.sliding_window[i];
-			lidar_lite.median_filter_buff[i + 1] = lidar_lite.sliding_window[i + 1];
-		}
-		lidar_lite.sliding_window[0] = lidar_lite.height_raw;
-		lidar_lite.median_filter_buff[0] = lidar_lite.height_raw;
-
-		/* execute the median filter */
-		lidar_lite.height_filtered = median_filter(lidar_lite.median_filter_buff, LIDAR_FILTER_SIZE);
-
-		/* filter is not ready */
+		/* run the median filter */
+		memcpy(lidar_lite.med_filter_sort, lidar_lite.med_filter_buff, sizeof(float) * LIDAR_FILTER_SIZE);
+		lidar_lite.height_filtered = median_filter(lidar_lite.med_filter_sort, LIDAR_FILTER_SIZE);
 	} else {
-		/* update the sliding window */
-		int i;
-		for(i = 0; i < LIDAR_FILTER_SIZE; i++) {
-			lidar_lite.sliding_window[i] = lidar_lite.height_raw;
-			lidar_lite.median_filter_buff[i] = lidar_lite.height_raw;
-		}
+		/* filter buffer is not full, fill in the measurement data */
+		lidar_lite.med_filter_buff[lidar_lite.med_filter_cnt] = lidar_lite.height_raw;
+		lidar_lite.med_filter_cnt++;
 
-		/* filter is not ready */
-		lidar_lite.median_filter_cnt++;
 		return;
 	}
 
 	/* numerical differention */
-	if(lidar_lite.prescaler_cnt == lidar_lite.prescaler) {
+	if((lidar_lite.prescaler_cnt + 1) == lidar_lite.prescaler) {
 		lidar_lite.vel_raw = (lidar_lite.height_filtered - lidar_lite.height_last) / lidar_lite.dt;
 		lidar_lite.height_last = lidar_lite.height_filtered;
 		lidar_lite.prescaler_cnt = 0;
 	}
 	lidar_lite.prescaler_cnt++;
-#else
-	/* numerical differention */
-	if(lidar_lite.prescaler_cnt == lidar_lite.prescaler) {
-		lidar_lite.vel_raw = (lidar_lite.height_raw - lidar_lite.height_last) / lidar_lite.dt;
-		lidar_lite.height_last = lidar_lite.height_raw;
-		lidar_lite.prescaler_cnt = 0;
-	}
-	lidar_lite.prescaler_cnt++;
-#endif
 
-	/* update frequency calculation */
+	/* calculate the update frequency */
 	float curr_time = get_sys_time_s();
 	lidar_lite.update_freq = 1.0f / (curr_time - lidar_lite.last_read_time);
 	lidar_lite.last_read_time = curr_time;
 
 	/* push data to the ins synchorization buffer */
 	ins_rangefinder_sync_buffer_push(lidar_lite.height_raw, lidar_lite.vel_raw);
-	//ins_rangefinder_sync_buffer_push(lidar_lite.height_filtered, lidar_lite.vel_raw);
 }
 
 float lidar_lite_get_distance(void)
 {
-	return lidar_lite.height_raw; //[m]
-	//return lidar_lite.height_filtered; //[m]
+	//return lidar_lite.height_raw;    //[m]
+	return lidar_lite.height_filtered; //[m]
 }
 
 float lidar_lite_get_velocity(void)

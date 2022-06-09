@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include "debug_link.h"
 
-#define LIDAR_FILTER_SIZE 5
+#define LIDAR_FILTER_SIZE 11 //should be a odd number
 
 #define LIDAR_DEV_ADDRESS 0x62
 
@@ -30,9 +30,10 @@ typedef struct {
 	float last_read_time;
 	float update_freq;
 
-	float median_filter_buff[LIDAR_FILTER_SIZE];
-	float sliding_window[LIDAR_FILTER_SIZE];
-	int median_filter_cnt;
+	float med_filter_sort[LIDAR_FILTER_SIZE]; //sorted data
+	float med_filter_buff[LIDAR_FILTER_SIZE]; //unsorted raw data
+	int med_filter_cnt; //number of the data in the filter array
+	int med_filter_ptr; //current position to the buffer
 } lidar_lite_t;
 
 void lidar_lite_init(void);

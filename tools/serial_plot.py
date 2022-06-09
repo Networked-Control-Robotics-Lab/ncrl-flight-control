@@ -10,7 +10,7 @@ from collections import deque
 from datetime import datetime
 
 ser = serial.Serial(
-    port='/dev/ttyUSB0',
+    port='/dev/ttyUSB1',
     baudrate=115200,
     parity=serial.PARITY_NONE,
     stopbits=serial.STOPBITS_ONE,
@@ -436,7 +436,7 @@ class serial_plotter_class:
 
             plt.subplot(428)
             plt.ylabel('height rate [m/s]')
-            plt.ylim([-10.0, 10.0])
+            plt.ylim([-1.0, 1.0])
             self.create_curve('height rate', 'red')
             self.show_subplot()
 
