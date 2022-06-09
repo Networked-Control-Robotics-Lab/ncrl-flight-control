@@ -141,7 +141,12 @@ int ist8310_read_bytes(uint8_t addr, uint8_t *data, int size)
 
 	sw_i2c_start();
 	sw_i2c_send_byte((IST8310_ADDR << 1) | 1);
-	sw_i2c_wait_ack();
+
+	if(sw_i2c_wait_ack()) {
+		/* error: failed to receive acknowledgement */
+		sw_i2c_stop();
+		return 1;
+	}
 
 	for(int i = 0; i < size; i++) {
 		data[i] = sw_i2c_read_byte();
