@@ -58,7 +58,7 @@ void config_rgb_mode(void)
 		rgb_service.blue_on = true;
 
 		/* light red (navigation on) / dark red (navigation off) */
-		rgb_service.green_on = (rgb_service.sensor_error) ? true : false;
+		rgb_service.green_on = (rgb_service.navigation_on) ? true : false;
 
 		rgb_service.blink_enabled = false;
 		rgb_service.blink_wait_time = 0.0f;
@@ -70,7 +70,7 @@ void config_rgb_mode(void)
 		rgb_service.blue_on = false;
 
 		/* light red (navigation on) / dark red (navigation off) */
-		rgb_service.green_on = (rgb_service.sensor_error) ? true : false;
+		rgb_service.green_on = (rgb_service.navigation_on) ? true : false;
 
 		rgb_service.blink_enabled = false;
 		rgb_service.blink_wait_time = 0.0f;
