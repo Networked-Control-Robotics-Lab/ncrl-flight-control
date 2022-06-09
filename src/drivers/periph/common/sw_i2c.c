@@ -20,7 +20,7 @@
 #include "coroutine.h"
 #include "delay.h"
 
-#define I2C_FREQ 100000.0 //100k[Hz]
+#define I2C_FREQ 100000.0    //100k[Hz]
 #define I2C_CLK_DELAY_TICK 4 //delay_tick = SYS_TIM_FREQ / I2C_FREQ
 
 #define SW_I2C_SCL GPIOE, GPIO_Pin_0
@@ -33,9 +33,10 @@ SemaphoreHandle_t sw_i2c_semphr;
 volatile int i2c_state = SW_I2C_DO_NOTHING;
 uint64_t coroutine_delay_start_tick = 0;
 uint64_t coroutine_delay_tick = 0;
-uint8_t sw_i2c_recpt_data;
-uint8_t sw_i2c_send_data;
+uint8_t i2c_recpt_data;
+uint8_t i2c_send_data;
 volatile int i2c_rw_bit_index;
+bool i2c_ack_error;
 
 void sw_i2c_init(void)
 {
@@ -146,10 +147,10 @@ uint8_t sw_i2c_sda_read(void)
 	return GPIO_ReadInputDataBit(SW_I2C_SDA);
 }
 
-void sw_i2c_coroutine_delay_start(float delay_ms)
+void sw_i2c_coroutine_delay_start(float delay_tick)
 {
 	coroutine_delay_start_tick = get_sys_time_tick();
-	coroutine_delay_tick = delay_ms;
+	coroutine_delay_tick = delay_tick;
 }
 
 bool sw_i2c_coroutine_delay_times_up(void)
@@ -261,12 +262,12 @@ void sw_i2c_byte_send_handler(void)
 	sw_i2c_scl_set_low();
 	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
-	if(sw_i2c_send_data & 0x80) {
+	if(i2c_send_data & 0x80) {
 		sw_i2c_sda_set_high();
 	} else {
 		sw_i2c_sda_set_low();
 	}
-	sw_i2c_send_data <<= 1;
+	i2c_send_data <<= 1;
 	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
 	sw_i2c_scl_set_high();
@@ -290,7 +291,7 @@ void sw_i2c_byte_receive_handler(void)
 {
 	CR_START();
 
-	sw_i2c_recpt_data <<= 1;
+	i2c_recpt_data <<= 1;
 
 	sw_i2c_scl_set_low();
 	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
@@ -298,7 +299,7 @@ void sw_i2c_byte_receive_handler(void)
 	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
 	if(sw_i2c_sda_read()) {
-		sw_i2c_recpt_data |= 0x01;
+		i2c_recpt_data |= 0x01;
 	}
 
 	i2c_rw_bit_index++;
@@ -328,17 +329,22 @@ void sw_i2c_wait_ack_handler(void)
 	sw_i2c_scl_set_high();
 	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
-	float start_time = get_sys_time_ms();
-	float curr_time;
-	float elapsed_time;
+	bool timeout = false;
+
+	uint64_t start_time = get_sys_time_tick();
+	uint64_t curr_time;
+	uint64_t elapsed_time;
 	while(sw_i2c_sda_read()) {
-		curr_time = get_sys_time_ms();
+		curr_time = get_sys_time_tick();
 		elapsed_time = curr_time - start_time;
 		if(elapsed_time >= I2C_CLK_DELAY_TICK) {
-			/* failed */
+			/* timeout, failed to receive acknowledgement */
+			timeout = true;
 			break;
 		}
 	}
+
+	i2c_ack_error = timeout;
 
 	sw_i2c_scl_set_low();
 	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
@@ -383,7 +389,7 @@ void sw_i2c_handler(void)
 
 void sw_i2c_start(void)
 {
-	while(xSemaphoreTake(sw_i2c_semphr, 10) != pdTRUE);
+	while(xSemaphoreTake(sw_i2c_semphr, portMAX_DELAY) != pdTRUE);
 
 	sw_i2c_timer_enable();
 	i2c_state = SW_I2C_START;
@@ -413,12 +419,18 @@ void sw_i2c_nack(void)
 	i2c_state = SW_I2C_NACK;
 }
 
-void sw_i2c_wait_ack(void)
+int sw_i2c_wait_ack(void)
 {
 	while(xSemaphoreTake(sw_i2c_semphr, portMAX_DELAY) != pdTRUE);
 
 	sw_i2c_timer_enable();
 	i2c_state = SW_I2C_WAIT_ACK;
+
+	if(i2c_ack_error == true) {
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 uint8_t sw_i2c_read_byte(void)
@@ -432,15 +444,15 @@ uint8_t sw_i2c_read_byte(void)
 	sw_i2c_timer_enable();
 	i2c_state = SW_I2C_RECEIVE_BYTE;
 
-	return sw_i2c_recpt_data;
+	return i2c_recpt_data;
 }
 
 void sw_i2c_send_byte(uint8_t data)
 {
-	while(xSemaphoreTake(sw_i2c_semphr, 10) != pdTRUE);
+	while(xSemaphoreTake(sw_i2c_semphr, portMAX_DELAY) != pdTRUE);
 
 	i2c_rw_bit_index = 0;
-	sw_i2c_send_data = data;
+	i2c_send_data = data;
 
 	sw_i2c_config_sda_out();
 

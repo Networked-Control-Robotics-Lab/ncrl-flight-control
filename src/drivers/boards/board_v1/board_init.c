@@ -103,6 +103,7 @@ void f4_sw_i2c_driver_task(void *param)
 #elif (ENABLE_RANGEFINDER != 0)
 		lidar_lite_read_sensor();
 #endif
+		//taskYIELD();
 	}
 }
 

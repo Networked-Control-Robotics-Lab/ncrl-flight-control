@@ -43,20 +43,30 @@ void lidar_blocked_read_byte(uint8_t addr, uint8_t *data)
 	sw_i2c_blocked_stop();
 }
 
-void lidar_read_byte(uint8_t addr, uint8_t *data)
+int lidar_read_byte(uint8_t addr, uint8_t *data)
 {
 	sw_i2c_start();
 	sw_i2c_send_byte((LIDAR_DEV_ADDRESS << 1) | 0);
 	sw_i2c_wait_ack();
 	sw_i2c_send_byte(addr);
-	sw_i2c_wait_ack();
+	if(sw_i2c_wait_ack()) {
+		/* error: failed to receive acknowledgement */
+		sw_i2c_stop();
+		return 1;
+	}
 	sw_i2c_stop();
 	sw_i2c_start();
 	sw_i2c_send_byte((LIDAR_DEV_ADDRESS << 1) | 1);
-	sw_i2c_wait_ack();
+	if(sw_i2c_wait_ack()) {
+		/* error: failed to receive acknowledgement */
+		sw_i2c_stop();
+		return 1;
+	}
 	*data = sw_i2c_read_byte();
 	sw_i2c_nack();
 	sw_i2c_stop();
+
+	return 0;
 }
 
 void lidar_blocked_read_bytes(uint8_t addr, uint8_t *data, int size)
@@ -83,17 +93,36 @@ void lidar_blocked_read_bytes(uint8_t addr, uint8_t *data, int size)
 	sw_i2c_blocked_stop();
 }
 
-void lidar_read_bytes(uint8_t addr, uint8_t *data, int size)
+int lidar_read_bytes(uint8_t addr, uint8_t *data, int size)
 {
 	sw_i2c_start();
 	sw_i2c_send_byte((LIDAR_DEV_ADDRESS << 1) | 0);
-	sw_i2c_wait_ack();
+
+	if(sw_i2c_wait_ack()) {
+		/* error: failed to receive acknowledgement */
+		sw_i2c_stop();
+		return 1;
+	}
+
 	sw_i2c_send_byte(addr);
-	sw_i2c_wait_ack();
+
+	if(sw_i2c_wait_ack()) {
+		/* error: failed to receive acknowledgement */
+		sw_i2c_stop();
+		return 1;
+	}
+
 	sw_i2c_stop();
+
 	sw_i2c_start();
 	sw_i2c_send_byte((LIDAR_DEV_ADDRESS << 1) | 1);
-	sw_i2c_wait_ack();
+
+	if(sw_i2c_wait_ack()) {
+		/* error: failed to receive acknowledgement */
+		sw_i2c_stop();
+		return 1;
+	}
+
 	for(int i = 0; i < size; i++) {
 		data[i] = sw_i2c_read_byte();
 		if(i == (size-1)) {
@@ -104,19 +133,36 @@ void lidar_read_bytes(uint8_t addr, uint8_t *data, int size)
 			sw_i2c_ack();
 		}
 	}
+
 	sw_i2c_stop();
+
+	return 0;
 }
 
-void lidar_blocked_write_byte(uint8_t addr, uint8_t data)
+int lidar_blocked_write_byte(uint8_t addr, uint8_t data)
 {
 	sw_i2c_blocked_start();
 	sw_i2c_blocked_send_byte((LIDAR_DEV_ADDRESS << 1) | 0);
-	sw_i2c_blocked_wait_ack();
+
+	if(sw_i2c_blocked_wait_ack()) {
+		/* error: failed to receive acknowledgement */
+		sw_i2c_stop();
+		return 1;
+	}
+
 	sw_i2c_blocked_send_byte(addr);
-	sw_i2c_blocked_wait_ack();
+
+	if(sw_i2c_blocked_wait_ack()) {
+		/* error: failed to receive acknowledgement */
+		sw_i2c_stop();
+		return 1;
+	}
+
 	sw_i2c_blocked_send_byte(data);
 	sw_i2c_blocked_wait_ack();
 	sw_i2c_blocked_stop();
+
+	return 0;
 }
 
 void lidar_write_byte(uint8_t addr, uint8_t data)
@@ -165,7 +211,10 @@ void lidar_lite_read_sensor(void)
 	//int8_t lidar_vel_buf = 0;
 
 	/* sensor reading */
-	lidar_read_bytes(LIDAR_DISTANCE_REG, (uint8_t *)&lidar_dist_buf, 2);
+	if(lidar_read_bytes(LIDAR_DISTANCE_REG, (uint8_t *)&lidar_dist_buf, 2)) {
+		/* failed to read datas */
+		return;
+	}
 	//lidar_read_byte(LIDAR_VELOCITY_REG, (uint8_t *)&lidar_vel_buf);
 
 	/* handle communication failure of the i2c */

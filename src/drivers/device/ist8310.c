@@ -34,35 +34,59 @@ bool ist8310_available(void)
 	return true;
 }
 
-uint8_t ist8310_read_byte(uint8_t addr)
+int ist8310_read_byte(uint8_t addr, uint8_t *data)
 {
-	uint8_t data;
-
 	sw_i2c_start();
 	sw_i2c_send_byte((IST8310_ADDR << 1) | 0);
-	sw_i2c_wait_ack();
+
+	if(sw_i2c_wait_ack()) {
+		/* error: failed to receive acknowledgement */
+		sw_i2c_stop();
+		return 1;
+	}
+
 	sw_i2c_send_byte(addr);
-	sw_i2c_wait_ack();
+
+	if(sw_i2c_wait_ack()) {
+		/* error: failed to receive acknowledgement */
+		sw_i2c_stop();
+		return 1;
+	}
+
 	sw_i2c_start();
 	sw_i2c_send_byte((IST8310_ADDR << 1) | 1);
 	sw_i2c_wait_ack();
-	data = sw_i2c_read_byte();
+	*data = sw_i2c_read_byte();
 	sw_i2c_nack();
 	sw_i2c_stop();
 
-	return data;
+	return 0;
 }
 
-void ist8310_write_byte(uint8_t addr, uint8_t data)
+int ist8310_write_byte(uint8_t addr, uint8_t data)
 {
 	sw_i2c_start();
 	sw_i2c_send_byte((IST8310_ADDR << 1) | 0);
-	sw_i2c_wait_ack();
+
+	if(sw_i2c_wait_ack()) {
+		/* error: failed to receive acknowledgement */
+		sw_i2c_stop();
+		return 1;
+	}
+
 	sw_i2c_send_byte(addr);
-	sw_i2c_wait_ack();
+
+	if(sw_i2c_wait_ack()) {
+		/* error: failed to receive acknowledgement */
+		sw_i2c_stop();
+		return 1;
+	}
+
 	sw_i2c_send_byte(data);
 	sw_i2c_wait_ack();
 	sw_i2c_stop();
+
+	return 0;
 }
 
 uint8_t ist8310_blocked_read_byte(uint8_t addr)
@@ -96,16 +120,29 @@ void ist8310_blocked_write_byte(uint8_t addr, uint8_t data)
 	sw_i2c_blocked_stop();
 }
 
-void ist8310_read_bytes(uint8_t addr, uint8_t *data, int size)
+int ist8310_read_bytes(uint8_t addr, uint8_t *data, int size)
 {
 	sw_i2c_start();
 	sw_i2c_send_byte((IST8310_ADDR << 1) | 0);
-	sw_i2c_wait_ack();
+
+	if(sw_i2c_wait_ack()) {
+		/* error: failed to receive acknowledgement */
+		sw_i2c_stop();
+		return 1;
+	}
+
 	sw_i2c_send_byte(addr);
-	sw_i2c_wait_ack();
+
+	if(sw_i2c_wait_ack()) {
+		/* error: failed to receive acknowledgement */
+		sw_i2c_stop();
+		return 1;
+	}
+
 	sw_i2c_start();
 	sw_i2c_send_byte((IST8310_ADDR << 1) | 1);
 	sw_i2c_wait_ack();
+
 	for(int i = 0; i < size; i++) {
 		data[i] = sw_i2c_read_byte();
 		if(i == (size-1)) {
@@ -116,7 +153,10 @@ void ist8310_read_bytes(uint8_t addr, uint8_t *data, int size)
 			sw_i2c_ack();
 		}
 	}
+
 	sw_i2c_stop();
+
+	return 0;
 }
 
 static uint8_t ist8310_read_who_i_am(void)
@@ -183,7 +223,10 @@ void ist8310_read_sensor(void)
 	/* check "IST8310 User Manual v1.5" for details */
 
 	//sigle measurement mode
-	ist8310_write_byte(IST8310_REG_CTRL1, IST8310_ODR_SINGLE);
+	if(ist8310_write_byte(IST8310_REG_CTRL1, IST8310_ODR_SINGLE)) {
+		/* error: failed to write byte */
+		return;
+	}
 
 	//wait 6ms for 16x average
 	TickType_t last_wake_time = xTaskGetTickCount();
@@ -191,7 +234,10 @@ void ist8310_read_sensor(void)
 
 	/* read sensor datas */
 	uint8_t buf[6];
-	ist8310_read_bytes(IST8310_REG_DATA, buf, 6);
+	if(ist8310_read_bytes(IST8310_REG_DATA, buf, 6)) {
+		/* error: failed to read bytes */
+		return;
+	}
 
 	/* composite unscaled data */
 	ist8310.mag_unscaled[0] = (((int16_t)buf[3]) << 8 | buf[2]);
@@ -211,13 +257,13 @@ void ist8310_read_sensor(void)
 	/* calculate update frequency */
 	float curr_time = get_sys_time_s();
 	float elapsed_time = curr_time - ist8310.last_update_time;
+	ist8310.last_update_time = get_sys_time_ms();
 	ist8310.update_rate = 1.0f / elapsed_time;
 	ist8310.last_update_time = curr_time;
 
 	/* update timer only if data is valid */
 	if(ist8310.mag_raw[0] != 0 || ist8310.mag_raw[1] != 0 || ist8310.mag_raw[2] != 0) {
 		ins_compass_sync_buffer_push(ist8310.mag_lpf);
-		ist8310.last_update_time = get_sys_time_ms();
 	}
 }
 
