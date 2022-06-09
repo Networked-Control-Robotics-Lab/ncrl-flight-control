@@ -27,8 +27,8 @@ float ist8310_lpf_gain;
 bool ist8310_available(void)
 {
 	//timeout if no data available more than 300ms
-	float current_time = get_sys_time_ms();
-	if((current_time - ist8310.last_update_time) > 300) {
+	float current_time = get_sys_time_s();
+	if((current_time - ist8310.last_update_time) > 0.3) {
 		return false;
 	}
 	return true;
@@ -55,7 +55,13 @@ int ist8310_read_byte(uint8_t addr, uint8_t *data)
 
 	sw_i2c_start();
 	sw_i2c_send_byte((IST8310_ADDR << 1) | 1);
-	sw_i2c_wait_ack();
+
+	if(sw_i2c_wait_ack()) {
+		/* error: failed to receive acknowledgement */
+		sw_i2c_stop();
+		return 1;
+	}
+
 	*data = sw_i2c_read_byte();
 	sw_i2c_nack();
 	sw_i2c_stop();
@@ -83,7 +89,13 @@ int ist8310_write_byte(uint8_t addr, uint8_t data)
 	}
 
 	sw_i2c_send_byte(data);
-	sw_i2c_wait_ack();
+
+	if(sw_i2c_wait_ack()) {
+		/* error: failed to receive acknowledgement */
+		sw_i2c_stop();
+		return 1;
+	}
+
 	sw_i2c_stop();
 
 	return 0;
@@ -262,14 +274,11 @@ void ist8310_read_sensor(void)
 	/* calculate update frequency */
 	float curr_time = get_sys_time_s();
 	float elapsed_time = curr_time - ist8310.last_update_time;
-	ist8310.last_update_time = get_sys_time_ms();
 	ist8310.update_rate = 1.0f / elapsed_time;
 	ist8310.last_update_time = curr_time;
 
-	/* update timer only if data is valid */
-	if(ist8310.mag_raw[0] != 0 || ist8310.mag_raw[1] != 0 || ist8310.mag_raw[2] != 0) {
-		ins_compass_sync_buffer_push(ist8310.mag_lpf);
-	}
+	/* push new measurement into the ins sync buffer */
+	ins_compass_sync_buffer_push(ist8310.mag_lpf);
 }
 
 void ist8310_get_mag_raw(float *mag_raw)
