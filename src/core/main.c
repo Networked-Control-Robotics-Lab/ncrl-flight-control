@@ -19,6 +19,7 @@
 #include "board_porting.h"
 #include "calibration_task.h"
 #include "led.h"
+#include "proj_config.h"
 
 perf_t perf_list[] = {
 	DEF_PERF(PERF_AHRS_INS, "ahrs and ins")
