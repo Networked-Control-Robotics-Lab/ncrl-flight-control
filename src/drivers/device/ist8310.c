@@ -178,14 +178,15 @@ int ist8310_read_bytes(uint8_t addr, uint8_t *data, int size)
 
 static uint8_t ist8310_read_who_i_am(void)
 {
-	uint8_t id = ist8310_blocked_read_byte(IST8310_REG_WIA);
+	uint8_t id;
+	ist8310_read_byte(IST8310_REG_WIA, &id);
 	blocked_delay_ms(5);
 	return id;
 }
 
 void ist8310_reset(void)
 {
-	ist8310_blocked_write_byte(IST8310_REG_CTRL2, 0x01);
+	ist8310_write_byte(IST8310_REG_CTRL2, 0x01);
 	blocked_delay_ms(100);
 }
 
@@ -195,10 +196,10 @@ void ist8130_init(void)
 
 	ist8310_reset();
 
-	ist8310_blocked_write_byte(IST8310_REG_AVG, IST8310_AVG_16);
+	ist8310_write_byte(IST8310_REG_AVG, IST8310_AVG_16);
 	blocked_delay_ms(100);
 
-	ist8310_blocked_write_byte(IST8310_REG_PDCTL, IST8310_PD_NORMAL);
+	ist8310_write_byte(IST8310_REG_PDCTL, IST8310_PD_NORMAL);
 	blocked_delay_ms(100);
 
 	ist8310.last_update_time = get_sys_time_s();
