@@ -704,6 +704,7 @@ class serial_plotter_class:
         for i in range(0, self.curve_number):
             # unpack received data
             float_data = self.parse_field_float(buffer, i)
+            self.recvd_datas.append(float_data)
 
     def parse_ins_sensor_message(self, buffer):
         self.recvd_datas = []
