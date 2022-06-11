@@ -529,7 +529,7 @@ class serial_plotter_class:
 
             plt.subplot(515)
             plt.ylabel('deg/s')
-            plt.ylim([-400, 400])
+            plt.ylim([-700, 700])
             self.create_curve('compass yaw rate', 'red')
             self.create_curve('ahrs yaw rate', 'blue')
             self.show_subplot()

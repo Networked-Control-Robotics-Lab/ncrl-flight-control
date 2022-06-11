@@ -318,6 +318,9 @@ void eskf_ahrs_accelerometer_correct(float *accel)
 
 void eskf_ahrs_magnetometer_correct(float *mag)
 {
+	/* normalization */
+	normalize_3x1(mag);
+
 	mat_data(y_mag)[0] = mag[0];
 	mat_data(y_mag)[1] = mag[1];
 	mat_data(y_mag)[2] = mag[2];

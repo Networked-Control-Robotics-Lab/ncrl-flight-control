@@ -185,6 +185,9 @@ void realign_ahrs_yaw_direction(float *q_ahrs, float *q_align_reference)
 //old code: https://gist.github.com/shengwen-tw/b096963d11739209bed8556e6ed3f5ba
 bool ahrs_compass_quality_test(float *mag_new)
 {
+	float mag_b[3] = {mag_new[0], mag_new[1], mag_new[2]};
+	normalize_3x1(mag_b);
+
 	static bool initialized = false;
 	static bool compass_is_stable = true;
 	static float last_failed_time = 0;
@@ -192,7 +195,7 @@ bool ahrs_compass_quality_test(float *mag_new)
 
 	/* initialization */
 	if(initialized == false) {
-		compass_yaw_last = rad_to_deg(-atan2f(mag_new[1], mag_new[0]));
+		compass_yaw_last = rad_to_deg(-atan2f(mag_b[1], mag_b[0]));
 		initialized = true;
 		return false;
 	}
@@ -243,23 +246,24 @@ bool ahrs_compass_quality_test(float *mag_new)
 	R_b2i[2*3 + 1] = sin_phi * cos_theta;
 	R_b2i[2*3 + 2] = cos_phi * cos_theta;
 
-	float mag[3];
-	calc_matrix_multiply_vector_3d(mag, mag_new, R_b2i);
+	float mag_i[3];
+	calc_matrix_multiply_vector_3d(mag_i, mag_b, R_b2i);
 
 	/* calculate the compass yaw angle */
-	float compass_yaw = rad_to_deg(-atan2f(mag[1], mag[0]));
+	float compass_yaw = rad_to_deg(-atan2f(mag_i[1], mag_i[0]));
 
 	/* calculate the compass yaw rate */
 	float compass_yaw_rate;
 	float compass_freq = get_compass_update_rate();
-	if(compass_yaw < 0 && compass_yaw_last > 0) {
-		compass_yaw_rate = (compass_yaw + compass_yaw_last) * compass_freq;
-	} else if(compass_yaw > 0 && compass_yaw_last < 0) {
-		compass_yaw_rate = (compass_yaw + compass_yaw_last) * compass_freq;
+
+	/* the yaw angle is not continous at +-180 degree */
+	if(compass_yaw > 90.0f && compass_yaw_last < -90.0f) {
+		compass_yaw_rate = (-360.0f - compass_yaw_last + compass_yaw) * compass_freq;
+	} else if(compass_yaw < -90.0f && compass_yaw_last > 90.0f) {
+		compass_yaw_rate = (360.0f - compass_yaw_last + compass_yaw) * compass_freq;
 	} else {
 		compass_yaw_rate = (compass_yaw - compass_yaw_last) * compass_freq;
 	}
-	compass_yaw_last = compass_yaw;
 
 	/* compare the ahrs yaw rate with the compass */
 	float compass_gyro_yaw_rate_diff = fabs(ahrs_yaw_rate - compass_yaw_rate);
@@ -269,6 +273,8 @@ bool ahrs_compass_quality_test(float *mag_new)
 		last_failed_time = get_sys_time_s();
 		compass_is_stable = false;
 	}
+
+	compass_yaw_last = compass_yaw;
 
 	/* debugging */
 	compass_quality_debug.good = (float)compass_is_stable;
