@@ -528,10 +528,10 @@ class serial_plotter_class:
             self.show_subplot()
 
             plt.subplot(515)
-            plt.ylabel('deg')
-            plt.ylim([-200, 200])
-            self.create_curve('compass yaw', 'red')
-            self.create_curve('ahrs yaw', 'blue')
+            plt.ylabel('deg/s')
+            plt.ylim([-400, 400])
+            self.create_curve('compass yaw rate', 'red')
+            self.create_curve('ahrs yaw rate', 'blue')
             self.show_subplot()
 
         elif (message_id == 22):

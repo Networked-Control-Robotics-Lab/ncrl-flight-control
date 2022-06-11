@@ -36,8 +36,8 @@ volatile bool mag_error;
 /* debugging */
 struct {
 	float good;
-	float compass_yaw;
-	float ahrs_yaw;
+	float compass_yaw_rate;
+	float ahrs_yaw_rate;
 } compass_quality_debug;
 
 void ahrs_init(void)
@@ -182,110 +182,98 @@ void realign_ahrs_yaw_direction(float *q_ahrs, float *q_align_reference)
 	quaternion_mult(q_yaw, q_original, q_ahrs);
 }
 
+//old code: https://gist.github.com/shengwen-tw/b096963d11739209bed8556e6ed3f5ba
 bool ahrs_compass_quality_test(float *mag_new)
 {
-	//once the compass is detected as unstable, this flag will be trigger on for 1 seconds
+	static bool initialized = false;
 	static bool compass_is_stable = true;
 	static float last_failed_time = 0;
+	static float compass_yaw_last = 0;
 
+	/* initialization */
+	if(initialized == false) {
+		compass_yaw_last = rad_to_deg(-atan2f(mag_new[1], mag_new[0]));
+		initialized = true;
+		return false;
+	}
+
+	/* once the compass is detected as unstable, the flag will retain unstable
+	   for 0.5 seconds */
 	if(compass_is_stable == false) {
 		if((get_sys_time_s() - last_failed_time) > 0.5f) {
 			compass_is_stable = true;
 		}
 	}
 
-	//TODO: check magnetic field size (normally about 25 to 65 uT)
+	/*==================================*
+	 * calculate yaw rate from the ahrs *
+	 *==================================*/
 
-	/* no data */
-	if(mag_new[0] == 0.0f && mag_new[1] == 0.0f && mag_new[2] == 0.0f) {
-		last_failed_time = get_sys_time_s();
-		compass_is_stable = false;
-	}
-
-	float compass_ahrs_yaw_diff;
+	float gyro[3];
+	get_gyro_raw(gyro);
+	//gyro[0] = deg_to_rad(gyro[0]);
+	gyro[1] = deg_to_rad(gyro[1]);
+	gyro[2] = deg_to_rad(gyro[2]);
 
 	float roll, pitch, yaw;
 	get_attitude_euler_angles(&roll, &pitch, &yaw);
 
-#if 0
-	/*=============================================================*
-	 * euler angles based ahrs-compass angle difference comparison *
-	 *=============================================================*/
-	float compass_angle = rad_to_deg(-atan2f(mag_new[1], mag_new[0]));
+	float cos_phi = arm_cos_f32(deg_to_rad(roll));
+	float cos_theta = arm_cos_f32(deg_to_rad(pitch));
+	float sin_phi = arm_sin_f32(deg_to_rad(roll));
+	float sin_theta = arm_sin_f32(deg_to_rad(pitch));
 
-	if(compass_angle < 0 && yaw > 0) {
-		compass_ahrs_yaw_diff = fabs(compass_angle + yaw);
-	} else if(compass_angle > 0 && yaw < 0) {
-		compass_ahrs_yaw_diff = fabs(compass_angle + yaw);
+	/* calculate the ahrs yaw rate from angular velocity */
+	float ahrs_yaw_rate = rad_to_deg((sin_phi / cos_theta) * gyro[1] +
+	                                 (cos_phi / cos_theta) * gyro[2]);
+
+	/*=====================================*
+	 * calculate yaw rate from the compass *
+	 *=====================================*/
+
+	/* coordinate transform */
+	float R_b2i[3*3]; //let psi = 0
+	R_b2i[0*3 + 0] = cos_theta;
+	R_b2i[0*3 + 1] = (sin_phi * sin_theta);
+	R_b2i[0*3 + 2] = (cos_phi * sin_theta);
+	R_b2i[1*3 + 0] = 0.0f;
+	R_b2i[1*3 + 1] = cos_phi;
+	R_b2i[1*3 + 2] = -sin_phi;
+	R_b2i[2*3 + 0] = -sin_theta;
+	R_b2i[2*3 + 1] = sin_phi * cos_theta;
+	R_b2i[2*3 + 2] = cos_phi * cos_theta;
+
+	float mag[3];
+	calc_matrix_multiply_vector_3d(mag, mag_new, R_b2i);
+
+	/* calculate the compass yaw angle */
+	float compass_yaw = rad_to_deg(-atan2f(mag[1], mag[0]));
+
+	/* calculate the compass yaw rate */
+	float compass_yaw_rate;
+	float compass_freq = get_compass_update_rate();
+	if(compass_yaw < 0 && compass_yaw_last > 0) {
+		compass_yaw_rate = (compass_yaw + compass_yaw_last) * compass_freq;
+	} else if(compass_yaw > 0 && compass_yaw_last < 0) {
+		compass_yaw_rate = (compass_yaw + compass_yaw_last) * compass_freq;
 	} else {
-		compass_ahrs_yaw_diff = fabs(compass_angle - yaw);
+		compass_yaw_rate = (compass_yaw - compass_yaw_last) * compass_freq;
 	}
+	compass_yaw_last = compass_yaw;
 
-	if(compass_ahrs_yaw_diff > 45) {
+	/* compare the ahrs yaw rate with the compass */
+	float compass_gyro_yaw_rate_diff = fabs(ahrs_yaw_rate - compass_yaw_rate);
+
+	if(compass_gyro_yaw_rate_diff > 270) {
+		/* large deviation, the compass is not stable */
 		last_failed_time = get_sys_time_s();
 		compass_is_stable = false;
 	}
 
 	/* debugging */
 	compass_quality_debug.good = (float)compass_is_stable;
-	compass_quality_debug.compass_yaw = compass_angle;
-	compass_quality_debug.ahrs_yaw = yaw;
-#else
-	/*===========================================================*
-	 * quaternion based ahrs-compass angle difference comparison *
-	 *===========================================================*/
-	float mag_normalized[3];
-	mag_normalized[0] = mag_new[0];
-	mag_normalized[1] = mag_new[1];
-	mag_normalized[2] = mag_new[2];
-	normalize_3x1(mag_normalized);
-
-	//get rotation matrix of current attitude
-	float *R_b2i;
-	get_rotation_matrix_b2i(&R_b2i);
-
-	//calculate predicted earth frame magnetic vector
-	float l_predict[3], q_delta_mag[4];
-	l_predict[0] = R_b2i[0*3+0]*mag_normalized[0] + R_b2i[0*3+1]*mag_normalized[1] + R_b2i[0*3+2]*mag_normalized[2];
-	l_predict[1] = R_b2i[1*3+0]*mag_normalized[0] + R_b2i[1*3+1]*mag_normalized[1] + R_b2i[1*3+2]*mag_normalized[2];
-	l_predict[2] = R_b2i[2*3+0]*mag_normalized[0] + R_b2i[2*3+1]*mag_normalized[1] + R_b2i[2*3+2]*mag_normalized[2];
-
-	//calculate delta quaternion of compass correction
-	convert_magnetic_field_to_quat(l_predict, q_delta_mag);
-
-	//get attitude quaternion from ahrs
-	float q_ahrs_b2i[4], q_ahrs_i2b[4];
-	get_attitude_quaternion(q_ahrs_i2b);
-	quaternion_conj(q_ahrs_i2b, q_ahrs_b2i);
-
-	//predict new attitude quaternion with 100% trust of compass
-	float q_mag_i2b[4], q_mag_b2i[4];
-	quaternion_mult(q_ahrs_i2b, q_delta_mag, q_mag_i2b);
-	quaternion_conj(q_mag_i2b, q_mag_b2i);
-
-	//calculate rotation difference between q_ahrs and q_mag
-	float q_diff[4];
-	quaternion_mult(q_ahrs_i2b, q_mag_b2i, q_diff);
-
-	//get euler principal axis agnle of q_mag minus q_ahrs
-	compass_ahrs_yaw_diff = rad_to_deg(acos(q_diff[0]));
-
-	if(compass_ahrs_yaw_diff > 45) {
-		last_failed_time = get_sys_time_s();
-		compass_is_stable = false;
-	}
-
-	/* debugging */
-	compass_quality_debug.good = (float)compass_is_stable;
-
-	float q0 = q_mag_i2b[0];
-	float q1 = q_mag_i2b[1];
-	float q2 = q_mag_i2b[2];
-	float q3 = q_mag_i2b[3];
-	compass_quality_debug.compass_yaw = rad_to_deg(atan2(2.0*(q0*q3 + q1*q2), 1.0-2.0*(q2*q2 + q3*q3)));
-
-	compass_quality_debug.ahrs_yaw = yaw;
-#endif
+	compass_quality_debug.compass_yaw_rate = compass_yaw_rate;
+	compass_quality_debug.ahrs_yaw_rate = ahrs_yaw_rate;
 
 	/* change led indicator to yellow if sensor fault detected */
 	set_rgb_led_service_sensor_error_flag(!compass_is_stable);
@@ -459,6 +447,6 @@ void send_ahrs_compass_quality_check_debug_message(debug_msg_t *payload)
 	pack_debug_debug_message_float(&mag_strength, payload);
 	pack_debug_debug_message_float(&update_freq, payload);
 	pack_debug_debug_message_float(&compass_quality_debug.good, payload);
-	pack_debug_debug_message_float(&compass_quality_debug.compass_yaw, payload);
-	pack_debug_debug_message_float(&compass_quality_debug.ahrs_yaw, payload);
+	pack_debug_debug_message_float(&compass_quality_debug.compass_yaw_rate, payload);
+	pack_debug_debug_message_float(&compass_quality_debug.ahrs_yaw_rate, payload);
 }
