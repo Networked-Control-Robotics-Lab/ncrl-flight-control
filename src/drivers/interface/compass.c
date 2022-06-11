@@ -47,11 +47,6 @@ float get_compass_lpf_strength(void)
 	return ist8310_get_mag_lpf_strength();
 }
 
-void compass_undistortion(float *mag)
-{
-	ist8310_undistortion(mag);
-}
-
 void send_compass_debug_message(debug_msg_t *payload)
 {
 	float mag_raw[3] = {0.0f};

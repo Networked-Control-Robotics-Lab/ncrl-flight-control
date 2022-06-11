@@ -49,12 +49,9 @@ typedef struct {
 	float bias_x;
 	float bias_y;
 	float bias_z;
-	float squared_semi_axis_size_x;
-	float squared_semi_axis_size_y;
-	float squared_semi_axis_size_z;
-	float div_squared_semi_axis_size_x;
-	float div_squared_semi_axis_size_y;
-	float div_squared_semi_axis_size_z;
+	float rescale_x;
+	float rescale_y;
+	float rescale_z;
 } ist8310_t;
 
 void ist8130_init(void);

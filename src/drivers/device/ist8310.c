@@ -14,12 +14,9 @@ ist8310_t ist8310 = {
 	.bias_x = 0.0f,
 	.bias_y = 0.0f,
 	.bias_z = 0.0f,
-	.squared_semi_axis_size_x = 1.0f,
-	.squared_semi_axis_size_y = 1.0f,
-	.squared_semi_axis_size_z = 1.0f,
-	.div_squared_semi_axis_size_x = 1.0f,
-	.div_squared_semi_axis_size_y = 1.0f,
-	.div_squared_semi_axis_size_z = 1.0f
+	.rescale_x = 1.0f,
+	.rescale_y = 1.0f,
+	.rescale_z = 1.0f
 };
 
 float ist8310_lpf_gain;
@@ -215,25 +212,11 @@ void ist8310_wait_until_stable(void)
 	}
 }
 
-void ist8310_cancel_bias(float *mag)
+void ist8310_apply_calibration(float *mag)
 {
-	mag[0] -= ist8310.bias_x;
-	mag[1] -= ist8310.bias_y;
-	mag[2] -= ist8310.bias_z;
-}
-
-void ist8310_undistortion(float *mag)
-{
-	/* standard equation of ellipsoid:
-	 * (x - x0)^2/A + (y - y0)^2/B + (z - z0)^2/C = 1 */
-
-	/* resume distorted magnatic field from ellipsoid to sphere.
-	 * this operation do not preserve the actual size of the data,
-	 * and requires normalization before calculating the heading
-	 * angle */
-	mag[0] *= ist8310.div_squared_semi_axis_size_x;
-	mag[1] *= ist8310.div_squared_semi_axis_size_y;
-	mag[2] *= ist8310.div_squared_semi_axis_size_z;
+	mag[0] = ist8310.rescale_x * (mag[0] - ist8310.bias_x);
+	mag[1] = ist8310.rescale_y * (mag[1] - ist8310.bias_y);
+	mag[2] = ist8310.rescale_z * (mag[2] - ist8310.bias_z);
 }
 
 void ist8310_read_sensor(void)
@@ -267,6 +250,9 @@ void ist8310_read_sensor(void)
 	ist8310.mag_raw[1] = ist8310.mag_unscaled[1] * IST8310_RESOLUTION * 0.01;
 	ist8310.mag_raw[2] = ist8310.mag_unscaled[2] * IST8310_RESOLUTION * 0.01;
 
+	/* undistortion and bias canceling */
+	ist8310_apply_calibration(ist8310.mag_raw);
+
 	/* low pass filtering */
 	lpf_first_order(ist8310.mag_raw[0], &(ist8310.mag_lpf[0]), ist8310_lpf_gain);
 	lpf_first_order(ist8310.mag_raw[1], &(ist8310.mag_lpf[1]), ist8310_lpf_gain);
@@ -287,10 +273,6 @@ void ist8310_get_mag_raw(float *mag_raw)
 	mag_raw[0] = ist8310.mag_raw[0];
 	mag_raw[1] = ist8310.mag_raw[1];
 	mag_raw[2] = ist8310.mag_raw[2];
-
-	/* apply calibration here since the function will called by the flight control task
-	 * (which has the highest priority) */
-	ist8310_cancel_bias(mag_raw);
 }
 
 void ist8310_get_mag_lpf(float *mag_lpf)
@@ -298,10 +280,6 @@ void ist8310_get_mag_lpf(float *mag_lpf)
 	mag_lpf[0] = ist8310.mag_lpf[0];
 	mag_lpf[1] = ist8310.mag_lpf[1];
 	mag_lpf[2] = ist8310.mag_lpf[2];
-
-	/* apply calibration here since the function will called by the flight control task
-	 * (which has the highest priority) */
-	ist8310_cancel_bias(mag_lpf);
 }
 
 float ist8310_get_mag_raw_strength(void)

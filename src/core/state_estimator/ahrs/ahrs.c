@@ -375,8 +375,7 @@ void ahrs_estimate(attitude_t *attitude)
 
 		/* check compass quality */
 		if(ahrs_compass_quality_test(mag) == true) {
-			/* quality is fine, apply undistortion */
-			compass_undistortion(mag);
+			/* compass is good */
 			mag_error = false;
 		} else {
 			/* error detected */
