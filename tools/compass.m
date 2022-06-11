@@ -74,6 +74,19 @@ A = sqrt(x0*x0 + a*y0*y0 + b*z0*z0 - f)
 B = A / sqrt(a)
 C = A / sqrt(b)
 
+disp('-------------')
+
+%calibration result
+disp('calibration result:');
+bias_x = x0
+bias_y = y0
+bias_z = z0
+rescale_x = 1 / A
+rescale_y = 1 / B
+rescale_z = 1 / C
+
+disp('-------------')
+
 %apply calibration
 mx_calib = (mx(:) - x0) / A;
 my_calib = (my(:) - y0) / B;
