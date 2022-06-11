@@ -145,7 +145,6 @@ void task_flight_ctrl(void *param)
 #endif
 
 #if (SELECT_NAVIGATION_DEVICE2 == NAV_DEV2_USE_VINS_MONO)
-		/* XXX: vision_flight test code  */
 		vins_mono_camera_trigger_20hz();
 		vins_mono_send_imu_200hz();
 		vins_mono_update();
