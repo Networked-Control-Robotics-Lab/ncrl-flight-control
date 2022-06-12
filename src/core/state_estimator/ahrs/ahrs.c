@@ -189,23 +189,18 @@ bool ahrs_compass_quality_test(float *mag_new)
 	normalize_3x1(mag_b);
 
 	static bool initialized = false;
-	static bool compass_is_stable = true;
-	static float last_failed_time = 0;
+	static bool compass_unstable = false; //long term unstable flag
+	static float statistic_time_last = 0;
+	static float led_time_last = 0;
 	static float compass_yaw_last = 0;
+	static int failed_times = 0;
 
 	/* initialization */
 	if(initialized == false) {
+		statistic_time_last = get_sys_time_s();
 		compass_yaw_last = rad_to_deg(-atan2f(mag_b[1], mag_b[0]));
 		initialized = true;
 		return false;
-	}
-
-	/* once the compass is detected as unstable, the flag will retain unstable
-	   for 0.5 seconds */
-	if(compass_is_stable == false) {
-		if((get_sys_time_s() - last_failed_time) > 0.5f) {
-			compass_is_stable = true;
-		}
 	}
 
 	/*==================================*
@@ -268,23 +263,53 @@ bool ahrs_compass_quality_test(float *mag_new)
 	/* compare the ahrs yaw rate with the compass */
 	float compass_gyro_yaw_rate_diff = fabs(ahrs_yaw_rate - compass_yaw_rate);
 
-	if(compass_gyro_yaw_rate_diff > 270) {
+	bool usable_measurement = true;
+
+	if(compass_gyro_yaw_rate_diff > 200) {
 		/* large deviation, the compass is not stable */
-		last_failed_time = get_sys_time_s();
-		compass_is_stable = false;
+		usable_measurement = false;
+		failed_times++;
 	}
 
 	compass_yaw_last = compass_yaw;
 
+	/*===============================================================*
+	 * failure time counting:                                        *
+	 * if 1/4 of the measurements was detected unusable in a second, *
+	 * the compass is considered to be unstable                      *
+	 *===============================================================*/
+
+	float curr_time = get_sys_time_s();
+	float elapsed_time;
+
+	if(failed_times > ((int)compass_freq / 4)) {
+		compass_unstable = true;
+		led_time_last = curr_time;
+	} else {
+		/* once the compass_unstable flag is set, it takes at least
+		 * 3 seconds to reset */
+		elapsed_time = curr_time - led_time_last;
+		if(elapsed_time > 3) {
+			compass_unstable = false;
+		}
+	}
+
+	/* reset the failed times counter every seconds */
+	elapsed_time = curr_time - statistic_time_last;
+	if(elapsed_time > 1) {
+		statistic_time_last = curr_time;
+		failed_times = 0;
+	}
+
+	/* change led indicator to pink if sensor_unstable flag is set*/
+	set_rgb_led_service_sensor_error_flag(compass_unstable);
+
 	/* debugging */
-	compass_quality_debug.good = (float)compass_is_stable;
+	compass_quality_debug.good = (float)(usable_measurement);
 	compass_quality_debug.compass_yaw_rate = compass_yaw_rate;
 	compass_quality_debug.ahrs_yaw_rate = ahrs_yaw_rate;
 
-	/* change led indicator to yellow if sensor fault detected */
-	set_rgb_led_service_sensor_error_flag(!compass_is_stable);
-
-	return compass_is_stable;
+	return usable_measurement;
 }
 
 void ahrs_complementary_filter_estimate(float *q, float *gravity, float *gyro_rad,
