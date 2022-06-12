@@ -11,7 +11,7 @@
 	if(!sw_i2c_coroutine_delay_times_up()) {CR_RETURN;}
 
 enum {
-	SW_I2C_DO_NOTHING,
+	SW_I2C_IDLE,
 	SW_I2C_START,
 	SW_I2C_STOP,
 	SW_I2C_SEND_BYTE,

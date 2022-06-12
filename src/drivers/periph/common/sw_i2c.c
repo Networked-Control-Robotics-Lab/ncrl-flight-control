@@ -30,7 +30,7 @@ void sw_i2c_handler(void);
 
 SemaphoreHandle_t sw_i2c_semphr;
 
-volatile int i2c_state = SW_I2C_DO_NOTHING;
+volatile int i2c_state = SW_I2C_IDLE;
 uint64_t coroutine_delay_start_tick = 0;
 uint64_t coroutine_delay_tick = 0;
 uint8_t i2c_recpt_data;
@@ -177,7 +177,7 @@ void sw_i2c_start_handler(void)
 	sw_i2c_scl_set_low();
 	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
-	i2c_state = SW_I2C_DO_NOTHING;
+	i2c_state = SW_I2C_IDLE;
 	sw_i2c_timer_disable();
 
 	BaseType_t higher_priority_task_woken = pdFALSE;
@@ -191,16 +191,13 @@ void sw_i2c_stop_handler(void)
 	CR_START();
 
 	sw_i2c_config_sda_out();
-	sw_i2c_scl_set_low();
-	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 	sw_i2c_sda_set_low();
-	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 	sw_i2c_scl_set_high();
 	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 	sw_i2c_sda_set_high();
 	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
-	i2c_state = SW_I2C_DO_NOTHING;
+	i2c_state = SW_I2C_IDLE;
 	sw_i2c_timer_disable();
 
 	BaseType_t higher_priority_task_woken = pdFALSE;
@@ -223,7 +220,7 @@ void sw_i2c_ack_handler(void)
 	sw_i2c_scl_set_low();
 	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
-	i2c_state = SW_I2C_DO_NOTHING;
+	i2c_state = SW_I2C_IDLE;
 	sw_i2c_timer_disable();
 
 	BaseType_t higher_priority_task_woken = pdFALSE;
@@ -246,7 +243,7 @@ void sw_i2c_nack_handler(void)
 	sw_i2c_scl_set_low();
 	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
-	i2c_state = SW_I2C_DO_NOTHING;
+	i2c_state = SW_I2C_IDLE;
 	sw_i2c_timer_disable();
 
 	BaseType_t higher_priority_task_woken = pdFALSE;
@@ -259,25 +256,22 @@ void sw_i2c_byte_send_handler(void)
 {
 	CR_START();
 
-	sw_i2c_scl_set_low();
-	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
-
 	if(i2c_send_data & 0x80) {
 		sw_i2c_sda_set_high();
 	} else {
 		sw_i2c_sda_set_low();
 	}
 	i2c_send_data <<= 1;
-	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
 	sw_i2c_scl_set_high();
 	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
+	sw_i2c_scl_set_low();
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
+
 	i2c_rw_bit_index++;
 	if(i2c_rw_bit_index >= 8) {
-		sw_i2c_scl_set_low();
-
-		i2c_state = SW_I2C_DO_NOTHING;
+		i2c_state = SW_I2C_IDLE;
 		sw_i2c_timer_disable();
 
 		BaseType_t higher_priority_task_woken = pdFALSE;
@@ -293,8 +287,6 @@ void sw_i2c_byte_receive_handler(void)
 
 	i2c_recpt_data <<= 1;
 
-	sw_i2c_scl_set_low();
-	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 	sw_i2c_scl_set_high();
 	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
@@ -302,11 +294,12 @@ void sw_i2c_byte_receive_handler(void)
 		i2c_recpt_data |= 0x01;
 	}
 
+	sw_i2c_scl_set_low();
+	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
+
 	i2c_rw_bit_index++;
 	if(i2c_rw_bit_index >= 8) {
-		sw_i2c_scl_set_low();
-
-		i2c_state = SW_I2C_DO_NOTHING;
+		i2c_state = SW_I2C_IDLE;
 		sw_i2c_timer_disable();
 
 		BaseType_t higher_priority_task_woken = pdFALSE;
@@ -322,8 +315,6 @@ void sw_i2c_wait_ack_handler(void)
 
 	sw_i2c_config_sda_in();
 
-	sw_i2c_scl_set_low();
-	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 	sw_i2c_sda_set_high();
 	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 	sw_i2c_scl_set_high();
@@ -349,7 +340,7 @@ void sw_i2c_wait_ack_handler(void)
 	sw_i2c_scl_set_low();
 	SW_I2C_COROUTINE_DELAY(I2C_CLK_DELAY_TICK);
 
-	i2c_state = SW_I2C_DO_NOTHING;
+	i2c_state = SW_I2C_IDLE;
 	sw_i2c_timer_disable();
 
 	BaseType_t higher_priority_task_woken = pdFALSE;
@@ -361,7 +352,7 @@ void sw_i2c_wait_ack_handler(void)
 void sw_i2c_handler(void)
 {
 	switch(i2c_state) {
-	case SW_I2C_DO_NOTHING:
+	case SW_I2C_IDLE:
 		break;
 	case SW_I2C_START:
 		sw_i2c_start_handler();
