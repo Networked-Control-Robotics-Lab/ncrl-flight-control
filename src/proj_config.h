@@ -5,7 +5,7 @@
 #define UAV_DEFAULT_ID 1 //vaild from 1~250 according to qgroundcontrol
 
 /* uav type */
-#define UAV_TYPE_QUADROTOR 0
+#define UAV_TYPE_QUADROTOR 1
 #define SELECT_UAV_TYPE UAV_TYPE_QUADROTOR
 
 /* flight control board (automatically set by makefile) */
@@ -17,17 +17,17 @@
  *===========================*/
 
 /* telemetry main channel protocols */
-#define TELEM_MAVLINK    0
+#define TELEM_MAVLINK    1
 #define SELECT_MAIN_TELEM TELEM_MAVLINK
 
 /* telemetry debug channel protocols */
-#define TELEM_SHELL      0
-#define TELEM_DEBUG_LINK 1
+#define TELEM_SHELL      1
+#define TELEM_DEBUG_LINK 2
 #define SELECT_DEBUG_TELEM TELEM_DEBUG_LINK
 
 /* debug link message publish rate */
-#define DEBUG_LINK_PUBLISH_20Hz  0 //recommanded for wireless communication
-#define DEBUG_LINK_PUBLISH_100Hz 1 //recommanded for wired communication
+#define DEBUG_LINK_PUBLISH_20Hz  1 //recommanded for wireless communication
+#define DEBUG_LINK_PUBLISH_100Hz 2 //recommanded for wired communication
 #define DEBUG_LINK_PUBLISH_RATE DEBUG_LINK_PUBLISH_20Hz
 
 /*==========================*
@@ -35,20 +35,20 @@
  *==========================*/
 
 /* ahrs algorithms */
-#define AHRS_COMPLEMENTARY_FILTER 0
-#define AHRS_MADGWICK_FILTER      1
-#define AHRS_ESKF                 2
-#define AHRS_OPTITRACK            3 
+#define AHRS_COMPLEMENTARY_FILTER 1
+#define AHRS_MADGWICK_FILTER      2
+#define AHRS_ESKF                 3
+#define AHRS_OPTITRACK            4 
 #define SELECT_AHRS AHRS_ESKF
 
 /* ins algorithms */
-#define INS_COMPLEMENTARY_FILTER 0
-#define INS_ESKF                 1
+#define INS_COMPLEMENTARY_FILTER 1
+#define INS_ESKF                 2
 #define SELECT_INS INS_ESKF
 
 /* quadrotor control algorithms */
-#define QUADROTOR_USE_PID      0
-#define QUADROTOR_USE_GEOMETRY 1
+#define QUADROTOR_USE_PID      1
+#define QUADROTOR_USE_GEOMETRY 2
 #define SELECT_CONTROLLER QUADROTOR_USE_GEOMETRY
 
 /*===================*
@@ -56,14 +56,14 @@
  *===================*/
 
 /* navigation device 1 */
-#define NAV_DEV1_NO_CONNECTION 0
-#define NAV_DEV1_USE_OPTITRACK 1
-#define NAV_DEV1_USE_GPS       2
+#define NAV_DEV1_NO_CONNECTION 1
+#define NAV_DEV1_USE_OPTITRACK 2
+#define NAV_DEV1_USE_GPS       3
 #define SELECT_NAVIGATION_DEVICE1 NAV_DEV1_USE_OPTITRACK
 
 /* navigation device 2 */
-#define NAV_DEV2_NO_CONNECTION 0
-#define NAV_DEV2_USE_VINS_MONO 1
+#define NAV_DEV2_NO_CONNECTION 1
+#define NAV_DEV2_USE_VINS_MONO 2
 #define SELECT_NAVIGATION_DEVICE2 NAV_DEV2_NO_CONNECTION
 
 /* compass sensor option */
@@ -80,25 +80,25 @@
  *=======================================================*/
 
 /* heading fusion soruce */
-#define NO_HEADING_SENSOR            0
-#define HEADING_FUSION_USE_COMPASS   1
-#define HEADING_FUSION_USE_OPTITRACK 2
-#define HEADING_FUSION_USE_VINS_MONO 3
+#define NO_HEADING_SENSOR            1
+#define HEADING_FUSION_USE_COMPASS   2
+#define HEADING_FUSION_USE_OPTITRACK 3
+#define HEADING_FUSION_USE_VINS_MONO 4
 #define SELECT_HEADING_SENSOR HEADING_FUSION_USE_OPTITRACK
 
 /* height fusion source */
-#define NO_HEIGHT_SENSOR              0
-#define HEIGHT_FUSION_USE_BAROMETER   1
-#define HEIGHT_FUSION_USE_OPTITRACK   2
-#define HEIGHT_FUSION_USE_VINS_MONO   3
-#define HEIGHT_FUSION_USE_RANGEFINDER 4
+#define NO_HEIGHT_SENSOR              1
+#define HEIGHT_FUSION_USE_BAROMETER   2
+#define HEIGHT_FUSION_USE_OPTITRACK   3
+#define HEIGHT_FUSION_USE_VINS_MONO   4
+#define HEIGHT_FUSION_USE_RANGEFINDER 5
 #define SELECT_HEIGHT_SENSOR HEIGHT_FUSION_USE_OPTITRACK
 
 /* position fusion source */
-#define NO_POSITION_SENSOR            0
-#define POSITION_FUSION_USE_GPS       1
-#define POSITION_FUSION_USE_OPTITRACK 2
-#define POSITION_FUSION_USE_VINS_MONO 3
+#define NO_POSITION_SENSOR            1
+#define POSITION_FUSION_USE_GPS       2
+#define POSITION_FUSION_USE_OPTITRACK 3
+#define POSITION_FUSION_USE_VINS_MONO 4
 #define SELECT_POSITION_SENSOR POSITION_FUSION_USE_OPTITRACK
 
 /* configuration validation */
