@@ -38,7 +38,7 @@
 #define AHRS_COMPLEMENTARY_FILTER 1
 #define AHRS_MADGWICK_FILTER      2
 #define AHRS_ESKF                 3
-#define AHRS_OPTITRACK            4 
+#define AHRS_OPTITRACK            4
 #define SELECT_AHRS AHRS_ESKF
 
 /* ins algorithms */

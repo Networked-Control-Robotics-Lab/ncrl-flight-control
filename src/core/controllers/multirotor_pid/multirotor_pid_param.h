@@ -4,8 +4,8 @@
 #include "common_list.h"
 
 enum {
-        //... reserved for common parameters
-        /*----------------------------------*/
+	//... reserved for common parameters
+	/*----------------------------------*/
 	MR_PID_GAIN_ROLL_P = COMMON_PARAM_CNT,
 	MR_PID_GAIN_ROLL_D,
 	MR_PID_GAIN_PITCH_P,

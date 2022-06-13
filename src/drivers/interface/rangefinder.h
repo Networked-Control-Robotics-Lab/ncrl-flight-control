@@ -7,4 +7,4 @@ float rangefinder_get_velocity(void);
 float rangefinder_get_update_freq(void);
 
 #endif
- 
+

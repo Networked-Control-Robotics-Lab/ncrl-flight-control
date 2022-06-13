@@ -41,7 +41,7 @@ typedef struct {
 bool ins_barometer_sync_buffer_available(void);
 void ins_barometer_sync_buffer_push(float height, float height_rate);
 void ins_barometer_sync_buffer_push_from_isr(float height, float height_rate,
-                                             BaseType_t *higher_priority_task_woken);
+                BaseType_t *higher_priority_task_woken);
 bool ins_barometer_sync_buffer_pop(float *height, float *height_rate);
 
 bool ins_gps_sync_buffer_available(void);
@@ -61,7 +61,7 @@ bool ins_compass_sync_buffer_pop(float *mag);
 bool ins_rangefinder_sync_buffer_available(void);
 void ins_rangefinder_sync_buffer_push(float height, float height_rate);
 void ins_rangefinder_sync_buffer_push_from_isr(float height, float height_rate,
-                                               BaseType_t *higher_priority_task_woken);
+                BaseType_t *higher_priority_task_woken);
 bool ins_rangefinder_sync_buffer_pop(float *height, float *height_rate);
 
 #endif

@@ -213,7 +213,7 @@ gdbauto:
 	cgdb -d $(GDB) -x ./gdb/openocd_gdb.gdb
 
 astyle:
-	astyle -r --exclude=lib --style=linux --suffix=none --indent=tab=8  *.c *.h
+	astyle --style=linux --indent=tab=8 --exclude=lib --recursive "*.c,*.h"
 
 autopep8:
 	autopep8 -i ../tools/serial_plot.py

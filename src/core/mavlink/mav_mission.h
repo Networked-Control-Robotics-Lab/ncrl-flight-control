@@ -9,13 +9,13 @@ typedef struct {
 	/* transmission */
 	bool send_mission;
 	float sender_timout_timer;
-      
+
 	/* reception */
 	bool receive_mission;
 	int recept_cnt;
 	int recept_index;
 	int recvd_mission_type;
-	float recept_timout_timer; 
+	float recept_timout_timer;
 	int recept_retry;
 } mavlink_mission_manager;
 

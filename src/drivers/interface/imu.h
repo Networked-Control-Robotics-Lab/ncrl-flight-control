@@ -15,7 +15,7 @@ void reset_accel_bias(void);
 void get_accel_raw(float *accel);
 void get_accel_lpf(float *accel);
 float get_accel_update_rate(void);
-    
+
 void get_gyro_raw(float *gyro);
 void get_gyro_lpf(float *gyro);
 float get_gyro_update_rate(void);

@@ -45,8 +45,7 @@ enum {
 	AUTOPILOT_ALREADY_TAKEOFF
 } AUTOPILOT_RETVAL;
 
-struct trajectory_segment_t
-{
+struct trajectory_segment_t {
 	float x_poly_coeff[8];
 	float y_poly_coeff[8];
 	float z_poly_coeff[8];
@@ -103,7 +102,7 @@ typedef struct {
 	bool armed;
 	bool motor_locked;
 	float waypoint_touch_radius;
-	
+
 	/* 1. auto-takeoff and landing */
 	bool land_avaliable;
 	float landing_speed;

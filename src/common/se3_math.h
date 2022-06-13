@@ -9,9 +9,9 @@
 #include "se3_math.h"
 
 typedef struct {
-        float roll;
-        float pitch;
-        float yaw;
+	float roll;
+	float pitch;
+	float yaw;
 } euler_t;
 
 void euler_to_rotation_matrix(euler_t *euler, float *r, float *r_transpose);

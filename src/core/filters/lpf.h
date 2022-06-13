@@ -3,17 +3,17 @@
 
 /* second order low pass filter */
 typedef struct {
-    float k;
-    float a1;
-    float a2;
-    float b1;
-    float b2;
+	float k;
+	float a1;
+	float a2;
+	float b1;
+	float b2;
 
-    float filter_last;
-    float filter_last_last;
+	float filter_last;
+	float filter_last_last;
 
-    float input_last;
-    float input_last_last;
+	float input_last;
+	float input_last_last;
 } lpf2_t;
 
 void lpf_first_order_init(float *ret_gain, float sampling_time, float cutoff_freq);

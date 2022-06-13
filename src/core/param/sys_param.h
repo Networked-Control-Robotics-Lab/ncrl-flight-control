@@ -32,23 +32,23 @@ enum {
 	SYS_PARAM_S8 = 2,
 	SYS_PARAM_U16 = 3,
 	SYS_PARAM_S16 = 4,
-	SYS_PARAM_U32 = 5,	
+	SYS_PARAM_U32 = 5,
 	SYS_PARAM_S32 = 6,
 	SYS_PARAM_FLOAT = 9
-	/* not supporting uint64_t, int64_t and double */
+	                  /* not supporting uint64_t, int64_t and double */
 } SYS_PARAM_TYPE;
 
 enum {
 	SYS_PARAM_FLASH_WR_SUCCEED = 0,
-        SYS_PARAM_FLASH_WR_DATA_INCORRECT = 1,
-        SYS_PARAM_FLASH_WR_TIMEOUT = 2,
-        SYS_PARAM_FLASH_ERASE_TIMEOUT = 3,
+	SYS_PARAM_FLASH_WR_DATA_INCORRECT = 1,
+	SYS_PARAM_FLASH_WR_TIMEOUT = 2,
+	SYS_PARAM_FLASH_ERASE_TIMEOUT = 3,
 	SYS_PARAM_FLASH_CRC_INCORRECT = 4,
 	SYS_PARAM_FLASH_SIZE_INCORRECT = 5
 } SYS_PARAM_FLASH_RETVAL;
 
 typedef union {
-	uint8_t u8_val; 
+	uint8_t u8_val;
 	int8_t s8_val;
 	uint16_t u16_val;
 	int16_t s16_val;

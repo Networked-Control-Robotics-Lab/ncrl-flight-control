@@ -84,17 +84,17 @@ typedef struct {
 	volatile bool init_finished;
 
 	/* sensor datas */
-        int16_t accel_unscaled[3];
-        int16_t gyro_unscaled[3];
-        int16_t temp_unscaled;
+	int16_t accel_unscaled[3];
+	int16_t gyro_unscaled[3];
+	int16_t temp_unscaled;
 
-        float accel_raw[3];
-        float gyro_raw[3];
-        float temp_raw;
+	float accel_raw[3];
+	float gyro_raw[3];
+	float temp_raw;
 
-        float accel_lpf[3];  
-        float accel_unscaled_lpf[3];
-        float gyro_lpf[3];
+	float accel_lpf[3];
+	float accel_unscaled_lpf[3];
+	float gyro_lpf[3];
 
 	/* calibration */
 	float accel_rescale_x;
