@@ -215,25 +215,9 @@ void ist8310_wait_until_stable(void)
 
 void ist8310_apply_calibration(float *mag)
 {
-#if 1
 	mag[0] = ist8310.rescale_x * (mag[0] - ist8310.bias_x);
 	mag[1] = ist8310.rescale_y * (mag[1] - ist8310.bias_y);
 	mag[2] = ist8310.rescale_z * (mag[2] - ist8310.bias_z);
-#else
-	float mag_raw[3] = {mag[0], mag[1], mag[2]};
-
-	float T[3*3] = {
-		0.718440, -0.695446, 0.014121,
-		0.529427,  0.559873, 0.637377,
-		-0.451167, -0.450441, 0.770423,
-	};
-
-	mag_raw[0] -= ist8310.bias_x;
-	mag_raw[1] -= ist8310.bias_y;
-	mag_raw[2] -= ist8310.bias_z;
-
-	calc_matrix_multiply_vector_3d(mag, mag_raw, T);
-#endif
 }
 
 void ist8310_read_sensor(void)
