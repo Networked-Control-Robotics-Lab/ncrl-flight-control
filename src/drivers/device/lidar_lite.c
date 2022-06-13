@@ -157,7 +157,7 @@ int lidar_write_byte(uint8_t addr, uint8_t data)
 	sw_i2c_start();
 	sw_i2c_send_byte((LIDAR_DEV_ADDRESS << 1) | 0);
 
-	if(sw_i2c_blocked_wait_ack()) {
+	if(sw_i2c_wait_ack()) {
 		/* error: failed to receive acknowledgement */
 		sw_i2c_stop();
 		return 1;
@@ -165,7 +165,7 @@ int lidar_write_byte(uint8_t addr, uint8_t data)
 
 	sw_i2c_send_byte(addr);
 
-	if(sw_i2c_blocked_wait_ack()) {
+	if(sw_i2c_wait_ack()) {
 		/* error: failed to receive acknowledgement */
 		sw_i2c_stop();
 		return 1;
@@ -173,8 +173,7 @@ int lidar_write_byte(uint8_t addr, uint8_t data)
 
 	sw_i2c_send_byte(data);
 
-
-	if(sw_i2c_blocked_wait_ack()) {
+	if(sw_i2c_wait_ack()) {
 		/* error: failed to receive acknowledgement */
 		sw_i2c_stop();
 		return 1;
@@ -267,7 +266,7 @@ void lidar_lite_read_sensor(void)
 	lidar_lite.last_read_time = curr_time;
 
 	/* push data to the ins synchorization buffer */
-	ins_rangefinder_sync_buffer_push(lidar_lite.height_raw, lidar_lite.vel_raw);
+	ins_rangefinder_sync_buffer_push(lidar_lite.height_filtered, lidar_lite.vel_raw);
 }
 
 float lidar_lite_get_distance(void)
@@ -284,7 +283,7 @@ float lidar_lite_get_velocity(void)
 void send_rangefinder_debug_message(debug_msg_t *payload)
 {
 	pack_debug_debug_message_header(payload, MESSAGE_ID_RANGEFINDER);
-	pack_debug_debug_message_float(&lidar_lite.height_raw, payload);
+	pack_debug_debug_message_float(&lidar_lite.height_filtered, payload);
 	pack_debug_debug_message_float(&lidar_lite.vel_raw, payload);
 	pack_debug_debug_message_float(&lidar_lite.update_freq, payload);
 }
