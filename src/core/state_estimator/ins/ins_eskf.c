@@ -20,7 +20,6 @@
 #include "sys_time.h"
 #include "ins_eskf.h"
 
-#define ESKF_RESCALE(number) (number * 1e7) //to improve the numerical stability
 #define ESKF_CONVERGENCE_NORM (5e-1)
 
 #define R(r, c)                  _R.pData[(r * 3) + c]
@@ -96,15 +95,15 @@ void ins_eskf_reset_process_covariance_matrix(void)
 {
 	/* initialize P matrix */
 	matrix_reset(mat_data(_P_post), 9, 9);
-	P_post(0, 0) = ESKF_RESCALE(5.0f); //Var(px)
-	P_post(1, 1) = ESKF_RESCALE(5.0f); //Var(py)
-	P_post(2, 2) = ESKF_RESCALE(5.0f); //Var(pz)
-	P_post(3, 3) = ESKF_RESCALE(5.0f); //Var(vx)
-	P_post(4, 4) = ESKF_RESCALE(5.0f); //Var(vy)
-	P_post(5, 5) = ESKF_RESCALE(5.0f); //Var(vz)
-	P_post(6, 6) = ESKF_RESCALE(5.0f); //Var(theta_x)
-	P_post(7, 7) = ESKF_RESCALE(5.0f); //Var(theta_y)
-	P_post(8, 8) = ESKF_RESCALE(5.0f); //Var(theta_z)
+	P_post(0, 0) = 5.0f; //Var(px)
+	P_post(1, 1) = 5.0f; //Var(py)
+	P_post(2, 2) = 5.0f; //Var(pz)
+	P_post(3, 3) = 5.0f; //Var(vx)
+	P_post(4, 4) = 5.0f; //Var(vy)
+	P_post(5, 5) = 5.0f; //Var(vz)
+	P_post(6, 6) = 5.0f; //Var(theta_x)
+	P_post(7, 7) = 5.0f; //Var(theta_y)
+	P_post(8, 8) = 5.0f; //Var(theta_z)
 
 	memcpy(mat_data(_P_prior), mat_data(_P_post), sizeof(float) * 9 * 9);
 }
@@ -173,41 +172,41 @@ void ins_eskf_init(float _dt)
 
 	/* initialize _Q_i matrix */
 	matrix_reset(mat_data(_Q_i), 6, 6);
-	Q_i(0, 0) = ESKF_RESCALE(1e-5); //Var(ax)
-	Q_i(1, 1) = ESKF_RESCALE(1e-5); //Var(ay)
-	Q_i(2, 2) = ESKF_RESCALE(1e-5); //Var(az)
-	Q_i(3, 3) = ESKF_RESCALE(1e-5); //Var(wx)
-	Q_i(4, 4) = ESKF_RESCALE(1e-5); //Var(wy)
-	Q_i(5, 5) = ESKF_RESCALE(1e-5); //Var(wz)
+	Q_i(0, 0) = 1e-5; //Var(ax)
+	Q_i(1, 1) = 1e-5; //Var(ay)
+	Q_i(2, 2) = 1e-5; //Var(az)
+	Q_i(3, 3) = 1e-5; //Var(wx)
+	Q_i(4, 4) = 1e-5; //Var(wy)
+	Q_i(5, 5) = 1e-5; //Var(wz)
 
 	/* initialize V_accel matrix */
 	matrix_reset(mat_data(_V_accel), 3, 3);
-	V_accel(0, 0) = ESKF_RESCALE(7e-1); //Var(gx)
-	V_accel(1, 1) = ESKF_RESCALE(7e-1); //Var(gy)
-	V_accel(2, 2) = ESKF_RESCALE(7e-1); //Var(gz)
+	V_accel(0, 0) = 7e-1; //Var(gx)
+	V_accel(1, 1) = 7e-1; //Var(gy)
+	V_accel(2, 2) = 7e-1; //Var(gz)
 
 	/* initialize V_mag matrix */
 	matrix_reset(mat_data(_V_mag), 3, 3);
-	V_mag(0, 0) = ESKF_RESCALE(5e-1); //Var(mx)
-	V_mag(1, 1) = ESKF_RESCALE(5e-1); //Var(my)
-	V_mag(2, 2) = ESKF_RESCALE(5e-1); //Var(mz)
+	V_mag(0, 0) = 5e-1; //Var(mx)
+	V_mag(1, 1) = 5e-1; //Var(my)
+	V_mag(2, 2) = 5e-1; //Var(mz)
 
 	/* initial V_gps matrix */
 	matrix_reset(mat_data(_V_gps), 4, 4);
-	V_gps(0, 0) = ESKF_RESCALE(1e-4); //Var(px)
-	V_gps(1, 1) = ESKF_RESCALE(1e-4); //Var(py)
-	V_gps(2, 2) = ESKF_RESCALE(1e-4); //Var(vx)
-	V_gps(3, 3) = ESKF_RESCALE(1e-4); //Var(vy)
+	V_gps(0, 0) = 1e-4; //Var(px)
+	V_gps(1, 1) = 1e-4; //Var(py)
+	V_gps(2, 2) = 1e-4; //Var(vx)
+	V_gps(3, 3) = 1e-4; //Var(vy)
 
 	/* initialize V_baro matrix */
 	matrix_reset(mat_data(_V_baro), 2, 2);
-	V_baro(0, 0) = ESKF_RESCALE(1e-1); //Var(pz)
-	V_baro(1, 1) = ESKF_RESCALE(1e-1); //Var(vz)
+	V_baro(0, 0) = 1e-1; //Var(pz)
+	V_baro(1, 1) = 1e-1; //Var(vz)
 
 	/* initialize V_rangefinder matrix */
 	matrix_reset(mat_data(_V_rangefinder), 2, 2);
-	V_rangefinder(0, 0) = ESKF_RESCALE(2.5e-2); //Var(pz)
-	V_rangefinder(1, 1) = ESKF_RESCALE(2.5e-2); //Var(vz)
+	V_rangefinder(0, 0) = 2.5e-2; //Var(pz)
+	V_rangefinder(1, 1) = 2.5e-2; //Var(vz)
 
 	matrix_reset(mat_data(_PHt_accel), 9, 3);
 	matrix_reset(mat_data(_PHt_mag), 9, 3);
@@ -231,7 +230,7 @@ float ins_eskf_get_covariance_matrix_norm(void)
 		norm += P_prior(i, i);
 	}
 
-	return norm * 1e-7;
+	return norm;
 }
 
 bool ins_eskf_sensor_all_ready(void)
@@ -1672,18 +1671,16 @@ void ins_eskf_estimate(attitude_t *attitude,
 
 void send_ins_eskf1_covariance_matrix_debug_message(debug_msg_t *payload)
 {
-	float recover_covariance_scaling = 1.0f / ESKF_RESCALE(1);
-
 	float p00, p11, p22, p33, p44, p55, p66, p77, p88;
-	p00 = P_post(0, 0) * recover_covariance_scaling;
-	p11 = P_post(1, 1) * recover_covariance_scaling;
-	p22 = P_post(2, 2) * recover_covariance_scaling;
-	p33 = P_post(3, 3) * recover_covariance_scaling;
-	p44 = P_post(4, 4) * recover_covariance_scaling;
-	p55 = P_post(5, 5) * recover_covariance_scaling;
-	p66 = P_post(6, 6) * recover_covariance_scaling;
-	p77 = P_post(7, 7) * recover_covariance_scaling;
-	p88 = P_post(8, 8) * recover_covariance_scaling;
+	p00 = P_post(0, 0);
+	p11 = P_post(1, 1);
+	p22 = P_post(2, 2);
+	p33 = P_post(3, 3);
+	p44 = P_post(4, 4);
+	p55 = P_post(5, 5);
+	p66 = P_post(6, 6);
+	p77 = P_post(7, 7);
+	p88 = P_post(8, 8);
 
 	pack_debug_debug_message_header(payload, MESSAGE_ID_INS_ESKF1_COVARIANCE);
 	pack_debug_debug_message_float(&p00, payload);

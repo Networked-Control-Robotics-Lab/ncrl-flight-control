@@ -9,8 +9,6 @@
 #include "compass.h"
 #include "imu.h"
 
-#define ESKF_RESCALE(number) (number * 10e7) //to improve the numerical stability
-
 MAT_ALLOC(x_nominal, 4, 1);     //x = [q0; q1; q2; q3]
 MAT_ALLOC(x_error_state, 3, 1); //delta_x = [theta_x; theta_y; theta_z]
 MAT_ALLOC(F_x, 3, 3);
@@ -108,56 +106,56 @@ void eskf_ahrs_init(float dt)
 	mat_data(x_nominal)[3] = 0.0f;
 
 	/* initialize Q_i matrix */
-	mat_data(Q_i)[0*3 + 0] = ESKF_RESCALE(1e-5);
+	mat_data(Q_i)[0*3 + 0] = 1e-5;
 	mat_data(Q_i)[0*3 + 1] = 0.0f;
 	mat_data(Q_i)[0*3 + 2] = 0.0f;
 
 	mat_data(Q_i)[1*3 + 0] = 0.0f;
-	mat_data(Q_i)[1*3 + 1] = ESKF_RESCALE(1e-5);
+	mat_data(Q_i)[1*3 + 1] = 1e-5;
 	mat_data(Q_i)[1*3 + 2] = 0.0f;
 
 	mat_data(Q_i)[2*3 + 0] = 0.0f;
 	mat_data(Q_i)[2*3 + 1] = 0.0f;
-	mat_data(Q_i)[2*3 + 2] = ESKF_RESCALE(1e-5);
+	mat_data(Q_i)[2*3 + 2] = 1e-5;
 
 	/* initialize P matrix */
-	mat_data(P_post)[0*3 + 0] = ESKF_RESCALE(5.0f);
+	mat_data(P_post)[0*3 + 0] = 5.0f;
 	mat_data(P_post)[0*3 + 1] = 0.0f;
 	mat_data(P_post)[0*3 + 2] = 0.0f;
 
 	mat_data(P_post)[1*3 + 0] = 0.0f;
-	mat_data(P_post)[1*3 + 1] = ESKF_RESCALE(5.0f);
+	mat_data(P_post)[1*3 + 1] = 5.0f;
 	mat_data(P_post)[1*3 + 2] = 0.0f;
 
 	mat_data(P_post)[2*3 + 0] = 0.0f;
 	mat_data(P_post)[2*3 + 1] = 0.0f;
-	mat_data(P_post)[2*3 + 2] = ESKF_RESCALE(5.0f);
+	mat_data(P_post)[2*3 + 2] = 5.0f;
 
 	/* initialize V_accel matrix */
-	mat_data(V_accel)[0*3 + 0] = ESKF_RESCALE(7e-1);
+	mat_data(V_accel)[0*3 + 0] = 7e-1;
 	mat_data(V_accel)[0*3 + 1] = 0.0f;
 	mat_data(V_accel)[0*3 + 2] = 0.0f;
 
 	mat_data(V_accel)[1*3 + 0] = 0.0f;
-	mat_data(V_accel)[1*3 + 1] = ESKF_RESCALE(7e-1);
+	mat_data(V_accel)[1*3 + 1] = 7e-1;
 	mat_data(V_accel)[1*3 + 2] = 0.0f;
 
 	mat_data(V_accel)[2*3 + 0] = 0.0f;
 	mat_data(V_accel)[2*3 + 1] = 0.0f;
-	mat_data(V_accel)[2*3 + 2] = ESKF_RESCALE(7e-1);
+	mat_data(V_accel)[2*3 + 2] = 7e-1;
 
 	/* initialize V_mag matrix */
-	mat_data(V_mag)[0*3 + 0] = ESKF_RESCALE(5e-1);
+	mat_data(V_mag)[0*3 + 0] = 5e-1;
 	mat_data(V_mag)[0*3 + 1] = 0.0f;
 	mat_data(V_mag)[0*3 + 2] = 0.0f;
 
 	mat_data(V_mag)[1*3 + 0] = 0.0f;
-	mat_data(V_mag)[1*3 + 1] = ESKF_RESCALE(5e-1);
+	mat_data(V_mag)[1*3 + 1] = 5e-1;
 	mat_data(V_mag)[1*3 + 2] = 0.0f;
 
 	mat_data(V_mag)[2*3 + 0] = 0.0f;
 	mat_data(V_mag)[2*3 + 1] = 0.0f;
-	mat_data(V_mag)[2*3 + 2] = ESKF_RESCALE(5e-1);
+	mat_data(V_mag)[2*3 + 2] = 5e-1;
 
 	int r, c;
 	for(r = 0; r < 3; r++) {
