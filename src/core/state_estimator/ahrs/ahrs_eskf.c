@@ -5,7 +5,7 @@
 #include "matrix.h"
 #include "se3_math.h"
 #include "quaternion.h"
-#include "comp_ahrs.h"
+#include "ahrs_comp_filter.h"
 #include "compass.h"
 #include "imu.h"
 

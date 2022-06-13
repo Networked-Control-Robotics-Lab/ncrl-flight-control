@@ -1,5 +1,5 @@
-#ifndef __madgwick_ahrs_h__
-#define __madgwick_ahrs_h__
+#ifndef __ahrs_madgwick_h__
+#define __ahrs_madgwick_h__
 
 #include <stdint.h>
 #include "math.h"

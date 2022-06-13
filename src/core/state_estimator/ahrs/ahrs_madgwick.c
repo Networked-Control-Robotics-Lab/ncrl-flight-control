@@ -1,4 +1,4 @@
-#include "madgwick_ahrs.h"
+#include "ahrs_madgwick.h"
 #include "arm_math.h"
 #include "quaternion.h"
 #include "ahrs.h"

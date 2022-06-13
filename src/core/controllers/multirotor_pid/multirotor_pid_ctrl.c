@@ -15,7 +15,7 @@
 #include "lpf.h"
 #include "imu.h"
 #include "ahrs.h"
-#include "madgwick_ahrs.h"
+#include "ahrs_madgwick.h"
 #include "multirotor_pid_ctrl.h"
 #include "multirotor_pid_param.h"
 #include "motor_thrust_fitting.h"

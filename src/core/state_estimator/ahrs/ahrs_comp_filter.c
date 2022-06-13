@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "arm_math.h"
 #include "ahrs.h"
-#include "comp_ahrs.h"
+#include "ahrs_comp_filter.h"
 #include "lpf.h"
 #include "matrix.h"
 #include "se3_math.h"

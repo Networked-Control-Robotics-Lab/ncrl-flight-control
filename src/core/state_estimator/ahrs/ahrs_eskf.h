@@ -1,5 +1,5 @@
-#ifndef __ESKF_AHRS_H__
-#define __ESKF_AHRS_H__
+#ifndef __AHRS_ESKF_H__
+#define __AHRS_ESKF_H__
 
 void eskf_ahrs_init(float dt);
 void set_ahrs_eskf_quaternion(float *q_new);

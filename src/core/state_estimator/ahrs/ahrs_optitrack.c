@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "arm_math.h"
 #include "ahrs.h"
-#include "optitrack_ahrs.h"
+#include "ahrs_optitrack.h"
 #include "matrix.h"
 #include "quaternion.h"
 #include "optitrack.h"

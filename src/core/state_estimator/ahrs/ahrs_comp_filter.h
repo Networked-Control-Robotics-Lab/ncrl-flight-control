@@ -1,5 +1,5 @@
-#ifndef __COMP_AHRS_H__
-#define __COMP_AHRS_H__
+#ifndef __AHRS_COMP_FILTER_H__
+#define __AHRS_COMP_FILTER_H__
 
 void complementary_ahrs_init(float ahrs_dt);
 void ahrs_imu_complementary_filter_estimate(float *q_out, float *accel, float *gyro);

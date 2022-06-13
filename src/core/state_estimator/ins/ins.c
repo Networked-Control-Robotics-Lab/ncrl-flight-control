@@ -20,7 +20,7 @@
 #include "ins_eskf.h"
 #include "autopilot.h"
 #include "vio.h"
-#include "eskf_ahrs.h"
+#include "ahrs_eskf.h"
 
 #define INS_LOOP_PERIOD 0.0025f //400Hz
 
