@@ -35,11 +35,12 @@ void ncp5623c_led_control(bool red_on, bool green_on, bool blue_on)
 		ncp5623c.g_val = 0.0f;
 	}
 
-	if(green_on == true) {
+	if(blue_on == true) {
 		ncp5623c.b_val = 100.0f;
 	} else {
 		ncp5623c.b_val = 0.0f;
 	}
+	ncp5623c.update_request = true;
 }
 
 void ncp5623c_led_toggle(bool red_toggle, bool green_toggle, bool blue_toggle)
@@ -52,9 +53,10 @@ void ncp5623c_led_toggle(bool red_toggle, bool green_toggle, bool blue_toggle)
 		ncp5623c.g_val = (ncp5623c.g_val < 50.0f) ? 100.0f : 0.0f;
 	}
 
-	if(green_toggle == true) {
+	if(blue_toggle == true) {
 		ncp5623c.b_val = (ncp5623c.b_val < 50.0f) ? 100.0f : 0.0f;
 	}
+	ncp5623c.update_request = true;
 }
 
 void ncp5623c_write(float red, float green, float blue)
