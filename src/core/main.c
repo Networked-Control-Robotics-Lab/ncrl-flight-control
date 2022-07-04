@@ -47,7 +47,7 @@ int main(void)
 	flight_controller_register_task("flight controller", 4096, tskIDLE_PRIORITY + 6);
 
 	/* main telemetry tasks */
-#if (SELECT_TELEM == TELEM_MAVLINK)
+#if (SELECT_MAIN_TELEM == TELEM_MAVLINK)
 	mavlink_tx_register_task("mavlink publisher", 1024, tskIDLE_PRIORITY + 3);
 	mavlink_rx_register_task("mavlink receiver", 2048, tskIDLE_PRIORITY + 3);
 #endif
