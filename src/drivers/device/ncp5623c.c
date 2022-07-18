@@ -4,12 +4,14 @@
 #include "ncp5623c.h"
 
 #define NCP5623C_I2C_TIMEOUT 50
+#define USE_TCA 1
 
 ncp5623c_t ncp5623c = {
 	.r_val = 0.0f,
 	.g_val = 0.0f,
 	.b_val = 0.0f
 };
+
 
 void ncp5623c_led_pwm_control(float red, float green, float blue)
 {
@@ -59,20 +61,45 @@ void ncp5623c_led_toggle(bool red_toggle, bool green_toggle, bool blue_toggle)
 	ncp5623c.update_request = true;
 }
 
+
+#if (USE_TCA == 0)
+void ncp5623c_write(float red, float green, float blue)
+{
+	
+	float timeout = NCP5623C_I2C_TIMEOUT;
+
+	i2c_start(I2C2, 0x39 << 1, I2C_Direction_Transmitter, timeout);
+	i2c_write(I2C2, 0x20 | 0x1a, timeout);
+	i2c_write(I2C2, 0xF0, timeout);
+	i2c_write(I2C2, 0x40 | ((uint8_t)((float)0x1f * red / 100.0f) & 0x1f), timeout);
+	i2c_write(I2C2, 0xF0, timeout);
+	i2c_write(I2C2, 0x60 | ((uint8_t)((float)0x1f * green / 100.0f) & 0x1f), timeout);
+	i2c_write(I2C2, 0xF0,timeout);
+	i2c_write(I2C2, 0x80 | ((uint8_t)((float)0x1f * blue / 100.0f) & 0x1f), timeout);
+	i2c_stop(I2C2);
+
+
+}
+
+#else
+
 void ncp5623c_write(float red, float green, float blue)
 {
 	float timeout = NCP5623C_I2C_TIMEOUT;
 
-	i2c_start(I2C2, 0x39 << 1, I2C_Direction_Transmitter, timeout);
-	i2c_write(I2C2, 0x20 | 0x1f, timeout);
-	i2c_write(I2C2, 0x70, timeout);
-	i2c_write(I2C2, 0x40 | ((uint8_t)((float)0x1f * red / 100.0f) & 0x1f), timeout);
-	i2c_write(I2C2, 0x70, timeout);
-	i2c_write(I2C2, 0x60 | ((uint8_t)((float)0x1f * green / 100.0f) & 0x1f), timeout);
-	i2c_write(I2C2, 0x70,timeout);
-	i2c_write(I2C2, 0x80 | ((uint8_t)((float)0x1f * blue / 100.0f) & 0x1f), timeout);
+	i2c_start(I2C2, 0x55<<1|0x00, I2C_Direction_Transmitter, timeout);
+	i2c_write(I2C2, 0x81 , timeout);
+	i2c_write(I2C2, ((uint8_t)((float)0x0f * blue / 100.0f) & 0x0f), timeout);
+	i2c_write(I2C2, 0x82 , timeout);
+	i2c_write(I2C2, ((uint8_t)((float)0x0f * green / 100.0f) & 0x0f), timeout);
+	i2c_write(I2C2, 0x83 , timeout);
+	i2c_write(I2C2, ((uint8_t)((float)0x0f * red / 100.0f) & 0x0f), timeout);
+	i2c_write(I2C2, 0x84 , timeout);
+	i2c_write(I2C2, 0x03, timeout);
 	i2c_stop(I2C2);
 }
+
+#endif
 
 void ncp5623c_driver_task(void *param)
 {
