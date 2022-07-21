@@ -1,5 +1,42 @@
 #include <stm32f4xx.h>
 #include <sys_time.h>
+#include <sys_time.h>
+#include <i2c.h>
+void i2c1_init(void)
+{
+	/* rcc initialization */
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+
+	/* gpio initialization:   *
+	 * pb10 = scl，pb11 = sda */
+	GPIO_InitTypeDef GPIO_InitStructure= {
+		.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_9,
+		.GPIO_Speed = GPIO_Speed_100MHz,
+		.GPIO_Mode = GPIO_Mode_AF,
+		.GPIO_OType = GPIO_OType_OD,
+		.GPIO_PuPd  = GPIO_PuPd_NOPULL
+	};
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+	/* connect gpi pins to peripheral */
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource8, GPIO_AF_I2C1);
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource9, GPIO_AF_I2C1);
+
+	/* i2c initialization */
+	I2C_InitTypeDef I2C_InitStructure = {
+		.I2C_Mode = I2C_Mode_I2C,
+		.I2C_ClockSpeed = 100000, //set i2c clockspeed as 100kHz
+		.I2C_DutyCycle = I2C_DutyCycle_2,
+		.I2C_OwnAddress1 = 0, //stm32 own i2c address
+		.I2C_Ack = I2C_Ack_Enable,
+		.I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit
+	};
+	I2C_Init(I2C1, &I2C_InitStructure);
+
+	/* enable i2c */
+	I2C_Cmd(I2C1,ENABLE);
+}
 
 void i2c2_init(void)
 {
@@ -92,6 +129,40 @@ int i2c_write(I2C_TypeDef* i2c, uint8_t data, float timeout)
 	return 0;
 }
 
+uint8_t I2C_read_ack(I2C_TypeDef* I2Cx,float timeout){
+	float start_time = get_sys_time_ms();
+	uint8_t data;
+	// enable acknowledge of recieved data
+	I2C_AcknowledgeConfig(I2Cx, ENABLE);
+	// wait until one byte has been received
+	while( !I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_RECEIVED) ){
+		if((get_sys_time_ms() - start_time) > timeout) {
+			return 1;
+		}
+	};
+	// read data from I2C data register and return data byte
+	data = I2C_ReceiveData(I2Cx);
+	return data;
+}
+
+uint8_t I2C_read_nack(I2C_TypeDef* I2Cx,float timeout){
+	float start_time = get_sys_time_ms();
+	uint8_t data;
+	// disabe acknowledge of received data
+	// nack also generates stop condition after last byte received
+	// see reference manual for more info
+	I2C_AcknowledgeConfig(I2Cx, DISABLE);
+	// wait until one byte has been received
+	while( !I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_RECEIVED) ){
+		if((get_sys_time_ms() - start_time) > timeout) {
+			return 1;
+		}
+	};
+	// read data from I2C data register and return data byte
+	data = I2C_ReceiveData(I2Cx);
+	I2C_GenerateSTOP(I2Cx, ENABLE);
+	return data;
+}
 void i2c_stop(I2C_TypeDef* i2c)
 {
 	/* send i2c1 stop condition */
