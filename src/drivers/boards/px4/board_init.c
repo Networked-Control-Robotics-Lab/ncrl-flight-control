@@ -12,13 +12,18 @@
 #include "crc.h"
 #include "spi.h"
 #include "exti.h"
+#include "sw_i2c.h"
+#include "ist8310.h"
 #include "optitrack.h"
 #include "imu.h"
 #include "pwm.h"
 #include "uart.h"
 #include "ncp5623c.h"
 #include "board_porting.h"
+#include "ins_sensor_sync.h"
 
+void f4_sw_i2c_driver_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
+                                    UBaseType_t priority);
 void board_init(void)
 {
 	/* driver initialization */
@@ -52,10 +57,9 @@ void board_init(void)
 
 	blocked_delay_ms(50);
 
-#if (ENABLE_MAGNETOMETER == 1)
-	/* compass (ist8310) */
-	//sw_i2c_init();
-	//ist8310_register_task("compass driver", 512, tskIDLE_PRIORITY + 5);
+#if ((ENABLE_MAGNETOMETER != 0) || (ENABLE_RANGEFINDER != 0))
+	sw_i2c_init();
+	f4_sw_i2c_driver_register_task("sw i2c driver", 512, tskIDLE_PRIORITY + 5);
 #endif
 
 #if (ENABLE_BAROMETER == 1)
@@ -68,4 +72,38 @@ void board_init(void)
 
 	/* led driver task */
 	ncp5623c_driver_register_task("led driver task", 512, tskIDLE_PRIORITY + 2);
+}
+/*================================*
+ * ist8310 and lidar lite support *
+ *================================*/
+void f4_sw_i2c_driver_task(void *param)
+{
+#if (ENABLE_MAGNETOMETER != 0)
+	ist8130_init();
+	freertos_task_delay(10);
+#endif
+
+#if (ENABLE_RANGEFINDER != 0)
+	lidar_lite_init();
+	freertos_task_delay(10);
+#endif
+
+	while(ins_sync_buffer_is_ready() == false);
+
+	while(1) {
+#if (ENABLE_MAGNETOMETER != 0)
+		ist8310_read_sensor();
+#endif
+
+#if (ENABLE_RANGEFINDER != 0)
+		lidar_lite_read_sensor();
+#endif
+		taskYIELD();
+	}
+}
+
+void f4_sw_i2c_driver_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
+                                    UBaseType_t priority)
+{
+	xTaskCreate(f4_sw_i2c_driver_task, task_name, stack_size, NULL, priority, NULL);
 }
