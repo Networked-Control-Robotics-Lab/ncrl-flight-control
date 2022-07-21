@@ -58,7 +58,8 @@ void board_init(void)
 	blocked_delay_ms(50);
 
 #if ((ENABLE_MAGNETOMETER != 0) || (ENABLE_RANGEFINDER != 0))
-	sw_i2c_init();
+//	sw_i2c_init();
+	i2c1_init();
 	f4_sw_i2c_driver_register_task("sw i2c driver", 512, tskIDLE_PRIORITY + 5);
 #endif
 

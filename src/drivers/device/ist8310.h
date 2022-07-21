@@ -60,6 +60,7 @@ bool ist8310_available(void);
 void ist8310_read_sensor(void);
 
 void ist8310_get_mag_raw(float *mag_raw);
+void ist8310_get_mag_unscaled(float *mag_unscaled);
 void ist8310_get_mag_lpf(float *mag_lpf);
 float ist8310_get_update_rate(void);
 float ist8310_get_mag_raw_strength(void);
