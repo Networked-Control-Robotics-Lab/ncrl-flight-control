@@ -58,8 +58,13 @@ void board_init(void)
 	blocked_delay_ms(50);
 
 #if ((ENABLE_MAGNETOMETER != 0) || (ENABLE_RANGEFINDER != 0))
-//	sw_i2c_init();
+
+#if (IST8310_I2C_USE == IST8310_I2C_USE_SW)
+	sw_i2c_init();
+#elif (IST8310_I2C_USE == IST8310_I2C_USE_HW)
 	i2c1_init();
+#endif
+
 	f4_sw_i2c_driver_register_task("sw i2c driver", 512, tskIDLE_PRIORITY + 5);
 #endif
 
