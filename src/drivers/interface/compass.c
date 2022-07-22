@@ -15,11 +15,6 @@ void get_compass_raw(float *mag)
 	ist8310_get_mag_raw(mag);
 }
 
-void get_compass_unscaled(float *mag)
-{
-	ist8310_get_mag_unscaled(mag);
-}
-
 void get_compass_lpf(float *mag)
 {
 	ist8310_get_mag_lpf(mag);
@@ -52,21 +47,6 @@ float get_compass_lpf_strength(void)
 	return ist8310_get_mag_lpf_strength();
 }
 
-void send_compass_unscaled_debug_message(debug_msg_t *payload)
-{
-	float mag_unscaled[3] = {0.0f};
-	get_compass_unscaled(mag_unscaled);
-
-	float mag_strength = get_compass_lpf_strength();
-	float update_freq = get_compass_update_rate();
-
-	pack_debug_debug_message_header(payload, 40);
-	pack_debug_debug_message_float(&mag_unscaled[0], payload);
-	pack_debug_debug_message_float(&mag_unscaled[1], payload);
-	pack_debug_debug_message_float(&mag_unscaled[2], payload);
-	pack_debug_debug_message_float(&mag_strength, payload);
-	pack_debug_debug_message_float(&update_freq, payload);
-}
 void send_compass_debug_message(debug_msg_t *payload)
 {
 	float mag_raw[3] = {0.0f};
