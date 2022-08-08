@@ -19,6 +19,7 @@
 #include "pwm.h"
 #include "uart.h"
 #include "ncp5623c.h"
+#include "ms5611.h"
 #include "board_porting.h"
 #include "ins_sensor_sync.h"
 
@@ -71,7 +72,7 @@ void board_init(void)
 #if (ENABLE_BAROMETER == 1)
 	/* barometer (ms5611) */
 	//spi3_init();
-	//ms5611_init();
+	ms5611_init();
 #endif
 
 	timer3_init();
