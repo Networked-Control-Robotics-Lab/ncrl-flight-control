@@ -10,6 +10,7 @@
 #include "shell_task.h"
 #include "mavlink_task.h"
 #include "flight_ctrl_task.h"
+#include "sensor_task.h"
 #include "debug_link_task.h"
 #include "calibration_task.h"
 #include "perf.h"
@@ -43,6 +44,8 @@ int main(void)
 	/* rgb led indicator service */
 	rgb_led_service_init();
 
+	/* sensor task (highest priority) */
+	imu_register_task("task_imu", 128, tskIDLE_PRIORITY + 7);
 	/* flight controller task (highest priority) */
 	flight_controller_register_task("flight controller", 4096, tskIDLE_PRIORITY + 6);
 

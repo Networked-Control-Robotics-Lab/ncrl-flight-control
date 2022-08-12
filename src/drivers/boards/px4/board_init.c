@@ -68,17 +68,17 @@ void board_init(void)
 
 	f4_sw_i2c_driver_register_task("sw i2c driver", 512, tskIDLE_PRIORITY + 5);
 #endif
-
+#if 0
 #if (ENABLE_BAROMETER == 1)
 	/* barometer (ms5611) */
-	//spi3_init();
 	ms5611_init();
+#endif
 #endif
 
 	timer3_init();
 
 	/* led driver task */
-	ncp5623c_driver_register_task("led driver task", 512, tskIDLE_PRIORITY + 2);
+	ncp5623c_driver_register_task("led driver task", 32, tskIDLE_PRIORITY + 2);
 }
 /*================================*
  * ist8310 and lidar lite support *
