@@ -28,6 +28,7 @@ void f4_sw_i2c_driver_register_task(const char *task_name, configSTACK_DEPTH_TYP
 void board_init(void)
 {
 	/* driver initialization */
+	spi1_semphare_create();
 	flash_init();
 	_crc_init();
 	px4_board_gpio_config();

@@ -29,8 +29,8 @@
 #define BARO_CS GPIOD,GPIO_Pin_7
 
 #define imu_spi_read_write    spi1_read_write
-#define imu_spi_chip_select() GPIO_ResetBits(IMU_CS)
-#define imu_spi_chip_deselect() GPIO_SetBits(IMU_CS)
+#define imu_spi_chip_select() spi1_chip_select()
+#define imu_spi_chip_deselect() spi1_chip_deselect()
 
 #define barometer_spi_read_write    spi1_read_write //XXX: barometer's porting is not complete
 #define barometer_spi_chip_select()   GPIO_ResetBits(BARO_CS)
