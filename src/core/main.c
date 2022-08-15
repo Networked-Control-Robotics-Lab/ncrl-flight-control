@@ -45,12 +45,12 @@ int main(void)
 	rgb_led_service_init();
 
 	/* sensor task (highest priority) */
-	imu_register_task("task_imu", 128, tskIDLE_PRIORITY + 7);
+	imu_register_task("task_imu", 512, tskIDLE_PRIORITY + 7);
 #if (ENABLE_BAROMETER != 0)
-	baro_register_task("task_imu", 128, tskIDLE_PRIORITY + 7);
+	baro_register_task("task_imu", 512, tskIDLE_PRIORITY + 7);
 #endif
 	/* flight controller task (highest priority) */
-	flight_controller_register_task("flight controller", 4096, tskIDLE_PRIORITY + 6);
+	flight_controller_register_task("flight controller", 2048, tskIDLE_PRIORITY + 6);
 
 	/* main telemetry tasks */
 #if (SELECT_MAIN_TELEM == TELEM_MAVLINK)

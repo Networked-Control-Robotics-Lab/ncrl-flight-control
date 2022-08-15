@@ -28,7 +28,7 @@ void f4_sw_i2c_driver_register_task(const char *task_name, configSTACK_DEPTH_TYP
 void board_init(void)
 {
 	/* driver initialization */
-	spi1_semphare_create();
+	
 	flash_init();
 	_crc_init();
 	px4_board_gpio_config();
@@ -37,7 +37,7 @@ void board_init(void)
 	uart2_init(115200); //telem
 	uart6_init(100000); //s-bus
 
-// position sensors in pixhawk
+	// position sensors in pixhawk
 #if (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_GPS)
 	//uart4_init(38400); //gps
 	//ublox_m8n_init();
@@ -56,9 +56,7 @@ void board_init(void)
 	pwm_timer4_init(); //motor
 	exti15_init();     //imu ext interrupt
 	spi1_init();       //imu
-
-	blocked_delay_ms(50);
-
+	
 #if ((ENABLE_MAGNETOMETER != 0) || (ENABLE_RANGEFINDER != 0))
 
 #if (IST8310_I2C_USE == IST8310_I2C_USE_SW)
@@ -67,20 +65,20 @@ void board_init(void)
 	i2c1_init();
 #endif
 
-	f4_sw_i2c_driver_register_task("sw i2c driver", 512, tskIDLE_PRIORITY + 5);
 #endif
-#if 0
-#if (ENABLE_BAROMETER == 1)
-	/* barometer (ms5611) */
-	ms5611_init();
-#endif
-#endif
-
 	timer3_init();
 
+	blocked_delay_ms(50);
+
+
+	spi1_semphare_create();
+#if ((ENABLE_MAGNETOMETER != 0) || (ENABLE_RANGEFINDER != 0))
+	f4_sw_i2c_driver_register_task("sw i2c driver", 512, tskIDLE_PRIORITY + 5);
+#endif
 	/* led driver task */
-	ncp5623c_driver_register_task("led driver task", 32, tskIDLE_PRIORITY + 2);
+	ncp5623c_driver_register_task("led driver task", 512, tskIDLE_PRIORITY + 2);
 }
+
 /*================================*
  * ist8310 and lidar lite support *
  *================================*/
