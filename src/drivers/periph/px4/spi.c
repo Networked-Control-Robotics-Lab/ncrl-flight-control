@@ -155,6 +155,18 @@ void spi1_chip_deselect(void)
 	xSemaphoreGive(spi1_semphr);
 }
 
+void spi1_chip_select_pin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin)
+{
+	while(xSemaphoreTake(spi1_semphr, 9) == pdFALSE);
+	GPIO_ResetBits(GPIOx, GPIO_Pin);
+}
+
+void spi1_chip_deselect_pin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin)
+{
+	GPIO_SetBits(GPIOx, GPIO_Pin);
+	xSemaphoreGive(spi1_semphr);
+}
+
 void spi3_chip_select(void)
 {
 #if 0

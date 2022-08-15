@@ -94,7 +94,6 @@ void task_flight_ctrl(void *param)
 #endif
 	/* imu initialization */
 	imu_init();
-
 	/* imu requires calibration before using */
 	set_rgb_led_calibration_mode_flag(true);
 	while(imu_calibration_not_finished() == true) {

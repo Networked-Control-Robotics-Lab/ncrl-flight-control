@@ -5,6 +5,7 @@
 #include "timer.h"
 #include "gpio.h"
 #include "flight_ctrl_task.h"
+#include "sensor_task.h"
 #include "sys_time.h"
 #include "led.h"
 #include "ms5611.h"
@@ -93,8 +94,10 @@ void TIM3_IRQHandler(void)
 	/* timer3 for scheduling sensor measurements */
 	if(TIM_GetITStatus(TIM3, TIM_IT_Update) == SET) {
 		BaseType_t higher_priority_task_woken = pdFALSE;
-
-		ms5611_driver_trigger_handler();
+#if (ENABLE_BAROMETER != 0)
+		baro_semaphore_handler();
+#endif
+		//ms5611_driver_trigger_handler();
 
 		//dummy_sensors_update_isr_handler(&higher_priority_task_woken);
 
