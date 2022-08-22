@@ -22,6 +22,7 @@
 #include "ms5611.h"
 #include "board_porting.h"
 #include "ins_sensor_sync.h"
+#include "ublox_m8n.h"
 
 void f4_sw_i2c_driver_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
                                     UBaseType_t priority);
@@ -39,8 +40,8 @@ void board_init(void)
 
 	// position sensors in pixhawk
 #if (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_GPS)
-	//uart4_init(38400); //gps
-	//ublox_m8n_init();
+	uart4_init(38400); //gps
+	ublox_m8n_init();
 #elif (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_OPTITRACK)
 	uart4_init(115200);
 	optitrack_init(UAV_DEFAULT_ID); //setup tracker id for this MAV
