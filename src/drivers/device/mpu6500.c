@@ -62,6 +62,10 @@ static void mpu6500_reset()
 {
 	mpu6500_write_byte(MPU6500_PWR_MGMT_1, 0x80);
 	blocked_delay_ms(100);
+#if (SELECT_MPU_IMU == USE_MPU6000)
+	mpu6500_write_byte(MPU6500_PWR_MGMT_1, 0x00);
+	blocked_delay_ms(100);
+#endif
 }
 
 static void mpu6500_bias_calc(int16_t *gyro, int16_t *accel)

@@ -31,6 +31,16 @@ void set_all_motor_pwm_pulse(uint16_t pulse)
 	set_motor_pwm_pulse(MOTOR5, pulse);
 }
 
+void set_all_motor_value(float pulse)
+{
+	set_motor_value(MOTOR1, pulse);
+	set_motor_value(MOTOR2, pulse);
+	set_motor_value(MOTOR3, pulse);
+	set_motor_value(MOTOR4, pulse);
+	set_motor_value(MOTOR5, pulse);
+
+}
+
 void camera_trigger_gpio_on(void)
 {
 	gpio_on(MOTOR6);

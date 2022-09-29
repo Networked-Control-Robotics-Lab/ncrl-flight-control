@@ -16,6 +16,7 @@
 void set_motor_pwm_pulse(volatile uint32_t *motor, uint16_t pulse);
 void set_motor_value(volatile uint32_t *motor, float percentage);
 void set_all_motor_pwm_pulse(uint16_t pulse);
+void set_all_motor_value(float pulse);
 
 void motor_init(void);
 void motor_halt(void);
