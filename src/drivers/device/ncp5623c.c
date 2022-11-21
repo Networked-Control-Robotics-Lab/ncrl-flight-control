@@ -4,7 +4,7 @@
 #include "ncp5623c.h"
 
 #define NCP5623C_I2C_TIMEOUT 50
-#define USE_TCA 1
+#define USE_TCA 0
 
 ncp5623c_t ncp5623c = {
 	.r_val = 0.0f,
