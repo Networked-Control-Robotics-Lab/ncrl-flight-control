@@ -1,11 +1,16 @@
 #include <stdbool.h>
+#include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
 #include "stm32f4xx_conf.h"
 #include "proj_config.h"
+#include "spi.h"
 
 //TODO: porting of ms5611 is not complete
 
 uint8_t spi3_tx_buf;
 uint8_t spi3_rx_buf;
+SemaphoreHandle_t spi1_semphr;
 
 /* <spi1>
  * usage: mpu6000 (imu)
@@ -14,8 +19,14 @@ uint8_t spi3_rx_buf;
  * miso: gpio_pin_a_6
  * mosi: gpio_pin_a_7
  */
+
+void spi1_semphare_create(void){
+	spi1_semphr = xSemaphoreCreateMutex();
+}
+
 void spi1_init(void)
 {
+	
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
@@ -134,12 +145,26 @@ uint8_t spi3_read_write(uint8_t data)
 
 void spi1_chip_select(void)
 {
+	while(xSemaphoreTake(spi1_semphr, 9) == pdFALSE);
 	GPIO_ResetBits(GPIOC, GPIO_Pin_2);
 }
 
 void spi1_chip_deselect(void)
 {
 	GPIO_SetBits(GPIOC, GPIO_Pin_2);
+	xSemaphoreGive(spi1_semphr);
+}
+
+void spi1_chip_select_pin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin)
+{
+	while(xSemaphoreTake(spi1_semphr, 9) == pdFALSE);
+	GPIO_ResetBits(GPIOx, GPIO_Pin);
+}
+
+void spi1_chip_deselect_pin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin)
+{
+	GPIO_SetBits(GPIOx, GPIO_Pin);
+	xSemaphoreGive(spi1_semphr);
 }
 
 void spi3_chip_select(void)

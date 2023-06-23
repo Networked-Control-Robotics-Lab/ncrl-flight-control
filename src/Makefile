@@ -97,6 +97,7 @@ SRC+=./core/main.c \
 	./core/tasks/flight_ctrl_task.c \
 	./core/tasks/mavlink_task.c \
 	./core/tasks/debug_link_task.c \
+	./core/tasks/sensor_task.c \
 	./core/tasks/shell_task.c \
 	./core/shell/quadshell.c \
 	./core/shell/shell_cmds.c \

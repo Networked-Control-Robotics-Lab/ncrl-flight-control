@@ -1,8 +1,10 @@
 #include "arm_math.h"
+#include <stm32f4xx.h>
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
 #include "sw_i2c.h"
+#include "i2c.h"
 #include "delay.h"
 #include "ist8310.h"
 #include "sys_time.h"
@@ -11,6 +13,7 @@
 #include "ins_sensor_sync.h"
 #include "se3_math.h"
 
+#define IST8310_I2C_TIMEOUT 50
 ist8310_t ist8310 = {
 	.bias_x = 0.0f,
 	.bias_y = 0.0f,
@@ -34,6 +37,7 @@ bool ist8310_available(void)
 
 int ist8310_read_byte(uint8_t addr, uint8_t *data)
 {
+#if (IST8310_I2C_USE == IST8310_I2C_USE_SW)
 	sw_i2c_start();
 	sw_i2c_send_byte((IST8310_ADDR << 1) | 0);
 
@@ -63,12 +67,20 @@ int ist8310_read_byte(uint8_t addr, uint8_t *data)
 	*data = sw_i2c_read_byte();
 	sw_i2c_nack();
 	sw_i2c_stop();
-
+#elif (IST8310_I2C_USE == IST8310_I2C_USE_HW)
+	float timeout = IST8310_I2C_TIMEOUT;
+	i2c_start(I2C1, (IST8310_ADDR << 1) | 0, I2C_Direction_Transmitter, timeout);
+	i2c_write(I2C1, addr, timeout);
+	i2c_stop(I2C1);
+	i2c_start(I2C1, (IST8310_ADDR << 1) | 1, I2C_Direction_Receiver, timeout);
+	*data = I2C_read_nack(I2C1,timeout);
+#endif
 	return 0;
 }
 
 int ist8310_write_byte(uint8_t addr, uint8_t data)
 {
+#if (IST8310_I2C_USE == IST8310_I2C_USE_SW)
 	sw_i2c_start();
 	sw_i2c_send_byte((IST8310_ADDR << 1) | 0);
 
@@ -95,7 +107,13 @@ int ist8310_write_byte(uint8_t addr, uint8_t data)
 	}
 
 	sw_i2c_stop();
-
+#elif (IST8310_I2C_USE == IST8310_I2C_USE_HW)
+	float timeout = IST8310_I2C_TIMEOUT;
+	i2c_start(I2C1, (IST8310_ADDR << 1) | 0, I2C_Direction_Transmitter, timeout);
+	i2c_write(I2C1, addr, timeout);
+	i2c_write(I2C1, data, timeout);
+	i2c_stop(I2C1);
+#endif
 	return 0;
 }
 
@@ -132,6 +150,8 @@ void ist8310_blocked_write_byte(uint8_t addr, uint8_t data)
 
 int ist8310_read_bytes(uint8_t addr, uint8_t *data, int size)
 {
+
+#if (IST8310_I2C_USE == IST8310_I2C_USE_SW)
 	sw_i2c_start();
 	sw_i2c_send_byte((IST8310_ADDR << 1) | 0);
 
@@ -170,7 +190,22 @@ int ist8310_read_bytes(uint8_t addr, uint8_t *data, int size)
 	}
 
 	sw_i2c_stop();
-
+#elif (IST8310_I2C_USE == IST8310_I2C_USE_HW)
+	float timeout = IST8310_I2C_TIMEOUT;
+	i2c_start(I2C1, (IST8310_ADDR << 1) | 0, I2C_Direction_Transmitter, timeout);
+	i2c_write(I2C1, addr, timeout);
+	i2c_stop(I2C1);
+	i2c_start(I2C1, (IST8310_ADDR << 1) | 1, I2C_Direction_Receiver, timeout);
+	for(int i = 0; i < size; i++) {
+		if(i == (size-1)) {
+			/* send nack if all bytes are received */
+			data[i] = I2C_read_nack(I2C1,timeout);
+		} else {
+			/* send ack for requesting next byte */
+			data[i] = I2C_read_ack(I2C1,timeout);
+		}
+	}
+#endif 
 	return 0;
 }
 
@@ -193,7 +228,11 @@ void ist8130_init(void)
 	while(ist8310_read_who_i_am() != IST8310_CHIP_ID);
 
 	ist8310_reset();
-
+	
+#if (IST8310_I2C_USE == IST8310_I2C_USE_HW)
+	while(ist8310_write_byte(IST8310_REG_CTRL3, IST8310_CNTRL3_16bits) != 0);
+	blocked_delay_ms(100);
+#endif
 	while(ist8310_write_byte(IST8310_REG_AVG, IST8310_AVG_16) != 0);
 	blocked_delay_ms(100);
 
@@ -246,11 +285,10 @@ void ist8310_read_sensor(void)
 	ist8310.mag_unscaled[1] = ((int16_t)buf[1] << 8) | (int16_t)buf[0];
 	ist8310.mag_unscaled[2] = ((int16_t)buf[5] << 8) | (int16_t)buf[4];
 
-	/* convert unscaled data to raw data (NED frame) */
-	ist8310.mag_raw[0] = ist8310.mag_unscaled[0] * IST8310_RESOLUTION * 0.01;
-	ist8310.mag_raw[1] = ist8310.mag_unscaled[1] * IST8310_RESOLUTION * 0.01;
-	ist8310.mag_raw[2] = ist8310.mag_unscaled[2] * IST8310_RESOLUTION * 0.01;
-
+	ist8310.mag_raw[0] = ist8310.mag_unscaled[0] * IST8310_RESOLUTION;
+	ist8310.mag_raw[1] = ist8310.mag_unscaled[1] * IST8310_RESOLUTION;
+	ist8310.mag_raw[2] = ist8310.mag_unscaled[2] * IST8310_RESOLUTION;
+	
 	/* undistortion and bias canceling */
 	ist8310_apply_calibration(ist8310.mag_raw);
 
@@ -277,6 +315,13 @@ void ist8310_get_mag_raw(float *mag_raw)
 	mag_raw[0] = ist8310.mag_raw[0];
 	mag_raw[1] = ist8310.mag_raw[1];
 	mag_raw[2] = ist8310.mag_raw[2];
+}
+
+void ist8310_get_mag_unscaled(float *mag_unscaled)
+{
+	mag_unscaled[0] = ist8310.mag_unscaled[0];
+	mag_unscaled[1] = ist8310.mag_unscaled[1];
+	mag_unscaled[2] = ist8310.mag_unscaled[2];
 }
 
 void ist8310_get_mag_lpf(float *mag_lpf)

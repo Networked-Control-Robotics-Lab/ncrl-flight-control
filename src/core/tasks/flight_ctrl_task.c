@@ -88,9 +88,12 @@ void task_flight_ctrl(void *param)
 	geometry_ctrl_init();
 #endif
 
+#if (ENABLE_BAROMETER == 1)
+	/* barometer (ms5611) */
+	ms5611_init();
+#endif
 	/* imu initialization */
 	imu_init();
-
 	/* imu requires calibration before using */
 	set_rgb_led_calibration_mode_flag(true);
 	while(imu_calibration_not_finished() == true) {

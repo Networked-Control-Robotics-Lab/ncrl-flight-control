@@ -12,16 +12,24 @@
 #include "crc.h"
 #include "spi.h"
 #include "exti.h"
+#include "sw_i2c.h"
+#include "ist8310.h"
 #include "optitrack.h"
 #include "imu.h"
 #include "pwm.h"
 #include "uart.h"
 #include "ncp5623c.h"
+#include "ms5611.h"
 #include "board_porting.h"
+#include "ins_sensor_sync.h"
+#include "ublox_m8n.h"
 
+void f4_sw_i2c_driver_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
+                                    UBaseType_t priority);
 void board_init(void)
 {
 	/* driver initialization */
+	
 	flash_init();
 	_crc_init();
 	px4_board_gpio_config();
@@ -30,10 +38,10 @@ void board_init(void)
 	uart2_init(115200); //telem
 	uart6_init(100000); //s-bus
 
-// position sensors in pixhawk
+	// position sensors in pixhawk
 #if (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_GPS)
-	//uart4_init(38400); //gps
-	//ublox_m8n_init();
+	uart4_init(38400); //gps
+	ublox_m8n_init();
 #elif (SELECT_NAVIGATION_DEVICE1 == NAV_DEV1_USE_OPTITRACK)
 	uart4_init(115200);
 	optitrack_init(UAV_DEFAULT_ID); //setup tracker id for this MAV
@@ -49,23 +57,60 @@ void board_init(void)
 	pwm_timer4_init(); //motor
 	exti15_init();     //imu ext interrupt
 	spi1_init();       //imu
+	
+#if ((ENABLE_MAGNETOMETER != 0) || (ENABLE_RANGEFINDER != 0))
+
+#if (IST8310_I2C_USE == IST8310_I2C_USE_SW)
+	sw_i2c_init();
+#elif (IST8310_I2C_USE == IST8310_I2C_USE_HW)
+	i2c1_init();
+#endif
+
+#endif
+	timer3_init();
 
 	blocked_delay_ms(50);
 
-#if (ENABLE_MAGNETOMETER == 1)
-	/* compass (ist8310) */
-	//sw_i2c_init();
-	//ist8310_register_task("compass driver", 512, tskIDLE_PRIORITY + 5);
+
+	spi1_semphare_create();
+#if ((ENABLE_MAGNETOMETER != 0) || (ENABLE_RANGEFINDER != 0))
+	f4_sw_i2c_driver_register_task("sw i2c driver", 512, tskIDLE_PRIORITY + 5);
 #endif
-
-#if (ENABLE_BAROMETER == 1)
-	/* barometer (ms5611) */
-	//spi3_init();
-	//ms5611_init();
-#endif
-
-	timer3_init();
-
 	/* led driver task */
 	ncp5623c_driver_register_task("led driver task", 512, tskIDLE_PRIORITY + 2);
+}
+
+/*================================*
+ * ist8310 and lidar lite support *
+ *================================*/
+void f4_sw_i2c_driver_task(void *param)
+{
+#if (ENABLE_MAGNETOMETER != 0)
+	ist8130_init();
+	freertos_task_delay(10);
+#endif
+
+#if (ENABLE_RANGEFINDER != 0)
+	lidar_lite_init();
+	freertos_task_delay(10);
+#endif
+
+	while(ins_sync_buffer_is_ready() == false);
+
+	while(1) {
+#if (ENABLE_MAGNETOMETER != 0)
+		ist8310_read_sensor();
+#endif
+
+#if (ENABLE_RANGEFINDER != 0)
+		lidar_lite_read_sensor();
+#endif
+		taskYIELD();
+	}
+}
+
+void f4_sw_i2c_driver_register_task(const char *task_name, configSTACK_DEPTH_TYPE stack_size,
+                                    UBaseType_t priority)
+{
+	xTaskCreate(f4_sw_i2c_driver_task, task_name, stack_size, NULL, priority, NULL);
 }

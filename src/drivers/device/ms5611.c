@@ -71,14 +71,14 @@ void ms5611_read_int24_data(int32_t *data)
 
 void ms5611_read_prom(void)
 {
-	barometer_spi_chip_select();
+	//barometer_spi_chip_select();
 	ms5611_read_uint16(0xa2, &ms5611.c1);
 	ms5611_read_uint16(0xa4, &ms5611.c2);
 	ms5611_read_uint16(0xa6, &ms5611.c3);
 	ms5611_read_uint16(0xa8, &ms5611.c4);
 	ms5611_read_uint16(0xaa, &ms5611.c5);
 	ms5611_read_uint16(0xac, &ms5611.c6);
-	barometer_spi_chip_deselect();
+	//barometer_spi_chip_deselect();
 }
 
 void ms5611_init(void)

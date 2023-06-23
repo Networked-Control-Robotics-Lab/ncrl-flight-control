@@ -5,6 +5,7 @@
 #include "gpio.h"
 #include "proj_config.h"
 #include "mpu6500.h"
+#include "sensor_task.h"
 
 void exti15_init(void)
 {
@@ -40,7 +41,8 @@ void exti15_init(void)
 void EXTI15_10_IRQHandler(void)
 {
 	if(EXTI_GetITStatus(EXTI_Line15) == SET) {
-		mpu6500_int_handler();
+		imu_semaphore_handler();
+		//mpu6500_int_handler();
 		EXTI_ClearITPendingBit(EXTI_Line15);
 	}
 }

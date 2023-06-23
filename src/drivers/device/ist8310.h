@@ -6,6 +6,10 @@
 #include "task.h"
 #include "semphr.h"
 
+#define IST8310_I2C_USE_SW 0
+#define IST8310_I2C_USE_HW 1
+#define IST8310_I2C_USE IST8310_I2C_USE_HW
+
 #define IST8310_ADDR 0xe
 
 #define IST8310_REG_WIA   0x00
@@ -14,6 +18,7 @@
 
 #define IST8310_REG_CTRL1 0x0a
 #define IST8310_REG_CTRL2 0x0b
+#define IST8310_REG_CTRL3 0x0d
 #define IST8310_REG_AVG   0x41
 #define IST8310_REG_PDCTL 0x42
 
@@ -31,12 +36,18 @@
 #define IST8310_CNTRL2_DRPOL 0x04
 #define IST8310_CNTRL2_DRENA 0x08
 
+#define IST8310_CNTRL3_16bits 0x70
+
 /* according to the datasheet, the scale factor is 0.3.
  * however, user manual v1.5 claims the scale factor is 3/20
  * (which is equal to 0.15).
  * the latter one seems to be correct according to the experiment.
  */
-#define IST8310_RESOLUTION 0.15f
+#if (IST8310_I2C_USE == IST8310_I2C_USE_SW)
+#define IST8310_RESOLUTION (0.15*0.01)
+#elif (IST8310_I2C_USE == IST8310_I2C_USE_HW)
+#define IST8310_RESOLUTION (1.0/13.2)
+#endif
 
 typedef struct {
 	int16_t mag_unscaled[3];
@@ -60,6 +71,7 @@ bool ist8310_available(void);
 void ist8310_read_sensor(void);
 
 void ist8310_get_mag_raw(float *mag_raw);
+void ist8310_get_mag_unscaled(float *mag_unscaled);
 void ist8310_get_mag_lpf(float *mag_lpf);
 float ist8310_get_update_rate(void);
 float ist8310_get_mag_raw_strength(void);

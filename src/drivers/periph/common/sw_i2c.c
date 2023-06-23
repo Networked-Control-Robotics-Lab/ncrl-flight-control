@@ -23,9 +23,13 @@
 #define I2C_FREQ 100000.0    //100k[Hz]
 #define I2C_CLK_DELAY_TICK 4 //delay_tick = SYS_TIM_FREQ / I2C_FREQ
 
+#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
 #define SW_I2C_SCL GPIOE, GPIO_Pin_0
 #define SW_I2C_SDA GPIOE, GPIO_Pin_1
-
+#elif (SELECT_BOARD == BOARD_PX4_V246)
+#define SW_I2C_SCL GPIOB, GPIO_Pin_8
+#define SW_I2C_SDA GPIOB, GPIO_Pin_9
+#endif
 void sw_i2c_handler(void);
 
 SemaphoreHandle_t sw_i2c_semphr;
@@ -43,19 +47,30 @@ void sw_i2c_init(void)
 	sw_i2c_semphr = xSemaphoreCreateBinary();
 	xSemaphoreGive(sw_i2c_semphr);
 
+#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
+#elif (SELECT_BOARD == BOARD_PX4_V246)
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+#endif
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
 
 	GPIO_InitTypeDef GPIO_InitStruct = {
+#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
 		.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1,
+#elif (SELECT_BOARD == BOARD_PX4_V246)
+		.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_9,
+#endif
 		.GPIO_Mode = GPIO_Mode_OUT,
 		.GPIO_Speed = GPIO_Speed_50MHz,
 		.GPIO_OType = GPIO_OType_PP,
 		.GPIO_PuPd = GPIO_PuPd_UP
 	};
 
+#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
 	GPIO_Init(GPIOE, &GPIO_InitStruct);
-
+#elif (SELECT_BOARD == BOARD_PX4_V246)
+	GPIO_Init(GPIOB, &GPIO_InitStruct);
+#endif
 	/* 90MHz / (900 * 1) = 100kHz */
 	TIM_TimeBaseInitTypeDef TimeBaseInitStruct = {
 		.TIM_Period = 900 - 1,
@@ -99,27 +114,43 @@ void TIM2_IRQHandler(void)
 void sw_i2c_config_sda_in(void)
 {
 	GPIO_InitTypeDef GPIO_InitStruct = {
+#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
 		.GPIO_Pin = GPIO_Pin_1,
+#elif (SELECT_BOARD == BOARD_PX4_V246)
+		.GPIO_Pin = GPIO_Pin_9,
+#endif
 		.GPIO_Mode = GPIO_Mode_IN,
 		.GPIO_Speed = GPIO_Speed_50MHz,
 		.GPIO_OType = GPIO_OType_PP,
 		.GPIO_PuPd = GPIO_PuPd_UP
 	};
 
+#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
 	GPIO_Init(GPIOE, &GPIO_InitStruct);
+#elif (SELECT_BOARD == BOARD_PX4_V246)
+	GPIO_Init(GPIOB, &GPIO_InitStruct);
+#endif
 }
 
 void sw_i2c_config_sda_out(void)
 {
 	GPIO_InitTypeDef GPIO_InitStruct = {
+#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
 		.GPIO_Pin = GPIO_Pin_1,
+#elif (SELECT_BOARD == BOARD_PX4_V246)
+		.GPIO_Pin = GPIO_Pin_9,
+#endif
 		.GPIO_Mode = GPIO_Mode_OUT,
 		.GPIO_Speed = GPIO_Speed_50MHz,
 		.GPIO_OType = GPIO_OType_PP,
 		.GPIO_PuPd = GPIO_PuPd_UP
 	};
 
+#if (SELECT_BOARD == BOARD_PROTOTYPE_V1)
 	GPIO_Init(GPIOE, &GPIO_InitStruct);
+#elif (SELECT_BOARD == BOARD_PX4_V246)
+	GPIO_Init(GPIOB, &GPIO_InitStruct);
+#endif
 }
 
 void sw_i2c_scl_set_high(void)
