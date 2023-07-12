@@ -41,6 +41,7 @@ void config_rgb_mode(void)
 
 		return;
 	} else if(rgb_service.sensor_error == true) {
+		
 		/* pink on */
 		rgb_service.red_on = true;
 		rgb_service.green_on = true;
