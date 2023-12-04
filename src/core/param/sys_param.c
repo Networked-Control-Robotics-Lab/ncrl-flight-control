@@ -436,7 +436,7 @@ int save_param_list_to_flash(void)
 int load_param_list_from_flash(void)
 {
 	uint32_t read_buf[list_size];
-	memset(read_buf, 0, list_size);
+	memset(read_buf, 0, sizeof(read_buf));
 
 	int read_list_size = 0;
 	int read_crc = 0;
